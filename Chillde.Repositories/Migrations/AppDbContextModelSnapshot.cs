@@ -549,6 +549,44 @@ namespace Chillde.Repositories.Migrations
                     b.ToTable("ItemAttribute");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Language", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Code")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Languages");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1553,6 +1591,53 @@ namespace Chillde.Repositories.Migrations
                     b.ToTable("ShippingAddress");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Skill", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SubCategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SubCategoryId1")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("SubCategoryId");
+
+                    b.HasIndex("SubCategoryId1");
+
+                    b.ToTable("Skills");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.SubCategory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1597,6 +1682,58 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("SubCategory");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.Translation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TranslationText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("Translations");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Wallet", b =>
@@ -2081,6 +2218,29 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("Account");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Skill", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
+                        .WithMany("Skills")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Chillde.Repositories.Entities.SubCategory", "SubCategory")
+                        .WithMany()
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Chillde.Repositories.Entities.SubCategory", null)
+                        .WithMany("Skills")
+                        .HasForeignKey("SubCategoryId1");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("SubCategory");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.SubCategory", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Category", "Category")
@@ -2090,6 +2250,17 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.Translation", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Language", "Language")
+                        .WithMany("Translations")
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Wallet", b =>
@@ -2132,6 +2303,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("ShippingAddresses");
 
+                    b.Navigation("Skills");
+
                     b.Navigation("Wallet")
                         .IsRequired();
                 });
@@ -2172,6 +2345,11 @@ namespace Chillde.Repositories.Migrations
                 {
                     b.Navigation("RequestDetail")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.Language", b =>
+                {
+                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
@@ -2254,6 +2432,8 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.SubCategory", b =>
                 {
                     b.Navigation("Items");
+
+                    b.Navigation("Skills");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Wallet", b =>

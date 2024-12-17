@@ -20,6 +20,10 @@ public class AppDbContext : DbContext
     public DbSet<MessageRecipient> MessageRecipients { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Role> Roles { get; set; }
+    public DbSet<Skill> Skills { get; set; }
+    public DbSet<Language> Languages { get; set; }
+    public DbSet<Translation> Translations { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -45,6 +49,21 @@ public class AppDbContext : DbContext
         .HasOne(a => a.Order)
         .WithOne(w => w.Shipment)
         .HasForeignKey<Order>(w => w.ShipmentId);
+
+        modelBuilder.Entity<Skill>()
+        .HasOne(s => s.Account)
+        .WithMany(a => a.Skills)
+        .HasForeignKey(s => s.AccountId);
+
+        modelBuilder.Entity<Skill>()
+        .HasOne(s => s.SubCategory)
+        .WithMany()
+        .HasForeignKey(s => s.SubCategoryId);
+
+        modelBuilder.Entity<Translation>()
+        .HasOne(t => t.Language)
+        .WithMany(l => l.Translations)
+        .HasForeignKey(t => t.LanguageId);
 
         modelBuilder.Entity<Conversation>(entity =>
         {
