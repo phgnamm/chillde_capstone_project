@@ -36,6 +36,16 @@ public class AppDbContext : DbContext
             entity.Property(account => account.PhoneNumber).HasMaxLength(15);
         });
 
+        modelBuilder.Entity<Account>()
+        .HasOne(a => a.Wallet)
+        .WithOne(w => w.Account)
+        .HasForeignKey<Wallet>(w => w.AccountId);
+
+        modelBuilder.Entity<Shipment>()
+        .HasOne(a => a.Order)
+        .WithOne(w => w.Shipment)
+        .HasForeignKey<Order>(w => w.ShipmentId);
+
         modelBuilder.Entity<Conversation>(entity =>
         {
             entity.Property(conversation => conversation.Name).HasMaxLength(50);
