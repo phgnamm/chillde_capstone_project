@@ -1,0 +1,9 @@
+﻿using Chillde.Repositories.Entities;
+
+namespace Chillde.Repositories.Interfaces;
+
+public interface IAccountConversationRepository : IGenericRepository<AccountConversation>
+{
+    Task<AccountConversation?> FindByAccountIdAndConversationIdAsync(Guid accountId, Guid conversationId,
+        Func<IQueryable<AccountConversation>, IQueryable<AccountConversation>>? include = null);
+}
