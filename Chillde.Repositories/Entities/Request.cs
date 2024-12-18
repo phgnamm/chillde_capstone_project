@@ -13,11 +13,10 @@ namespace Chillde.Repositories.Entities
         public RequestStatus Status { get; set; }
 
         // Foreign key
-        public Guid AccountId { get; set; }
         public Guid ItemId { get; set; }
 
         // Relationship
-        public Account Account { get; set; } = null!;
+        public Account CreatedBy { get; set; } = null!;
         public Item Item { get; set; } = null!;
         public virtual ICollection<RequestDetail> RequestDetails { get; set; } = new List<RequestDetail>();
         public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();

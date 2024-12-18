@@ -13,14 +13,13 @@ namespace Chillde.Repositories.Entities
 
         // Foreign key
         public Guid PaymentId { get; set; }
-        public Guid AccountId { get; set; }
         public Guid PackageId { get; set; }
         public Guid ShipmentId { get; set; }
 
 
         // Relationship
         public Package Package { get; set; } = null!;
-        public Account Account { get; set; } = null!;
+        public Account CreatedBy { get; set; } = null!;
         public Shipment Shipment { get; set; } = null!;
       
         public virtual ICollection<OrderInformation> OrderInformations { get; set; } = new List<OrderInformation>();

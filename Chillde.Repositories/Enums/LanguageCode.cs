@@ -4,7 +4,5 @@
     {
         VI = 0, // Vietnamese
         EN = 1, // English
-        FR = 2, // French
-        ES = 3, // Spanish
     }
 }
