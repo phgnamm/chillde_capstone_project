@@ -74,11 +74,13 @@ namespace Chillde.Repositories;
         {
             entity.Property(order => order.Phone).HasMaxLength(15);
             entity.Property(order => order.Address).HasMaxLength(256);
+            entity.Property(order => order.CreatedById).IsRequired();
         });
 
         modelBuilder.Entity<Request>(entity =>
         {
             entity.Property(request => request.Name).HasMaxLength(100);
+            entity.Property(request => request.CreatedById).IsRequired();
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -123,6 +125,7 @@ namespace Chillde.Repositories;
         modelBuilder.Entity<OrderTracking>(entity =>
         {
             entity.Property(orderTracking => orderTracking.Name).HasMaxLength(100);
+            entity.Property(orderTracking => orderTracking.CreatedById).IsRequired();
         });
 
         modelBuilder.Entity<Package>(entity =>
@@ -159,21 +162,15 @@ namespace Chillde.Repositories;
             entity.Property(translation => translation.EntityType).HasMaxLength(50);
         });
 
+        modelBuilder.Entity<Message>(entity => { entity.Property(message => message.CreatedById).IsRequired(); });
+        modelBuilder.Entity<Wallet>(entity => { entity.Property(wallet => wallet.CreatedById).IsRequired(); });
+        modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
+        modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
+        modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
+
         #endregion
 
         #region Relationship Configuration
-
-        modelBuilder.Entity<Wallet>()
-             .HasOne(o => o.CreatedBy)
-             .WithMany()
-             .HasForeignKey(o => o.CreatedById)
-             .IsRequired(true);
-
-        modelBuilder.Entity<Message>()
-             .HasOne(o => o.CreatedBy)
-             .WithMany()
-             .HasForeignKey(o => o.CreatedById)
-             .IsRequired(true);
 
         modelBuilder.Entity<Shipment>()
             .HasOne(a => a.Order)
@@ -191,41 +188,10 @@ namespace Chillde.Repositories;
                 .HasForeignKey(s => s.SubCategoryId);
         });
 
-
         modelBuilder.Entity<Translation>()
             .HasOne(t => t.Language)
             .WithMany(l => l.Translations)
             .HasForeignKey(t => t.LanguageId);
-
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.CreatedBy)
-            .WithMany()
-            .HasForeignKey(o => o.CreatedById)
-            .IsRequired(true);
-
-        modelBuilder.Entity<OrderTracking>()
-           .HasOne(o => o.CreatedBy)
-           .WithMany()
-           .HasForeignKey(o => o.CreatedById)
-           .IsRequired(true);
-
-        modelBuilder.Entity<Service>()
-            .HasOne(o => o.CreatedBy)
-            .WithMany()
-            .HasForeignKey(o => o.CreatedById)
-            .IsRequired(true);
-
-        modelBuilder.Entity<Offer>()
-            .HasOne(o => o.CreatedBy)
-            .WithMany()
-            .HasForeignKey(o => o.CreatedById)
-            .IsRequired(true);
-
-        modelBuilder.Entity<Request>()
-            .HasOne(o => o.CreatedBy)
-            .WithMany()
-            .HasForeignKey(o => o.CreatedById)
-            .IsRequired(true);
 
         #endregion
     }
