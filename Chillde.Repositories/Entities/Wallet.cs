@@ -1,0 +1,10 @@
+﻿namespace Chillde.Repositories.Entities
+{
+    public class Wallet : BaseEntity
+    {
+        public Decimal Balance { get; set; }
+
+        // Relationship
+        public virtual ICollection<WalletHistory> WalletHistories { get; set;} = new List<WalletHistory>();
+    }
+}

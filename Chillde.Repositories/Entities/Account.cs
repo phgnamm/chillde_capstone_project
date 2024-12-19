@@ -27,10 +27,22 @@ public class Account : BaseEntity
     public DateTime? VerificationCodeExpiryTime { get; set; }
     public string? ResetPasswordToken { get; set; }
 
+    // Foreign key
+    public Guid WalletId { get; set; }
+
     // Relationship
+    public Wallet Wallet { get; set; } = null!;
     public virtual ICollection<AccountConversation> AccountConversations { get; set; } =
         new List<AccountConversation>();
-
     public virtual ICollection<AccountRole> AccountRoles { get; set; } = new List<AccountRole>();
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
+    public virtual ICollection<ServiceCollection> ServiceCollections { get; set; } = new List<ServiceCollection>();
+    public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public virtual ICollection<ShippingAddress> ShippingAddresses { get; set; } = new List<ShippingAddress>();
+    public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
+    public virtual ICollection<Message> Message { get; set; } = new List<Message>();
+    public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
+
 }
