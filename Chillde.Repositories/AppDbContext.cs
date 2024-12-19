@@ -203,6 +203,12 @@ namespace Chillde.Repositories;
             .HasForeignKey(o => o.CreatedById)
             .IsRequired(true);
 
+        modelBuilder.Entity<OrderTracking>()
+           .HasOne(o => o.CreatedBy)
+           .WithMany()
+           .HasForeignKey(o => o.CreatedById)
+           .IsRequired(true);
+
         modelBuilder.Entity<Service>()
             .HasOne(o => o.CreatedBy)
             .WithMany()

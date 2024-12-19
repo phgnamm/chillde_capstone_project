@@ -994,7 +994,7 @@ namespace Chillde.Repositories.Migrations
                     Type = table.Column<int>(type: "integer", nullable: false),
                     OrderId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
                     DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -1004,6 +1004,12 @@ namespace Chillde.Repositories.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OrderTrackings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderTrackings_Accounts_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_OrderTrackings_Orders_OrderId",
                         column: x => x.OrderId,
@@ -1248,6 +1254,11 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_OrderTrackingImages_OrderTrackingId",
                 table: "OrderTrackingImages",
                 column: "OrderTrackingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderTrackings_CreatedById",
+                table: "OrderTrackings",
+                column: "CreatedById");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderTrackings_OrderId",
