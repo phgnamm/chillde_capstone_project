@@ -248,7 +248,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Category");
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Conversation", b =>
@@ -334,7 +334,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("FAQ");
+                    b.ToTable("FAQs");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Feature", b =>
@@ -370,7 +370,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Feature");
+                    b.ToTable("Features");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Feedback", b =>
@@ -413,7 +413,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Feedback");
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.FeedbackImage", b =>
@@ -453,7 +453,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("FeedbackId");
 
-                    b.ToTable("FeedbackImage");
+                    b.ToTable("FeedbackImages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Item", b =>
@@ -506,7 +506,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("SubCategoryId");
 
-                    b.ToTable("Item");
+                    b.ToTable("Items");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ItemAttribute", b =>
@@ -553,7 +553,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ItemId");
 
-                    b.ToTable("ItemAttribute");
+                    b.ToTable("ItemAttributes");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Language", b =>
@@ -901,7 +901,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderInformationId");
 
-                    b.ToTable("OrderInformationAttachment");
+                    b.ToTable("OrderInformationAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderTracking", b =>
@@ -948,7 +948,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderTracking");
+                    b.ToTable("OrderTrackings");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderTrackingImage", b =>
@@ -988,7 +988,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderTrackingId");
 
-                    b.ToTable("OrderTrackingImage");
+                    b.ToTable("OrderTrackingImages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Package", b =>
@@ -1035,7 +1035,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Package");
+                    b.ToTable("Packages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.PackageFeature", b =>
@@ -1092,7 +1092,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("PackageFeature");
+                    b.ToTable("PackageFeatures");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
@@ -1335,8 +1335,7 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -1433,7 +1432,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("ServiceImage");
+                    b.ToTable("ServiceImages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ServiceWishlist", b =>
@@ -1475,7 +1474,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("ServiceWishlist");
+                    b.ToTable("ServiceWishlists");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Shipment", b =>
@@ -1609,7 +1608,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.ToTable("ShippingAddress");
+                    b.ToTable("ShippingAddresses");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Skill", b =>
@@ -1704,7 +1703,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("SubCategory");
+                    b.ToTable("SubCategories");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Translation", b =>
@@ -1799,7 +1798,7 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("AccountId")
                         .IsUnique();
 
-                    b.ToTable("Wallet");
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.WalletHistory", b =>
