@@ -115,6 +115,8 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
+                    b.HasIndex("WalletId");
+
                     b.ToTable("Accounts");
                 });
 
@@ -607,7 +609,7 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("CreatedById")
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -1766,13 +1768,10 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
                     b.Property<decimal?>("Balance")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid?>("CreatedById")
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -1795,8 +1794,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique();
+                    b.HasIndex("CreatedById");
 
                     b.ToTable("Wallets");
                 });
@@ -1845,6 +1843,17 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("WalletId");
 
                     b.ToTable("WalletHistory");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.Account", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Wallet", "Wallet")
+                        .WithMany()
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.AccountConversation", b =>
@@ -1948,7 +1957,9 @@ namespace Chillde.Repositories.Migrations
                 {
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Chillde.Repositories.Entities.Message", "ParentMessage")
                         .WithMany()
@@ -2301,13 +2312,13 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Wallet", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
-                        .WithOne("Wallet")
-                        .HasForeignKey("Chillde.Repositories.Entities.Wallet", "AccountId")
+                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Account");
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.WalletHistory", b =>
@@ -2340,9 +2351,6 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("ShippingAddresses");
 
                     b.Navigation("Skills");
-
-                    b.Navigation("Wallet")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.AccountConversation", b =>

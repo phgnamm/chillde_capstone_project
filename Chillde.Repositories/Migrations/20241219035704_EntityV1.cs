@@ -12,40 +12,6 @@ namespace Chillde.Repositories.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Accounts",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    HashedPassword = table.Column<string>(type: "text", nullable: false),
-                    Gender = table.Column<int>(type: "integer", nullable: true),
-                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: true),
-                    Address = table.Column<string>(type: "text", nullable: true),
-                    Image = table.Column<string>(type: "text", nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
-                    VerificationCode = table.Column<string>(type: "text", nullable: true),
-                    VerificationCodeExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ResetPasswordToken = table.Column<string>(type: "text", nullable: true),
-                    WalletId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Accounts", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
@@ -177,6 +143,151 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SubCategories",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubCategories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SubCategories_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Translations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    EntityType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    EntityId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FieldName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    TranslationText = table.Column<string>(type: "text", nullable: false),
+                    LanguageId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Translations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Translations_Languages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "Languages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AccountConversations",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    IsArchived = table.Column<bool>(type: "boolean", nullable: false),
+                    IsOwner = table.Column<bool>(type: "boolean", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConversationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountConversations", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AccountConversations_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AccountRoles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountRoles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AccountRoles_Roles_RoleId",
+                        column: x => x.RoleId,
+                        principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Accounts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FirstName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    LastName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Username = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    HashedPassword = table.Column<string>(type: "text", nullable: false),
+                    Gender = table.Column<int>(type: "integer", nullable: true),
+                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: true),
+                    Address = table.Column<string>(type: "text", nullable: true),
+                    Image = table.Column<string>(type: "text", nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    VerificationCode = table.Column<string>(type: "text", nullable: true),
+                    VerificationCodeExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ResetPasswordToken = table.Column<string>(type: "text", nullable: true),
+                    WalletId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Accounts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Messages",
                 columns: table => new
                 {
@@ -187,7 +298,7 @@ namespace Chillde.Repositories.Migrations
                     IsPinned = table.Column<bool>(type: "boolean", nullable: false),
                     ParentMessageId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
                     DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -201,7 +312,8 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_Messages_Accounts_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "Accounts",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Messages_Messages_ParentMessageId",
                         column: x => x.ParentMessageId,
@@ -296,183 +408,6 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Wallets",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Balance = table.Column<decimal>(type: "numeric", nullable: true),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Wallets", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Wallets_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "SubCategories",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SubCategories", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_SubCategories_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AccountConversations",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    IsArchived = table.Column<bool>(type: "boolean", nullable: false),
-                    IsOwner = table.Column<bool>(type: "boolean", nullable: false),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ConversationId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccountConversations", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AccountConversations_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AccountConversations_Conversations_ConversationId",
-                        column: x => x.ConversationId,
-                        principalTable: "Conversations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Translations",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    EntityType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    EntityId = table.Column<Guid>(type: "uuid", nullable: false),
-                    FieldName = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    TranslationText = table.Column<string>(type: "text", nullable: false),
-                    LanguageId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Translations", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Translations_Languages_LanguageId",
-                        column: x => x.LanguageId,
-                        principalTable: "Languages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AccountRoles",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    AccountId = table.Column<Guid>(type: "uuid", nullable: false),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccountRoles", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AccountRoles_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AccountRoles_Roles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "WalletHistory",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: true),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    WalletId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_WalletHistory", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_WalletHistory_Wallets_WalletId",
-                        column: x => x.WalletId,
-                        principalTable: "Wallets",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Skills",
                 columns: table => new
                 {
@@ -508,6 +443,31 @@ namespace Chillde.Repositories.Migrations
                         column: x => x.SubCategoryId1,
                         principalTable: "SubCategories",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Wallets",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Balance = table.Column<decimal>(type: "numeric", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Wallets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Wallets_Accounts_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -547,6 +507,34 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_MessageRecipients_Messages_MessageId",
                         column: x => x.MessageId,
                         principalTable: "Messages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WalletHistory",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Amount = table.Column<decimal>(type: "numeric", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    WalletId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WalletHistory", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WalletHistory_Wallets_WalletId",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1141,6 +1129,11 @@ namespace Chillde.Repositories.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Accounts_WalletId",
+                table: "Accounts",
+                column: "WalletId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FAQs_ServiceId",
                 table: "FAQs",
                 column: "ServiceId");
@@ -1379,10 +1372,33 @@ namespace Chillde.Repositories.Migrations
                 column: "WalletId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Wallets_AccountId",
+                name: "IX_Wallets_CreatedById",
                 table: "Wallets",
+                column: "CreatedById");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AccountConversations_Accounts_AccountId",
+                table: "AccountConversations",
                 column: "AccountId",
-                unique: true);
+                principalTable: "Accounts",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_AccountRoles_Accounts_AccountId",
+                table: "AccountRoles",
+                column: "AccountId",
+                principalTable: "Accounts",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Accounts_Wallets_WalletId",
+                table: "Accounts",
+                column: "WalletId",
+                principalTable: "Wallets",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_FAQs_Services_ServiceId",
@@ -1446,6 +1462,10 @@ namespace Chillde.Repositories.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Services_Accounts_CreatedById",
                 table: "Services");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Wallets_Accounts_CreatedById",
+                table: "Wallets");
 
             migrationBuilder.DropForeignKey(
                 name: "FK_Offers_Services_ServiceId",
@@ -1525,9 +1545,6 @@ namespace Chillde.Repositories.Migrations
                 name: "Languages");
 
             migrationBuilder.DropTable(
-                name: "Wallets");
-
-            migrationBuilder.DropTable(
                 name: "Conversations");
 
             migrationBuilder.DropTable(
@@ -1547,6 +1564,9 @@ namespace Chillde.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "Accounts");
+
+            migrationBuilder.DropTable(
+                name: "Wallets");
 
             migrationBuilder.DropTable(
                 name: "Services");

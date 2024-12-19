@@ -4,11 +4,8 @@
     {
         public Decimal? Balance { get; set; }
 
-        // Foreign key
-        public Guid AccountId { get; set; }
-
         // Relationship
-        public Account Account { get; set; } = null!;
+        public Account CreatedBy { get; set; } = null!;
         public virtual ICollection<WalletHistory> WalletHistories { get; set;} = new List<WalletHistory>();
     }
 }

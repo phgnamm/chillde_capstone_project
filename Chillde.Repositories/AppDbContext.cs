@@ -163,10 +163,17 @@ namespace Chillde.Repositories;
 
         #region Relationship Configuration
 
-        modelBuilder.Entity<Account>()
-            .HasOne(a => a.Wallet)
-            .WithOne(w => w.Account)
-            .HasForeignKey<Wallet>(w => w.AccountId);
+        modelBuilder.Entity<Wallet>()
+             .HasOne(o => o.CreatedBy)
+             .WithMany()
+             .HasForeignKey(o => o.CreatedById)
+             .IsRequired(true);
+
+        modelBuilder.Entity<Message>()
+             .HasOne(o => o.CreatedBy)
+             .WithMany()
+             .HasForeignKey(o => o.CreatedById)
+             .IsRequired(true);
 
         modelBuilder.Entity<Shipment>()
             .HasOne(a => a.Order)
