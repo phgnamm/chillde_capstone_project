@@ -602,6 +602,9 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("AccountId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("AttachmentUrl")
                         .HasColumnType("text");
 
@@ -640,6 +643,8 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
 
                     b.HasIndex("CreatedById");
 
@@ -1646,16 +1651,11 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("SubCategoryId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("SubCategoryId1")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.HasIndex("SubCategoryId");
-
-                    b.HasIndex("SubCategoryId1");
 
                     b.ToTable("Skills");
                 });
@@ -1955,6 +1955,10 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
                 {
+                    b.HasOne("Chillde.Repositories.Entities.Account", null)
+                        .WithMany("Message")
+                        .HasForeignKey("AccountId");
+
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
@@ -1979,7 +1983,7 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired();
 
                     b.HasOne("Chillde.Repositories.Entities.Account", "Account")
-                        .WithMany()
+                        .WithMany("MessageRecipients")
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2274,14 +2278,10 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired();
 
                     b.HasOne("Chillde.Repositories.Entities.SubCategory", "SubCategory")
-                        .WithMany()
+                        .WithMany("Skills")
                         .HasForeignKey("SubCategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("Chillde.Repositories.Entities.SubCategory", null)
-                        .WithMany("Skills")
-                        .HasForeignKey("SubCategoryId1");
 
                     b.Navigation("Account");
 
@@ -2337,6 +2337,10 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("AccountConversations");
 
                     b.Navigation("AccountRoles");
+
+                    b.Navigation("Message");
+
+                    b.Navigation("MessageRecipients");
 
                     b.Navigation("Orders");
 

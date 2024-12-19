@@ -187,9 +187,10 @@ namespace Chillde.Repositories;
                 .HasForeignKey(s => s.AccountId);
 
             entity.HasOne(s => s.SubCategory)
-                .WithMany()
+                .WithMany(sc => sc.Skills)
                 .HasForeignKey(s => s.SubCategoryId);
         });
+
 
         modelBuilder.Entity<Translation>()
             .HasOne(t => t.Language)

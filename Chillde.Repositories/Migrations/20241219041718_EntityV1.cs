@@ -297,6 +297,7 @@ namespace Chillde.Repositories.Migrations
                     MessageType = table.Column<int>(type: "integer", nullable: false),
                     IsPinned = table.Column<bool>(type: "boolean", nullable: false),
                     ParentMessageId = table.Column<Guid>(type: "uuid", nullable: true),
+                    AccountId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -308,6 +309,11 @@ namespace Chillde.Repositories.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Messages_Accounts_CreatedById",
                         column: x => x.CreatedById,
@@ -414,7 +420,6 @@ namespace Chillde.Repositories.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     AccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     SubCategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    SubCategoryId1 = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -438,11 +443,6 @@ namespace Chillde.Repositories.Migrations
                         principalTable: "SubCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Skills_SubCategories_SubCategoryId1",
-                        column: x => x.SubCategoryId1,
-                        principalTable: "SubCategories",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1179,6 +1179,11 @@ namespace Chillde.Repositories.Migrations
                 column: "MessageId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Messages_AccountId",
+                table: "Messages",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Messages_CreatedById",
                 table: "Messages",
                 column: "CreatedById");
@@ -1350,11 +1355,6 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_Skills_SubCategoryId",
                 table: "Skills",
                 column: "SubCategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Skills_SubCategoryId1",
-                table: "Skills",
-                column: "SubCategoryId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_SubCategories_CategoryId",
