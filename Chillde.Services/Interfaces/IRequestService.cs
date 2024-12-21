@@ -14,6 +14,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> Add(RequestAddModel requestAddModel);
         Task<ResponseModel> Update(Guid id, RequestUpdateModel requestAddModel);
         Task<ResponseModel> GetById(Guid id);
-
+        Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel);
     }
 }

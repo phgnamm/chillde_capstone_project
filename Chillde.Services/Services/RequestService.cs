@@ -1,5 +1,8 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.RequestModels;
+using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
@@ -82,6 +85,41 @@ namespace Chillde.Services.Services
                 };
 
         }
+
+        public async Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel)
+        {
+            var requests = await _unitOfWork.RequestRepository.GetAllAsync(
+                filter: _ => _.IsDeleted == requestFilterModel.IsDeleted &&
+                             _.Name.ToLower().Contains(requestFilterModel.Search.ToLower()),
+                include: requests => requests.Include(_ => _.Item),
+                pageIndex: requestFilterModel.PageIndex,
+                pageSize: requestFilterModel.PageSize
+            );
+
+            var requestModels = requests.Data.Select(_ => new RequestModel
+            {
+                Id = _.Id,
+                Name = _.Name,
+                IsDeleted = _.IsDeleted,
+                ItemName = _.Item?.Name,
+                CreationDate = _.CreationDate,
+                MaxBudget = _.MaxBudget,
+                MinBudget = _.MinBudget,
+                Timeline = _.Timeline,
+                Description = _.Description,
+                Status = _.Status,
+            }).ToList();
+
+            var result = new Pagination<RequestModel>(requestModels, requestFilterModel.PageIndex,
+                requestFilterModel.PageSize, requests.TotalCount);
+
+            return new ResponseModel
+            {
+                Message = "Get all requests successfully",
+                Data = result
+            };
+        }
+
 
         public async Task<ResponseModel> GetById(Guid id)
         {

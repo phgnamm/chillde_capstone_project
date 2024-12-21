@@ -20,6 +20,24 @@ namespace Chillde.API.Controllers
             _requestService = requestService;
         }
         [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAll(RequestFilterModel requestFilterModel)
+        {
+            try
+            {
+                var result = await _requestService.GetAll(requestFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Add([FromForm] RequestAddModel requestAddModel)
         {
