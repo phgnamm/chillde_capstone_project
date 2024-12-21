@@ -23,6 +23,8 @@ public interface IUnitOfWork
     IOrderRepository OrderRepository { get; }
     IPackageRepository PackageRepository { get; }
     IFeedbackImageRepository FeedbackImageRepository { get; }
+    IWalletRepository WalletRepository { get; }
+    IWalletHistoryRepository WalletHistoryRepository { get; }
 
     #endregion
 }

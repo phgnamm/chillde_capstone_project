@@ -16,7 +16,9 @@ public class UnitOfWork : IUnitOfWork
         IFeedbackRepository feedbackRepository,
         IOrderRepository orderRepository,
         IPackageRepository packageRepository,
-        IFeedbackImageRepository feedbackImageRepository)
+        IFeedbackImageRepository feedbackImageRepository,
+        IWalletHistoryRepository walletHistoryRepository,
+        IWalletRepository walletRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -34,6 +36,8 @@ public class UnitOfWork : IUnitOfWork
         OrderRepository = orderRepository;
         PackageRepository = packageRepository;
         FeedbackImageRepository = feedbackImageRepository;
+        WalletHistoryRepository = walletHistoryRepository;
+        WalletRepository = walletRepository;
     }
 
     public AppDbContext Context { get; }
@@ -57,6 +61,10 @@ public class UnitOfWork : IUnitOfWork
     public IPackageRepository PackageRepository {get ;}
 
     public IFeedbackImageRepository FeedbackImageRepository {  get; }
+
+    public IWalletRepository WalletRepository {  get; }
+
+    public IWalletHistoryRepository WalletHistoryRepository {  get; }
 
     public async Task<int> SaveChangeAsync()
     {

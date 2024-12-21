@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Chillde.Services.Models.RequestModels
+namespace Chillde.Repositories.Models.RequestModels
 {
     public class RequestGetByIdModel
     {

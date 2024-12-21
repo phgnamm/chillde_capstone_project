@@ -185,6 +185,14 @@ public static class Configuration
         //FeedbackImage
         services.AddScoped<IFeedbackImageRepository, FeedbackImageRepository>();
 
+        //Wallet
+        services.AddScoped<IWalletRepository, WalletRepository>();
+        services.AddScoped<IWalletService, WalletService>();
+
+        //WalletHistory
+        services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
+        services.AddScoped<IWalletHistoryService, WalletHistoryService>();
+
         #endregion
 
         return services;
