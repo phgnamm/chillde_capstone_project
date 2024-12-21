@@ -15,6 +15,7 @@ using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Services;
 using StackExchange.Redis;
+using OpenAI.GPT3.Extensions;
 
 namespace Chillde.API;
 
@@ -88,6 +89,12 @@ public static class Configuration
             };
         });
 
+        //Translation
+        services.AddOpenAIService(settings =>
+        {
+            settings.ApiKey = configuration["OpenAI:ApiKey"];
+        });
+
         // CORS
         var clientUrl = configuration["URL:Client"];
         ArgumentException.ThrowIfNullOrWhiteSpace(clientUrl);
@@ -155,6 +162,9 @@ public static class Configuration
 
         // Role
         services.AddScoped<IRoleRepository, RoleRepository>();
+
+        //Translation
+        services.AddScoped<ITranslationService, TranslationService>();
 
         #endregion
 

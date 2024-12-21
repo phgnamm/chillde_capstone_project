@@ -47,6 +47,15 @@ builder.Services.AddSwaggerGen(x =>
 
 // Add API configuration
 builder.Services.AddApiConfiguration(builder.Configuration);
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en", "vi" }; 
+    options.SetDefaultCulture("en");
+    options.AddSupportedCultures(supportedCultures);
+    options.AddSupportedUICultures(supportedCultures);
+});
 
 var app = builder.Build();
 
@@ -76,6 +85,9 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AccountStatusMiddleware>();
+app.UseMiddleware<CultureMiddleware>();
+app.UseRequestLocalization();
+
 
 app.MapControllers();
 app.MapHub<RealTimeHub>("/hub");

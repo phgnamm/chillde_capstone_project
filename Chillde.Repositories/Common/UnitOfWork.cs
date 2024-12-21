@@ -9,7 +9,7 @@ public class UnitOfWork : IUnitOfWork
         IAccountRoleRepository accountRoleRepository, IConversationRepository conversationRepository,
         IMessageRepository messageRepository, IMessageRecipientRepository messageRecipientRepository,
         IRefreshTokenRepository refreshTokenRepository,
-        IRoleRepository roleRepository)
+        IRoleRepository roleRepository, ITranslationRepository translationRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -20,6 +20,7 @@ public class UnitOfWork : IUnitOfWork
         MessageRecipientRepository = messageRecipientRepository;
         RefreshTokenRepository = refreshTokenRepository;
         RoleRepository = roleRepository;
+        translationRepository = translationRepository;
     }
 
     public AppDbContext Context { get; }
@@ -31,6 +32,7 @@ public class UnitOfWork : IUnitOfWork
     public IMessageRecipientRepository MessageRecipientRepository { get; }
     public IRefreshTokenRepository RefreshTokenRepository { get; }
     public IRoleRepository RoleRepository { get; }
+    public ITranslationRepository TranslationRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {
