@@ -11,7 +11,6 @@ namespace Chillde.Repositories.Interfaces
     {
         Task<Translation?> GetTranslationAsync(string entityType, Guid entityId, string fieldName, Guid languageId);
         Task<Guid?> GetLanguageIdByCodeAsync(string languageCode);
-        Task<IEnumerable<Translation>> GetTranslationsAsync(string entityType, Guid entityId, Guid languageId);
         Task<bool> DeleteTranslationsAsync(string entityType, Guid entityId);
 
     }

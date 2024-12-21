@@ -172,6 +172,9 @@ public static class Configuration
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
 
+        //Language
+        services.AddScoped<ILanguageRepository, LanguageRepository>();
+        services.AddScoped<ILanguageService, LanguageService>();
         #endregion
 
         return services;

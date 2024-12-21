@@ -137,10 +137,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(s => s.SubCategoryId);
         });
 
-        modelBuilder.Entity<Translation>()
-            .HasOne(t => t.Language)
-            .WithMany(l => l.Translations)
-            .HasForeignKey(t => t.LanguageId);
+        modelBuilder.Entity<Translation>(entity =>
+        {
+            entity.HasKey(t => new { t.EntityType, t.EntityId, t.FieldName, t.LanguageId });
+
+            entity.HasOne(t => t.Language)
+                  .WithMany(l => l.Translations)
+                  .HasForeignKey(t => t.LanguageId);
+        });
 
         #endregion
     }

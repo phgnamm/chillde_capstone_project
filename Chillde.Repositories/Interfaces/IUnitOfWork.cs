@@ -17,6 +17,7 @@ public interface IUnitOfWork
     IRefreshTokenRepository RefreshTokenRepository { get; }
     IRoleRepository RoleRepository { get; }
     ITranslationRepository TranslationRepository { get; }
+    ILanguageRepository LanguageRepository { get; }
 
     #endregion
 }

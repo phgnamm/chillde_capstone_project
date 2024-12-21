@@ -11,6 +11,16 @@ namespace Chillde.Repositories.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Translations",
+                table: "Translations");
+
+            migrationBuilder.AddColumn<string>(
+                name: "Description",
+                table: "OrderInformation",
+                type: "text",
+                nullable: true);
+
             migrationBuilder.AlterColumn<Guid>(
                 name: "CreatedById",
                 table: "Feedbacks",
@@ -20,6 +30,11 @@ namespace Chillde.Repositories.Migrations
                 oldClrType: typeof(Guid),
                 oldType: "uuid",
                 oldNullable: true);
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Translations",
+                table: "Translations",
+                columns: new[] { "EntityType", "EntityId", "FieldName", "LanguageId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Feedbacks_CreatedById",
@@ -42,9 +57,17 @@ namespace Chillde.Repositories.Migrations
                 name: "FK_Feedbacks_Accounts_CreatedById",
                 table: "Feedbacks");
 
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Translations",
+                table: "Translations");
+
             migrationBuilder.DropIndex(
                 name: "IX_Feedbacks_CreatedById",
                 table: "Feedbacks");
+
+            migrationBuilder.DropColumn(
+                name: "Description",
+                table: "OrderInformation");
 
             migrationBuilder.AlterColumn<Guid>(
                 name: "CreatedById",
@@ -53,6 +76,11 @@ namespace Chillde.Repositories.Migrations
                 nullable: true,
                 oldClrType: typeof(Guid),
                 oldType: "uuid");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Translations",
+                table: "Translations",
+                column: "Id");
         }
     }
 }

@@ -38,17 +38,6 @@ namespace Chillde.Repositories.Repositories
             return null;
         }
 
-        public async Task<IEnumerable<Translation>> GetTranslationsAsync(string entityType, Guid entityId, Guid languageId)
-        {
-            return await _context.Translations
-                .Where(t =>
-                    t.EntityType == entityType &&
-                    t.EntityId == entityId &&
-                    t.LanguageId == languageId &&
-                    !t.IsDeleted)
-                .ToListAsync();
-        }
-
         public async Task<bool> DeleteTranslationsAsync(string entityType, Guid entityId)
         {
             var translations = await _context.Translations
