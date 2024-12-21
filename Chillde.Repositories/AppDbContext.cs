@@ -167,6 +167,7 @@ namespace Chillde.Repositories;
         modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
         modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
+        modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
 
         #endregion
 

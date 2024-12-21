@@ -10,6 +10,7 @@
 
         // Relationship
         public Service Service { get; set; } = null!;
+        public Account CreatedBy { get; set; } = null!;
         public virtual ICollection<FeedbackImage> FeedbackImages { get; set; } = new List<FeedbackImage>();
     }
 }
