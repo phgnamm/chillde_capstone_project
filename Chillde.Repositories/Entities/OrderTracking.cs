@@ -15,5 +15,5 @@ public class OrderTracking : BaseEntity
     public Order Order { get; set; } = null!;
     public Account CreatedBy { get; set; } = null!;
 
-    public virtual ICollection<OrderTrackingImage> OrderTrackingImages { get; set; } = new List<OrderTrackingImage>();
+    public virtual ICollection<OrderTrackingAttachment> OrderTrackingAttachments { get; set; } = new List<OrderTrackingAttachment>();
 }
