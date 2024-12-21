@@ -1,13 +1,12 @@
-﻿namespace Chillde.Repositories.Entities
+﻿namespace Chillde.Repositories.Entities;
+
+public class OrderInformationAttachment : BaseEntity
 {
-    public class OrderInformationAttachment : BaseEntity
-    {
-        public string? AttachmentUrl {  get; set; }
+    public string? AttachmentUrl { get; set; }
 
-        // Foreign key
-        public Guid OrderInformationId { get; set; }
+    // Foreign key
+    public Guid OrderInformationId { get; set; }
 
-        // Relationship
-        public OrderInformation OrderInformation { get; set; } = null!;
-    }
+    // Relationship
+    public OrderInformation OrderInformation { get; set; } = null!;
 }

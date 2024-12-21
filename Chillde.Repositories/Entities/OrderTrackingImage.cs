@@ -1,13 +1,12 @@
-﻿namespace Chillde.Repositories.Entities
+﻿namespace Chillde.Repositories.Entities;
+
+public class OrderTrackingImage : BaseEntity
 {
-    public class OrderTrackingImage : BaseEntity
-    {
-        public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
-        // Foreign key
-        public Guid OrderTrackingId { get; set; }
+    // Foreign key
+    public Guid OrderTrackingId { get; set; }
 
-        // Relationship
-        public OrderTracking OrderTracking { get; set; } = null!;
-    }
+    // Relationship
+    public OrderTracking OrderTracking { get; set; } = null!;
 }

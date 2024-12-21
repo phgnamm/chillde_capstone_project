@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Chillde.Services\Chillde.Services.csproj" />
+        <ProjectReference Include="..\Chillde.Services\Chillde.Services.csproj"/>
     </ItemGroup>
 
 </Project>

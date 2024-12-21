@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Services.Interfaces;
 
-public interface IEmailService
+public interface IEmailHelper
 {
     Task SendEmailAsync(string to, string subject, string body, bool isBodyHtml);
 }

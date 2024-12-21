@@ -1,8 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers;
 

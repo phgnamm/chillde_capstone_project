@@ -2,9 +2,9 @@
 using System.Security.Claims;
 using System.Text;
 using BCrypt.Net;
+using Chillde.Repositories.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Chillde.Repositories.Common;
 
 namespace Chillde.Services.Utils;
 

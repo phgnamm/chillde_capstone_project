@@ -32,8 +32,10 @@ public class Account : BaseEntity
 
     // Relationship
     public Wallet Wallet { get; set; } = null!;
+
     public virtual ICollection<AccountConversation> AccountConversations { get; set; } =
         new List<AccountConversation>();
+
     public virtual ICollection<AccountRole> AccountRoles { get; set; } = new List<AccountRole>();
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
@@ -44,5 +46,4 @@ public class Account : BaseEntity
     public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public virtual ICollection<Message> Message { get; set; } = new List<Message>();
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
-
 }

@@ -1,7 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
@@ -13,6 +10,9 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ConversationModels;
 using Chillde.Services.Models.MessageModels;
 using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Services.Services;
 
