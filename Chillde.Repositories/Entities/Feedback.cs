@@ -8,9 +8,8 @@ public class Feedback : BaseEntity
     // Foreign key
     public Guid ServiceId { get; set; }
 
-        // Relationship
-        public Service Service { get; set; } = null!;
-        public Account CreatedBy { get; set; } = null!;
-        public virtual ICollection<FeedbackImage> FeedbackImages { get; set; } = new List<FeedbackImage>();
-    }
+    // Relationship
+    public Service Service { get; set; } = null!;
+    public Account CreatedBy { get; set; } = null!;
+    public virtual ICollection<FeedbackImage> FeedbackImages { get; set; } = new List<FeedbackImage>();
 }
