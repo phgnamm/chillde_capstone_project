@@ -43,6 +43,14 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Unauthorized"
                 };
+            if (requestAddModel.MinBudget > requestAddModel.MaxBudget)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "MinBudget must be great or equal more than MaxBudget"
+                };
+            }
             var newRequest = new Request
             {
                 Id = Guid.NewGuid(),

@@ -21,7 +21,7 @@ namespace Chillde.API.Controllers
         }
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAll(RequestFilterModel requestFilterModel)
+        public async Task<IActionResult> GetAll([FromQuery] RequestFilterModel requestFilterModel)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace Chillde.API.Controllers
         }
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromForm] RequestUpdateModel requestUpdateModel)
+        public async Task<IActionResult> Update(Guid id, [FromForm] RequestUpdateModel requestUpdateModel)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Chillde.API.Controllers
         }
         [Authorize]
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById([FromRoute] Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
             try
             {

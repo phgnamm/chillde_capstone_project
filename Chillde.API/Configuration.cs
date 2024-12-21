@@ -168,6 +168,23 @@ public static class Configuration
         //RequestDetail
         services.AddScoped<IRequestDetailRepository, RequestDetailRepository>();
 
+
+        //Order
+        services.AddScoped<IOrderRepository, OrderRepository>();
+
+        //Service
+        services.AddScoped<IServiceRepository, ServiceRepository>();
+
+        //Package
+        services.AddScoped<IPackageRepository, PackageRepository>();
+
+        //Feedback
+        services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
+
+        //FeedbackImage
+        services.AddScoped<IFeedbackImageRepository, FeedbackImageRepository>();
+
         #endregion
 
         return services;

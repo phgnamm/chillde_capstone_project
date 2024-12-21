@@ -18,6 +18,11 @@ public interface IUnitOfWork
     IRoleRepository RoleRepository { get; }
     IRequestRepository RequestRepository { get; }
     IRequestDetailRepository RequestDetailRepository { get; }
+    IServiceRepository ServiceRepository { get; }
+    IFeedbackRepository FeedbackRepository { get; }
+    IOrderRepository OrderRepository { get; }
+    IPackageRepository PackageRepository { get; }
+    IFeedbackImageRepository FeedbackImageRepository { get; }
 
     #endregion
 }

@@ -11,7 +11,12 @@ public class UnitOfWork : IUnitOfWork
         IRefreshTokenRepository refreshTokenRepository,
         IRoleRepository roleRepository,
         IRequestDetailRepository requestDetailRepository,
-        IRequestRepository requestRepository)
+        IRequestRepository requestRepository,
+        IServiceRepository serviceRepository,
+        IFeedbackRepository feedbackRepository,
+        IOrderRepository orderRepository,
+        IPackageRepository packageRepository,
+        IFeedbackImageRepository feedbackImageRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -24,6 +29,11 @@ public class UnitOfWork : IUnitOfWork
         RoleRepository = roleRepository;
         RequestDetailRepository = requestDetailRepository;
         RequestRepository = requestRepository;
+        ServiceRepository = serviceRepository;
+        FeedbackRepository = feedbackRepository;
+        OrderRepository = orderRepository;
+        PackageRepository = packageRepository;
+        FeedbackImageRepository = feedbackImageRepository;
     }
 
     public AppDbContext Context { get; }
@@ -37,6 +47,16 @@ public class UnitOfWork : IUnitOfWork
     public IRoleRepository RoleRepository { get; }
     public IRequestRepository RequestRepository { get; }
     public IRequestDetailRepository RequestDetailRepository { get; }
+
+    public IServiceRepository ServiceRepository {  get; }
+
+    public IFeedbackRepository FeedbackRepository { get; }
+
+    public IOrderRepository OrderRepository { get; }
+
+    public IPackageRepository PackageRepository {get ;}
+
+    public IFeedbackImageRepository FeedbackImageRepository {  get; }
 
     public async Task<int> SaveChangeAsync()
     {
