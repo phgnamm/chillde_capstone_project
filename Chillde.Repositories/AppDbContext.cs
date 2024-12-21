@@ -2,7 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Repositories;
-    public class AppDbContext : DbContext
+
+public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -10,48 +11,6 @@ namespace Chillde.Repositories;
         // AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         // AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
     }
-
-    #region DbSets
-
-    public DbSet<Account> Accounts { get; set; }
-    public DbSet<AccountConversation> AccountConversations { get; set; }
-    public DbSet<AccountRole> AccountRoles { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Conversation> Conversations { get; set; }
-    public DbSet<FAQ> FAQs { get; set; }
-    public DbSet<Feature> Features { get; set; }
-    public DbSet<Feedback> Feedbacks { get; set; }
-    public DbSet<FeedbackImage> FeedbackImages { get; set; }
-    public DbSet<Item> Items { get; set; }
-    public DbSet<ItemAttribute> ItemAttributes { get; set; }
-    public DbSet<Language> Languages { get; set; }
-    public DbSet<Message> Messages { get; set; }
-    public DbSet<MessageRecipient> MessageRecipients { get; set; }
-    public DbSet<Offer> Offers { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderInformation> OrderInformation { get; set; }
-    public DbSet<OrderInformationAttachment> OrderInformationAttachments { get; set; }
-    public DbSet<OrderTracking> OrderTrackings { get; set; }
-    public DbSet<OrderTrackingImage> OrderTrackingImages { get; set; }
-    public DbSet<Package> Packages { get; set; }
-    public DbSet<PackageFeature> PackageFeatures { get; set; }
-    public DbSet<RefreshToken> RefreshTokens { get; set; }
-    public DbSet<Request> Requests { get; set; }
-    public DbSet<RequestDetail> RequestDetail { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<Service> Services { get; set; }
-    public DbSet<ServiceCollection> ServiceCollection { get; set; }
-    public DbSet<ServiceImage> ServiceImages { get; set; }
-    public DbSet<ServiceWishlist> ServiceWishlists { get; set; }
-    public DbSet<Shipment> Shipment { get; set; }
-    public DbSet<ShippingAddress> ShippingAddresses { get; set; }
-    public DbSet<Skill> Skills { get; set; }
-    public DbSet<SubCategory> SubCategories { get; set; }
-    public DbSet<Translation> Translations { get; set; }
-    public DbSet<Wallet> Wallets { get; set; }
-    public DbSet<WalletHistory> WalletHistory { get; set; }
-
-    #endregion
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,15 +60,9 @@ namespace Chillde.Repositories;
             entity.Property(category => category.Code).HasMaxLength(25);
         });
 
-        modelBuilder.Entity<FAQ>(entity =>
-        {
-            entity.Property(faq => faq.Question).HasMaxLength(100);
-        });
+        modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
 
-        modelBuilder.Entity<Feature>(entity =>
-        {
-            entity.Property(feature => feature.Name).HasMaxLength(100);
-        });
+        modelBuilder.Entity<Feature>(entity => { entity.Property(feature => feature.Name).HasMaxLength(100); });
 
         modelBuilder.Entity<Item>(entity =>
         {
@@ -128,20 +81,14 @@ namespace Chillde.Repositories;
             entity.Property(orderTracking => orderTracking.CreatedById).IsRequired();
         });
 
-        modelBuilder.Entity<Package>(entity =>
-        {
-            entity.Property(package => package.Name).HasMaxLength(100);
-        });
+        modelBuilder.Entity<Package>(entity => { entity.Property(package => package.Name).HasMaxLength(100); });
 
         modelBuilder.Entity<ServiceCollection>(entity =>
         {
             entity.Property(serviceCollection => serviceCollection.Name).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<Shipment>(entity =>
-        {
-            entity.Property(shipment => shipment.Code).HasMaxLength(50);
-        });
+        modelBuilder.Entity<Shipment>(entity => { entity.Property(shipment => shipment.Code).HasMaxLength(50); });
 
         modelBuilder.Entity<ShippingAddress>(entity =>
         {
@@ -166,7 +113,10 @@ namespace Chillde.Repositories;
         modelBuilder.Entity<Wallet>(entity => { entity.Property(wallet => wallet.CreatedById).IsRequired(); });
         modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
-        modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
+        modelBuilder.Entity<ShippingAddress>(entity =>
+        {
+            entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired();
+        });
 
         #endregion
 
@@ -195,4 +145,46 @@ namespace Chillde.Repositories;
 
         #endregion
     }
+
+    #region DbSets
+
+    public DbSet<Account> Accounts { get; set; }
+    public DbSet<AccountConversation> AccountConversations { get; set; }
+    public DbSet<AccountRole> AccountRoles { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<FAQ> FAQs { get; set; }
+    public DbSet<Feature> Features { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<FeedbackImage> FeedbackImages { get; set; }
+    public DbSet<Item> Items { get; set; }
+    public DbSet<ItemAttribute> ItemAttributes { get; set; }
+    public DbSet<Language> Languages { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    public DbSet<MessageRecipient> MessageRecipients { get; set; }
+    public DbSet<Offer> Offers { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderInformation> OrderInformation { get; set; }
+    public DbSet<OrderInformationAttachment> OrderInformationAttachments { get; set; }
+    public DbSet<OrderTracking> OrderTrackings { get; set; }
+    public DbSet<OrderTrackingImage> OrderTrackingImages { get; set; }
+    public DbSet<Package> Packages { get; set; }
+    public DbSet<PackageFeature> PackageFeatures { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<Request> Requests { get; set; }
+    public DbSet<RequestDetail> RequestDetail { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<Service> Services { get; set; }
+    public DbSet<ServiceCollection> ServiceCollection { get; set; }
+    public DbSet<ServiceImage> ServiceImages { get; set; }
+    public DbSet<ServiceWishlist> ServiceWishlists { get; set; }
+    public DbSet<Shipment> Shipment { get; set; }
+    public DbSet<ShippingAddress> ShippingAddresses { get; set; }
+    public DbSet<Skill> Skills { get; set; }
+    public DbSet<SubCategory> SubCategories { get; set; }
+    public DbSet<Translation> Translations { get; set; }
+    public DbSet<Wallet> Wallets { get; set; }
+    public DbSet<WalletHistory> WalletHistory { get; set; }
+
+    #endregion
 }

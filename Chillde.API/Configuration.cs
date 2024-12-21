@@ -2,10 +2,6 @@
 using System.Text;
 using Chillde.API.Middlewares;
 using Chillde.API.Utils;
-using CloudinaryDotNet;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Chillde.Repositories;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Interfaces;
@@ -14,6 +10,10 @@ using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Services;
+using CloudinaryDotNet;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 
 namespace Chillde.API;
@@ -120,10 +120,15 @@ public static class Configuration
         services.AddHttpContextAccessor();
         services.AddAutoMapper(typeof(MapperProfile).Assembly);
         services.AddScoped<IClaimService, ClaimService>();
-        services.AddScoped<IRedisHelper, RedisHelper>();
-        services.AddScoped<ICloudinaryHelper, CloudinaryHelper>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddTransient<IEmailService, EmailService>();
+
+        #endregion
+
+        # region Helper
+
+        services.AddScoped<ICloudinaryHelper, CloudinaryHelper>();
+        services.AddTransient<IEmailHelper, EmailHelper>();
+        services.AddScoped<IRedisHelper, RedisHelper>();
 
         #endregion
 

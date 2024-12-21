@@ -3,13 +3,13 @@ using System.Net.Mail;
 using Chillde.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 
-namespace Chillde.Services.Services;
+namespace Chillde.Services.Helpers;
 
-public class EmailService : IEmailService
+public class EmailHelper : IEmailHelper
 {
     private readonly IConfiguration _configuration;
 
-    public EmailService(IConfiguration configuration)
+    public EmailHelper(IConfiguration configuration)
     {
         _configuration = configuration;
     }

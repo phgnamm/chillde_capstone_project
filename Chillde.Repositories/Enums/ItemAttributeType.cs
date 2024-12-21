@@ -1,6 +1,5 @@
-﻿namespace Chillde.Repositories.Enums
+﻿namespace Chillde.Repositories.Enums;
+
+public enum ItemAttributeType
 {
-    public enum ItemAttributeType
-    {
-    }
 }

@@ -1,7 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Enums_Role = Chillde.Repositories.Enums.Role;
-using Role = Chillde.Repositories.Enums.Role;
 
 namespace Chillde.Repositories.Models.AccountModels;
 
