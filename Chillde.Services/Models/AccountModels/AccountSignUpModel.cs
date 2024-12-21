@@ -8,12 +8,14 @@ public class AccountSignUpModel
 {
     [Required] [StringLength(50)] public string FirstName { get; set; } = null!;
     [Required] [StringLength(50)] public string LastName { get; set; } = null!;
-    [StringLength(50)] public string? Username { get; set; }
 
     [Required]
-    [EmailAddress]
-    [StringLength(256)]
-    public string Email { get; set; } = null!;
+    [RegularExpression(@"^[a-zA-Z0-9_]*$",
+        ErrorMessage = "Username can only contain alphanumeric characters and underscores.")]
+    [StringLength(50)]
+    public string Username { get; set; } = null!;
+
+    [EmailAddress] [StringLength(256)] public string Email { get; set; } = null!;
 
     [Required]
     [StringLength(128, MinimumLength = 8)]
@@ -24,12 +26,10 @@ public class AccountSignUpModel
     [Compare("Password")]
     public string ConfirmPassword { get; set; } = null!;
 
-    [Required]
-    [EnumDataType(typeof(Gender))]
-    public Gender Gender { get; set; }
+    [EnumDataType(typeof(Gender))] public Gender? Gender { get; set; }
 
-    [Required] [DateOfBirthValidation] public DateOnly DateOfBirth { get; set; }
-    [Required] [Phone] [StringLength(15)] public string PhoneNumber { get; set; } = null!;
+    [DateOfBirthValidation] public DateOnly? DateOfBirth { get; set; }
+    [Phone] [StringLength(15)] public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
     public List<Role>? Roles { get; set; } = null!;
 }

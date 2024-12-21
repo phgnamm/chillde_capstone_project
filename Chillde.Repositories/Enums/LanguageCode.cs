@@ -1,8 +1,7 @@
-﻿namespace Chillde.Repositories.Enums
+﻿namespace Chillde.Repositories.Enums;
+
+public enum LanguageCode
 {
-    public enum LanguageCode
-    {
-        VI = 0, // Vietnamese
-        EN = 1, // English
-    }
+    VI = 0, // Vietnamese
+    EN = 1 // English
 }

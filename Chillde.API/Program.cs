@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 using Chillde.API;
 using Chillde.API.Middlewares;
-using Microsoft.OpenApi.Models;
 using Chillde.Repositories.Common;
 using Chillde.Services.Hubs;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

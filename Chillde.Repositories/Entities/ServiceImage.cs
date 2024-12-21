@@ -1,13 +1,12 @@
-﻿namespace Chillde.Repositories.Entities
+﻿namespace Chillde.Repositories.Entities;
+
+public class ServiceImage : BaseEntity
 {
-    public class ServiceImage : BaseEntity
-    {
-        public string? ImageUrl { get; set; }
+    public string? ImageUrl { get; set; }
 
-        // Foreign key
-        public Guid ServiceId { get; set; }
+    // Foreign key
+    public Guid ServiceId { get; set; }
 
-        // Relationship
-        public Service Service { get; set; } = null!;
-    }
+    // Relationship
+    public Service Service { get; set; } = null!;
 }

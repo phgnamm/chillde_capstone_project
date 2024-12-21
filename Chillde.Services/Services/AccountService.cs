@@ -4,9 +4,6 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
@@ -18,7 +15,9 @@ using Chillde.Services.Models.AccountModels.OAuth2;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TokenModels;
 using Chillde.Services.Utils;
-using Account = Chillde.Repositories.Entities.Account;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Role = Chillde.Repositories.Enums.Role;
 
 namespace Chillde.Services.Services;
@@ -28,18 +27,18 @@ public class AccountService : IAccountService
     private readonly IClaimService _claimService;
     private readonly ICloudinaryHelper _cloudinaryHelper;
     private readonly IConfiguration _configuration;
-    private readonly IEmailService _emailService;
+    private readonly IEmailHelper _iIEmailHelper;
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
     private readonly IUnitOfWork _unitOfWork;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
-        IEmailService emailService, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork)
+        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork)
     {
         _claimService = claimService;
         _cloudinaryHelper = cloudinaryHelper;
         _configuration = configuration;
-        _emailService = emailService;
+        _iIEmailHelper = iIEmailHelper;
         _mapper = mapper;
         _redisHelper = redisHelper;
         _unitOfWork = unitOfWork;
@@ -74,6 +73,11 @@ public class AccountService : IAccountService
         account.HashedPassword = AuthenticationTools.HashPassword(accountSignUpModel.Password);
         account.VerificationCode = AuthenticationTools.GenerateDigitCode(Constant.VerificationCodeLength);
         account.VerificationCodeExpiryTime = DateTime.UtcNow.AddMinutes(Constant.VerificationCodeValidityInMinutes);
+        account.Wallet = new Wallet
+        {
+            Balance = 0,
+            CreatedById = account.Id
+        };
         await _unitOfWork.AccountRepository.AddAsync(account);
 
         // Add "user" role as default
@@ -157,8 +161,8 @@ public class AccountService : IAccountService
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
         var clientSecret = _configuration["OAuth2:Google:ClientSecret"];
         ArgumentException.ThrowIfNullOrWhiteSpace(clientSecret);
-        var serverUrl = _configuration["URL:Server"];
-        ArgumentException.ThrowIfNullOrWhiteSpace(serverUrl);
+        var redirectUrl = _configuration["URL:Client"];
+        ArgumentException.ThrowIfNullOrWhiteSpace(redirectUrl);
 
         // Exchange authorization code for refresh and access tokens
         // Document: https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
@@ -170,7 +174,7 @@ public class AccountService : IAccountService
                 client_secret = clientSecret,
                 code,
                 grant_type = "authorization_code",
-                redirect_uri = $"{serverUrl}/api/v1/authentication/sign-in/google"
+                redirect_uri = redirectUrl
             });
         if (!googleTokenResponse.IsSuccessStatusCode)
             return new ResponseModel
@@ -227,6 +231,11 @@ public class AccountService : IAccountService
             HashedPassword = AuthenticationTools.HashPassword(AuthenticationTools.GenerateUniqueToken()),
             Image = googleUserInformationModel.Image,
             EmailConfirmed = true
+        };
+        account.Wallet = new Wallet
+        {
+            Balance = 0,
+            CreatedById = account.Id
         };
         await _unitOfWork.AccountRepository.AddAsync(account);
 
@@ -475,7 +484,7 @@ public class AccountService : IAccountService
         _unitOfWork.AccountRepository.Update(account);
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
-            await _emailService.SendEmailAsync(account.Email, "Reset your password",
+            await _iIEmailHelper.SendEmailAsync(account.Email, "Reset your password",
                 $"Your token is {resetPasswordToken}. The token will expire in {Constant.ResetPasswordTokenValidityInMinutes} minutes.",
                 true);
 
@@ -555,7 +564,9 @@ public class AccountService : IAccountService
                         account.AccountRoles.Add(new AccountRole { Account = account, Role = role });
             }
             else
+            {
                 account.AccountRoles.Add(new AccountRole { Account = account, Role = userRole! });
+            }
 
             accounts.Add(account);
         }
@@ -851,7 +862,7 @@ public class AccountService : IAccountService
 
     private async Task SendVerificationEmail(Account account)
     {
-        await _emailService.SendEmailAsync(account.Email, "Verify your email",
+        await _iIEmailHelper.SendEmailAsync(account.Email, "Verify your email",
             $"Your verification code is {account.VerificationCode}. The code will expire in {Constant.VerificationCodeValidityInMinutes} minutes.",
             true);
     }
