@@ -161,6 +161,13 @@ public static class Configuration
         // Role
         services.AddScoped<IRoleRepository, RoleRepository>();
 
+        // Request
+        services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IRequestService, RequestService>();
+
+        //RequestDetail
+        services.AddScoped<IRequestDetailRepository, RequestDetailRepository>();
+
         #endregion
 
         return services;

@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Chillde.Repositories\Chillde.Repositories.csproj"/>
+        <ProjectReference Include="..\Chillde.Repositories\Chillde.Repositories.csproj" />
     </ItemGroup>
 
 </Project>

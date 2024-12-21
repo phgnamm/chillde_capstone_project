@@ -10,7 +10,7 @@ public class Request : BaseEntity
     public decimal? MaxBudget { get; set; }
     public int? Timeline { get; set; }
     public string? AttachmentUrl { get; set; }
-    public RequestStatus Status { get; set; }
+    public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
     // Foreign key
     public Guid ItemId { get; set; }
