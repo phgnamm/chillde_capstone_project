@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Repositories.Entities;
 
-public class OrderTrackingImage : BaseEntity
+public class OrderTrackingAttachment : BaseEntity
 {
     public string? ImageUrl { get; set; }
 

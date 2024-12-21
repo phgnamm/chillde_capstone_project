@@ -159,7 +159,7 @@ public class AppDbContext : DbContext
     public DbSet<FAQ> FAQs { get; set; }
     public DbSet<Feature> Features { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
-    public DbSet<FeedbackImage> FeedbackImages { get; set; }
+    public DbSet<FeedbackAttachment> FeedbackImages { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<ItemAttribute> ItemAttributes { get; set; }
     public DbSet<Language> Languages { get; set; }
@@ -170,7 +170,7 @@ public class AppDbContext : DbContext
     public DbSet<OrderInformation> OrderInformation { get; set; }
     public DbSet<OrderInformationAttachment> OrderInformationAttachments { get; set; }
     public DbSet<OrderTracking> OrderTrackings { get; set; }
-    public DbSet<OrderTrackingImage> OrderTrackingImages { get; set; }
+    public DbSet<OrderTrackingAttachment> OrderTrackingAttachments { get; set; }
     public DbSet<Package> Packages { get; set; }
     public DbSet<PackageFeature> PackageFeatures { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -179,7 +179,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceCollection> ServiceCollection { get; set; }
-    public DbSet<ServiceImage> ServiceImages { get; set; }
+    public DbSet<ServiceAttachment> ServiceAttachments { get; set; }
     public DbSet<ServiceWishlist> ServiceWishlists { get; set; }
     public DbSet<Shipment> Shipment { get; set; }
     public DbSet<ShippingAddress> ShippingAddresses { get; set; }
