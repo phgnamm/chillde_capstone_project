@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
+using OpenAI.GPT3.Extensions;
 
 namespace Chillde.API;
 
@@ -86,6 +87,12 @@ public static class Configuration
                     return Task.CompletedTask;
                 }
             };
+        });
+
+        //Translation
+        services.AddOpenAIService(settings =>
+        {
+            settings.ApiKey = configuration["OpenAI:ApiKey"];
         });
 
         // CORS
@@ -161,6 +168,13 @@ public static class Configuration
         // Role
         services.AddScoped<IRoleRepository, RoleRepository>();
 
+        //Translation
+        services.AddScoped<ITranslationService, TranslationService>();
+        services.AddScoped<ITranslationRepository, TranslationRepository>();
+
+        //Language
+        services.AddScoped<ILanguageRepository, LanguageRepository>();
+        services.AddScoped<ILanguageService, LanguageService>();
         #endregion
 
         return services;

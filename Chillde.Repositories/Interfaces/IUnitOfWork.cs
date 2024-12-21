@@ -16,6 +16,8 @@ public interface IUnitOfWork
     IMessageRecipientRepository MessageRecipientRepository { get; }
     IRefreshTokenRepository RefreshTokenRepository { get; }
     IRoleRepository RoleRepository { get; }
+    ITranslationRepository TranslationRepository { get; }
+    ILanguageRepository LanguageRepository { get; }
 
     #endregion
 }

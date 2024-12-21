@@ -113,10 +113,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Wallet>(entity => { entity.Property(wallet => wallet.CreatedById).IsRequired(); });
         modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
-        modelBuilder.Entity<ShippingAddress>(entity =>
-        {
-            entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired();
-        });
+        modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
+        modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
+
 
         #endregion
 
@@ -138,10 +137,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(s => s.SubCategoryId);
         });
 
-        modelBuilder.Entity<Translation>()
-            .HasOne(t => t.Language)
-            .WithMany(l => l.Translations)
-            .HasForeignKey(t => t.LanguageId);
+        modelBuilder.Entity<Translation>(entity =>
+        {
+            entity.HasKey(t => new { t.EntityType, t.EntityId, t.FieldName, t.LanguageId });
+
+            entity.HasOne(t => t.Language)
+                  .WithMany(l => l.Translations)
+                  .HasForeignKey(t => t.LanguageId);
+        });
 
         #endregion
     }
