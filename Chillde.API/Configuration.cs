@@ -170,6 +170,7 @@ public static class Configuration
 
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
+        services.AddScoped<ITranslationRepository, TranslationRepository>();
 
         #endregion
 

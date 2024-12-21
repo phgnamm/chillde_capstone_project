@@ -116,6 +116,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
         modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
 
+
         #endregion
 
         #region Relationship Configuration
