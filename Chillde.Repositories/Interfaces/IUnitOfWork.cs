@@ -16,6 +16,15 @@ public interface IUnitOfWork
     IMessageRecipientRepository MessageRecipientRepository { get; }
     IRefreshTokenRepository RefreshTokenRepository { get; }
     IRoleRepository RoleRepository { get; }
+    IRequestRepository RequestRepository { get; }
+    IRequestDetailRepository RequestDetailRepository { get; }
+    IServiceRepository ServiceRepository { get; }
+    IFeedbackRepository FeedbackRepository { get; }
+    IOrderRepository OrderRepository { get; }
+    IPackageRepository PackageRepository { get; }
+    IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
+    IWalletRepository WalletRepository { get; }
+    IWalletHistoryRepository WalletHistoryRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
 

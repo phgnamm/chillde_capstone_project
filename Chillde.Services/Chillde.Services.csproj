@@ -10,4 +10,8 @@
         <ProjectReference Include="..\Chillde.Repositories\Chillde.Repositories.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Models\AccountModels\WalletModels\" />
+    </ItemGroup>
+
 </Project>

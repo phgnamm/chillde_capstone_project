@@ -2,20 +2,20 @@
 using System.Text;
 using Chillde.API.Middlewares;
 using Chillde.API.Utils;
-using Chillde.Repositories;
-using Chillde.Repositories.Common;
-using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Repositories;
-using Chillde.Services.Common;
-using Chillde.Services.Helpers;
-using Chillde.Services.Interfaces;
-using Chillde.Services.Services;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using OpenAI.GPT3.Extensions;
+using Chillde.Services.Common;
+using Chillde.Repositories;
+using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Common;
+using Chillde.Services.Interfaces;
+using Chillde.Services.Services;
+using Chillde.Services.Helpers;
+using Chillde.Repositories.Repositories;
 
 namespace Chillde.API;
 
@@ -168,6 +168,38 @@ public static class Configuration
         // Role
         services.AddScoped<IRoleRepository, RoleRepository>();
 
+        // Request
+        services.AddScoped<IRequestRepository, RequestRepository>();
+        services.AddScoped<IRequestService, RequestService>();
+
+        //RequestDetail
+        services.AddScoped<IRequestDetailRepository, RequestDetailRepository>();
+
+
+        //Order
+        services.AddScoped<IOrderRepository, OrderRepository>();
+
+        //Service
+        services.AddScoped<IServiceRepository, ServiceRepository>();
+
+        //Package
+        services.AddScoped<IPackageRepository, PackageRepository>();
+
+        //Feedback
+        services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
+
+        //FeedbackImage
+        services.AddScoped<IFeedbackAttachmentRepository, FeedbackAttachmentRepository>();
+
+        //Wallet
+        services.AddScoped<IWalletRepository, WalletRepository>();
+        services.AddScoped<IWalletService, WalletService>();
+
+        //WalletHistory
+        services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
+        services.AddScoped<IWalletHistoryService, WalletHistoryService>();
+        
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
