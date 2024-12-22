@@ -192,7 +192,7 @@ public static class Configuration
         //WalletHistory
         services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
         services.AddScoped<IWalletHistoryService, WalletHistoryService>();
-
+        
         #endregion
 
         return services;

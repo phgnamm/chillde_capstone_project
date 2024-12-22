@@ -48,7 +48,7 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "MinBudget must be great or equal more than MaxBudget"
+                    Message = "MinBudget must be less or equal more than MaxBudget"
                 };
             }
             var newRequest = new Request

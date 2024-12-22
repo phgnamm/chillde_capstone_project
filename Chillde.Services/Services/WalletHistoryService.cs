@@ -67,7 +67,7 @@ namespace Chillde.Services.Services
 
             return new ResponseModel
             {
-                Message = "Get all wallet histories successfully",
+                Message = "Get wallet histories successfully",
                 Data = result
             };
         }
