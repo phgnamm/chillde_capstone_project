@@ -14,10 +14,11 @@ namespace Chillde.Services.Models.FeedbackModels
         [Length(128, 1)]
         public string? Description { get; set; }
         public Guid ServiceId { get; set; }
-        public ICollection<FeedbackImageAddModel> FeedbackImageAddModels { get; set; } = new List<FeedbackImageAddModel>();
+        public ICollection<FeedbackAttachmentAddModel> FeedbackAttachmentAddModels { get; set; } = new List<FeedbackAttachmentAddModel>();
     }
-    public class FeedbackImageAddModel
+    public class FeedbackAttachmentAddModel
     {
-        public IFormFile? ImageUrl { get; set; }
+        public IFormFile? AttachmentUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
     }
 }

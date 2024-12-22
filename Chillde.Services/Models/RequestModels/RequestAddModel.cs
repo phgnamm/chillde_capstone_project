@@ -16,6 +16,7 @@ namespace Chillde.Services.Models.RequestModels
         public required Decimal MaxBudget { get; set; }
         public int Timeline { get; set; }
         public IFormFile? AttachmentUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
         public required Guid ItemId { get; set; }
         public required Guid AccountId { get; set; }
         public ICollection<RequestDetailAddModel> RequestDetailAddModels { get; set; } = new List<RequestDetailAddModel>();

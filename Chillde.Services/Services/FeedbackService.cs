@@ -66,27 +66,28 @@ namespace Chillde.Services.Services
             };
 
             await _unitOfWork.FeedbackRepository.AddAsync(feedback);
-            if (feedbackAddModel.FeedbackImageAddModels != null && feedbackAddModel.FeedbackImageAddModels.Count > 0)
+            if (feedbackAddModel.FeedbackAttachmentAddModels != null && feedbackAddModel.FeedbackAttachmentAddModels.Count > 0)
             {
-                var feedbackImages = new List<FeedbackAttachment>();
+                var feedbackAttachments = new List<FeedbackAttachment>();
 
-                foreach (var image in feedbackAddModel.FeedbackImageAddModels)
+                foreach (var attachment in feedbackAddModel.FeedbackAttachmentAddModels)
                 {
-                    var imagePath = await _cloudinaryHelper.UploadImageAsync(
-                        image.ImageUrl,
+                    var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
+                        attachment.AttachmentUrl,
                         "feedbacks",
                         feedback.Id.ToString()
                     );
 
-                    feedbackImages.Add(new FeedbackAttachment
+                    feedbackAttachments.Add(new FeedbackAttachment
                     {
                         Id = Guid.NewGuid(),
                         FeedbackId = feedback.Id,
-                        AttachmentUrl = imagePath,
+                        AttachmentUrl = attachmentPath,
+                        AttachmentAlt = attachment.AttachmentAlt,
                     });
                 }
 
-                await _unitOfWork.FeedbackAttachmentRepository.AddRangeAsync(feedbackImages);
+                await _unitOfWork.FeedbackAttachmentRepository.AddRangeAsync(feedbackAttachments);
             }
 
             await _unitOfWork.SaveChangeAsync();
@@ -152,7 +153,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Include(_ => _.FeedbackImages));
+            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Include(_ => _.FeedbackAttachments));
             if (existingFeedback == null || existingFeedback.IsDeleted)
             {
                 return new ResponseModel
