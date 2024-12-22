@@ -6,6 +6,7 @@ public class OrderTracking : BaseEntity
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
+    public bool? IsAccepted { get; set; }
     public OrderTrackingType Type { get; set; }
 
     // Foreign key

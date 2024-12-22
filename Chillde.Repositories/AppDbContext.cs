@@ -58,6 +58,7 @@ public class AppDbContext : DbContext
         {
             entity.Property(category => category.Name).HasMaxLength(100);
             entity.Property(category => category.Code).HasMaxLength(25);
+            entity.HasIndex(category => category.Code).IsUnique();
         });
 
         modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
@@ -68,6 +69,7 @@ public class AppDbContext : DbContext
         {
             entity.Property(item => item.Name).HasMaxLength(100);
             entity.Property(item => item.Code).HasMaxLength(25);
+            entity.HasIndex(item => item.Code).IsUnique();
         });
 
         modelBuilder.Entity<ItemAttribute>(entity =>
@@ -101,6 +103,7 @@ public class AppDbContext : DbContext
         {
             entity.Property(subCategory => subCategory.Code).HasMaxLength(50);
             entity.Property(subCategory => subCategory.Name).HasMaxLength(100);
+            entity.HasIndex(subCategory => subCategory.Code).IsUnique();
         });
 
         modelBuilder.Entity<Translation>(entity =>
@@ -159,9 +162,10 @@ public class AppDbContext : DbContext
     public DbSet<FAQ> FAQs { get; set; }
     public DbSet<Feature> Features { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
-    public DbSet<FeedbackAttachment> FeedbackImages { get; set; }
+    public DbSet<FeedbackAttachment> FeedbackAttachments { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<ItemAttribute> ItemAttributes { get; set; }
+    public DbSet<ItemAttributeValue> ItemAttributeValue { get; set; }
     public DbSet<Language> Languages { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<MessageRecipient> MessageRecipients { get; set; }

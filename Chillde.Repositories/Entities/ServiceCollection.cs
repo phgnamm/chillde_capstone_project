@@ -3,7 +3,6 @@
 public class ServiceCollection : BaseEntity
 {
     public string? Name { get; set; }
-
     public string? ImageUrl { get; set; }
 
     // Foreign key

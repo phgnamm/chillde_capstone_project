@@ -12,6 +12,9 @@ namespace Chillde.Repositories.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "FeedbackImages");
+
+            migrationBuilder.DropTable(
                 name: "OrderTrackingImages");
 
             migrationBuilder.DropTable(
@@ -20,6 +23,18 @@ namespace Chillde.Repositories.Migrations
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Translations",
                 table: "Translations");
+
+            migrationBuilder.AddColumn<bool>(
+                name: "IsAccepted",
+                table: "OrderTrackings",
+                type: "boolean",
+                nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "AttachmentAlt",
+                table: "OrderInformationAttachments",
+                type: "text",
+                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "Description",
@@ -43,11 +58,66 @@ namespace Chillde.Repositories.Migrations
                 columns: new[] { "EntityType", "EntityId", "FieldName", "LanguageId" });
 
             migrationBuilder.CreateTable(
+                name: "FeedbackAttachments",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AttachmentAlt = table.Column<string>(type: "text", nullable: true),
+                    AttachmentUrl = table.Column<string>(type: "text", nullable: true),
+                    FeedbackId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FeedbackAttachments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FeedbackAttachments_Feedbacks_FeedbackId",
+                        column: x => x.FeedbackId,
+                        principalTable: "Feedbacks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItemAttributeValue",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true),
+                    IntOrder = table.Column<int>(type: "integer", nullable: false),
+                    ItemAttributeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemAttributeValue", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ItemAttributeValue_ItemAttributes_ItemAttributeId",
+                        column: x => x.ItemAttributeId,
+                        principalTable: "ItemAttributes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderTrackingAttachments",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    AttachmentAlt = table.Column<string>(type: "text", nullable: true),
+                    AttachmentUrl = table.Column<string>(type: "text", nullable: true),
                     OrderTrackingId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
@@ -73,7 +143,8 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    AttachmentAlt = table.Column<string>(type: "text", nullable: true),
+                    AttachmentUrl = table.Column<string>(type: "text", nullable: true),
                     ServiceId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
@@ -95,9 +166,37 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_SubCategories_Code",
+                table: "SubCategories",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Items_Code",
+                table: "Items",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Feedbacks_CreatedById",
                 table: "Feedbacks",
                 column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Categories_Code",
+                table: "Categories",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FeedbackAttachments_FeedbackId",
+                table: "FeedbackAttachments",
+                column: "FeedbackId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemAttributeValue_ItemAttributeId",
+                table: "ItemAttributeValue",
+                column: "ItemAttributeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderTrackingAttachments_OrderTrackingId",
@@ -126,6 +225,12 @@ namespace Chillde.Repositories.Migrations
                 table: "Feedbacks");
 
             migrationBuilder.DropTable(
+                name: "FeedbackAttachments");
+
+            migrationBuilder.DropTable(
+                name: "ItemAttributeValue");
+
+            migrationBuilder.DropTable(
                 name: "OrderTrackingAttachments");
 
             migrationBuilder.DropTable(
@@ -136,8 +241,28 @@ namespace Chillde.Repositories.Migrations
                 table: "Translations");
 
             migrationBuilder.DropIndex(
+                name: "IX_SubCategories_Code",
+                table: "SubCategories");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Items_Code",
+                table: "Items");
+
+            migrationBuilder.DropIndex(
                 name: "IX_Feedbacks_CreatedById",
                 table: "Feedbacks");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Categories_Code",
+                table: "Categories");
+
+            migrationBuilder.DropColumn(
+                name: "IsAccepted",
+                table: "OrderTrackings");
+
+            migrationBuilder.DropColumn(
+                name: "AttachmentAlt",
+                table: "OrderInformationAttachments");
 
             migrationBuilder.DropColumn(
                 name: "Description",
@@ -155,6 +280,32 @@ namespace Chillde.Repositories.Migrations
                 name: "PK_Translations",
                 table: "Translations",
                 column: "Id");
+
+            migrationBuilder.CreateTable(
+                name: "FeedbackImages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    FeedbackId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ImageUrl = table.Column<string>(type: "text", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FeedbackImages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FeedbackImages_Feedbacks_FeedbackId",
+                        column: x => x.FeedbackId,
+                        principalTable: "Feedbacks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
 
             migrationBuilder.CreateTable(
                 name: "OrderTrackingImages",
@@ -207,6 +358,11 @@ namespace Chillde.Repositories.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FeedbackImages_FeedbackId",
+                table: "FeedbackImages",
+                column: "FeedbackId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderTrackingImages_OrderTrackingId",
