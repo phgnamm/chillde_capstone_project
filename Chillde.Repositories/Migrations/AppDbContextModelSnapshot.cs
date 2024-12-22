@@ -250,6 +250,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
                     b.ToTable("Categories");
                 });
 
@@ -426,6 +429,12 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AttachmentAlt")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -441,9 +450,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("FeedbackId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -457,7 +463,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("FeedbackId");
 
-                    b.ToTable("FeedbackImages");
+                    b.ToTable("FeedbackAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Item", b =>
@@ -505,6 +511,9 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
 
                     b.HasIndex("OfferId");
 
@@ -558,6 +567,49 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("ItemId");
 
                     b.ToTable("ItemAttributes");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.ItemAttributeValue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IntOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("ItemAttributeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemAttributeId");
+
+                    b.ToTable("ItemAttributeValue");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Language", b =>
@@ -872,6 +924,9 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AttachmentAlt")
+                        .HasColumnType("text");
+
                     b.Property<string>("AttachmentUrl")
                         .HasColumnType("text");
 
@@ -927,6 +982,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<bool?>("IsAccepted")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -961,6 +1019,12 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AttachmentAlt")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -972,9 +1036,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1351,6 +1412,12 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AttachmentAlt")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -1362,9 +1429,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1689,6 +1753,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("Code")
+                        .IsUnique();
+
                     b.ToTable("SubCategories");
                 });
 
@@ -1906,7 +1973,7 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.FeedbackAttachment", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Feedback", "Feedback")
-                        .WithMany("FeedbackImages")
+                        .WithMany("FeedbackAttachments")
                         .HasForeignKey("FeedbackId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1938,6 +2005,17 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired();
 
                     b.Navigation("Item");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.ItemAttributeValue", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.ItemAttribute", "ItemAttribute")
+                        .WithMany("ItemAttributeValues")
+                        .HasForeignKey("ItemAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ItemAttribute");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
@@ -2349,7 +2427,7 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Feedback", b =>
                 {
-                    b.Navigation("FeedbackImages");
+                    b.Navigation("FeedbackAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Item", b =>
@@ -2361,6 +2439,8 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ItemAttribute", b =>
                 {
+                    b.Navigation("ItemAttributeValues");
+
                     b.Navigation("RequestDetail")
                         .IsRequired();
                 });

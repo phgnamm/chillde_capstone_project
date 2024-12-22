@@ -14,4 +14,5 @@ public class ItemAttribute : BaseEntity
     // Relationship
     public Item Item { get; set; } = null!;
     public RequestDetail RequestDetail { get; set; } = null!;
+    public virtual ICollection<ItemAttributeValue> ItemAttributeValues { get; set; } = new List<ItemAttributeValue>();
 }
