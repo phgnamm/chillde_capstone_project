@@ -16,10 +16,10 @@ public class UnitOfWork : IUnitOfWork
         IFeedbackRepository feedbackRepository,
         IOrderRepository orderRepository,
         IPackageRepository packageRepository,
-        IFeedbackImageRepository feedbackImageRepository,
+        IFeedbackAttachmentRepository feedbackAttachmnetRepository,
         IWalletHistoryRepository walletHistoryRepository,
-        IWalletRepository walletRepository)
-        IRoleRepository roleRepository, ITranslationRepository translationRepository,
+        IWalletRepository walletRepository,
+        ITranslationRepository translationRepository,
         ILanguageRepository languageRepository)
     {
         Context = context;
@@ -37,7 +37,7 @@ public class UnitOfWork : IUnitOfWork
         FeedbackRepository = feedbackRepository;
         OrderRepository = orderRepository;
         PackageRepository = packageRepository;
-        FeedbackImageRepository = feedbackImageRepository;
+        FeedbackAttachmentRepository = feedbackAttachmnetRepository;
         WalletHistoryRepository = walletHistoryRepository;
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
@@ -64,7 +64,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IPackageRepository PackageRepository {get ;}
 
-    public IFeedbackImageRepository FeedbackImageRepository {  get; }
+    public IFeedbackAttachmentRepository FeedbackAttachmentRepository {  get; }
 
     public IWalletRepository WalletRepository {  get; }
 

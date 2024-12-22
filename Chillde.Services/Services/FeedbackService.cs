@@ -73,7 +73,7 @@ namespace Chillde.Services.Services
             await _unitOfWork.FeedbackRepository.AddAsync(feedback);
             if (feedbackAddModel.FeedbackImageAddModels != null && feedbackAddModel.FeedbackImageAddModels.Count > 0)
             {
-                var feedbackImages = new List<FeedbackImage>();
+                var feedbackImages = new List<FeedbackAttachment>();
 
                 foreach (var image in feedbackAddModel.FeedbackImageAddModels)
                 {
@@ -83,7 +83,7 @@ namespace Chillde.Services.Services
                         feedback.Id.ToString()
                     );
 
-                    feedbackImages.Add(new FeedbackImage
+                    feedbackImages.Add(new FeedbackAttachment
                     {
                         Id = Guid.NewGuid(),
                         FeedbackId = feedback.Id,
@@ -91,7 +91,7 @@ namespace Chillde.Services.Services
                     });
                 }
 
-                await _unitOfWork.FeedbackImageRepository.AddRangeAsync(feedbackImages);
+                await _unitOfWork.FeedbackAttachmentRepository.AddRangeAsync(feedbackImages);
             }
 
             await _unitOfWork.SaveChangeAsync();

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Interfaces
 {
-    public interface IFeedbackImageRepository : IGenericRepository<FeedbackImage>
+    public interface IFeedbackAttachmentRepository : IGenericRepository<FeedbackAttachment>
     {
     }
 }

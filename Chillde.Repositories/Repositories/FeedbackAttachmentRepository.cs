@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Repositories
 {
-    public class FeedbackImageRepository : GenericRepository<FeedbackImage>, IFeedbackImageRepository
+    public class FeedbackAttachmentRepository : GenericRepository<FeedbackAttachment>, IFeedbackAttachmentRepository
     {
-        public  FeedbackImageRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
+        public  FeedbackAttachmentRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
 

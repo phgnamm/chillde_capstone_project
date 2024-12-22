@@ -22,7 +22,7 @@ public interface IUnitOfWork
     IFeedbackRepository FeedbackRepository { get; }
     IOrderRepository OrderRepository { get; }
     IPackageRepository PackageRepository { get; }
-    IFeedbackImageRepository FeedbackImageRepository { get; }
+    IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
     IWalletRepository WalletRepository { get; }
     IWalletHistoryRepository WalletHistoryRepository { get; }
     ITranslationRepository TranslationRepository { get; }

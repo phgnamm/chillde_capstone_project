@@ -2,20 +2,20 @@
 using System.Text;
 using Chillde.API.Middlewares;
 using Chillde.API.Utils;
-using Chillde.Repositories;
-using Chillde.Repositories.Common;
-using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Repositories;
-using Chillde.Services.Common;
-using Chillde.Services.Helpers;
-using Chillde.Services.Interfaces;
-using Chillde.Services.Services;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using OpenAI.GPT3.Extensions;
+using Chillde.Services.Common;
+using Chillde.Repositories;
+using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Common;
+using Chillde.Services.Interfaces;
+using Chillde.Services.Services;
+using Chillde.Services.Helpers;
+using Chillde.Repositories.Repositories;
 
 namespace Chillde.API;
 
@@ -190,7 +190,7 @@ public static class Configuration
         services.AddScoped<IFeedbackService, FeedbackService>();
 
         //FeedbackImage
-        services.AddScoped<IFeedbackImageRepository, FeedbackImageRepository>();
+        services.AddScoped<IFeedbackAttachmentRepository, FeedbackAttachmentRepository>();
 
         //Wallet
         services.AddScoped<IWalletRepository, WalletRepository>();
