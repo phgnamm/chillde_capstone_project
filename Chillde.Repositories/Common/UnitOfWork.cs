@@ -19,6 +19,8 @@ public class UnitOfWork : IUnitOfWork
         IFeedbackImageRepository feedbackImageRepository,
         IWalletHistoryRepository walletHistoryRepository,
         IWalletRepository walletRepository)
+        IRoleRepository roleRepository, ITranslationRepository translationRepository,
+        ILanguageRepository languageRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -38,6 +40,8 @@ public class UnitOfWork : IUnitOfWork
         FeedbackImageRepository = feedbackImageRepository;
         WalletHistoryRepository = walletHistoryRepository;
         WalletRepository = walletRepository;
+        TranslationRepository = translationRepository;
+        LanguageRepository = languageRepository;
     }
 
     public AppDbContext Context { get; }
@@ -65,6 +69,8 @@ public class UnitOfWork : IUnitOfWork
     public IWalletRepository WalletRepository {  get; }
 
     public IWalletHistoryRepository WalletHistoryRepository {  get; }
+    public ITranslationRepository TranslationRepository { get; }
+    public ILanguageRepository LanguageRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

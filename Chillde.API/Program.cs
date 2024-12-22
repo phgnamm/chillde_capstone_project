@@ -77,6 +77,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AccountStatusMiddleware>();
 
+
 app.MapControllers();
 app.MapHub<RealTimeHub>("/hub");
 

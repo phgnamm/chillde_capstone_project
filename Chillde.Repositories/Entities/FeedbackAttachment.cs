@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Repositories.Entities;
 
-public class FeedbackImage : BaseEntity
+public class FeedbackAttachment : BaseEntity
 {
     public string? ImageUrl { get; set; }
 

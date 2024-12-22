@@ -25,6 +25,8 @@ public interface IUnitOfWork
     IFeedbackImageRepository FeedbackImageRepository { get; }
     IWalletRepository WalletRepository { get; }
     IWalletHistoryRepository WalletHistoryRepository { get; }
+    ITranslationRepository TranslationRepository { get; }
+    ILanguageRepository LanguageRepository { get; }
 
     #endregion
 }

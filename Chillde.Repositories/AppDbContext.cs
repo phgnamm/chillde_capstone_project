@@ -113,10 +113,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Wallet>(entity => { entity.Property(wallet => wallet.CreatedById).IsRequired(); });
         modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
-        modelBuilder.Entity<ShippingAddress>(entity =>
-        {
-            entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired();
-        });
+        modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
+        modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
+
 
         #endregion
 
@@ -138,10 +137,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(s => s.SubCategoryId);
         });
 
-        modelBuilder.Entity<Translation>()
-            .HasOne(t => t.Language)
-            .WithMany(l => l.Translations)
-            .HasForeignKey(t => t.LanguageId);
+        modelBuilder.Entity<Translation>(entity =>
+        {
+            entity.HasKey(t => new { t.EntityType, t.EntityId, t.FieldName, t.LanguageId });
+
+            entity.HasOne(t => t.Language)
+                  .WithMany(l => l.Translations)
+                  .HasForeignKey(t => t.LanguageId);
+        });
 
         #endregion
     }
@@ -156,7 +159,7 @@ public class AppDbContext : DbContext
     public DbSet<FAQ> FAQs { get; set; }
     public DbSet<Feature> Features { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
-    public DbSet<FeedbackImage> FeedbackImages { get; set; }
+    public DbSet<FeedbackAttachment> FeedbackImages { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<ItemAttribute> ItemAttributes { get; set; }
     public DbSet<Language> Languages { get; set; }
@@ -167,7 +170,7 @@ public class AppDbContext : DbContext
     public DbSet<OrderInformation> OrderInformation { get; set; }
     public DbSet<OrderInformationAttachment> OrderInformationAttachments { get; set; }
     public DbSet<OrderTracking> OrderTrackings { get; set; }
-    public DbSet<OrderTrackingImage> OrderTrackingImages { get; set; }
+    public DbSet<OrderTrackingAttachment> OrderTrackingAttachments { get; set; }
     public DbSet<Package> Packages { get; set; }
     public DbSet<PackageFeature> PackageFeatures { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -176,7 +179,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceCollection> ServiceCollection { get; set; }
-    public DbSet<ServiceImage> ServiceImages { get; set; }
+    public DbSet<ServiceAttachment> ServiceAttachments { get; set; }
     public DbSet<ServiceWishlist> ServiceWishlists { get; set; }
     public DbSet<Shipment> Shipment { get; set; }
     public DbSet<ShippingAddress> ShippingAddresses { get; set; }

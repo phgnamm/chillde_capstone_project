@@ -2,6 +2,7 @@
 
 public class OrderInformation : BaseEntity
 {
+    public string? Description {  get; set; }
     // Foreign key
     public Guid PackageFeatureId { get; set; }
     public Guid OrderId { get; set; }

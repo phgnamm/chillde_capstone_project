@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Repositories.Entities;
 
-public class ServiceImage : BaseEntity
+public class ServiceAttachment : BaseEntity
 {
     public string? ImageUrl { get; set; }
 

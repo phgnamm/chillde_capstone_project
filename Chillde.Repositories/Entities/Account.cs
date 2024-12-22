@@ -46,4 +46,6 @@ public class Account : BaseEntity
     public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public virtual ICollection<Message> Message { get; set; } = new List<Message>();
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
 }
