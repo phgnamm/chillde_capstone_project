@@ -70,5 +70,41 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize]
+        [HttpGet("{id}/service-user")]
+        public async Task<IActionResult> GetAllByServiceAndUser(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
+        {
+            try
+            {
+                var result = await _feedbackService.GetAllByServiceAndUser(id, feedbackFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            try
+            {
+                var result = await _feedbackService.GetById(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

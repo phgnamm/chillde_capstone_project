@@ -98,12 +98,10 @@ namespace Chillde.Services.Services
                 Message = "Feedback created successfully.",
             };
         }
-
-
         public async Task<ResponseModel> GetAllByService(Guid serviceId, FeedbackFilterModel feedbackFilterModel)
         {
             var feedbacks = await _unitOfWork.FeedbackRepository.GetAllAsync(
-                filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted,
+                filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted && _.ServiceId == serviceId,
                 include: feedbacks => feedbacks.Include(_ => _.FeedbackAttachments) 
                                                .Include(_ => _.CreatedBy) 
                                                .Include(_ => _.Service),
@@ -114,6 +112,7 @@ namespace Chillde.Services.Services
             {
                 Id = _.Id,
                 CreatedById = _.CreatedById,
+                ServiceId = _.ServiceId,
                 AuthorName = _.CreatedBy.FirstName + " " + _.CreatedBy.LastName,
                 Description = _.Description,
                 CreationDate = _.CreationDate,
@@ -132,6 +131,75 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+
+        public async Task<ResponseModel> GetAllByServiceAndUser(Guid serviceId, FeedbackFilterModel feedbackFilterModel)
+        {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized."
+                };
+            }
+            var feedbacks = await _unitOfWork.FeedbackRepository.GetAllAsync(
+                filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted && _.ServiceId == serviceId && _.CreatedById == currentUserId.Value,
+                include: feedbacks => feedbacks.Include(_ => _.FeedbackAttachments)
+                                               .Include(_ => _.CreatedBy)
+                                               .Include(_ => _.Service),
+                pageIndex: feedbackFilterModel.PageIndex,
+                pageSize: feedbackFilterModel.PageSize
+            );
+            var feedbackModels = feedbacks.Data.Select(_ => new FeedbackModel
+            {
+                Id = _.Id,
+                CreatedById = _.CreatedById,
+                ServiceId = _.ServiceId,
+                AuthorName = _.CreatedBy.FirstName + " " + _.CreatedBy.LastName,
+                Description = _.Description,
+                CreationDate = _.CreationDate,
+                Rating = _.Rating,
+                FeedbackImageModels = _.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                {
+                    ImageUrl = _.AttachmentUrl ?? ""
+                }).ToList()
+            }).ToList();
+            var result = new Pagination<FeedbackModel>(feedbackModels, feedbackFilterModel.PageIndex,
+                feedbackFilterModel.PageSize, feedbacks.TotalCount);
+
+            return new ResponseModel
+            {
+                Message = "Get all feedbacks successfully",
+                Data = result
+            };
+        }
+
+        public async Task<ResponseModel> GetById(Guid id)
+        {
+            var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id) .Include(_ => _.FeedbackAttachments));
+          
+            var feedbackModels = new FeedbackModel
+            {
+                Id = feedbacks.Id,
+                CreatedById = feedbacks.CreatedById,
+                ServiceId = feedbacks.ServiceId,
+                AuthorName = feedbacks.CreatedBy.FirstName + " " + feedbacks.CreatedBy.LastName,
+                Description = feedbacks.Description,
+                CreationDate = feedbacks.CreationDate,
+                Rating = feedbacks.Rating,
+                FeedbackImageModels = feedbacks.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                {
+                    ImageUrl = _.AttachmentUrl ?? ""
+                }).ToList()
+            };
+            return new ResponseModel
+            {
+                Data = feedbackModels,
+                Message = "Get feedback successfully"
+            };
+        }
+
         public async Task<ResponseModel> Update(Guid id, FeedbackUpdateModel feedbackUpdateModel)
         {
             if (feedbackUpdateModel == null || id == Guid.Empty)
