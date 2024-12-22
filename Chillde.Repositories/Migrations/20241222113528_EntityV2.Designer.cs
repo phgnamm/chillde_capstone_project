@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241222095334_EntityV2")]
+    [Migration("20241222113528_EntityV2")]
     partial class EntityV2
     {
         /// <inheritdoc />
@@ -452,9 +452,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<Guid>("FeedbackId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1043,9 +1040,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -1438,9 +1432,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");

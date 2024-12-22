@@ -82,7 +82,7 @@ namespace Chillde.Services.Services
                     {
                         Id = Guid.NewGuid(),
                         FeedbackId = feedback.Id,
-                        ImageUrl = imagePath,
+                        AttachmentUrl = imagePath,
                     });
                 }
 
@@ -119,7 +119,7 @@ namespace Chillde.Services.Services
                 Rating = _.Rating,
                 FeedbackImageModels = _.FeedbackAttachments.Select(_ => new FeedbackImageModel
                 {
-                    ImageUrl = _.ImageUrl ?? ""
+                    ImageUrl = _.AttachmentUrl ?? ""
                 }).ToList()
             }).ToList();
             var result = new Pagination<FeedbackModel>(feedbackModels, feedbackFilterModel.PageIndex,

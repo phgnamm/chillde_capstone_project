@@ -62,7 +62,6 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     AttachmentAlt = table.Column<string>(type: "text", nullable: true),
                     AttachmentUrl = table.Column<string>(type: "text", nullable: true),
                     FeedbackId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -117,7 +116,6 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     AttachmentAlt = table.Column<string>(type: "text", nullable: true),
                     AttachmentUrl = table.Column<string>(type: "text", nullable: true),
                     OrderTrackingId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -145,7 +143,6 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ImageUrl = table.Column<string>(type: "text", nullable: true),
                     AttachmentAlt = table.Column<string>(type: "text", nullable: true),
                     AttachmentUrl = table.Column<string>(type: "text", nullable: true),
                     ServiceId = table.Column<Guid>(type: "uuid", nullable: false),
