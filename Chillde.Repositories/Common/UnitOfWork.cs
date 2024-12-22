@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Repositories;
 
 namespace Chillde.Repositories.Common;
 
@@ -20,7 +21,8 @@ public class UnitOfWork : IUnitOfWork
         IWalletHistoryRepository walletHistoryRepository,
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
-        ILanguageRepository languageRepository)
+        ILanguageRepository languageRepository,
+        IOfferRepository offerRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -42,6 +44,7 @@ public class UnitOfWork : IUnitOfWork
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
+        OfferRepository = offerRepository;
     }
 
     public AppDbContext Context { get; }
@@ -71,6 +74,8 @@ public class UnitOfWork : IUnitOfWork
     public IWalletHistoryRepository WalletHistoryRepository {  get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
+
+    public IOfferRepository OfferRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

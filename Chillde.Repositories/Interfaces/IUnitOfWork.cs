@@ -25,6 +25,7 @@ public interface IUnitOfWork
     IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
     IWalletRepository WalletRepository { get; }
     IWalletHistoryRepository WalletHistoryRepository { get; }
+    IOfferRepository OfferRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
 

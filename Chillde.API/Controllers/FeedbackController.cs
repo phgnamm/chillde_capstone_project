@@ -38,6 +38,24 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] FeedbackUpdateModel feedbackUpdateModel)
+        {
+            try
+            {
+                var result = await _feedbackService.Update(id, feedbackUpdateModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
         [HttpGet("{id}/service")]
         public async Task<IActionResult> GetAllByService(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
         {

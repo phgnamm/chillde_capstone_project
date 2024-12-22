@@ -10,6 +10,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IWalletHistoryService
     {
-        Task<ResponseModel> GetAllWalletFromUser(WalletHistoryFilterModel walletHistoryFilterModel);
+        Task<ResponseModel> GetAllWalletHistoryFromUser(WalletHistoryFilterModel walletHistoryFilterModel);
     }
 }

@@ -207,6 +207,10 @@ public static class Configuration
         //Language
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<ILanguageService, LanguageService>();
+
+        //Offer
+        services.AddScoped<IOfferRepository, OfferRepository>();
+        services.AddScoped<IOfferService, OfferService>();
         #endregion
 
         return services;

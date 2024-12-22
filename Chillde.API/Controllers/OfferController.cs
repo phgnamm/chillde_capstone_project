@@ -1,5 +1,5 @@
 ﻿using Chillde.Services.Interfaces;
-using Chillde.Services.Models.RequestModels;
+using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.WalletHistoryModels;
 using Chillde.Services.Services;
@@ -9,24 +9,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/walletHistories")]
+    [Route("api/v1/offers")]
     [ApiController]
-    public class WalletHistoryController : ControllerBase
+    public class OfferController : ControllerBase
     {
-        private readonly IWalletHistoryService _walletHistoryService;
+        private readonly IOfferService _offerService;
 
-        public WalletHistoryController(IWalletHistoryService walletHistoryService)
+        public OfferController(IOfferService offerService)
         {
-            _walletHistoryService = walletHistoryService;
+            _offerService = offerService;
         }
-
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllWalletHistoryFromUser([FromQuery] WalletHistoryFilterModel walletHistoryFilterModel)
+        public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel offerFilterModel)
         {
             try
             {
-                var result = await _walletHistoryService.GetAllWalletHistoryFromUser(walletHistoryFilterModel);
+                var result = await _offerService.GetAll(offerFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

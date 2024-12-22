@@ -181,7 +181,16 @@ namespace Chillde.Services.Services
                     Message = "Invalid input."
                 };
             }
-
+            // check if request was made from offer 
+            var hasOffered = await _unitOfWork.OfferRepository.RequestHasOffered(id);
+            if (hasOffered)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Request cannot update."
+                };
+            }
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
             {

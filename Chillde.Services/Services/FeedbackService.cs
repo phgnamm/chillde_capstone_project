@@ -50,7 +50,7 @@ namespace Chillde.Services.Services
                     Message = "User has not completed an order in this service."
                 };
             }
-
+/*
             var hasFeedback = await _unitOfWork.FeedbackRepository.HasFeedback(currentUserId.Value, feedbackAddModel.ServiceId);
             if (hasFeedback)
             {
@@ -59,7 +59,7 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest,
                     Message = "User has already given feedback for this service."
                 };
-            }
+            }*/
 
             var feedback = new Feedback
             {
@@ -136,5 +136,72 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+        public async Task<ResponseModel> Update(Guid id, FeedbackUpdateModel feedbackUpdateModel)
+        {
+            if (feedbackUpdateModel == null || id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid input."
+                };
+            }
+
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized."
+                };
+            }
+
+            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Include(_ => _.FeedbackImages));
+            if (existingFeedback == null || existingFeedback.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Feedback not found."
+                };
+            }
+
+            if (existingFeedback.CreatedById != currentUserId.Value)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status403Forbidden,
+                    Message = "You are not authorized to update this feedback."
+                };
+            }
+            if ((DateTime.UtcNow - existingFeedback.CreationDate).TotalDays > 30)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status403Forbidden,
+                    Message = "Feedback cannot be updated after 30 days from its creation date."
+                };
+            }
+            existingFeedback.Rating = feedbackUpdateModel.Rating ?? existingFeedback.Rating;
+            existingFeedback.Description = feedbackUpdateModel.Description ?? existingFeedback.Description;
+            existingFeedback.ModificationDate = DateTime.UtcNow;
+
+            _unitOfWork.FeedbackRepository.Update(existingFeedback);
+            var result = await _unitOfWork.SaveChangeAsync();
+
+            return result > 0
+                ? new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Feedback updated successfully."
+                }
+                : new ResponseModel
+                {
+                    Code = StatusCodes.Status409Conflict,
+                    Message = "Failed to update feedback."
+                };
+        }
+
     }
 }
