@@ -1,18 +1,13 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeedbackModels;
-using Chillde.Repositories.Models.RequestModels;
-using Chillde.Repositories.Repositories;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeedbackModels;
-using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 
 namespace Chillde.Services.Services
 {
@@ -108,7 +103,7 @@ namespace Chillde.Services.Services
         {
             var feedbacks = await _unitOfWork.FeedbackRepository.GetAllAsync(
                 filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted,
-                include: feedbacks => feedbacks.Include(_ => _.FeedbackImages) 
+                include: feedbacks => feedbacks.Include(_ => _.FeedbackAttachments) 
                                                .Include(_ => _.CreatedBy) 
                                                .Include(_ => _.Service),
                 pageIndex: feedbackFilterModel.PageIndex,
@@ -122,7 +117,7 @@ namespace Chillde.Services.Services
                 Description = _.Description,
                 CreationDate = _.CreationDate,
                 Rating = _.Rating,
-                FeedbackImageModels = _.FeedbackImages.Select(_ => new FeedbackImageModel
+                FeedbackImageModels = _.FeedbackAttachments.Select(_ => new FeedbackImageModel
                 {
                     ImageUrl = _.ImageUrl ?? ""
                 }).ToList()

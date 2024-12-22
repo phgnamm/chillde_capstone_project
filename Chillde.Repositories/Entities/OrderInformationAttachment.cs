@@ -3,6 +3,7 @@
 public class OrderInformationAttachment : BaseEntity
 {
     public string? AttachmentUrl { get; set; }
+    public string? AttachmentAlt { get; set; }
 
     // Foreign key
     public Guid OrderInformationId { get; set; }

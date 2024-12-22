@@ -3,6 +3,8 @@
 public class ServiceAttachment : BaseEntity
 {
     public string? ImageUrl { get; set; }
+    public string? AttachmentAlt { get; set; }
+    public string? AttachmentUrl { get; set; }
 
     // Foreign key
     public Guid ServiceId { get; set; }
