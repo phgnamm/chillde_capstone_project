@@ -20,6 +20,7 @@ public class UnitOfWork : IUnitOfWork
         IWalletHistoryRepository walletHistoryRepository,
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
+        ICategoryRepository categoryRepository)
         ILanguageRepository languageRepository,
         IOfferRepository offerRepository)
     {
@@ -43,6 +44,7 @@ public class UnitOfWork : IUnitOfWork
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
+        CategoryRepository = categoryRepository;
         OfferRepository = offerRepository;
     }
 
@@ -74,6 +76,8 @@ public class UnitOfWork : IUnitOfWork
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
     public IOfferRepository OfferRepository { get; }
+
+    public ICategoryRepository CategoryRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

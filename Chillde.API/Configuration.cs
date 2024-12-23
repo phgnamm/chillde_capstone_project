@@ -182,9 +182,11 @@ public static class Configuration
 
         //Service
         services.AddScoped<IServiceRepository, ServiceRepository>();
+        services.AddScoped<IServiceService, ServiceService>();
 
         //Package
         services.AddScoped<IPackageRepository, PackageRepository>();
+        services.AddScoped<IPackageService, PackageService>();
 
         //Feedback
         services.AddScoped<IFeedbackRepository, FeedbackRepository>();
@@ -200,7 +202,7 @@ public static class Configuration
         //WalletHistory
         services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
         services.AddScoped<IWalletHistoryService, WalletHistoryService>();
-        
+
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
@@ -212,6 +214,10 @@ public static class Configuration
         //Offer
         services.AddScoped<IOfferRepository, OfferRepository>();
         services.AddScoped<IOfferService, OfferService>();
+
+        //Caterory
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryServive, CategoryService>();
         #endregion
 
         return services;
