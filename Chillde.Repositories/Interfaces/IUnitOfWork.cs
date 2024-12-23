@@ -29,6 +29,7 @@ public interface IUnitOfWork
     ILanguageRepository LanguageRepository { get; }
     ICategoryRepository CategoryRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
+    IServiceAttachmentRepository ServiceAttachmentRepository { get; }
 
     #endregion
 }

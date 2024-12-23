@@ -183,6 +183,9 @@ public static class Configuration
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<IServiceService, ServiceService>();
 
+        //ServiceAttachment
+        services.AddScoped<IServiceAttachmentRepository, ServiceAttachmentRepository>();
+
         //Package
         services.AddScoped<IPackageRepository, PackageRepository>();
         services.AddScoped<IPackageService, PackageService>();
