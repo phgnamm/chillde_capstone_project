@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using Chillde.API;
 using Chillde.API.Middlewares;
 using Chillde.Repositories.Common;
 using Chillde.Services.Hubs;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,6 +51,14 @@ builder.Services.AddSwaggerGen(x =>
 builder.Services.AddApiConfiguration(builder.Configuration);
 
 var app = builder.Build();
+
+//Localization
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("en"),
+    SupportedCultures = new[] { new CultureInfo("en"), new CultureInfo("vi") },
+    SupportedUICultures = new[] { new CultureInfo("en"), new CultureInfo("vi") }
+});
 
 // Middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();

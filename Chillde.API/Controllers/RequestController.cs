@@ -1,5 +1,7 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.API.Helper;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ConversationModels;
+using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Services;
@@ -14,10 +16,11 @@ namespace Chillde.API.Controllers
     public class RequestController : ControllerBase
     {
         private readonly IRequestService _requestService;
-
-        public RequestController(IRequestService requestService)
+        private readonly IOfferService _offerService;
+        public RequestController(IRequestService requestService, IOfferService offerService)
         {
             _requestService = requestService;
+            _offerService = offerService;
         }
         [Authorize]
         [HttpGet]
@@ -91,5 +94,67 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+        [HttpPost("{request_id}/Offer")]
+        public async Task<IActionResult> Add([FromBody] OfferAddModel model, Guid request_id)
+        {
+            try
+            {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+
+                var result = await _offerService.AddAsync(model, request_id, sourceLanguageCode, targetLanguageCode);
+                if (result.Code != StatusCodes.Status201Created)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = result.Message
+                    });
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("{request_id}/Offers")]
+        public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter, Guid request_id)
+        {
+            try
+            {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+
+                var result = await _offerService.GetAllAsync(filterParameter, request_id, sourceLanguageCode, targetLanguageCode);
+                if (result.Code != StatusCodes.Status200OK)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
     }
 }
