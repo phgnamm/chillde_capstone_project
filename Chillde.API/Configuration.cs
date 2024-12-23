@@ -216,6 +216,10 @@ public static class Configuration
         //Caterory
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryServive, CategoryService>();
+        
+        //Subcategory
+        services.AddScoped<ISubCategoryRepository, SubCategoryRepository>();
+        services.AddScoped<ISubCategoryService, SubCategoryService>();
         #endregion
 
         return services;

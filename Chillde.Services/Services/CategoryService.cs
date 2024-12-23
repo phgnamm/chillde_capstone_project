@@ -1,14 +1,21 @@
-﻿using Chillde.Repositories.Entities;
+﻿using AutoMapper;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.SubcategoryModels;
+using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OpenAI.GPT3.ObjectModels.ResponseModels;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -25,12 +32,14 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IMapper _mapper;
 
-        public CategoryService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper)
+        public CategoryService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> Add(CategoryAddModel categoryAddModel)
@@ -156,6 +165,49 @@ namespace Chillde.Services.Services
             };
         }
 
+        public async Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddModel subCategoryAddModel)
+        {
+            var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
+            if (categoryExists == null || categoryExists.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Category not found."
+                };
+            }
+            string? imageUrl = null;
+            if (subCategoryAddModel.ImageUrl != null)
+            {
+                imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                    subCategoryAddModel.ImageUrl,
+                    "subcategories",
+                    Guid.NewGuid().ToString()
+                );
+            }
+            var subCategory = new SubCategory
+            {
+                Id = Guid.NewGuid(),
+                Name = subCategoryAddModel.Name,
+                Code = string.IsNullOrEmpty(subCategoryAddModel.Code)
+            ? GenerateSlug(subCategoryAddModel.Name)
+            : GenerateSlug(subCategoryAddModel.Code),
+                ImageUrl = imageUrl,
+                CategoryId = categoryId
+            };
+            var subCategoryModel = _mapper.Map<SubCategoryModel>(subCategory);
+
+            await _unitOfWork.SubCategoryRepository.AddAsync(subCategory);
+            await _unitOfWork.SaveChangeAsync();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status201Created,
+                Message = "Subcategory added successfully.",
+                Data = subCategoryModel
+            };
+        }
+
         public async Task<ResponseModel> Delete(Guid id)
         {
             var category = await _unitOfWork.CategoryRepository.GetAsync(id);
@@ -166,7 +218,7 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status404NotFound,
                     Message = "Category not found."
                 };
-            }         
+            }
             _unitOfWork.CategoryRepository.HardRemove(category);
             await _unitOfWork.SaveChangeAsync();
 
@@ -194,8 +246,16 @@ namespace Chillde.Services.Services
                             pageIndex: categoryFilterModel.PageIndex,
             pageSize: categoryFilterModel.PageSize
             );
+            /* var cateroryModels = categorys.Data.Select(_ => new CateroryModel
+             {
+                 Id = _.Id,
+                 Name = _.Name,
+                 Code = _.Code,      
+                 ImageUrl = _.ImageUrl,
+             }).ToList();*/
+            var cateroryModels = _mapper.Map<List<CateroryModel>>(categorys.Data);
 
-            var result = new Pagination<Category>(categorys.Data, categoryFilterModel.PageIndex,
+            var result = new Pagination<CateroryModel>(cateroryModels, categoryFilterModel.PageIndex,
               categoryFilterModel.PageSize, categorys.TotalCount);
 
             return new ResponseModel
@@ -206,6 +266,39 @@ namespace Chillde.Services.Services
 
 
 
+        }
+
+        public async Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel)
+        {
+            var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
+            if (categoryExists == null || categoryExists.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Category not found."
+                };
+            }
+            Expression<Func<SubCategory, bool>> filter = subcategory =>
+                   subcategory.CategoryId == categoryId && 
+                   subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
+                   (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
+                   subcategory.Name.Contains(subCategoryFilterModel.Search) ||
+                   subcategory.Code.Contains(subCategoryFilterModel.Search));
+
+
+            var subcategories = await _unitOfWork.SubCategoryRepository.GetAllAsync(
+                filter: filter,
+                include: null
+            );
+
+            var subcategoriesModel = _mapper.Map<List<SubCategoryModel>>(subcategories.Data);
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Subcategories retrieved successfully.",
+                Data = subcategoriesModel
+            };
         }
 
         public async Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel)

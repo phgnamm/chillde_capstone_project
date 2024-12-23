@@ -3,6 +3,7 @@ using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.SubcategoryModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -111,6 +112,43 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
+        [HttpPost("{id}/subcategories")]
+        public async Task<IActionResult> AddSubcategory(Guid id, [FromForm] SubCategoryAddModel subCategoryAddModel)
+        {
+            try
+            {
+                var result = await _categoryService.AddSubcategory(id, subCategoryAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        //      [Authorize]
+        [HttpGet("{id}/subcategories")]
+        public async Task<IActionResult> GetSubcategories(Guid id, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
+        {
+            try
+            {
+                var response = await _categoryService.GetSubcategoriesByCategory(id,subCategoryFilterModel);
+                return StatusCode(response.Code, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
 
     }
 }
