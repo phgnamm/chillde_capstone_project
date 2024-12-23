@@ -21,10 +21,7 @@ public class UnitOfWork : IUnitOfWork
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
         ILanguageRepository languageRepository,
-        IServiceAttachmentRepository serviceAttachmentRepository
-        )
-        ILanguageRepository languageRepository,
-
+        IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
         ISubCategoryRepository subCategoryRepository)
     {
