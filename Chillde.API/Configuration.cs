@@ -201,7 +201,7 @@ public static class Configuration
         //WalletHistory
         services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
         services.AddScoped<IWalletHistoryService, WalletHistoryService>();
-        
+
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
@@ -209,6 +209,10 @@ public static class Configuration
         //Language
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<ILanguageService, LanguageService>();
+
+        //Caterory
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryServive, CategoryService>();
         #endregion
 
         return services;

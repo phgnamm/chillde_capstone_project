@@ -20,7 +20,8 @@ public class UnitOfWork : IUnitOfWork
         IWalletHistoryRepository walletHistoryRepository,
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
-        ILanguageRepository languageRepository)
+        ILanguageRepository languageRepository,
+        ICategoryRepository categoryRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -42,6 +43,7 @@ public class UnitOfWork : IUnitOfWork
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
+        CategoryRepository = categoryRepository;
     }
 
     public AppDbContext Context { get; }
@@ -71,6 +73,8 @@ public class UnitOfWork : IUnitOfWork
     public IWalletHistoryRepository WalletHistoryRepository {  get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
+
+    public ICategoryRepository CategoryRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {
