@@ -28,6 +28,7 @@ public interface IUnitOfWork
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
     ICategoryRepository CategoryRepository { get; }
+    IServiceAttachmentRepository ServiceAttachmentRepository { get; }
 
     #endregion
 }

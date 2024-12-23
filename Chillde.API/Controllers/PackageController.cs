@@ -23,7 +23,7 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _packageService.Update(packageUpdateModel, id);
+                var result = await _packageService.UpdateAsync(packageUpdateModel, id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

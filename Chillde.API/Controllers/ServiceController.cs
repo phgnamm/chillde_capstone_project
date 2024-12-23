@@ -17,13 +17,51 @@ namespace Chillde.API.Controllers
             _serviceService = serviceService;
         }
 
-        [Authorize("Artist")]
-        [HttpPost("{serviceId}/packages")]
-        public async Task<IActionResult> AddPackage([FromBody] PackageAddModel packageAddModel, Guid serviceId)
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAsync(Guid id)
         {
             try
             {
-                var result = await _serviceService.Add(packageAddModel, serviceId);
+                var result = await _serviceService.GetAsync(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("{serviceId}/service-attachments")]
+        public async Task<IActionResult> GetAllServiceAttachmentsAsync(Guid serviceId)
+        {
+            try
+            {
+                var result = await _serviceService.GetServiceAttachmentssAsync(serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize("Artist")]
+        [HttpPost("{serviceId}/packages")]
+        public async Task<IActionResult> AddPackageAsync([FromBody] PackageAddModel packageAddModel, Guid serviceId)
+        {
+            try
+            {
+                var result = await _serviceService.AddPackageAsync(packageAddModel, serviceId);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
