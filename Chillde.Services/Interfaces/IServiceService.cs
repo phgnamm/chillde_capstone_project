@@ -5,6 +5,8 @@ namespace Chillde.Services.Interfaces
 {
     public interface IServiceService
     {
-        Task<ResponseModel> Add(PackageAddModel packageAddModel, Guid serviceId);        
+        Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId);
+        Task<ResponseModel> GetAsync(Guid id);
+        Task<ResponseModel> GetServiceAttachmentssAsync(Guid id);
     }
 }

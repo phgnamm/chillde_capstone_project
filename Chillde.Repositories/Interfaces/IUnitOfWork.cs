@@ -27,6 +27,7 @@ public interface IUnitOfWork
     IWalletHistoryRepository WalletHistoryRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
+    IServiceAttachmentRepository ServiceAttachmentRepository { get; }
 
     #endregion
 }
