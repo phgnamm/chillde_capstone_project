@@ -21,7 +21,8 @@ public class UnitOfWork : IUnitOfWork
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
         ILanguageRepository languageRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        ISubCategoryRepository subCategoryRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -44,6 +45,7 @@ public class UnitOfWork : IUnitOfWork
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
         CategoryRepository = categoryRepository;
+        SubCategoryRepository = subCategoryRepository;
     }
 
     public AppDbContext Context { get; }
@@ -58,23 +60,25 @@ public class UnitOfWork : IUnitOfWork
     public IRequestRepository RequestRepository { get; }
     public IRequestDetailRepository RequestDetailRepository { get; }
 
-    public IServiceRepository ServiceRepository {  get; }
+    public IServiceRepository ServiceRepository { get; }
 
     public IFeedbackRepository FeedbackRepository { get; }
 
     public IOrderRepository OrderRepository { get; }
 
-    public IPackageRepository PackageRepository {get ;}
+    public IPackageRepository PackageRepository { get; }
 
-    public IFeedbackAttachmentRepository FeedbackAttachmentRepository {  get; }
+    public IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
 
-    public IWalletRepository WalletRepository {  get; }
+    public IWalletRepository WalletRepository { get; }
 
-    public IWalletHistoryRepository WalletHistoryRepository {  get; }
+    public IWalletHistoryRepository WalletHistoryRepository { get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
 
     public ICategoryRepository CategoryRepository { get; }
+
+    public ISubCategoryRepository SubCategoryRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

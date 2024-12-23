@@ -3,6 +3,7 @@ using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.SubcategoryModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,10 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel);
         Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel);
         Task<ResponseModel> Delete(Guid id);
+        Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddModel subCategoryAddModel);
+        Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel);
+
+
 
     }
 }
