@@ -113,7 +113,7 @@ namespace Chillde.API.Controllers
                         Message = result.Message
                     });
                 }
-                return Ok(result);
+                return StatusCode(result.Code, result);
             }
             catch (Exception ex)
             {

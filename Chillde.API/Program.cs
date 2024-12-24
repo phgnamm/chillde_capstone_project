@@ -45,6 +45,7 @@ builder.Services.AddSwaggerGen(x =>
             new string[] { }
         }
     });
+    x.OperationFilter<AcceptLanguageHeaderFilter>();
 });
 
 // Add API configuration

@@ -1,10 +1,12 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Repositories;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Localization;
 
 
 
@@ -15,14 +17,17 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
         private readonly ITranslationService _translationService;
-        public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService)
+        private readonly IStringLocalizer<OfferService> _localizer;
+
+        public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService, IStringLocalizer<OfferService> localizer)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _translationService = translationService;
+            _localizer = localizer;
         }
 
-        public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter,Guid requestId, string sourceLanguageCode, string targetLanguageCode)
+        public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -51,13 +56,24 @@ namespace Chillde.Services.Services
                                    : offers.OrderBy(offer => offer.CreationDate);
                        }
                    },
-                   include:null,
+                   include: null,
                    filterParameter.PageIndex,
                    filterParameter.PageSize
                );
 
                 var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
                 var offersWithTranslations = await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(targetLanguageCode, offerIds);
+                var localizedOffers = offersWithTranslations.Select(offer => new OfferLocalierModel
+                {
+                    Id = offer.Id,
+                    Status = _localizer[$"OfferStatus.{offer.Status.ToString()}"],
+                    Message = offer.Message,
+                    RequestId = offer.RequestId,
+                    ServiceId = offer.ServiceId,
+                    CreatedById = offer.CreatedById,
+                    CreationDate = offer.CreationDate
+                }).ToList();
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
@@ -65,10 +81,9 @@ namespace Chillde.Services.Services
                     Data = new
                     {
                         offersResult.TotalCount,
-                        Results = offersWithTranslations
+                        Results = localizedOffers
                     }
                 };
-
             }
             catch (Exception ex)
             {
@@ -80,7 +95,153 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(OfferAddModel model,Guid requestId, string sourceLanguageCode, string targetLanguageCode)
+
+        public async Task<ResponseModel> GetByIdAsync(Guid id, string sourceLanguageCode, string targetLanguageCode)
+        {
+            try
+            {
+                var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, targetLanguageCode);
+
+                if (offer == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Offer not found."
+                    };
+                }
+
+                var result = new
+                {
+                    offer.Id,
+                    Status = _localizer[$"OfferStatus.{offer.Status}"],
+                    offer.Message,
+                    offer.RequestId,
+                    offer.ServiceId,
+                    offer.CreatedById,
+                    offer.CreationDate
+                };
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Offer retrieved successfully.",
+                    Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
+        }
+        //public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
+        //{
+        //    var currentUserId = _claimService.GetCurrentUserId;
+
+        //    if (model == null || string.IsNullOrEmpty(model.Message) || model.ServiceId == Guid.Empty)
+        //    {
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status400BadRequest,
+        //            Message = "Invalid data provided."
+        //        };
+        //    }
+        //    try
+        //    {
+        //        var newOffer = new Offer
+        //        {
+        //            Status = OfferStatus.Pending,
+        //            RequestId = requestId,
+        //            ServiceId = model.ServiceId,
+        //            CreatedById = currentUserId.Value
+        //        };
+
+        //        string messageInEnglish = model.Message;
+        //        string translatedMessage = null;
+
+        //        if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
+        //        {
+        //            var translationResponse = await _translationService.TranslateAsync(model.Message, sourceLanguageCode, targetLanguageCode);
+
+        //            if (translationResponse.Code != StatusCodes.Status200OK)
+        //            {
+        //                return new ResponseModel
+        //                {
+        //                    Code = StatusCodes.Status500InternalServerError,
+        //                    Message = "Failed to translate message."
+        //                };
+        //            }
+        //            translatedMessage = translationResponse.Message;
+
+        //            if (targetLanguageCode == "en")
+        //            {
+        //                messageInEnglish = translatedMessage;
+        //            }
+        //            else if (sourceLanguageCode == "en")
+        //            {
+        //                messageInEnglish = model.Message;
+        //            }
+        //        }
+
+        //        newOffer.Message = messageInEnglish;
+        //        await _unitOfWork.OfferRepository.AddAsync(newOffer);
+        //        var changes = await _unitOfWork.SaveChangeAsync();
+        //        if (changes > 0 && !string.IsNullOrEmpty(translatedMessage))
+        //        {
+        //            if (targetLanguageCode == "en")
+        //            {
+        //                var translation = new Translation
+        //                {
+        //                    Id = Guid.NewGuid(),
+        //                    EntityType = "Offer",
+        //                    EntityId = newOffer.Id,
+        //                    FieldName = "Message",
+        //                    TranslationText = model.Message,
+        //                    LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode)
+        //                };
+
+        //                await _unitOfWork.TranslationRepository.AddAsync(translation);
+        //            }
+        //            else
+        //            {
+        //                var translation = new Translation
+        //                {
+        //                    Id = Guid.NewGuid(),
+        //                    EntityType = "Offer",
+        //                    EntityId = newOffer.Id,
+        //                    FieldName = "Message",
+        //                    TranslationText = translatedMessage,
+        //                    LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode)
+        //                };
+
+        //                await _unitOfWork.TranslationRepository.AddAsync(translation);
+        //            }
+
+        //            await _unitOfWork.SaveChangeAsync();
+        //        }
+
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status201Created,
+        //            Message = "Offer created successfully.",
+        //            Data = newOffer
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status500InternalServerError,
+        //            Message = $"Internal server error: {ex.Message}"
+        //        };
+        //    }
+        //}
+
+        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
 
@@ -92,6 +253,7 @@ namespace Chillde.Services.Services
                     Message = "Invalid data provided."
                 };
             }
+            await _unitOfWork.BeginTransactionAsync();
 
             try
             {
@@ -100,61 +262,57 @@ namespace Chillde.Services.Services
                     Status = OfferStatus.Pending,
                     RequestId = requestId,
                     ServiceId = model.ServiceId,
-                    CreatedById = currentUserId.Value
+                    CreatedById = currentUserId.Value,
+                    Message = model.Message
                 };
+                string translatedMessage = null;
 
-                if (sourceLanguageCode != "en")
+                if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
                 {
-                    var translationResponse = await _translationService.TranslateAsync(model.Message, sourceLanguageCode, "en");
+                    var translationResponse = await _translationService.TranslateAsync(model.Message, sourceLanguageCode, targetLanguageCode);
 
                     if (translationResponse.Code != StatusCodes.Status200OK)
                     {
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status500InternalServerError,
-                            Message = "Failed to translate message to English."
+                            Message = "Failed to translate message."
                         };
                     }
-                    newOffer.Message = translationResponse.Message;
-                }
-                else
-                {
-                    newOffer.Message = model.Message;
-                }
 
+                    translatedMessage = translationResponse.Message;
+                    newOffer.Message = targetLanguageCode == "en" ? translatedMessage : model.Message;
+                }
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
-                var changes = await _unitOfWork.SaveChangeAsync();
 
-                if (sourceLanguageCode != "en" && !string.IsNullOrEmpty(model.Message))
+                if (!string.IsNullOrEmpty(translatedMessage))
                 {
-                    var translationResponseToTarget = await _translationService.TranslateAsync(model.Message, sourceLanguageCode, targetLanguageCode);
-
-                    if (translationResponseToTarget.Code != StatusCodes.Status200OK)
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status500InternalServerError,
-                            Message = "Failed to translate message to target language."
-                        };
-                    }
                     var translation = new Translation
                     {
+                        Id = Guid.NewGuid(),
                         EntityType = "Offer",
-                        EntityId = newOffer.Id, 
+                        EntityId = newOffer.Id,
                         FieldName = "Message",
-                        TranslationText = translationResponseToTarget.Message,
-                        LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode)
+                        TranslationText = targetLanguageCode == "en" ? model.Message : translatedMessage,
+                        LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(
+                            targetLanguageCode == "en" ? sourceLanguageCode : targetLanguageCode
+                        )
                     };
-
                     await _unitOfWork.TranslationRepository.AddAsync(translation);
-                    await _unitOfWork.SaveChangeAsync();
                 }
-                return changes > 0
-                    ? new ResponseModel { Code = StatusCodes.Status201Created, Message = "Offer created successfully.", Data = newOffer }
-                    : new ResponseModel { Code = StatusCodes.Status500InternalServerError, Message = "Failed to create offer." };
+                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Offer created successfully.",
+                    Data = newOffer
+                };
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
@@ -162,6 +320,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
 
 
         public async Task<ResponseModel> UpdateAsync(Guid offerId, OfferUpdateModel model, string sourceLanguageCode, string targetLanguageCode)
@@ -191,7 +350,7 @@ namespace Chillde.Services.Services
                 string originalMessage = existingOffer.Message;
                 if (!string.IsNullOrEmpty(model.Message) && model.Message != existingOffer.Message)
                 {
-                    existingOffer.Message = model.Message; 
+                    existingOffer.Message = model.Message;
                     if (sourceLanguageCode != "en")
                     {
                         var translationResponse = await _translationService.TranslateAsync(model.Message, sourceLanguageCode, "en");

@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Models.OfferModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,8 @@ namespace Chillde.Repositories.Interfaces
 {
     public interface IOfferRepository : IGenericRepository<Offer>
     {
-        Task<IEnumerable<object>> GetOffersWithTranslationsAsync(string targetLanguageCode, List<Guid> offerIds);
+        Task<IEnumerable<Offer>> GetOffersWithTranslationsAsync(string targetLanguageCode, List<Guid> offerIds);
+        Task<OfferModel?> GetOfferAsync(Guid id, string targetLanguageCode);
     }
 
 }

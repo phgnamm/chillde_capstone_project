@@ -1,9 +1,12 @@
 ﻿using Chillde.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Repositories.Common;
 
 public class UnitOfWork : IUnitOfWork
 {
+    private IDbContextTransaction _transaction;
     public UnitOfWork(AppDbContext context, IAccountRepository accountRepository,
         IAccountConversationRepository accountConversationRepository,
         IAccountRoleRepository accountRoleRepository, IConversationRepository conversationRepository,
@@ -23,7 +26,8 @@ public class UnitOfWork : IUnitOfWork
         ILanguageRepository languageRepository,
         IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
-        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository)
+        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository,
+        IOfferRepository offerRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -91,5 +95,19 @@ public class UnitOfWork : IUnitOfWork
     public async Task<int> SaveChangeAsync()
     {
         return await Context.SaveChangesAsync();
+    }
+    public async Task BeginTransactionAsync()
+    {
+        _transaction = await Context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitTransactionAsync()
+    {
+        await _transaction.CommitAsync();
+    }
+
+    public async Task RollbackTransactionAsync()
+    {
+        await _transaction.RollbackAsync();
     }
 }

@@ -5,6 +5,9 @@ public interface IUnitOfWork
     AppDbContext Context { get; }
 
     public Task<int> SaveChangeAsync();
+    Task BeginTransactionAsync(); 
+    Task CommitTransactionAsync();
+    Task RollbackTransactionAsync();
 
     #region Repository
 
