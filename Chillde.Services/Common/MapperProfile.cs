@@ -2,6 +2,7 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoryModels;
+using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Models.AccountModels;
@@ -34,5 +35,8 @@ public class MapperProfile : Profile
 
         //Subcaterory
         CreateMap<SubCategoryModel, SubCategory>().ReverseMap();
+
+        //Item
+        CreateMap<ItemModel, Item>().ReverseMap();
     }
 }

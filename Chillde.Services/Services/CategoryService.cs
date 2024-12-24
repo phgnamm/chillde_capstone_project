@@ -355,16 +355,20 @@ namespace Chillde.Services.Services
 
         private string GenerateSlug(string input)
         {
-            if (string.IsNullOrEmpty(input))
+            if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
 
-            input = input.Replace("&", "-and-", StringComparison.OrdinalIgnoreCase);
+            input = input.Replace("&", "-and-");
+
+            input = input.Replace(",", "-");
 
             input = input.ToLowerInvariant();
 
-            input = Regex.Replace(input, @"[^a-z0-9\s-]", "");
+            input = Regex.Replace(input, @"[^a-z0-9\s-]", string.Empty);
 
-            input = Regex.Replace(input, @"[\s-]+", "-").Trim('-');
+            input = Regex.Replace(input, @"\s+", "-");
+
+            input = input.Trim('-');
 
             return input;
         }

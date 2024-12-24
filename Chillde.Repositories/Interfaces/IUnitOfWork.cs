@@ -30,6 +30,7 @@ public interface IUnitOfWork
     ICategoryRepository CategoryRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
     IServiceAttachmentRepository ServiceAttachmentRepository { get; }
+    IItemRepository ItemRepository { get; }
 
     #endregion
 }
