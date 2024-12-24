@@ -20,9 +20,10 @@ public class UnitOfWork : IUnitOfWork
         IWalletHistoryRepository walletHistoryRepository,
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
-        ICategoryRepository categoryRepository)
         ILanguageRepository languageRepository,
-        IOfferRepository offerRepository)
+        IServiceAttachmentRepository serviceAttachmentRepository,
+        ICategoryRepository categoryRepository,
+        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -44,7 +45,10 @@ public class UnitOfWork : IUnitOfWork
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
+        ServiceAttachmentRepository = serviceAttachmentRepository;
         CategoryRepository = categoryRepository;
+        SubCategoryRepository = subCategoryRepository;
+        ItemRepository = itemRepository;
         OfferRepository = offerRepository;
     }
 
@@ -60,24 +64,29 @@ public class UnitOfWork : IUnitOfWork
     public IRequestRepository RequestRepository { get; }
     public IRequestDetailRepository RequestDetailRepository { get; }
 
-    public IServiceRepository ServiceRepository {  get; }
+    public IServiceRepository ServiceRepository { get; }
 
     public IFeedbackRepository FeedbackRepository { get; }
 
     public IOrderRepository OrderRepository { get; }
 
-    public IPackageRepository PackageRepository {get ;}
+    public IPackageRepository PackageRepository { get; }
 
-    public IFeedbackAttachmentRepository FeedbackAttachmentRepository {  get; }
+    public IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
 
-    public IWalletRepository WalletRepository {  get; }
+    public IWalletRepository WalletRepository { get; }
 
-    public IWalletHistoryRepository WalletHistoryRepository {  get; }
+    public IWalletHistoryRepository WalletHistoryRepository { get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
     public IOfferRepository OfferRepository { get; }
+    public IServiceAttachmentRepository ServiceAttachmentRepository { get; }
 
     public ICategoryRepository CategoryRepository { get; }
+
+    public ISubCategoryRepository SubCategoryRepository { get; }
+
+    public IItemRepository ItemRepository {get;}
 
     public async Task<int> SaveChangeAsync()
     {

@@ -14,7 +14,7 @@ namespace Chillde.Services.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ResponseModel> Update(PackageUpdateModel packageUpdateModel, Guid id)
+        public async Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id)
         {
             try
             {

@@ -5,6 +5,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IPackageService
     {
-        Task<ResponseModel> Update(PackageUpdateModel packageUpdateModel, Guid id);
+        Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id);
     }
 }

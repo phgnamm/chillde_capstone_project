@@ -184,6 +184,9 @@ public static class Configuration
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<IServiceService, ServiceService>();
 
+        //ServiceAttachment
+        services.AddScoped<IServiceAttachmentRepository, ServiceAttachmentRepository>();
+
         //Package
         services.AddScoped<IPackageRepository, PackageRepository>();
         services.AddScoped<IPackageService, PackageService>();
@@ -218,6 +221,14 @@ public static class Configuration
         //Caterory
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryServive, CategoryService>();
+
+        //Subcategory
+        services.AddScoped<ISubCategoryRepository, SubCategoryRepository>();
+        services.AddScoped<ISubCategoryService, SubCategoryService>();
+
+        //Item
+        services.AddScoped<IItemRepository, ItemRepository>();
+        services.AddScoped<IItemService, ItemService>();
         #endregion
 
         return services;

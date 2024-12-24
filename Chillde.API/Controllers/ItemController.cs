@@ -1,29 +1,30 @@
 ﻿using Chillde.Services.Interfaces;
-using Chillde.Services.Models.PackageModels;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
-using Microsoft.AspNetCore.Authorization;
+using Chillde.Services.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/packages")]
+    [Route("api/v1/items")]
     [ApiController]
-    public class PackageController : ControllerBase
+    public class ItemController : ControllerBase
     {
-        private readonly IPackageService _packageService;
+        private readonly IItemService _itemService;
 
-        public PackageController(IPackageService packageService)
+        public ItemController(IItemService itemService)
         {
-            _packageService = packageService;
+            _itemService = itemService;
         }
 
-        [Authorize("Artist")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] PackageUpdateModel packageUpdateModel, Guid id)
+        //        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAll(Guid id)
         {
             try
             {
-                var result = await _packageService.UpdateAsync(packageUpdateModel, id);
+                var result = await _itemService.GetById(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

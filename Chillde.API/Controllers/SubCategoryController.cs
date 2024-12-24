@@ -1,29 +1,30 @@
 ﻿using Chillde.Services.Interfaces;
-using Chillde.Services.Models.PackageModels;
+using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.ItemModels;
 using Chillde.Services.Models.ResponseModels;
-using Microsoft.AspNetCore.Authorization;
+using Chillde.Services.Models.SubcategoryModels;
+using Chillde.Services.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/services")]
+    [Route("api/v1/subcategorys")]
     [ApiController]
-    public class ServiceController : ControllerBase
+    public class SubCategoryController : ControllerBase
     {
-        private readonly IServiceService _serviceService;
+        private readonly ISubCategoryService _subcategoryService;
 
-        public ServiceController(IServiceService serviceService)
+        public SubCategoryController(ISubCategoryService subcategoryService)
         {
-            _serviceService = serviceService;
+            _subcategoryService = subcategoryService;
         }
-
-        [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAsync(Guid id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromForm] SubCategoryUpdateModel subcategoryUpdateModel)
         {
             try
             {
-                var result = await _serviceService.GetAsync(id);
+                var result = await _subcategoryService.Update(id, subcategoryUpdateModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -35,14 +36,13 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
-        [Authorize]
-        [HttpGet("{serviceId}/service-attachments")]
-        public async Task<IActionResult> GetAllServiceAttachmentsAsync(Guid serviceId)
+        //      [Authorize]
+        [HttpPost("{subCategoryId}/items")]
+        public async Task<IActionResult> AddSubcategory(Guid subCategoryId, [FromForm] ItemAddModel itemAddModel)
         {
             try
             {
-                var result = await _serviceService.GetServiceAttachmentssAsync(serviceId);
+                var result = await _subcategoryService.AddItem(subCategoryId, itemAddModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -54,15 +54,14 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
-        [Authorize("Artist")]
-        [HttpPost("{serviceId}/packages")]
-        public async Task<IActionResult> AddPackageAsync([FromBody] PackageAddModel packageAddModel, Guid serviceId)
+        //      [Authorize]
+        [HttpGet("{subCategoryId}/items")]
+        public async Task<IActionResult> GetSubcategories(Guid subCategoryId, [FromQuery] ItemFilterModel itemFilterModel)
         {
             try
             {
-                var result = await _serviceService.AddPackageAsync(packageAddModel, serviceId);
-                return StatusCode(result.Code, result);
+                var response = await _subcategoryService.GetItemBySubCategory(subCategoryId, itemFilterModel);
+                return StatusCode(response.Code, response);
             }
             catch (Exception ex)
             {
@@ -74,4 +73,5 @@ namespace Chillde.API.Controllers
             }
         }
     }
+
 }

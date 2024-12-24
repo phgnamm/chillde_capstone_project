@@ -15,7 +15,80 @@ namespace Chillde.Services.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<ResponseModel> Add(PackageAddModel packageAddModel, Guid serviceId)
+
+        public async Task<ResponseModel> GetAsync(Guid id)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully.",
+                    Data = service
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> GetServiceAttachmentssAsync(Guid id)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                var attachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(id);
+                if (!attachments.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service's attachment not found."
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully.",
+                    Data = attachments
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId)
         {
             try
             {

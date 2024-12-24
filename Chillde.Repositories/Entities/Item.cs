@@ -1,4 +1,4 @@
-﻿namespace Chillde.Repositories.Entities;
+﻿    namespace Chillde.Repositories.Entities;
 
 public class Item : BaseEntity
 {
