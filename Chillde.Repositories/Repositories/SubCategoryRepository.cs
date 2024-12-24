@@ -15,6 +15,11 @@ namespace Chillde.Repositories.Repositories
         public SubCategoryRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
+        public async Task<SubCategory?> GetFirstOrDefaultAsync(Expression<Func<SubCategory, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
 
+    
     }
 }

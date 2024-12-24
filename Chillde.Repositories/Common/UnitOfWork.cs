@@ -23,7 +23,7 @@ public class UnitOfWork : IUnitOfWork
         ILanguageRepository languageRepository,
         IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
-        ISubCategoryRepository subCategoryRepository)
+        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository)
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -48,6 +48,7 @@ public class UnitOfWork : IUnitOfWork
         ServiceAttachmentRepository = serviceAttachmentRepository;
         CategoryRepository = categoryRepository;
         SubCategoryRepository = subCategoryRepository;
+        ItemRepository = itemRepository;
     }
 
     public AppDbContext Context { get; }
@@ -82,6 +83,8 @@ public class UnitOfWork : IUnitOfWork
     public ICategoryRepository CategoryRepository { get; }
 
     public ISubCategoryRepository SubCategoryRepository { get; }
+
+    public IItemRepository ItemRepository {get;}
 
     public async Task<int> SaveChangeAsync()
     {
