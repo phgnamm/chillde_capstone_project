@@ -323,7 +323,7 @@ namespace Chillde.Services.Services
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status409Conflict,
-                        Message = "Category code already exists."
+                        Message = "Category name already exists."
                     };
                 }
             }

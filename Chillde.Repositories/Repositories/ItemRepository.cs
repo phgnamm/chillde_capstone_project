@@ -15,6 +15,9 @@ namespace Chillde.Repositories.Repositories
         public ItemRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
-
+        public async Task<Item?> GetFirstOrDefaultAsync(Expression<Func<Item, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
     }
 }
