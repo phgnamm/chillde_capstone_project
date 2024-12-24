@@ -1,4 +1,7 @@
-﻿using Chillde.Services.Models.ResponseModels;
+﻿using Chillde.Services.Helpers;
+using Chillde.Services.Models.ItemModels;
+using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +14,8 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> GetById(Guid itemId);
 
+        Task<ResponseModel> Update(Guid id, ItemUpdateModel itemUpdateModel);
+   
 
     }
 }
