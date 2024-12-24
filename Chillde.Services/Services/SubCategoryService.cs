@@ -1,13 +1,18 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.ItemModels;
+using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.ItemModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SubcategoryModels;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,6 +32,82 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
+        }
+
+        public async Task<ResponseModel> AddItem(Guid subcategoryId, ItemAddModel itemAddModel)
+        {
+            var subCategoryExists = await _unitOfWork.SubCategoryRepository.GetAsync(subcategoryId);
+            if (subCategoryExists == null || subCategoryExists.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "SubCategory not found."
+                };
+            }
+            string? imageUrl = null;
+            if (itemAddModel.ImageUrl != null)
+            {
+                imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                    itemAddModel.ImageUrl,
+                    "items",
+                    Guid.NewGuid().ToString()
+                );
+            }
+            var item = new Item
+            {
+                Id = Guid.NewGuid(),
+                Name = itemAddModel.Name,
+                Code = string.IsNullOrEmpty(itemAddModel.Code)
+            ? GenerateSlug(itemAddModel.Name)
+            : GenerateSlug(itemAddModel.Code),
+                ImageUrl = imageUrl,
+                SubCategoryId = subcategoryId
+            };
+            var itemModel = _mapper.Map<ItemModel>(item);
+
+            await _unitOfWork.ItemRepository.AddAsync(item);
+            await _unitOfWork.SaveChangeAsync();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status201Created,
+                Message = "Item added successfully.",
+                Data = itemModel
+            };
+        }
+
+        public async Task<ResponseModel> GetItemBySubCategory(Guid subcategoryId, ItemFilterModel itemFilterModel)
+        {
+            var subCategoryExists = await _unitOfWork.SubCategoryRepository.GetAsync(subcategoryId);
+            if (subCategoryExists == null || subCategoryExists.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "SubCategory not found."
+                };
+            }
+            Expression<Func<Item, bool>> filter = item =>
+                   item.SubCategoryId == subcategoryId &&
+                   item.IsDeleted == itemFilterModel.IsDeleted &&
+                   (string.IsNullOrEmpty(itemFilterModel.Search) ||
+                   item.Name.Contains(itemFilterModel.Search) ||
+                   item.Code.Contains(itemFilterModel.Search));
+
+
+            var items = await _unitOfWork.ItemRepository.GetAllAsync(
+                filter: filter,
+                include: null
+            );
+
+            var itemModel = _mapper.Map<List<ItemModel>>(items.Data);
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Items retrieved successfully.",
+                Data = itemModel
+            };
         }
 
         public async Task<ResponseModel> Update(Guid id, SubCategoryUpdateModel subCategoryUpdateModel)
@@ -82,16 +163,20 @@ namespace Chillde.Services.Services
         }
         private string GenerateSlug(string input)
         {
-            if (string.IsNullOrEmpty(input))
+            if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
 
-            input = input.Replace("&", "-and-", StringComparison.OrdinalIgnoreCase);
+            input = input.Replace("&", "-and-");
+
+            input = input.Replace(",", "-");
 
             input = input.ToLowerInvariant();
 
-            input = Regex.Replace(input, @"[^a-z0-9\s-]", "");
+            input = Regex.Replace(input, @"[^a-z0-9\s-]", string.Empty);
 
-            input = Regex.Replace(input, @"[\s-]+", "-").Trim('-');
+            input = Regex.Replace(input, @"\s+", "-");
+
+            input = input.Trim('-');
 
             return input;
         }

@@ -113,12 +113,12 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpPost("{id}/subcategories")]
-        public async Task<IActionResult> AddSubcategory(Guid id, [FromForm] SubCategoryAddModel subCategoryAddModel)
+        [HttpPost("{categoryId}/subcategories")]
+        public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddModel subCategoryAddModel)
         {
             try
             {
-                var result = await _categoryService.AddSubcategory(id, subCategoryAddModel);
+                var result = await _categoryService.AddSubcategory(categoryId, subCategoryAddModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -131,12 +131,12 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpGet("{id}/subcategories")]
-        public async Task<IActionResult> GetSubcategories(Guid id, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
+        [HttpGet("{categoryId}/subcategories")]
+        public async Task<IActionResult> GetSubcategories(Guid categoryId, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
         {
             try
             {
-                var response = await _categoryService.GetSubcategoriesByCategory(id,subCategoryFilterModel);
+                var response = await _categoryService.GetSubcategoriesByCategory(categoryId, subCategoryFilterModel);
                 return StatusCode(response.Code, response);
             }
             catch (Exception ex)
