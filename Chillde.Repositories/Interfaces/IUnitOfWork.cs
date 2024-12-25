@@ -5,6 +5,9 @@ public interface IUnitOfWork
     AppDbContext Context { get; }
 
     public Task<int> SaveChangeAsync();
+    Task BeginTransactionAsync(); 
+    Task CommitTransactionAsync();
+    Task RollbackTransactionAsync();
 
     #region Repository
 
@@ -27,6 +30,7 @@ public interface IUnitOfWork
     IWalletHistoryRepository WalletHistoryRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
+    IOfferRepository OfferRepository { get; }
     ICategoryRepository CategoryRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
     IServiceAttachmentRepository ServiceAttachmentRepository { get; }
