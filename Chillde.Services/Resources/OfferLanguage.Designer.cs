@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Chillde.Repositories.Resources {
+namespace Chillde.Services.Resources {
     using System;
     
     
@@ -22,24 +22,24 @@ namespace Chillde.Repositories.Resources {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Language {
+    public class OfferLanguage {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Language() {
+        internal OfferLanguage() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Chillde.Repositories.Resources.Language", typeof(Language).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Chillde.Services.Resources.OfferLanguage", typeof(OfferLanguage).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace Chillde.Repositories.Resources {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,38 +61,74 @@ namespace Chillde.Repositories.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Đang hoạt động.
+        ///   Looks up a localized string similar to Active.
         /// </summary>
-        internal static string OfferStatus_Active {
+        public static string Active {
             get {
-                return ResourceManager.GetString("OfferStatus.Active", resourceCulture);
+                return ResourceManager.GetString("Active", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Đã đóng.
+        ///   Looks up a localized string similar to Approved.
         /// </summary>
-        internal static string OfferStatus_Closed {
+        public static string Approved {
             get {
-                return ResourceManager.GetString("OfferStatus.Closed", resourceCulture);
+                return ResourceManager.GetString("Approved", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hết hạn.
+        ///   Looks up a localized string similar to Cancelled.
         /// </summary>
-        internal static string OfferStatus_Expired {
+        public static string Cancelled {
             get {
-                return ResourceManager.GetString("OfferStatus.Expired", resourceCulture);
+                return ResourceManager.GetString("Cancelled", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Chờ xử lý.
+        ///   Looks up a localized string similar to Closed.
         /// </summary>
-        internal static string OfferStatus_Pending {
+        public static string Closed {
             get {
-                return ResourceManager.GetString("OfferStatus.Pending", resourceCulture);
+                return ResourceManager.GetString("Closed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completed.
+        /// </summary>
+        public static string Completed {
+            get {
+                return ResourceManager.GetString("Completed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expired.
+        /// </summary>
+        public static string Expired {
+            get {
+                return ResourceManager.GetString("Expired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending.
+        /// </summary>
+        public static string Pending {
+            get {
+                return ResourceManager.GetString("Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rejected.
+        /// </summary>
+        public static string Rejected {
+            get {
+                return ResourceManager.GetString("Rejected", resourceCulture);
             }
         }
     }

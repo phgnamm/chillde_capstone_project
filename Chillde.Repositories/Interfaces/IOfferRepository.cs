@@ -10,7 +10,7 @@ namespace Chillde.Repositories.Interfaces
 {
     public interface IOfferRepository : IGenericRepository<Offer>
     {
-        Task<IEnumerable<Offer>> GetOffersWithTranslationsAsync(string targetLanguageCode, List<Guid> offerIds);
+        Task<IEnumerable<OfferModel>> GetOffersWithTranslationsAsync(string targetLanguageCode, List<Guid> offerIds);
         Task<OfferModel?> GetOfferAsync(Guid id, string targetLanguageCode);
     }
 

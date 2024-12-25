@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.OfferModels;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +15,11 @@ namespace Chillde.Repositories.Repositories
         {
             _context = context;
         }
-        public async Task<IEnumerable<Offer>> GetOffersWithTranslationsAsync(string targetLanguageCode, List<Guid> offerIds)
+        public async Task<IEnumerable<OfferModel>> GetOffersWithTranslationsAsync(string sourceLanguageCode, List<Guid> offerIds)
         {
+            if (!Enum.TryParse(sourceLanguageCode, true, out LanguageCode languageCode))
+            {
+            }
             var result = await _context.Offers
                 .Where(o => offerIds.Contains(o.Id))
                 .Join(
@@ -25,20 +29,18 @@ namespace Chillde.Repositories.Repositories
                     (offer, translation) => new { Offer = offer, Translation = translation }
                 )
                 .Where(joined => joined.Translation.FieldName == "Message" && joined.Translation.EntityType == "Offer"
-                                 && joined.Translation.Language.Code.ToString() == targetLanguageCode)
-                .Select(joined => new
+                                 && joined.Translation.Language.Code == languageCode)
+                .Select(joined => new OfferModel
                 {
-                    joined.Offer.Id,
-                    joined.Offer.Status,
+                    Id = joined.Offer.Id,
+                    Status = joined.Offer.Status,
                     Message = string.IsNullOrEmpty(joined.Translation.TranslationText) ? joined.Offer.Message : joined.Translation.TranslationText,
-                    joined.Offer.RequestId,
-                    joined.Offer.ServiceId,
-                    joined.Offer.CreatedById,
-                    joined.Offer.CreationDate
+                    RequestId = joined.Offer.RequestId,
+                    ServiceId = joined.Offer.ServiceId
                 })
-            .ToListAsync();
+                .ToListAsync();
 
-            return (IEnumerable<Offer>)result;
+            return result;
         }
 
         public async Task<OfferModel?> GetOfferAsync(Guid id, string targetLanguageCode)

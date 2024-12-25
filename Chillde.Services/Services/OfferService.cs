@@ -1,12 +1,13 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Repositories;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Resources;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
+using System.Globalization;
 
 
 
@@ -17,9 +18,9 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
         private readonly ITranslationService _translationService;
-        private readonly IStringLocalizer<OfferService> _localizer;
+        private readonly IStringLocalizer<OfferLanguage> _localizer;
 
-        public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService, IStringLocalizer<OfferService> localizer)
+        public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService, IStringLocalizer<OfferLanguage> localizer)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
@@ -29,51 +30,70 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
+            var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
             try
             {
                 var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
-                   offer =>
-                       offer.IsDeleted == filterParameter.IsDeleted &&
-                       (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
-                       (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
-                       (offer.RequestId == requestId) &&
-                       (!filterParameter.CreatedById.HasValue || offer.CreatedById == filterParameter.CreatedById),
-                   offers =>
-                   {
-                       switch (filterParameter.Order.ToLower())
-                       {
-                           case "status":
-                               return filterParameter.OrderByDescending
-                                   ? offers.OrderByDescending(offer => offer.Status)
-                                   : offers.OrderBy(offer => offer.Status);
-                           case "createdAt":
-                               return filterParameter.OrderByDescending
-                                   ? offers.OrderByDescending(offer => offer.CreationDate)
-                                   : offers.OrderBy(offer => offer.CreationDate);
-                           default:
-                               return filterParameter.OrderByDescending
-                                   ? offers.OrderByDescending(offer => offer.CreationDate)
-                                   : offers.OrderBy(offer => offer.CreationDate);
-                       }
-                   },
-                   include: null,
-                   filterParameter.PageIndex,
-                   filterParameter.PageSize
-               );
-
+                    offer =>
+                        offer.IsDeleted == filterParameter.IsDeleted &&
+                        (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
+                        (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
+                        (offer.RequestId == requestId) &&
+                        (!filterParameter.CreatedById.HasValue || offer.CreatedById == filterParameter.CreatedById),
+                    offers =>
+                    {
+                        switch (filterParameter.Order.ToLower())
+                        {
+                            case "status":
+                                return filterParameter.OrderByDescending
+                                    ? offers.OrderByDescending(offer => offer.Status)
+                                    : offers.OrderBy(offer => offer.Status);
+                            case "createdAt":
+                                return filterParameter.OrderByDescending
+                                    ? offers.OrderByDescending(offer => offer.CreationDate)
+                                    : offers.OrderBy(offer => offer.CreationDate);
+                            default:
+                                return filterParameter.OrderByDescending
+                                    ? offers.OrderByDescending(offer => offer.CreationDate)
+                                    : offers.OrderBy(offer => offer.CreationDate);
+                        }
+                    },
+                    include: null,
+                    filterParameter.PageIndex,
+                    filterParameter.PageSize
+                );
                 var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
-                var offersWithTranslations = await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(targetLanguageCode, offerIds);
-                var localizedOffers = offersWithTranslations.Select(offer => new OfferLocalierModel
+                List<OfferLocalierModel> localizedOffers = new List<OfferLocalierModel>();
+                
+                if (sourceLanguageCode != "en")
                 {
-                    Id = offer.Id,
-                    Status = _localizer[$"OfferStatus.{offer.Status.ToString()}"],
-                    Message = offer.Message,
-                    RequestId = offer.RequestId,
-                    ServiceId = offer.ServiceId,
-                    CreatedById = offer.CreatedById,
-                    CreationDate = offer.CreationDate
-                }).ToList();
-
+                    var offersWithTranslations = await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(sourceLanguageCode, offerIds);
+                    localizedOffers = offersWithTranslations.Select(offer => new OfferLocalierModel
+                    {
+                        Id = offer.Id,
+                        Status = _localizer[offer.Status.ToString()],
+                        Message = offer.Message,
+                        RequestId = offer.RequestId,
+                        ServiceId = offer.ServiceId,
+                        CreatedById = offer.CreatedById,
+                        CreationDate = offer.CreationDate
+                    }).ToList();
+                }
+                else
+                {
+                    localizedOffers = offersResult.Data.Select(offer => new OfferLocalierModel
+                    {
+                        Id = offer.Id,
+                        Status = _localizer[offer.Status.ToString()],
+                        Message = offer.Message,
+                        RequestId = offer.RequestId,
+                        ServiceId = offer.ServiceId,
+                        CreatedById = offer.CreatedById,
+                        CreationDate = offer.CreationDate
+                    }).ToList();
+                }
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
@@ -95,7 +115,6 @@ namespace Chillde.Services.Services
             }
         }
 
-
         public async Task<ResponseModel> GetByIdAsync(Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             try
@@ -114,7 +133,7 @@ namespace Chillde.Services.Services
                 var result = new
                 {
                     offer.Id,
-                    Status = _localizer[$"OfferStatus.{offer.Status}"],
+                    Status = _localizer[offer.Status.ToString()],
                     offer.Message,
                     offer.RequestId,
                     offer.ServiceId,
@@ -138,109 +157,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
-        //public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
-        //{
-        //    var currentUserId = _claimService.GetCurrentUserId;
-
-        //    if (model == null || string.IsNullOrEmpty(model.Message) || model.ServiceId == Guid.Empty)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status400BadRequest,
-        //            Message = "Invalid data provided."
-        //        };
-        //    }
-        //    try
-        //    {
-        //        var newOffer = new Offer
-        //        {
-        //            Status = OfferStatus.Pending,
-        //            RequestId = requestId,
-        //            ServiceId = model.ServiceId,
-        //            CreatedById = currentUserId.Value
-        //        };
-
-        //        string messageInEnglish = model.Message;
-        //        string translatedMessage = null;
-
-        //        if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
-        //        {
-        //            var translationResponse = await _translationService.TranslateAsync(model.Message, sourceLanguageCode, targetLanguageCode);
-
-        //            if (translationResponse.Code != StatusCodes.Status200OK)
-        //            {
-        //                return new ResponseModel
-        //                {
-        //                    Code = StatusCodes.Status500InternalServerError,
-        //                    Message = "Failed to translate message."
-        //                };
-        //            }
-        //            translatedMessage = translationResponse.Message;
-
-        //            if (targetLanguageCode == "en")
-        //            {
-        //                messageInEnglish = translatedMessage;
-        //            }
-        //            else if (sourceLanguageCode == "en")
-        //            {
-        //                messageInEnglish = model.Message;
-        //            }
-        //        }
-
-        //        newOffer.Message = messageInEnglish;
-        //        await _unitOfWork.OfferRepository.AddAsync(newOffer);
-        //        var changes = await _unitOfWork.SaveChangeAsync();
-        //        if (changes > 0 && !string.IsNullOrEmpty(translatedMessage))
-        //        {
-        //            if (targetLanguageCode == "en")
-        //            {
-        //                var translation = new Translation
-        //                {
-        //                    Id = Guid.NewGuid(),
-        //                    EntityType = "Offer",
-        //                    EntityId = newOffer.Id,
-        //                    FieldName = "Message",
-        //                    TranslationText = model.Message,
-        //                    LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode)
-        //                };
-
-        //                await _unitOfWork.TranslationRepository.AddAsync(translation);
-        //            }
-        //            else
-        //            {
-        //                var translation = new Translation
-        //                {
-        //                    Id = Guid.NewGuid(),
-        //                    EntityType = "Offer",
-        //                    EntityId = newOffer.Id,
-        //                    FieldName = "Message",
-        //                    TranslationText = translatedMessage,
-        //                    LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode)
-        //                };
-
-        //                await _unitOfWork.TranslationRepository.AddAsync(translation);
-        //            }
-
-        //            await _unitOfWork.SaveChangeAsync();
-        //        }
-
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status201Created,
-        //            Message = "Offer created successfully.",
-        //            Data = newOffer
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status500InternalServerError,
-        //            Message = $"Internal server error: {ex.Message}"
-        //        };
-        //    }
-        //}
-
+      
         public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -265,7 +182,7 @@ namespace Chillde.Services.Services
                     CreatedById = currentUserId.Value,
                     Message = model.Message
                 };
-                string translatedMessage = null;
+                string? translatedMessage = null;
 
                 if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
                 {
