@@ -1,19 +1,27 @@
-﻿using Chillde.Repositories.Entities;
+﻿using AutoMapper;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.FAQModels;
+using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.SubcategoryModels;
 using Microsoft.AspNetCore.Http;
+using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
 {
     public class ServiceService : IServiceService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public ServiceService(IUnitOfWork unitOfWork)
+        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> GetAsync(Guid id)
@@ -47,11 +55,11 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> GetServiceAttachmentssAsync(Guid id)
+        public async Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId)
         {
             try
             {
-                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
                 if (service == null)
                 {
                     return new ResponseModel
@@ -61,15 +69,13 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var attachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(id);
-                if (!attachments.Any())
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Service's attachment not found."
-                    };
-                }
+                Expression<Func<ServiceAttachment, bool>> filter = faq =>
+                   faq.ServiceId == serviceId;
+
+                var attachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
+                    filter: filter,
+                    include: null
+                    );
 
                 return new ResponseModel
                 {
@@ -126,7 +132,8 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Package created successfully.",
+                    Message = "Package successfully created.",
+                    Data = package
                 };
             }
             catch (Exception ex)
@@ -137,6 +144,89 @@ namespace Chillde.Services.Services
                     Message = ex.Message
                 };
             }
-        }        
+        }
+
+        public async Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                var faq = new FAQ
+                {
+                    Question = faqAddModel.Question,
+                    Answer = faqAddModel.Answer,
+                    ServiceId = serviceId,
+                };
+
+                await _unitOfWork.FAQRepository.AddAsync(faq);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "FAQ successfully created.",
+                    Data = faq
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> GetAllFAQsAsync(Guid serviceId, FAQFilterModel faqFilterModel)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                Expression<Func<FAQ, bool>> filter = faq =>
+                   faq.ServiceId == serviceId &&
+                   faq.IsDeleted == faqFilterModel.IsDeleted;
+
+                var faqs = await _unitOfWork.FAQRepository.GetAllAsync(
+                    filter: filter,
+                    include: null
+                );
+
+                var faqsModel = _mapper.Map<List<FAQModel>>(faqs.Data);
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully.",
+                    Data = faqsModel
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
     }
 }

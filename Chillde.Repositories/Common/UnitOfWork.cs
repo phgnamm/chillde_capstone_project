@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -26,8 +27,11 @@ public class UnitOfWork : IUnitOfWork
         ILanguageRepository languageRepository,
         IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
-        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository,
-        IOfferRepository offerRepository)
+        ISubCategoryRepository subCategoryRepository, 
+        IItemRepository itemRepository,
+        IOfferRepository offerRepository,
+        IFAQRepository faqRepository
+        )
     {
         Context = context;
         AccountRepository = accountRepository;
@@ -51,6 +55,7 @@ public class UnitOfWork : IUnitOfWork
         LanguageRepository = languageRepository;
         ServiceAttachmentRepository = serviceAttachmentRepository;
         CategoryRepository = categoryRepository;
+        FAQRepository = faqRepository;
         SubCategoryRepository = subCategoryRepository;
         ItemRepository = itemRepository;
         OfferRepository = offerRepository;
@@ -85,8 +90,8 @@ public class UnitOfWork : IUnitOfWork
     public ILanguageRepository LanguageRepository { get; }
     public IOfferRepository OfferRepository { get; }
     public IServiceAttachmentRepository ServiceAttachmentRepository { get; }
-
     public ICategoryRepository CategoryRepository { get; }
+    public IFAQRepository FAQRepository { get; }
 
     public ISubCategoryRepository SubCategoryRepository { get; }
 

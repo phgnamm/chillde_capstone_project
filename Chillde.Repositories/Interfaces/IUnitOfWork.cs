@@ -30,10 +30,11 @@ public interface IUnitOfWork
     IWalletHistoryRepository WalletHistoryRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
+    IServiceAttachmentRepository ServiceAttachmentRepository { get; }
     IOfferRepository OfferRepository { get; }
     ICategoryRepository CategoryRepository { get; }
+    IFAQRepository FAQRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
-    IServiceAttachmentRepository ServiceAttachmentRepository { get; }
     IItemRepository ItemRepository { get; }
 
     #endregion
