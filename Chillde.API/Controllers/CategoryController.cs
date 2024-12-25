@@ -3,6 +3,7 @@ using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.SubcategoryModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/categorys")]
+    [Route("api/v1/categories")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
@@ -111,6 +112,43 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
+        [HttpPost("{categoryId}/subcategories")]
+        public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddModel subCategoryAddModel)
+        {
+            try
+            {
+                var result = await _categoryService.AddSubcategory(categoryId, subCategoryAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        //      [Authorize]
+        [HttpGet("{categoryId}/subcategories")]
+        public async Task<IActionResult> GetSubcategories(Guid categoryId, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
+        {
+            try
+            {
+                var response = await _categoryService.GetSubcategoriesByCategory(categoryId, subCategoryFilterModel);
+                return StatusCode(response.Code, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
 
     }
 }

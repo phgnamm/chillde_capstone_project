@@ -1,8 +1,12 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using Chillde.API;
 using Chillde.API.Middlewares;
 using Chillde.Repositories.Common;
 using Chillde.Services.Hubs;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,12 +47,15 @@ builder.Services.AddSwaggerGen(x =>
             new string[] { }
         }
     });
+    x.OperationFilter<AcceptLanguageHeaderFilter>();
 });
 
 // Add API configuration
 builder.Services.AddApiConfiguration(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 // Middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();

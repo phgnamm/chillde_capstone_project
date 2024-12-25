@@ -4,6 +4,7 @@ using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.Repositories.Enums;
+using Chillde.API.Helper;
 
 namespace Chillde.API.Controllers
 {
@@ -25,8 +26,8 @@ namespace Chillde.API.Controllers
             try
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = GetTargetLanguageCode(sourceLanguageCode);
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
                 var translationResult = await _translationService.TranslateAsync(model.TranslationText, sourceLanguageCode, targetLanguageCode);
                 if (translationResult.Code != StatusCodes.Status200OK)
@@ -125,26 +126,5 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        private string GetTargetLanguageCode(string sourceLanguageCode)
-        {
-            var primaryLanguage = sourceLanguageCode.Split(',').FirstOrDefault();
-            var languageCode = primaryLanguage?.Split('-').FirstOrDefault()?.ToLower();
-            return languageCode switch
-            {
-                "vi" => "en",
-                "en" => "vi",
-                _ => "en"
-            };
-        }
-        private string GetSourceLanguageCode(string acceptLanguage)
-        {
-            if (string.IsNullOrWhiteSpace(acceptLanguage))
-            {
-                return "en";
-            }
-            var primaryLanguage = acceptLanguage.Split(',').FirstOrDefault();
-            return primaryLanguage?.Split('-').FirstOrDefault()?.ToLower() ?? "en";
-        }
     }
-
 }
