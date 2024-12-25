@@ -16,6 +16,8 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Services;
 using Chillde.Services.Helpers;
 using Chillde.Repositories.Repositories;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 namespace Chillde.API;
 
@@ -94,6 +96,29 @@ public static class Configuration
         {
             settings.ApiKey = configuration["OpenAI:ApiKey"];
         });
+
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = new[]
+            {
+            new CultureInfo("en-US"),
+            new CultureInfo("vi-VN")
+        };
+
+            options.DefaultRequestCulture = new RequestCulture("en-US");
+            options.SupportedCultures = supportedCultures;
+            options.SupportedUICultures = supportedCultures;
+            options.ApplyCurrentCultureToResponseHeaders = true;
+
+            options.RequestCultureProviders.Clear();
+            options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+            options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
+            options.RequestCultureProviders.Add(new CookieRequestCultureProvider());
+        });
+
+        services.AddControllers()
+            .AddViewLocalization()
+            .AddDataAnnotationsLocalization();
 
         // CORS
         var clientUrl = configuration["URL:Client"];
@@ -212,6 +237,10 @@ public static class Configuration
         //Language
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<ILanguageService, LanguageService>();
+
+        //Offer
+        services.AddScoped<IOfferRepository, OfferRepository>();
+        services.AddScoped<IOfferService, OfferService>();
 
         //Caterory
         services.AddScoped<ICategoryRepository, CategoryRepository>();
