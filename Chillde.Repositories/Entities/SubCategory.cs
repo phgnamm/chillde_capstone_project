@@ -12,5 +12,4 @@ public class SubCategory : BaseEntity
     // Relationship
     public Category Category { get; set; } = null!;
     public virtual ICollection<Item> Items { get; set; } = new List<Item>();
-    public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
 }

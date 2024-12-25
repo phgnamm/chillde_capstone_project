@@ -128,18 +128,6 @@ public class AppDbContext : DbContext
             .HasOne(a => a.Order)
             .WithOne(w => w.Shipment)
             .HasForeignKey<Order>(w => w.ShipmentId);
-
-        modelBuilder.Entity<Skill>(entity =>
-        {
-            entity.HasOne(s => s.Account)
-                .WithMany(a => a.Skills)
-                .HasForeignKey(s => s.AccountId);
-
-            entity.HasOne(s => s.SubCategory)
-                .WithMany(sc => sc.Skills)
-                .HasForeignKey(s => s.SubCategoryId);
-        });
-
         modelBuilder.Entity<Translation>(entity =>
         {
             entity.HasKey(t => new { t.EntityType, t.EntityId, t.FieldName, t.LanguageId });
@@ -187,7 +175,6 @@ public class AppDbContext : DbContext
     public DbSet<ServiceWishlist> ServiceWishlists { get; set; }
     public DbSet<Shipment> Shipment { get; set; }
     public DbSet<ShippingAddress> ShippingAddresses { get; set; }
-    public DbSet<Skill> Skills { get; set; }
     public DbSet<SubCategory> SubCategories { get; set; }
     public DbSet<Translation> Translations { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
