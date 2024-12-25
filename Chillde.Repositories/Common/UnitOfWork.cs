@@ -27,12 +27,11 @@ public class UnitOfWork : IUnitOfWork
         ILanguageRepository languageRepository,
         IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
+        ISubCategoryRepository subCategoryRepository, 
+        IItemRepository itemRepository,
+        IOfferRepository offerRepository,
         IFAQRepository faqRepository
         )
-        IServiceAttachmentRepository serviceAttachmentRepository,
-        ICategoryRepository categoryRepository,
-        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository,
-        IOfferRepository offerRepository)
     {
         Context = context;
         AccountRepository = accountRepository;

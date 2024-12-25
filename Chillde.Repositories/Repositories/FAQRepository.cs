@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Repositories.Repositories
 {

@@ -1,4 +1,5 @@
 ﻿using Chillde.Services.Interfaces;
+using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
@@ -62,6 +63,44 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceService.AddPackageAsync(packageAddModel, serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize("Artist")]
+        [HttpPost("{serviceId}/faqs")]
+        public async Task<IActionResult> AddFAQAsync([FromBody] FAQAddAndUpdateModel faqAddModel, Guid serviceId)
+        {
+            try
+            {
+                var result = await _serviceService.AddFAQAsync(faqAddModel, serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("{serviceId}/faqs")]
+        public async Task<IActionResult> GetAllFAQsAsync(Guid serviceId, [FromQuery]FAQFilterModel faqFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.GetAllFAQsAsync(serviceId, faqFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
