@@ -43,7 +43,6 @@ public class Account : BaseEntity
     public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     public virtual ICollection<ShippingAddress> ShippingAddresses { get; set; } = new List<ShippingAddress>();
-    public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public virtual ICollection<Message> Message { get; set; } = new List<Message>();
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
