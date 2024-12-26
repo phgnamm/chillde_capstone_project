@@ -1,4 +1,6 @@
-﻿using Chillde.Services.Models.ResponseModels;
+﻿using Chillde.Services.Common;
+using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ShippingAddressModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IShippingAddressService
     {
-        Task<ResponseModel> GetProvincesAsync();
+        Task<ResponseModel> GetProvincesAsync(ProvinceFilterModel provinceFilterModel);
     }
 }

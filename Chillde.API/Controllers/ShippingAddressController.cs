@@ -1,4 +1,5 @@
 ﻿using Chillde.Services.Interfaces;
+using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,9 +17,9 @@ namespace Chillde.API.Controllers
         }
 
         [HttpGet("provinces")]
-        public async Task<IActionResult> GetProvinces()
+        public async Task<IActionResult> GetProvinces([FromQuery] ProvinceFilterModel provinceFilterModel)
         {
-            var response = await _shippingAddressService.GetProvincesAsync();
+            var response = await _shippingAddressService.GetProvincesAsync(provinceFilterModel);
 
             if (response.Status)
             {

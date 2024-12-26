@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ShippingAddressModels;
+using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -30,45 +32,77 @@ namespace Chillde.Services.Services
             _mapper = mapper;
             _httpClient = httpClientFactory.CreateClient("GhnClient");
         }
-
-        public async Task<ResponseModel> GetProvincesAsync()
+        public async Task<ResponseModel> GetProvincesAsync(ProvinceFilterModel provinceFilterModel)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync("master-data/province");
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new ResponseModel
-                    {
-                        Code = (int)response.StatusCode,
-                        Message = "Failed to fetch provinces from GHN",
-                        Data = null
-                    };
-                }
+            var response = await _httpClient.GetAsync("master-data/province");
 
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
-
-                var data = jsonObject["data"]?.ToObject<List<ProvinceModel>>();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Success",
-                    Data = data
-                };
-            }
-            catch (Exception ex)
+            if (!response.IsSuccessStatusCode)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = $"Error: {ex.Message}",
+                    Code = (int)response.StatusCode,
+                    Message = "Failed to fetch provinces from GHN",
                     Data = null
                 };
             }
+            var content = await response.Content.ReadAsStringAsync();
+            var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+            var data = jsonObject["data"]?.ToObject<List<ProvinceModel>>();
+
+            if (data == null || !data.Any())
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "No provinces found",
+                    Data = null
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(provinceFilterModel.Search))
+            {
+                data = data
+                    .Where(p => p.ProvinceName != null &&
+                                p.ProvinceName.Contains(provinceFilterModel.Search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(provinceFilterModel.Order))
+            {
+                if (provinceFilterModel.OrderByDescending)
+                {
+                    data = data.OrderByDescending(p => p.GetType().GetProperty(provinceFilterModel.Order)?.GetValue(p)).ToList();
+                }
+                else
+                {
+                    data = data.OrderBy(p => p.GetType().GetProperty(provinceFilterModel.Order)?.GetValue(p)).ToList();
+                }
+            }
+
+            var totalItems = data.Count;
+            var totalPages = (int)Math.Ceiling(totalItems / (double)provinceFilterModel.PageSize);
+            var pagedData = data
+            .Skip((provinceFilterModel.PageIndex - 1) * provinceFilterModel.PageSize)
+            .Take(provinceFilterModel.PageSize)
+                .ToList();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = new
+                {
+                    TotalItems = totalItems,
+                    TotalPages = totalPages,
+                    CurrentPage = provinceFilterModel.PageIndex,
+                    PageSize = provinceFilterModel.PageSize,
+                    Data = pagedData
+                }
+            };
         }
+
 
     }
 }
+
