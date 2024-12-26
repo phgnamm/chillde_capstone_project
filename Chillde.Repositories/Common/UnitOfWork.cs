@@ -1,10 +1,12 @@
 ﻿using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Repositories.Common;
 
 public class UnitOfWork : IUnitOfWork
 {
+    private IDbContextTransaction _transaction;
     public UnitOfWork(AppDbContext context, IAccountRepository accountRepository,
         IAccountConversationRepository accountConversationRepository,
         IAccountRoleRepository accountRoleRepository, IConversationRepository conversationRepository,
@@ -22,6 +24,9 @@ public class UnitOfWork : IUnitOfWork
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
         ILanguageRepository languageRepository,
+        IServiceAttachmentRepository serviceAttachmentRepository,
+        ICategoryRepository categoryRepository,
+        ISubCategoryRepository subCategoryRepository, IItemRepository itemRepository,
         IOfferRepository offerRepository)
     {
         Context = context;
@@ -44,6 +49,10 @@ public class UnitOfWork : IUnitOfWork
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
+        ServiceAttachmentRepository = serviceAttachmentRepository;
+        CategoryRepository = categoryRepository;
+        SubCategoryRepository = subCategoryRepository;
+        ItemRepository = itemRepository;
         OfferRepository = offerRepository;
     }
 
@@ -59,26 +68,48 @@ public class UnitOfWork : IUnitOfWork
     public IRequestRepository RequestRepository { get; }
     public IRequestDetailRepository RequestDetailRepository { get; }
 
-    public IServiceRepository ServiceRepository {  get; }
+    public IServiceRepository ServiceRepository { get; }
 
     public IFeedbackRepository FeedbackRepository { get; }
 
     public IOrderRepository OrderRepository { get; }
 
-    public IPackageRepository PackageRepository {get ;}
+    public IPackageRepository PackageRepository { get; }
 
-    public IFeedbackAttachmentRepository FeedbackAttachmentRepository {  get; }
+    public IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
 
-    public IWalletRepository WalletRepository {  get; }
+    public IWalletRepository WalletRepository { get; }
 
-    public IWalletHistoryRepository WalletHistoryRepository {  get; }
+    public IWalletHistoryRepository WalletHistoryRepository { get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
+    public IOfferRepository OfferRepository { get; }
+    public IServiceAttachmentRepository ServiceAttachmentRepository { get; }
+
+    public ICategoryRepository CategoryRepository { get; }
+
+    public ISubCategoryRepository SubCategoryRepository { get; }
+
+    public IItemRepository ItemRepository {get;}
 
     public IOfferRepository OfferRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {
         return await Context.SaveChangesAsync();
+    }
+    public async Task BeginTransactionAsync()
+    {
+        _transaction = await Context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitTransactionAsync()
+    {
+        await _transaction.CommitAsync();
+    }
+
+    public async Task RollbackTransactionAsync()
+    {
+        await _transaction.RollbackAsync();
     }
 }

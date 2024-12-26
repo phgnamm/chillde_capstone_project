@@ -13,7 +13,5 @@ namespace Chillde.Repositories.Repositories
         public ServiceRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
-
-       
     }
 }

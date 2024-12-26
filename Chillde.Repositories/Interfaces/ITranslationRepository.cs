@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Models.TranslationModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

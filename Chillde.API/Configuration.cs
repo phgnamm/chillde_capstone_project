@@ -16,6 +16,8 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Services;
 using Chillde.Services.Helpers;
 using Chillde.Repositories.Repositories;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 namespace Chillde.API;
 
@@ -94,6 +96,29 @@ public static class Configuration
         {
             settings.ApiKey = configuration["OpenAI:ApiKey"];
         });
+
+        services.Configure<RequestLocalizationOptions>(options =>
+        {
+            var supportedCultures = new[]
+            {
+            new CultureInfo("en-US"),
+            new CultureInfo("vi-VN")
+        };
+
+            options.DefaultRequestCulture = new RequestCulture("en-US");
+            options.SupportedCultures = supportedCultures;
+            options.SupportedUICultures = supportedCultures;
+            options.ApplyCurrentCultureToResponseHeaders = true;
+
+            options.RequestCultureProviders.Clear();
+            options.RequestCultureProviders.Add(new AcceptLanguageHeaderRequestCultureProvider());
+            options.RequestCultureProviders.Add(new QueryStringRequestCultureProvider());
+            options.RequestCultureProviders.Add(new CookieRequestCultureProvider());
+        });
+
+        services.AddControllers()
+            .AddViewLocalization()
+            .AddDataAnnotationsLocalization();
 
         // CORS
         var clientUrl = configuration["URL:Client"];
@@ -181,9 +206,14 @@ public static class Configuration
 
         //Service
         services.AddScoped<IServiceRepository, ServiceRepository>();
+        services.AddScoped<IServiceService, ServiceService>();
+
+        //ServiceAttachment
+        services.AddScoped<IServiceAttachmentRepository, ServiceAttachmentRepository>();
 
         //Package
         services.AddScoped<IPackageRepository, PackageRepository>();
+        services.AddScoped<IPackageService, PackageService>();
 
         //Feedback
         services.AddScoped<IFeedbackRepository, FeedbackRepository>();
@@ -199,7 +229,7 @@ public static class Configuration
         //WalletHistory
         services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
         services.AddScoped<IWalletHistoryService, WalletHistoryService>();
-        
+
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
@@ -211,6 +241,18 @@ public static class Configuration
         //Offer
         services.AddScoped<IOfferRepository, OfferRepository>();
         services.AddScoped<IOfferService, OfferService>();
+
+        //Caterory
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ICategoryServive, CategoryService>();
+
+        //Subcategory
+        services.AddScoped<ISubCategoryRepository, SubCategoryRepository>();
+        services.AddScoped<ISubCategoryService, SubCategoryService>();
+
+        //Item
+        services.AddScoped<IItemRepository, ItemRepository>();
+        services.AddScoped<IItemService, ItemService>();
         #endregion
 
         return services;

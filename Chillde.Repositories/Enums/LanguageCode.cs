@@ -2,6 +2,6 @@
 
 public enum LanguageCode
 {
-    VI = 0, // Vietnamese
-    EN = 1 // English
+    vi = 0, // Vietnamese
+    en = 1 // English
 }
