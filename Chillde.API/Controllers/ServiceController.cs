@@ -1,7 +1,9 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
+using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +19,61 @@ namespace Chillde.API.Controllers
         {
             _serviceService = serviceService;
         }
-
+        //[Authorize]
+        [HttpPost]
+        public async Task<IActionResult> Add([FromForm] FeedbackAddModel feedbackAddModel)
+        {
+            try
+            {
+                var result = await _serviceService.AddFeedbackAsync(feedbackAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+       
+        //[Authorize]
+        [HttpGet("{id}/feedbacks")]
+        public async Task<IActionResult> GetAllFeedbacksByService(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.GetAllFeedbacksByServiceAsync(id, feedbackFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        //[Authorize]
+        [HttpGet("{id}/feedbacks-users")]
+        public async Task<IActionResult> GetAllByServiceAndUser(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.GetAllFeedbacksByServiceAndUserAsync(id, feedbackFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
         [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync(Guid id)

@@ -257,6 +257,18 @@ public static class Configuration
         //FAQ
         services.AddScoped<IFAQRepository, FAQRepository>();
         services.AddScoped<IFAQService, FAQService>();
+
+        //Payment
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        //Order
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IOrderService, OrderService>();
+        //ItemAttribute
+        services.AddScoped<IItemAttributeRepository, ItemAttributeRepository>();
+        services.AddScoped<IItemAttributeService, ItemAttributeService>();
+        //ItemAttributeValue
+        services.AddScoped<IAttributeValueRepository, AttributeValueRepository>();
         #endregion
 
         return services;

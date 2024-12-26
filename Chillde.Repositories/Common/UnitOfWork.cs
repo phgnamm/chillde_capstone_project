@@ -30,7 +30,10 @@ public class UnitOfWork : IUnitOfWork
         ISubCategoryRepository subCategoryRepository, 
         IItemRepository itemRepository,
         IOfferRepository offerRepository,
-        IFAQRepository faqRepository
+        IFAQRepository faqRepository,
+        IAttributeRepository attributeRepository,
+        IAttributeValueRepository attributeValueRepository,
+        IItemAttributeRepository itemAttributeRepository
         )
     {
         Context = context;
@@ -59,6 +62,9 @@ public class UnitOfWork : IUnitOfWork
         SubCategoryRepository = subCategoryRepository;
         ItemRepository = itemRepository;
         OfferRepository = offerRepository;
+        AttributeRepository = attributeRepository;
+        AttributeValueRepository = attributeValueRepository;
+        ItemAttributeRepository = itemAttributeRepository;
     }
 
     public AppDbContext Context { get; }
@@ -97,6 +103,11 @@ public class UnitOfWork : IUnitOfWork
 
     public IItemRepository ItemRepository {get;}
 
+    public IItemAttributeRepository ItemAttributeRepository { get; }
+
+    public IAttributeRepository AttributeRepository {get;}
+
+    public IAttributeValueRepository AttributeValueRepository {get;}
 
     public async Task<int> SaveChangeAsync()
     {

@@ -1,4 +1,5 @@
 ﻿using Chillde.Services.Models.FAQModels;
+using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 
@@ -6,6 +7,9 @@ namespace Chillde.Services.Interfaces
 {
     public interface IServiceService
     {
+        Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel);
+        Task<ResponseModel> GetAllFeedbacksByServiceAndUserAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel);
+        Task<ResponseModel> GetAllFeedbacksByServiceAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel);
         Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId);
         Task<ResponseModel> GetAsync(Guid id);
         Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId);

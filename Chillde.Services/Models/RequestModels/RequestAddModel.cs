@@ -25,6 +25,6 @@ namespace Chillde.Services.Models.RequestModels
     public class RequestDetailAddModel
     {
         public required string Description { get; set; }
-        public required Guid ItemAttributeId { get; set; }
+        public required Guid AttributeId { get; set; }
     }
 }

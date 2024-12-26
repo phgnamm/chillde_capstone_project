@@ -1,6 +1,7 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,67 +17,13 @@ namespace Chillde.API.Controllers
         {
             _feedbackService = feedbackService;
         }
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> Add([FromForm] FeedbackAddModel feedbackAddModel)
-        {
-            try
-            {
-                var result = await _feedbackService.Add(feedbackAddModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        [Authorize]
+        //[Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] FeedbackUpdateModel feedbackUpdateModel)
         {
             try
             {
                 var result = await _feedbackService.Update(id, feedbackUpdateModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        [Authorize]
-        [HttpGet("{id}/service")]
-        public async Task<IActionResult> GetAllByService(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
-        {
-            try
-            {
-                var result = await _feedbackService.GetAllByService(id, feedbackFilterModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        [Authorize]
-        [HttpGet("{id}/service-user")]
-        public async Task<IActionResult> GetAllByServiceAndUser(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
-        {
-            try
-            {
-                var result = await _feedbackService.GetAllByServiceAndUser(id, feedbackFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

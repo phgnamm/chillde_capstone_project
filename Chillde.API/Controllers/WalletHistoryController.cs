@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/walletHistories")]
+    [Route("api/v1/wallet-histories")]
     [ApiController]
     public class WalletHistoryController : ControllerBase
     {
