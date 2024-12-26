@@ -36,6 +36,7 @@ public interface IUnitOfWork
     IFAQRepository FAQRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
     IItemRepository ItemRepository { get; }
+    IShippingAddressRepository ShippingAddressRepository { get; }
 
     #endregion
 }

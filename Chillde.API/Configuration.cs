@@ -135,7 +135,12 @@ public static class Configuration
                         .AllowCredentials();
                 });
         });
-
+        // GHNClient 
+        services.AddHttpClient("GhnClient", client =>
+        {
+            client.BaseAddress = new Uri(configuration["GhnSettings:BaseUrl"]);
+            client.DefaultRequestHeaders.Add("Token", configuration["GhnSettings:Token"]);
+        });
         #endregion
 
         #region Middleware
@@ -257,6 +262,10 @@ public static class Configuration
         //FAQ
         services.AddScoped<IFAQRepository, FAQRepository>();
         services.AddScoped<IFAQService, FAQService>();
+
+        //ShippingAddress
+        services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
+        services.AddScoped<IShippingAddressService, ShippingAddressService>();
         #endregion
 
         return services;

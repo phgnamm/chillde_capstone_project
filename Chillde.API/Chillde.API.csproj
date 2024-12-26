@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>e34ac123-6223-40e0-9caa-3647a2d8afec</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,12 +12,12 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0"/>
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Chillde.Services\Chillde.Services.csproj"/>
+        <ProjectReference Include="..\Chillde.Services\Chillde.Services.csproj" />
     </ItemGroup>
 
 </Project>
