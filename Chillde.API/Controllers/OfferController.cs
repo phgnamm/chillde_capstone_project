@@ -92,8 +92,6 @@ namespace Chillde.API.Controllers
                     return NotFound(result);
                 }
                 return Ok(result);
-                var result = await _offerService.GetAll(offerFilterModel);
-                return StatusCode(result.Code, result);
             }
             catch (Exception ex)
             {

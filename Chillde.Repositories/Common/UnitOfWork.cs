@@ -92,7 +92,6 @@ public class UnitOfWork : IUnitOfWork
 
     public IItemRepository ItemRepository {get;}
 
-    public IOfferRepository OfferRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

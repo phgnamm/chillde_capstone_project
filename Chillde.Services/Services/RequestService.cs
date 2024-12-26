@@ -97,8 +97,22 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel)
         {
             var requests = await _unitOfWork.RequestRepository.GetAllAsync(
-                filter: _ => _.IsDeleted == requestFilterModel.IsDeleted &&
+                 _ => _.IsDeleted == requestFilterModel.IsDeleted &&
                              _.Name.ToLower().Contains(requestFilterModel.Search.ToLower()),
+                 requests =>
+                 {
+                     switch (requestFilterModel.Order.ToLower())
+                     {                     
+                         case "creationDate":
+                             return requestFilterModel.OrderByDescending
+                                 ? requests.OrderByDescending(request => request.CreationDate)
+                                 : requests.OrderBy(request => request.CreationDate);
+                         default:
+                             return requestFilterModel.OrderByDescending
+                                 ? requests.OrderByDescending(request => request.CreationDate)
+                                 : requests.OrderBy(request => request.CreationDate);
+                     }
+                 },
                 include: requests => requests.Include(_ => _.Item),
                 pageIndex: requestFilterModel.PageIndex,
                 pageSize: requestFilterModel.PageSize
@@ -181,7 +195,6 @@ namespace Chillde.Services.Services
                     Message = "Invalid input."
                 };
             }
-            // check if request was made from offer 
             var hasOffered = await _unitOfWork.OfferRepository.RequestHasOffered(id);
             if (hasOffered)
             {

@@ -69,6 +69,10 @@ namespace Chillde.Repositories.Repositories
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<bool> RequestHasOffered(Guid id)
+        {
+            return await _context.Offers.AnyAsync(_ => _.ServiceId == id && _.Status == OfferStatus.Approved);
+        }
     }
 
 }

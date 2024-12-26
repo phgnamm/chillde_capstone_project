@@ -31,7 +31,6 @@ public interface IUnitOfWork
     IOfferRepository OfferRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
-    IOfferRepository OfferRepository { get; }
     ICategoryRepository CategoryRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
     IServiceAttachmentRepository ServiceAttachmentRepository { get; }
