@@ -2,6 +2,7 @@
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,6 +26,25 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceService.GetAsync(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize("Artist")]
+        [HttpPost]
+        public async Task<IActionResult> AddServiceAsync([FromBody] ServiceAddModel serviceAddModel)
+        {
+            try
+            {
+                var result = await _serviceService.AddAsync(serviceAddModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
