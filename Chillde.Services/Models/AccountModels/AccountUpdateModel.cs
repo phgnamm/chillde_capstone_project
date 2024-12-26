@@ -16,12 +16,11 @@ public class AccountUpdateModel
     [StringLength(50)]
     public string Username { get; set; } = null!;
 
-    [Required]
-    [EnumDataType(typeof(Gender))]
-    public Gender Gender { get; set; }
-
-    [Required] [DateOfBirthValidation] public DateOnly DateOfBirth { get; set; }
-    [Required] [Phone] [StringLength(15)] public string? PhoneNumber { get; set; }
-    public string? Address { get; set; }
+    [EnumDataType(typeof(Gender))] public Gender? Gender { get; set; }
+    [DateOfBirthValidation] public DateOnly? DateOfBirth { get; set; }
+    [Phone] [StringLength(15)] public string? PhoneNumber { get; set; }
+    public string? StoreAddress { get; set; }
+    public string? StoreDescription { get; set; }
     public IFormFile? Image { get; set; }
+    public IFormFile? Banner { get; set; }
 }

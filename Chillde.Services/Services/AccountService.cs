@@ -705,8 +705,14 @@ public class AccountService : IAccountService
 
         _mapper.Map(accountUpdateModel, account);
         if (accountUpdateModel.Image != null)
-            account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.Image, account.Id.ToString(),
-                account.Id.ToString());
+            account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.Image,
+                $"{account.Id.ToString()}_image",
+                $"{account.Id.ToString()}_image");
+
+        if (accountUpdateModel.Banner != null)
+            account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.Banner,
+                $"{account.Id.ToString()}_banner",
+                $"{account.Id.ToString()}_banner");
 
         _unitOfWork.AccountRepository.Update(account);
         if (await _unitOfWork.SaveChangeAsync() > 0)
