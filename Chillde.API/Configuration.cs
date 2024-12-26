@@ -253,6 +253,10 @@ public static class Configuration
         //Item
         services.AddScoped<IItemRepository, ItemRepository>();
         services.AddScoped<IItemService, ItemService>();
+
+        //FAQ
+        services.AddScoped<IFAQRepository, FAQRepository>();
+        services.AddScoped<IFAQService, FAQService>();
         #endregion
 
         return services;
