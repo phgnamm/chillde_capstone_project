@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Models.AccountModels;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.MessageModels;
+using Chillde.Services.Models.SubcategoryModels;
 using Role = Chillde.Repositories.Enums.Role;
 
 namespace Chillde.Services.Common;
@@ -32,10 +35,12 @@ public class MapperProfile : Profile
         CreateMap<Message, MessageModel>();
 
         //Category
-        CreateMap<CateroryModel,Category>().ReverseMap();
+        CreateMap<CategoryModel,Category>().ReverseMap();
+        CreateMap<CategoryAddModel,CategoryAddRangeModel>().ReverseMap();
 
         //Subcaterory
         CreateMap<SubCategoryModel, SubCategory>().ReverseMap();
+        CreateMap<SubCategoryAddModel, SubCategoryAddRangeModel>().ReverseMap();
 
         //Item
         CreateMap<ItemModel, Item>().ReverseMap();

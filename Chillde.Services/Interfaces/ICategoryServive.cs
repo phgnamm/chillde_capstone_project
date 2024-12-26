@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.AccountModels;
+﻿using Chillde.Repositories.Models.CategoriesModels;
+using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.RequestModels;
@@ -19,7 +20,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel);
         Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel);
         Task<ResponseModel> Delete(Guid id);
-        Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddModel subCategoryAddModel);
+        Task<ResponseModel> AddSubcategory(Guid categoryId, List<SubCategoryAddModel> subCategoryAddModel);
         Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel);
 
 

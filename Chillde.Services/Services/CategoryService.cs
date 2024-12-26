@@ -2,6 +2,7 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Models.SubCategoryModels;
@@ -165,7 +166,7 @@ namespace Chillde.Services.Services
             };
         }
 
-        public async Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddModel subCategoryAddModel)
+        public async Task<ResponseModel> AddSubcategory(Guid categoryId, List<SubCategoryAddModel> subCategoryAddModels)
         {
             var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
             if (categoryExists == null || categoryExists.IsDeleted)
@@ -176,35 +177,42 @@ namespace Chillde.Services.Services
                     Message = "Category not found."
                 };
             }
-            string? imageUrl = null;
-            if (subCategoryAddModel.ImageUrl != null)
+
+            var newSubCategories = new List<SubCategoryModel>();
+
+            foreach (var subCategoryAddModel in subCategoryAddModels)
             {
-                imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                    subCategoryAddModel.ImageUrl,
-                    "subcategories",
-                    Guid.NewGuid().ToString()
-                );
+                string? imageUrl = null;
+                if (subCategoryAddModel.ImageUrl != null)
+                {
+                    imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                        subCategoryAddModel.ImageUrl,
+                        "subcategories",
+                        Guid.NewGuid().ToString()
+                    );
+                }
+
+                var subCategory = new SubCategory
+                {
+                    Id = Guid.NewGuid(),
+                    Name = subCategoryAddModel.Name,
+                    Code = string.IsNullOrEmpty(subCategoryAddModel.Code)
+                        ? GenerateSlug(subCategoryAddModel.Name)
+                        : GenerateSlug(subCategoryAddModel.Code),
+                    ImageUrl = imageUrl,
+                    CategoryId = categoryId
+                };
+
+                var subCategoryModel = _mapper.Map<SubCategoryModel>(subCategory);
+                newSubCategories.Add(subCategoryModel);
+                await _unitOfWork.SubCategoryRepository.AddAsync(subCategory);
             }
-            var subCategory = new SubCategory
-            {
-                Id = Guid.NewGuid(),
-                Name = subCategoryAddModel.Name,
-                Code = string.IsNullOrEmpty(subCategoryAddModel.Code)
-            ? GenerateSlug(subCategoryAddModel.Name)
-            : GenerateSlug(subCategoryAddModel.Code),
-                ImageUrl = imageUrl,
-                CategoryId = categoryId
-            };
-            var subCategoryModel = _mapper.Map<SubCategoryModel>(subCategory);
-
-            await _unitOfWork.SubCategoryRepository.AddAsync(subCategory);
             await _unitOfWork.SaveChangeAsync();
-
             return new ResponseModel
             {
                 Code = StatusCodes.Status201Created,
-                Message = "Subcategory added successfully.",
-                Data = subCategoryModel
+                Message = "Subcategories added successfully.",
+                Data = newSubCategories
             };
         }
 
@@ -253,9 +261,9 @@ namespace Chillde.Services.Services
                  Code = _.Code,      
                  ImageUrl = _.ImageUrl,
              }).ToList();*/
-            var cateroryModels = _mapper.Map<List<CateroryModel>>(categorys.Data);
+            var cateroryModels = _mapper.Map<List<CategoryModel>>(categorys.Data);
 
-            var result = new Pagination<CateroryModel>(cateroryModels, categoryFilterModel.PageIndex,
+            var result = new Pagination<CategoryModel>(cateroryModels, categoryFilterModel.PageIndex,
               categoryFilterModel.PageSize, categorys.TotalCount);
 
             return new ResponseModel
