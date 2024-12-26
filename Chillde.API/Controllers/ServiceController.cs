@@ -56,6 +56,25 @@ namespace Chillde.API.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("{serviceId}/packages")]
+        public async Task<IActionResult> GetAllPackagesAsync(Guid serviceId, [FromQuery] PackageFilterModel packageFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.GetAllPackagesAsync(packageFilterModel, serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [Authorize("Artist")]
         [HttpPost("{serviceId}/packages")]
         public async Task<IActionResult> AddPackageAsync([FromBody] PackageAddModel packageAddModel, Guid serviceId)
