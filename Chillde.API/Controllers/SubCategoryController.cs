@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/subcategorys")]
+    [Route("api/v1/subcategories")]
     [ApiController]
     public class SubCategoryController : ControllerBase
     {

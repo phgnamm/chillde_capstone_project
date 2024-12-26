@@ -3,6 +3,7 @@ using System;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241225094043_EntityV3")]
+    partial class EntityV3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,7 +31,7 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Banner")
+                    b.Property<string>("Address")
                         .HasColumnType("text");
 
                     b.Property<Guid?>("CreatedById")
@@ -92,18 +95,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<string>("ResetPasswordToken")
                         .HasColumnType("text");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("StoreAddress")
-                        .HasColumnType("text");
-
-                    b.Property<string>("StoreDescription")
-                        .HasColumnType("text");
-
-                    b.Property<double?>("SuccessDeliveryRate")
-                        .HasColumnType("double precision");
 
                     b.Property<string>("Username")
                         .IsRequired()

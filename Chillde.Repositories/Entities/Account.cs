@@ -15,12 +15,18 @@ public class Account : BaseEntity
     public Gender? Gender { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? Address { get; set; }
     public string? Image { get; set; }
+
+    // Artist information
+    public string? StoreAddress { get; set; }
+    public string? Banner { get; set; }
+    public double? SuccessDeliveryRate { get; set; }
+    public string? StoreDescription { get; set; }
 
     // Status
     public bool EmailConfirmed { get; set; } = false;
     public bool PhoneNumberConfirmed { get; set; } = false;
+    public AccountStatus Status { get; set; } = AccountStatus.PendingVerification;
 
     // System
     public string? VerificationCode { get; set; }
@@ -43,7 +49,6 @@ public class Account : BaseEntity
     public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     public virtual ICollection<ShippingAddress> ShippingAddresses { get; set; } = new List<ShippingAddress>();
-    public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
     public virtual ICollection<Message> Message { get; set; } = new List<Message>();
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
