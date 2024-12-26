@@ -31,6 +31,7 @@ namespace Chillde.Services.Services
         {
             var attribute = new Repositories.Entities.Attribute
             {
+                Id = Guid.NewGuid(),
                 Name = attributeAddModel.Name,
                 Type = attributeAddModel.Type,
                 IsRequired = false, 
@@ -44,7 +45,7 @@ namespace Chillde.Services.Services
                 {
                     attribute?.AttributeValues?.Add(new AttributeValue
                     {
-
+                        Id = Guid.NewGuid(),
                         Value = valueModel.Value,
                         IntOrder = order++,
                         CreationDate = DateTime.UtcNow
@@ -81,7 +82,7 @@ namespace Chillde.Services.Services
 
             return new ResponseModel
             {
-                Message = "Get all attributes successfully",
+                Message = "Attributes retrieved successfully",
                 Data = result
             };
         }
@@ -101,7 +102,7 @@ namespace Chillde.Services.Services
             }
             return new ResponseModel
             {
-                Message = "Get all attributeValues successfully",
+                Message = "AttributeValues retrieved successfully",
                 Data = attributeValueLists.Data
             };
         }

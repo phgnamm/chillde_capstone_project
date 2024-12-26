@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace Chillde.Services.Models.ItemAttributeModels
 {
-    public class ItemAttributeAddModel : BaseEntity
+    public class ItemAttributeAddModel
     {
+        public required Guid ItemId { get; set; }
+        public required Guid AttributeId { get; set; }
 
     }
 }

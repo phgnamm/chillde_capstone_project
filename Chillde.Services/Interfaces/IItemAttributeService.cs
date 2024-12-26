@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.ResponseModels;
+﻿using Chillde.Services.Models.ItemAttributeModels;
+using Chillde.Services.Models.ResponseModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IItemAttributeService
     {
-        Task<ResponseModel> Add()
+        Task<ResponseModel> Add(ItemAttributeAddModel itemAttributeAddModel);
     }
 }

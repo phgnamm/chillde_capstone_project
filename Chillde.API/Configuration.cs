@@ -269,6 +269,9 @@ public static class Configuration
         services.AddScoped<IItemAttributeService, ItemAttributeService>();
         //ItemAttributeValue
         services.AddScoped<IAttributeValueRepository, AttributeValueRepository>();
+        //Attribute
+        services.AddScoped<IAttributeRepository, AttributeRepository>();
+        services.AddScoped<IAttributeService, AttributeService>();
         #endregion
 
         return services;
