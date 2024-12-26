@@ -32,6 +32,37 @@ namespace Chillde.Services.Services
             _mapper = mapper;
             _httpClient = httpClientFactory.CreateClient("GhnClient");
         }
+
+        public async Task<ResponseModel> GetDistrictsAsync(int provinceId)
+        {
+
+            var response = await _httpClient.GetAsync($"master-data/district?province_id={provinceId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ResponseModel
+                {
+                    Code = (int)response.StatusCode,
+                    Message = "Failed to fetch districts from GHN",
+                    Data = null
+                };
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+
+            var data = jsonObject["data"]?.ToObject<List<DistrictModel>>();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = data
+            };
+
+
+        }
+
         public async Task<ResponseModel> GetProvincesAsync(ProvinceFilterModel provinceFilterModel)
         {
 
@@ -102,7 +133,44 @@ namespace Chillde.Services.Services
             };
         }
 
+        public async Task<ResponseModel> GetWardsAsync(int districtId)
+        {
+            if (districtId <= 0)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid districtId",
+                    Data = null
+                };
+            }
+
+            var response = await _httpClient.GetAsync($"master-data/ward?district_id={districtId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ResponseModel
+                {
+                    Code = (int)response.StatusCode,
+                    Message = "Failed to fetch wards from API",
+                    Data = null
+                };
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+
+            var data = jsonObject["data"]?.ToObject<List<WardModel>>();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Success",
+                Data = data
+            };
+        }
 
     }
 }
+
 

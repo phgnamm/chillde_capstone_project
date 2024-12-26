@@ -12,5 +12,9 @@ namespace Chillde.Services.Interfaces
     public interface IShippingAddressService
     {
         Task<ResponseModel> GetProvincesAsync(ProvinceFilterModel provinceFilterModel);
+        Task<ResponseModel> GetDistrictsAsync(int provinceId);
+        Task<ResponseModel> GetWardsAsync(int districtId);
+
+
     }
 }

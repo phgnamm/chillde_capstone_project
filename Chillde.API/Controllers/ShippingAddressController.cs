@@ -1,5 +1,8 @@
 ﻿using Chillde.Services.Interfaces;
+using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShippingAddressModels;
+using Chillde.Services.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,14 +22,54 @@ namespace Chillde.API.Controllers
         [HttpGet("provinces")]
         public async Task<IActionResult> GetProvinces([FromQuery] ProvinceFilterModel provinceFilterModel)
         {
-            var response = await _shippingAddressService.GetProvincesAsync(provinceFilterModel);
-
-            if (response.Status)
+            try
             {
-                return Ok(response);
+                var result = await _shippingAddressService.GetProvincesAsync(provinceFilterModel);
+                return StatusCode(result.Code, result);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
 
-            return StatusCode(response.Code, response);
+        [HttpGet("districts/{provinceId}")]
+        public async Task<IActionResult> GetDistricts(int provinceId)
+        {
+            try
+            {
+                var result = await _shippingAddressService.GetDistrictsAsync(provinceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpGet("wards/{districtId}")]
+        public async Task<IActionResult> GetWards(int districtId)
+        {
+            try
+            {
+                var result = await _shippingAddressService.GetWardsAsync(districtId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
         }
     }
 
