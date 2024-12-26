@@ -15,12 +15,18 @@ public class Account : BaseEntity
     public Gender? Gender { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? Address { get; set; }
     public string? Image { get; set; }
+
+    // Artist information
+    public string? StoreAddress { get; set; }
+    public string? Banner { get; set; }
+    public double? SuccessDeliveryRate { get; set; }
+    public string? StoreDescription { get; set; }
 
     // Status
     public bool EmailConfirmed { get; set; } = false;
     public bool PhoneNumberConfirmed { get; set; } = false;
+    public AccountStatus Status { get; set; } = AccountStatus.PendingVerification;
 
     // System
     public string? VerificationCode { get; set; }
