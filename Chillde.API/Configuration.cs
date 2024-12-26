@@ -257,6 +257,10 @@ public static class Configuration
         //FAQ
         services.AddScoped<IFAQRepository, FAQRepository>();
         services.AddScoped<IFAQService, FAQService>();
+
+        //ShippingAddress
+        services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
+        services.AddScoped<IShippingAddressService, ShippingAddressService>();
         #endregion
 
         return services;
