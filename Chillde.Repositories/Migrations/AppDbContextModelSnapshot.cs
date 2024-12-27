@@ -253,6 +253,7 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
@@ -270,7 +271,7 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AttributeId")
+                    b.Property<Guid?>("AttributeId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("CreatedById")
@@ -2012,9 +2013,7 @@ namespace Chillde.Repositories.Migrations
                 {
                     b.HasOne("Chillde.Repositories.Entities.Attribute", "Attribute")
                         .WithMany("AttributeValues")
-                        .HasForeignKey("AttributeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AttributeId");
 
                     b.Navigation("Attribute");
                 });
