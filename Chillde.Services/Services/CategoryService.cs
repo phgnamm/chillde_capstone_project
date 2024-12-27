@@ -2,6 +2,7 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Models.SubCategoryModels;
@@ -101,46 +102,52 @@ namespace Chillde.Services.Services
             };
         }
 
-        public async Task<ResponseModel> AddList(List<CategoryAddModel> categoryAddModels)
+        public async Task<ResponseModel> AddList(CategoryAddRangeModel categoryAddRangeModel)
         {
+            if (categoryAddRangeModel.CategoryAddRequestModels.Count != categoryAddRangeModel.ImageUrls.Count)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "The number of categories and images must match."
+                };
+            }
+
             var newCategories = new List<Category>();
 
-            foreach (var categoryAddModel in categoryAddModels)
+            for (int i = 0; i < categoryAddRangeModel.CategoryAddRequestModels.Count; i++)
             {
-                var existingCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(c => c.Name == categoryAddModel.Name);
+                var categoryModel = categoryAddRangeModel.CategoryAddRequestModels[i];
+                var imageFile = categoryAddRangeModel.ImageUrls[i];
 
+                var existingCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(s => s.Name == categoryModel.Name);
                 if (existingCategory != null)
                 {
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status400BadRequest,
-                        Message = $"Category with name '{categoryAddModel.Name}' already exists."
+                        Message = $"Category with name '{categoryModel.Name}' already exists."
                     };
                 }
 
-                string code;
-                if (string.IsNullOrWhiteSpace(categoryAddModel.Code))
+                string code = string.IsNullOrWhiteSpace(categoryModel.Code)
+                    ? GenerateSlug(categoryModel.Name)
+                    : categoryModel.Code;
+
+                if (!IsValidSlug(code))
                 {
-                    code = GenerateSlug(categoryAddModel.Name);
-                }
-                else
-                {
-                    if (!IsValidSlug(categoryAddModel.Code))
+                    return new ResponseModel
                     {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status400BadRequest,
-                            Message = $"Invalid format for Code in category '{categoryAddModel.Name}'. Use only lowercase letters, numbers, hyphens, or underscores."
-                        };
-                    }
-                    code = categoryAddModel.Code;
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Invalid format for Code in category '{categoryModel.Name}'. Use only lowercase letters, numbers, hyphens, or underscores."
+                    };
                 }
 
                 string? imageUrl = null;
-                if (categoryAddModel.ImageUrl != null)
+                if (imageFile != null)
                 {
                     imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                        categoryAddModel.ImageUrl,
+                        imageFile,
                         "categories",
                         Guid.NewGuid().ToString()
                     );
@@ -148,7 +155,7 @@ namespace Chillde.Services.Services
 
                 newCategories.Add(new Category
                 {
-                    Name = categoryAddModel.Name,
+                    Name = categoryModel.Name,
                     Code = code,
                     ImageUrl = imageUrl
                 });
@@ -165,7 +172,7 @@ namespace Chillde.Services.Services
             };
         }
 
-        public async Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddModel subCategoryAddModel)
+        public async Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddRangeModel subCategoryAddRangeModel)
         {
             var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
             if (categoryExists == null || categoryExists.IsDeleted)
@@ -176,37 +183,57 @@ namespace Chillde.Services.Services
                     Message = "Category not found."
                 };
             }
-            string? imageUrl = null;
-            if (subCategoryAddModel.ImageUrl != null)
-            {
-                imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                    subCategoryAddModel.ImageUrl,
-                    "subcategories",
-                    Guid.NewGuid().ToString()
-                );
-            }
-            var subCategory = new SubCategory
-            {
-                Id = Guid.NewGuid(),
-                Name = subCategoryAddModel.Name,
-                Code = string.IsNullOrEmpty(subCategoryAddModel.Code)
-            ? GenerateSlug(subCategoryAddModel.Name)
-            : GenerateSlug(subCategoryAddModel.Code),
-                ImageUrl = imageUrl,
-                CategoryId = categoryId
-            };
-            var subCategoryModel = _mapper.Map<SubCategoryModel>(subCategory);
 
-            await _unitOfWork.SubCategoryRepository.AddAsync(subCategory);
+            var newSubCategories = new List<SubCategoryModel>();
+
+            if (subCategoryAddRangeModel.ImageUrls != null &&
+                subCategoryAddRangeModel.ImageUrls.Count != subCategoryAddRangeModel.SubCategoryAddRequestModels.Count)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "The number of images must match the number of subcategories."
+                };
+            }
+            var subCategoriesToAdd = new List<SubCategory>();
+            for (int i = 0; i < subCategoryAddRangeModel.SubCategoryAddRequestModels.Count; i++)
+            {
+                var requestModel = subCategoryAddRangeModel.SubCategoryAddRequestModels[i];
+                string? imageUrl = null;
+
+                if (subCategoryAddRangeModel.ImageUrls != null && subCategoryAddRangeModel.ImageUrls.ElementAtOrDefault(i) != null)
+                {
+                    imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                        subCategoryAddRangeModel.ImageUrls[i],
+                        "subcategories",
+                        Guid.NewGuid().ToString()
+                    );
+                }
+
+                var subCategory = new SubCategory
+                {
+                    Id = Guid.NewGuid(),
+                    Name = requestModel.Name,
+                    Code = string.IsNullOrEmpty(requestModel.Code)
+                        ? GenerateSlug(requestModel.Name)
+                        : GenerateSlug(requestModel.Code),
+                    ImageUrl = imageUrl,
+                    CategoryId = categoryId
+                };
+                subCategoriesToAdd.Add(subCategory);
+                newSubCategories.Add(_mapper.Map<SubCategoryModel>(subCategory));
+            }
+            await _unitOfWork.SubCategoryRepository.AddRangeAsync(subCategoriesToAdd);
             await _unitOfWork.SaveChangeAsync();
 
             return new ResponseModel
             {
                 Code = StatusCodes.Status201Created,
-                Message = "Subcategory added successfully.",
-                Data = subCategoryModel
+                Message = "Subcategories added successfully.",
+                Data = newSubCategories
             };
         }
+
 
         public async Task<ResponseModel> Delete(Guid id)
         {
@@ -253,9 +280,9 @@ namespace Chillde.Services.Services
                  Code = _.Code,      
                  ImageUrl = _.ImageUrl,
              }).ToList();*/
-            var cateroryModels = _mapper.Map<List<CateroryModel>>(categorys.Data);
+            var cateroryModels = _mapper.Map<List<CategoryModel>>(categorys.Data);
 
-            var result = new Pagination<CateroryModel>(cateroryModels, categoryFilterModel.PageIndex,
+            var result = new Pagination<CategoryModel>(cateroryModels, categoryFilterModel.PageIndex,
               categoryFilterModel.PageSize, categorys.TotalCount);
 
             return new ResponseModel

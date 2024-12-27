@@ -12,6 +12,7 @@ namespace Chillde.Repositories.Interfaces
     {
         Task<IEnumerable<OfferModel>> GetOffersWithTranslationsAsync(string targetLanguageCode, List<Guid> offerIds);
         Task<OfferModel?> GetOfferAsync(Guid id, string targetLanguageCode);
+        Task<bool> RequestHasOffered(Guid id);
     }
 
 }

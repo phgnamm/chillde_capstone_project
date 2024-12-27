@@ -6,15 +6,15 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Entities
 {
-    public class ItemAttributeValue : BaseEntity
+    public class AttributeValue : BaseEntity
     {
         public string? Value {  get; set; }
         public int IntOrder { get; set; }
 
         // Foreign key
-        public Guid ItemAttributeId { get; set; }
+        public Guid? AttributeId { get; set; }
 
         // Relationship
-        public ItemAttribute ItemAttribute { get; set; } = null!;
+        public Attribute? Attribute { get; set; } 
     }
 }

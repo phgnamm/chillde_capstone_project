@@ -114,7 +114,7 @@ namespace Chillde.Services.Services
             }
             var content = await response.Content.ReadAsStringAsync();
             var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
-            var data = jsonObject["data"]?.ToObject<List<ProvinceModel>>();
+            var data = jsonObject?["data"]?.ToObject<List<ProvinceModel>>();
 
             if (data == null || !data.Any())
             {
@@ -195,7 +195,7 @@ namespace Chillde.Services.Services
             var content = await response.Content.ReadAsStringAsync();
             var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
 
-            var data = jsonObject["data"]?.ToObject<List<WardModel>>();
+            var data = jsonObject?["data"]?.ToObject<List<WardModel>>();
 
             return new ResponseModel
             {

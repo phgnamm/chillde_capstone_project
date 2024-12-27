@@ -4,15 +4,10 @@ namespace Chillde.Repositories.Entities;
 
 public class ItemAttribute : BaseEntity
 {
-    public string? Name { get; set; }
-    public bool IsRequired { get; set; }
-    public ItemAttributeType Type { get; set; }
-
-    // Foreign key
     public Guid ItemId { get; set; }
+    public Guid AttributeId { get; set; }
 
     // Relationship
     public Item Item { get; set; } = null!;
-    public RequestDetail RequestDetail { get; set; } = null!;
-    public virtual ICollection<ItemAttributeValue> ItemAttributeValues { get; set; } = new List<ItemAttributeValue>();
+    public Attribute Attribute { get; set; } = null!;
 }

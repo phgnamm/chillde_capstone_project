@@ -21,7 +21,7 @@ public class Order : BaseEntity
     public Package Package { get; set; } = null!;
     public Account CreatedBy { get; set; } = null!;
     public Shipment Shipment { get; set; } = null!;
-
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
     public virtual ICollection<OrderInformation> OrderInformations { get; set; } = new List<OrderInformation>();
     public virtual ICollection<OrderTracking> OrderTrackings { get; set; } = new List<OrderTracking>();
 }

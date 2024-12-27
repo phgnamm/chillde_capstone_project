@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/walletHistories")]
+    [Route("api/v1/wallet-histories")]
     [ApiController]
     public class WalletHistoryController : ControllerBase
     {
@@ -19,11 +19,11 @@ namespace Chillde.API.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] WalletHistoryFilterModel walletHistoryFilterModel)
+        public async Task<IActionResult> GetAllWalletHistoryFromUser([FromQuery] WalletHistoryFilterModel walletHistoryFilterModel)
         {
             try
             {
-                var result = await _walletHistoryService.GetAllWalletFromUser(walletHistoryFilterModel);
+                var result = await _walletHistoryService.GetAllWalletHistoryFromUser(walletHistoryFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

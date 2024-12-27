@@ -12,6 +12,7 @@ namespace Chillde.Repositories.Models.FeedbackModels
         public int? Rating { get; set; }
         public string? Description { get; set; }
         public string AuthorName { get; set; }
+        public Guid? ServiceId { get; set; }
         public ICollection<FeedbackImageModel> FeedbackImageModels { get; set; } = new List<FeedbackImageModel>();
     }
     public class FeedbackImageModel

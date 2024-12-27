@@ -64,7 +64,7 @@ namespace Chillde.Services.Services
                 RequestDetails = requestAddModel.RequestDetailAddModels.Select(_ => new RequestDetail
                 {
                     Id = Guid.NewGuid(),
-                    ItemAttributeId = _.ItemAttributeId,
+                    AttributeId = _.AttributeId,
                     Description = _.Description,
                     CreatedById = currentUserId,
                 }).ToList()
@@ -97,8 +97,22 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel)
         {
             var requests = await _unitOfWork.RequestRepository.GetAllAsync(
-                filter: _ => _.IsDeleted == requestFilterModel.IsDeleted &&
+                 _ => _.IsDeleted == requestFilterModel.IsDeleted &&
                              _.Name.ToLower().Contains(requestFilterModel.Search.ToLower()),
+                 requests =>
+                 {
+                     switch (requestFilterModel.Order.ToLower())
+                     {                     
+                         case "creationDate":
+                             return requestFilterModel.OrderByDescending
+                                 ? requests.OrderByDescending(request => request.CreationDate)
+                                 : requests.OrderBy(request => request.CreationDate);
+                         default:
+                             return requestFilterModel.OrderByDescending
+                                 ? requests.OrderByDescending(request => request.CreationDate)
+                                 : requests.OrderBy(request => request.CreationDate);
+                     }
+                 },
                 include: requests => requests.Include(_ => _.Item),
                 pageIndex: requestFilterModel.PageIndex,
                 pageSize: requestFilterModel.PageSize
@@ -132,7 +146,7 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetById(Guid id)
         {
             var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails)
-                                                                                         .ThenInclude(_ => _.ItemAttribute) 
+                                                                                         .ThenInclude(_ => _.Attribute) 
                                                                                          .Include(_ => _.Item));
             if (existingRequest == null)
             {
@@ -160,8 +174,8 @@ namespace Chillde.Services.Services
                 {
                     Id = _.Id,
                     Description = _.Description,
-                    ItemAttributeId = _.ItemAttributeId,
-                    ItemAttributeName = _.ItemAttribute.Name ?? "Unknown"
+                    ItemAttributeId = _.AttributeId,
+                    ItemAttributeName = _.Attribute.Name ?? "Unknown"
                 }).ToList()                
             };
             return new ResponseModel 
@@ -181,7 +195,15 @@ namespace Chillde.Services.Services
                     Message = "Invalid input."
                 };
             }
-
+            var hasOffered = await _unitOfWork.OfferRepository.RequestHasOffered(id);
+            if (hasOffered)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Request cannot update."
+                };
+            }
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
             {
@@ -225,7 +247,7 @@ namespace Chillde.Services.Services
                     if (existingDetail != null)
                     {
                         existingDetail.Description = detail.Description ?? existingDetail.Description;
-                        existingDetail.ItemAttributeId = detail.ItemAttributeId != Guid.Empty ? detail.ItemAttributeId : existingDetail.ItemAttributeId;
+                        existingDetail.AttributeId = detail.AttributeId != Guid.Empty ? detail.AttributeId : existingDetail.AttributeId;
                         existingDetail.ModifiedById = currentUserId.Value;
                         existingDetail.ModificationDate = DateTime.UtcNow;
                     }
@@ -235,7 +257,7 @@ namespace Chillde.Services.Services
                         {
                             Id = Guid.NewGuid(),
                             Description = detail.Description,
-                            ItemAttributeId = detail.ItemAttributeId,
+                            AttributeId = detail.AttributeId,
                             CreatedById = currentUserId.Value,
                             CreationDate = DateTime.UtcNow
                         });
