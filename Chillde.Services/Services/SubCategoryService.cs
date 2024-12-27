@@ -34,7 +34,7 @@ namespace Chillde.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<ResponseModel> AddItem(Guid subcategoryId, ItemAddModel itemAddModel)
+        public async Task<ResponseModel> AddItem(Guid subcategoryId, ItemAddRangeModel itemAddRangeModel)
         {
             var subCategoryExists = await _unitOfWork.SubCategoryRepository.GetAsync(subcategoryId);
             if (subCategoryExists == null || subCategoryExists.IsDeleted)
@@ -45,35 +45,55 @@ namespace Chillde.Services.Services
                     Message = "SubCategory not found."
                 };
             }
-            string? imageUrl = null;
-            if (itemAddModel.ImageUrl != null)
-            {
-                imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                    itemAddModel.ImageUrl,
-                    "items",
-                    Guid.NewGuid().ToString()
-                );
-            }
-            var item = new Item
-            {
-                Id = Guid.NewGuid(),
-                Name = itemAddModel.Name,
-                Code = string.IsNullOrEmpty(itemAddModel.Code)
-            ? GenerateSlug(itemAddModel.Name)
-            : GenerateSlug(itemAddModel.Code),
-                ImageUrl = imageUrl,
-                SubCategoryId = subcategoryId
-            };
-            var itemModel = _mapper.Map<ItemModel>(item);
 
-            await _unitOfWork.ItemRepository.AddAsync(item);
+            var newItems = new List<ItemModel>();
+
+            if (itemAddRangeModel.ImageUrls != null &&
+                itemAddRangeModel.ImageUrls.Count != itemAddRangeModel.ItemAddRequestModels.Count)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "The number of images must match the number of items."
+                };
+            }
+            var itemsToAdd = new List<Item>();
+            for (int i = 0; i < itemAddRangeModel.ItemAddRequestModels.Count; i++)
+            {
+                var requestModel = itemAddRangeModel.ItemAddRequestModels[i];
+                string? imageUrl = null;
+
+                if (itemAddRangeModel.ImageUrls != null && itemAddRangeModel.ImageUrls.ElementAtOrDefault(i) != null)
+                {
+                    imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                        itemAddRangeModel.ImageUrls[i],
+                        "items",
+                        Guid.NewGuid().ToString()
+                    );
+                }
+
+                var item = new Item
+                {
+                    Id = Guid.NewGuid(),
+                    Name = requestModel.Name,
+                    Code = string.IsNullOrEmpty(requestModel.Code)
+                        ? GenerateSlug(requestModel.Name)
+                        : GenerateSlug(requestModel.Code),
+                    ImageUrl = imageUrl,
+                    SubCategoryId = subcategoryId
+                };
+                itemsToAdd.Add(item);
+                newItems.Add(_mapper.Map<ItemModel>(item));
+            }
+            await _unitOfWork.ItemRepository.AddRangeAsync(itemsToAdd);
             await _unitOfWork.SaveChangeAsync();
+
 
             return new ResponseModel
             {
                 Code = StatusCodes.Status201Created,
-                Message = "Item added successfully.",
-                Data = itemModel
+                Message = "Items added successfully.",
+                Data = newItems
             };
         }
 

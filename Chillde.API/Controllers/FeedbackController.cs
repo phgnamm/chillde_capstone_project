@@ -1,6 +1,7 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,13 +17,13 @@ namespace Chillde.API.Controllers
         {
             _feedbackService = feedbackService;
         }
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> Add([FromForm] FeedbackAddModel feedbackAddModel)
+        //[Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] FeedbackUpdateModel feedbackUpdateModel)
         {
             try
             {
-                var result = await _feedbackService.Add(feedbackAddModel);
+                var result = await _feedbackService.Update(id, feedbackUpdateModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -35,12 +36,12 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
-        [HttpGet("{id}/service")]
-        public async Task<IActionResult> GetAllByService(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             try
             {
-                var result = await _feedbackService.GetAllByService(id, feedbackFilterModel);
+                var result = await _feedbackService.GetById(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

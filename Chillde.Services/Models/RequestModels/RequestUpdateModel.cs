@@ -15,6 +15,7 @@ namespace Chillde.Services.Models.RequestModels
         public decimal? MaxBudget { get; set; }
         public int? Timeline { get; set; }
         public IFormFile? AttachmentUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
         public Guid ItemId { get; set; }
         public List<RequestDetailUpdateModel>? RequestDetailUpdateModels { get; set; }
     }
@@ -23,6 +24,6 @@ namespace Chillde.Services.Models.RequestModels
     {
         public Guid Id { get; set; }
         public string? Description { get; set; }
-        public Guid ItemAttributeId { get; set; }
+        public Guid AttributeId { get; set; }
     }
 }

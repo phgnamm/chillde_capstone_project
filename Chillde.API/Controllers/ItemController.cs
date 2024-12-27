@@ -37,6 +37,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
         //      [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] ItemUpdateModel itemUpdateModel)
@@ -44,6 +45,23 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _itemService.Update(id, itemUpdateModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpGet("{id}/attributes")]
+        public async Task<IActionResult> GetAllAttributesById(Guid id)
+        {
+            try
+            {
+                var result = await _itemService.GetAllAttributesById(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

@@ -31,6 +31,9 @@ public class UnitOfWork : IUnitOfWork
         IItemRepository itemRepository,
         IOfferRepository offerRepository,
         IFAQRepository faqRepository,
+        IAttributeRepository attributeRepository,
+        IAttributeValueRepository attributeValueRepository,
+        IItemAttributeRepository itemAttributeRepository,
         IShippingAddressRepository shippingAddressRepository
         )
     {
@@ -60,6 +63,9 @@ public class UnitOfWork : IUnitOfWork
         SubCategoryRepository = subCategoryRepository;
         ItemRepository = itemRepository;
         OfferRepository = offerRepository;
+        AttributeRepository = attributeRepository;
+        AttributeValueRepository = attributeValueRepository;
+        ItemAttributeRepository = itemAttributeRepository;
         ShippingAddressRepository = shippingAddressRepository;
     }
 
@@ -97,6 +103,12 @@ public class UnitOfWork : IUnitOfWork
     public ISubCategoryRepository SubCategoryRepository { get; }
     public IItemRepository ItemRepository { get; }
     public IShippingAddressRepository ShippingAddressRepository { get; }
+
+    public IItemAttributeRepository ItemAttributeRepository { get; }
+
+    public IAttributeRepository AttributeRepository {get;}
+
+    public IAttributeValueRepository AttributeValueRepository {get;}
 
     public async Task<int> SaveChangeAsync()
     {

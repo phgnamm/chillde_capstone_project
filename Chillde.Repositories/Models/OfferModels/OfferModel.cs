@@ -14,5 +14,7 @@ namespace Chillde.Repositories.Models.OfferModels
         public OfferStatus Status { get; set; }
         public Guid RequestId { get; set; }
         public Guid ServiceId { get; set; }
+        public string ServiceName { get; set; }
+        public string ArtistName { get; set; }
     }
 }

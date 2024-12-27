@@ -1,6 +1,10 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.WalletHistoryModels;
+using Chillde.Services.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.API.Helper;
 

@@ -38,11 +38,11 @@ namespace Chillde.API.Controllers
         }
         //      [Authorize]
         [HttpPost("{subCategoryId}/items")]
-        public async Task<IActionResult> AddSubcategory(Guid subCategoryId, [FromForm] ItemAddModel itemAddModel)
+        public async Task<IActionResult> AddSubcategory(Guid subCategoryId, [FromForm] ItemAddRangeModel itemAddRangeModel)
         {
             try
             {
-                var result = await _subcategoryService.AddItem(subCategoryId, itemAddModel);
+                var result = await _subcategoryService.AddItem(subCategoryId, itemAddRangeModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

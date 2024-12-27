@@ -3,6 +3,11 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.OfferModels;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 
 
@@ -64,6 +69,10 @@ namespace Chillde.Repositories.Repositories
             return await query.FirstOrDefaultAsync();
         }
 
+        public async Task<bool> RequestHasOffered(Guid id)
+        {
+            return await _context.Offers.AnyAsync(_ => _.ServiceId == id && _.Status == OfferStatus.Approved);
+        }
     }
 
 }

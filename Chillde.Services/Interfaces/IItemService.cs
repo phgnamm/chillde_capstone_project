@@ -13,9 +13,8 @@ namespace Chillde.Services.Interfaces
     public interface IItemService
     {
         Task<ResponseModel> GetById(Guid itemId);
-
+        Task<ResponseModel> GetAllAttributesById(Guid itemId);
         Task<ResponseModel> Update(Guid id, ItemUpdateModel itemUpdateModel);
-   
 
     }
 }

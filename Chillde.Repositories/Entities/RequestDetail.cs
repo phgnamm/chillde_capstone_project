@@ -6,9 +6,9 @@ public class RequestDetail : BaseEntity
 
     // Foreign key
     public Guid RequestId { get; set; }
-    public Guid ItemAttributeId { get; set; }
+    public Guid AttributeId { get; set; }
 
     // Relationship
     public Request Request { get; set; } = null!;
-    public ItemAttribute ItemAttribute { get; set; } = null!;
+    public Attribute Attribute { get; set; } = null!;
 }

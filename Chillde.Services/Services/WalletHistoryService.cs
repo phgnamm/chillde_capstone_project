@@ -26,7 +26,7 @@ namespace Chillde.Services.Services
             _claimService = claimService;
         }
 
-        public async Task<ResponseModel> GetAllWalletFromUser(WalletHistoryFilterModel walletHistoryFilterModel)
+        public async Task<ResponseModel> GetAllWalletHistoryFromUser(WalletHistoryFilterModel walletHistoryFilterModel)
         {
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
