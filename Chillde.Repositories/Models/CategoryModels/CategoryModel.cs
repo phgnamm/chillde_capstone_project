@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Models.CategoryModels
 {
-    public class CateroryModel : BaseEntity
+    public class CategoryModel : BaseEntity
     {
         public string? Code { get; set; }
         public string? Name { get; set; }

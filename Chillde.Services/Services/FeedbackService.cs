@@ -24,8 +24,44 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
         }
 
-        public async Task<ResponseModel> Add(FeedbackAddModel feedbackAddModel)
+
+
+        public async Task<ResponseModel> GetById(Guid id)
         {
+            var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id) .Include(_ => _.FeedbackAttachments));
+          
+            var feedbackModels = new FeedbackModel
+            {
+                Id = feedbacks.Id,
+                CreatedById = feedbacks.CreatedById,
+                ServiceId = feedbacks.ServiceId,
+                AuthorName = feedbacks.CreatedBy.FirstName + " " + feedbacks.CreatedBy.LastName,
+                Description = feedbacks.Description,
+                CreationDate = feedbacks.CreationDate,
+                Rating = feedbacks.Rating,
+                FeedbackImageModels = feedbacks.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                {
+                    ImageUrl = _.AttachmentUrl ?? ""
+                }).ToList()
+            };
+            return new ResponseModel
+            {
+                Data = feedbackModels,
+                Message = "Get feedback successfully"
+            };
+        }
+
+        public async Task<ResponseModel> Update(Guid id, FeedbackUpdateModel feedbackUpdateModel)
+        {
+            if (feedbackUpdateModel == null || id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid input."
+                };
+            }
+
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
             {
@@ -36,100 +72,51 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var hasCompletedOrder = await _unitOfWork.OrderRepository.HasCompletedOrder(currentUserId.Value, feedbackAddModel.ServiceId);
-            if (!hasCompletedOrder)
+            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Include(_ => _.FeedbackAttachments));
+            if (existingFeedback == null || existingFeedback.IsDeleted)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "User has not completed an order in this service."
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Feedback not found."
                 };
             }
 
-            var hasFeedback = await _unitOfWork.FeedbackRepository.HasFeedback(currentUserId.Value, feedbackAddModel.ServiceId);
-            if (hasFeedback)
+            if (existingFeedback.CreatedById != currentUserId.Value)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "User has already given feedback for this service."
+                    Code = StatusCodes.Status403Forbidden,
+                    Message = "You are not authorized to update this feedback."
                 };
             }
-
-            var feedback = new Feedback
+            if ((DateTime.UtcNow - existingFeedback.CreationDate).TotalDays > 30)
             {
-                Id = Guid.NewGuid(),
-                ServiceId = feedbackAddModel.ServiceId,
-                CreatedById = currentUserId.Value,
-                Rating = feedbackAddModel.Rating,
-                Description = feedbackAddModel.Description,
-            };
-
-            await _unitOfWork.FeedbackRepository.AddAsync(feedback);
-            if (feedbackAddModel.FeedbackImageAddModels != null && feedbackAddModel.FeedbackImageAddModels.Count > 0)
-            {
-                var feedbackImages = new List<FeedbackAttachment>();
-
-                foreach (var image in feedbackAddModel.FeedbackImageAddModels)
+                return new ResponseModel
                 {
-                    var imagePath = await _cloudinaryHelper.UploadImageAsync(
-                        image.ImageUrl,
-                        "feedbacks",
-                        feedback.Id.ToString()
-                    );
+                    Code = StatusCodes.Status403Forbidden,
+                    Message = "Feedback cannot be updated after 30 days from its creation date."
+                };
+            }
+            existingFeedback.Rating = feedbackUpdateModel.Rating ?? existingFeedback.Rating;
+            existingFeedback.Description = feedbackUpdateModel.Description ?? existingFeedback.Description;
+            existingFeedback.ModificationDate = DateTime.UtcNow;
 
-                    feedbackImages.Add(new FeedbackAttachment
-                    {
-                        Id = Guid.NewGuid(),
-                        FeedbackId = feedback.Id,
-                        AttachmentUrl = imagePath,
-                    });
+            _unitOfWork.FeedbackRepository.Update(existingFeedback);
+            var result = await _unitOfWork.SaveChangeAsync();
+
+            return result > 0
+                ? new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Feedback updated successfully."
                 }
-
-                await _unitOfWork.FeedbackAttachmentRepository.AddRangeAsync(feedbackImages);
-            }
-
-            await _unitOfWork.SaveChangeAsync();
-
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status201Created,
-                Message = "Feedback created successfully.",
-            };
-        }
-
-
-        public async Task<ResponseModel> GetAllByService(Guid serviceId, FeedbackFilterModel feedbackFilterModel)
-        {
-            var feedbacks = await _unitOfWork.FeedbackRepository.GetAllAsync(
-                filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted,
-                include: feedbacks => feedbacks.Include(_ => _.FeedbackAttachments) 
-                                               .Include(_ => _.CreatedBy) 
-                                               .Include(_ => _.Service),
-                pageIndex: feedbackFilterModel.PageIndex,
-                pageSize: feedbackFilterModel.PageSize
-            );
-            var feedbackModels = feedbacks.Data.Select(_ => new FeedbackModel
-            {
-                Id = _.Id,
-                CreatedById = _.CreatedById,
-                AuthorName = _.CreatedBy.FirstName + " " + _.CreatedBy.LastName,
-                Description = _.Description,
-                CreationDate = _.CreationDate,
-                Rating = _.Rating,
-                FeedbackImageModels = _.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                : new ResponseModel
                 {
-                    ImageUrl = _.AttachmentUrl ?? ""
-                }).ToList()
-            }).ToList();
-            var result = new Pagination<FeedbackModel>(feedbackModels, feedbackFilterModel.PageIndex,
-                feedbackFilterModel.PageSize, feedbacks.TotalCount);
-
-            return new ResponseModel
-            {
-                Message = "Get all feedbacks successfully",
-                Data = result
-            };
+                    Code = StatusCodes.Status409Conflict,
+                    Message = "Failed to update feedback."
+                };
         }
+
     }
 }

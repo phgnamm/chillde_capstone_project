@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.Repositories.Models.CategoriesModels;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.RequestModels;
@@ -41,11 +42,11 @@ namespace Chillde.API.Controllers
         }
         //      [Authorize]
         [HttpPost("range")]
-        public async Task<IActionResult> AddRange([FromForm] List<CategoryAddModel> categoryAddModels)
+        public async Task<IActionResult> AddRange([FromForm] CategoryAddRangeModel categoryAddRangeModel)
         {
             try
-            {
-                var result = await _categoryService.AddList(categoryAddModels);
+            {                         
+                var result = await _categoryService.AddList(categoryAddRangeModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -114,11 +115,11 @@ namespace Chillde.API.Controllers
         }
         //      [Authorize]
         [HttpPost("{categoryId}/subcategories")]
-        public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddModel subCategoryAddModel)
+        public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddRangeModel subCategoryAddRangeModel)
         {
             try
-            {
-                var result = await _categoryService.AddSubcategory(categoryId, subCategoryAddModel);
+            {           
+                var result = await _categoryService.AddSubcategory(categoryId, subCategoryAddRangeModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

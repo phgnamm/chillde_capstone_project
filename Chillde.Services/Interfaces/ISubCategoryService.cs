@@ -12,7 +12,7 @@ namespace Chillde.Services.Interfaces
     public interface ISubCategoryService
     {
         Task<ResponseModel> Update(Guid id, SubCategoryUpdateModel subCategoryUpdateModel);
-        Task<ResponseModel> AddItem(Guid subcategoryId, ItemAddModel itemAddModel);
+        Task<ResponseModel> AddItem(Guid subcategoryId, ItemAddRangeModel itemAddRangeModel);
         Task<ResponseModel> GetItemBySubCategory(Guid subcategoryId, ItemFilterModel itemFilterModel);
     }
 }

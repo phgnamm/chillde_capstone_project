@@ -263,6 +263,21 @@ public static class Configuration
         services.AddScoped<IFAQRepository, FAQRepository>();
         services.AddScoped<IFAQService, FAQService>();
 
+        //Payment
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
+        services.AddScoped<IPaymentService, PaymentService>();
+        //Order
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IOrderService, OrderService>();
+        //ItemAttribute
+        services.AddScoped<IItemAttributeRepository, ItemAttributeRepository>();
+        services.AddScoped<IItemAttributeService, ItemAttributeService>();
+        //ItemAttributeValue
+        services.AddScoped<IAttributeValueRepository, AttributeValueRepository>();
+        //Attribute
+        services.AddScoped<IAttributeRepository, AttributeRepository>();
+        services.AddScoped<IAttributeService, AttributeService>();
+
         //ShippingAddress
         services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
         services.AddScoped<IShippingAddressService, ShippingAddressService>();

@@ -72,7 +72,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(item => item.Code).IsUnique();
         });
 
-        modelBuilder.Entity<ItemAttribute>(entity =>
+        modelBuilder.Entity<Entities.Attribute>(entity =>
         {
             entity.Property(itemAttribute => itemAttribute.Name).HasMaxLength(100);
         });
@@ -153,12 +153,14 @@ public class AppDbContext : DbContext
     public DbSet<FeedbackAttachment> FeedbackAttachments { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<ItemAttribute> ItemAttributes { get; set; }
-    public DbSet<ItemAttributeValue> ItemAttributeValue { get; set; }
+    public DbSet<Entities.Attribute> Attributes { get; set; }
+    public DbSet<AttributeValue> AttributeValue { get; set; }
     public DbSet<Language> Languages { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<MessageRecipient> MessageRecipients { get; set; }
     public DbSet<Offer> Offers { get; set; }
     public DbSet<Order> Orders { get; set; }
+    public DbSet<Payment> Payments { get; set; }
     public DbSet<OrderInformation> OrderInformation { get; set; }
     public DbSet<OrderInformationAttachment> OrderInformationAttachments { get; set; }
     public DbSet<OrderTracking> OrderTrackings { get; set; }

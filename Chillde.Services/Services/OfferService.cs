@@ -1,6 +1,9 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.OfferModels;
+using Chillde.Repositories.Models.WalletHistoryModels;
+using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.ResponseModels;
