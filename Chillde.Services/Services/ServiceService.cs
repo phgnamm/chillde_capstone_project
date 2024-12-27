@@ -2,14 +2,19 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FAQModels;
-using Chillde.Repositories.Models.SubCategoryModels;
+using Chillde.Repositories.Models.PackageModels;
+using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.SubcategoryModels;
+using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Xml.Linq;
 
 namespace Chillde.Services.Services
 {
@@ -17,11 +22,13 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICloudinaryHelper _cloudinaryHelper;
 
-        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper)
+        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryHelper cloudinaryHelper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _cloudinaryHelper = cloudinaryHelper;
         }
 
         public async Task<ResponseModel> GetAsync(Guid id)
@@ -42,6 +49,70 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Successfully.",
+                    Data = service
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+        public async Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel)
+        {
+            try
+            {
+                var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
+                if (item == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Item not found."
+                    };
+                }
+
+                var service = new Service
+                {
+                    Name = serviceAddModel.Name,
+                    Description = serviceAddModel.Description,
+                    IsOffter = serviceAddModel.IsOffter,
+                    ItemId = serviceAddModel.ItemId,
+                    Status = Repositories.Enums.ServiceStatus.Active
+                };
+
+                await _unitOfWork.ServiceRepository.AddAsync(service);
+
+                var serviceAttachmentList = new List<ServiceAttachment>();
+                foreach (var serviceAttachment in serviceAddModel.ServiceAttachments) 
+                {
+                    string? imageUrl = null;
+                    if (serviceAttachment.AttachmentUrl != null)
+                    {
+                        imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                            serviceAttachment.AttachmentUrl,
+                            serviceAttachment.AttachmentAlt,
+                            Guid.NewGuid().ToString()
+                        );
+                    }
+                    serviceAttachmentList.Add(new ServiceAttachment
+                    {
+                        AttachmentAlt = serviceAttachment.AttachmentAlt,
+                        AttachmentUrl = serviceAttachment.AttachmentUrl.ToString(),
+                        ServiceId = service.Id
+                    });
+                }
+
+                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentList);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Service successfully created.",
                     Data = service
                 };
             }
@@ -217,6 +288,59 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status200OK,
                     Message = "Successfully.",
                     Data = faqsModel
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                Expression<Func<Package, bool>> filter = package =>
+                     package.ServiceId == serviceId &&
+                     package.IsDeleted == packageFilterModel.IsDeleted &&
+                     (string.IsNullOrEmpty(packageFilterModel.Search) ||
+                     package.Name.Contains(packageFilterModel.Search));
+
+                Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
+                         packages.Include(c => c.PackageFeatures).ThenInclude(_ => _.Feature);
+
+                var packages = await _unitOfWork.PackageRepository.GetAllAsync(
+                                filter: filter,
+                                include: include,
+                                pageIndex: packageFilterModel.PageIndex,
+                pageSize: packageFilterModel.PageSize
+                );
+
+                var packageModels = _mapper.Map<List<PackageModel>>(packages.Data);
+
+                var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
+                  packageFilterModel.PageSize, packages.TotalCount);
+
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully.",
+                    Data = result
                 };
             }
             catch (Exception ex)
