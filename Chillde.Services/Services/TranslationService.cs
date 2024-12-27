@@ -69,6 +69,75 @@ namespace Chillde.Services.Services
             }
         }
 
+        public async Task<TranslationResponseModel> TranslateMultipleFieldsAsync(Dictionary<string, string> fieldsToTranslate, string sourceLanguageCode, string targetLanguageCode)
+        {
+            try
+            {
+                if (fieldsToTranslate == null || fieldsToTranslate.Count == 0)
+                {
+                    return new TranslationResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "No fields provided for translation."
+                    };
+                }
+                var combinedText = string.Join("\n", fieldsToTranslate.Select(f => $"[{f.Key}] {f.Value}"));
+
+                var chatRequest = new ChatCompletionCreateRequest
+                {
+                    Messages = new List<ChatMessage>
+            {
+                ChatMessage.FromSystem(
+                    $"You are a translator from {sourceLanguageCode} to {targetLanguageCode}. Translate the following fields separately, keeping the format and context intact."),
+                ChatMessage.FromUser(combinedText)
+            },
+                    Model = "gpt-3.5-turbo",
+                    Temperature = 0.3f,
+                    MaxTokens = 1000,
+                    TopP = 1
+                };
+
+                var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatRequest);
+
+                if (!completionResult.Successful)
+                {
+                    return new TranslationResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to translate fields."
+                    };
+                }
+                var translatedText = completionResult.Choices.FirstOrDefault()?.Message.Content.Trim() ?? string.Empty;
+                var translatedFields = new Dictionary<string, string>();
+                var translatedParts = translatedText.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var part in translatedParts)
+                {
+                    var fieldParts = part.Split(new[] { "] " }, 2, StringSplitOptions.RemoveEmptyEntries);
+                    if (fieldParts.Length == 2)
+                    {
+                        var fieldName = fieldParts[0].TrimStart('[');
+                        translatedFields.Add(fieldName, fieldParts[1].Trim());
+                    }
+                }
+
+                return new TranslationResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Fields translated successfully.",
+                    TranslatedFields = translatedFields
+                };
+            }
+            catch (Exception ex)
+            {
+                return new TranslationResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
         public async Task<ResponseModel> SaveTranslationAsync(TransaltionAddModel addModel, string targetLanguageCode)
         {
             try
