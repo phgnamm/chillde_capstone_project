@@ -23,17 +23,23 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Add(ItemAttributeAddModel itemAttributeAddModel)
         {
-            var newItemAttribute = new ItemAttribute
+            var newItemAttributes = new List<ItemAttribute>();
+            foreach (var attribute in itemAttributeAddModel.AttributeIds)
             {
-                Id = Guid.NewGuid(),
-                AttributeId = itemAttributeAddModel.AttributeId,
-                ItemId = itemAttributeAddModel.ItemId,
-            };
-            await _unitOfWork.ItemAttributeRepository.AddAsync(newItemAttribute);
+                var newItemAttribute = new ItemAttribute
+                {
+                    Id = Guid.NewGuid(),
+                    AttributeId = attribute,
+                    ItemId = itemAttributeAddModel.ItemId,
+                };
+                newItemAttributes.Add(newItemAttribute);
+            }
+            await _unitOfWork.ItemAttributeRepository.AddRangeAsync(newItemAttributes);
             var result = await _unitOfWork.SaveChangeAsync();
             return result > 0 ?
                 new ResponseModel
                 {
+                    Data = newItemAttributes,
                     Code = StatusCodes.Status201Created,
                     Message = "Created successfully"
                 } :

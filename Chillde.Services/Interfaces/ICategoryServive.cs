@@ -16,11 +16,11 @@ namespace Chillde.Services.Interfaces
     public interface ICategoryServive
     {
         Task<ResponseModel> Add(CategoryAddModel categoryAddModel);
-        Task<ResponseModel> AddList(List<CategoryAddModel> categoryAddModels);
+        Task<ResponseModel> AddList(CategoryAddRangeModel categoryAddModels);
         Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel);
         Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel);
         Task<ResponseModel> Delete(Guid id);
-        Task<ResponseModel> AddSubcategory(Guid categoryId, List<SubCategoryAddModel> subCategoryAddModel);
+        Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddRangeModel subCategoryAddRangeModel);
         Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel);
 
 

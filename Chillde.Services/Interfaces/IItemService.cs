@@ -14,7 +14,6 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> GetById(Guid itemId);
         Task<ResponseModel> GetAllAttributesById(Guid itemId);
-
         Task<ResponseModel> Update(Guid id, ItemUpdateModel itemUpdateModel);
 
     }

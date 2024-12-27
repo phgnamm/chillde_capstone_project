@@ -10,7 +10,7 @@ namespace Chillde.Services.Models.ItemAttributeModels
     public class ItemAttributeAddModel
     {
         public required Guid ItemId { get; set; }
-        public required Guid AttributeId { get; set; }
+        public required List<Guid> AttributeIds { get; set; }
 
     }
 }

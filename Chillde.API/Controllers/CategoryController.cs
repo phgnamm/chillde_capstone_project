@@ -45,22 +45,8 @@ namespace Chillde.API.Controllers
         public async Task<IActionResult> AddRange([FromForm] CategoryAddRangeModel categoryAddRangeModel)
         {
             try
-            {
-               
-                var request = new List<CategoryAddModel>();
-
-                for (int i = 0; i < categoryAddRangeModel.CategoryAddRequestModels.Count; i++)
-                {
-                    var categoryToCreate = new CategoryAddModel
-                    {
-                        Name = categoryAddRangeModel.CategoryAddRequestModels[i].Name,
-                        Code = categoryAddRangeModel.CategoryAddRequestModels[i].Code,
-                        ImageUrl = categoryAddRangeModel.ImageUrls?[i] 
-                    };
-                    request.Add(categoryToCreate);
-                }
-
-                var result = await _categoryService.AddList(request);
+            {                         
+                var result = await _categoryService.AddList(categoryAddRangeModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -132,20 +118,8 @@ namespace Chillde.API.Controllers
         public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddRangeModel subCategoryAddRangeModel)
         {
             try
-            {
-                var request = new List<SubCategoryAddModel>();
-
-                for (int i = 0; i < subCategoryAddRangeModel.SubCategoryAddRequestModels.Count; i++)
-                {
-                    var subCategoryToCreate = new SubCategoryAddModel
-                    {
-                        Name = subCategoryAddRangeModel.SubCategoryAddRequestModels[i].Name,
-                        Code = subCategoryAddRangeModel.SubCategoryAddRequestModels[i].Code,
-                        ImageUrl = subCategoryAddRangeModel.ImageUrls?[i]
-                    };
-                    request.Add(subCategoryToCreate);
-                }
-                var result = await _categoryService.AddSubcategory(categoryId, request);
+            {           
+                var result = await _categoryService.AddSubcategory(categoryId, subCategoryAddRangeModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
