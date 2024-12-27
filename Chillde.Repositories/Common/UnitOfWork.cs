@@ -27,13 +27,15 @@ public class UnitOfWork : IUnitOfWork
         ILanguageRepository languageRepository,
         IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
-        ISubCategoryRepository subCategoryRepository, 
+        ISubCategoryRepository subCategoryRepository,
         IItemRepository itemRepository,
         IOfferRepository offerRepository,
         IFAQRepository faqRepository,
         IAttributeRepository attributeRepository,
         IAttributeValueRepository attributeValueRepository,
         IItemAttributeRepository itemAttributeRepository
+        IFAQRepository faqRepository,
+        IShippingAddressRepository shippingAddressRepository
         )
     {
         Context = context;
@@ -65,6 +67,7 @@ public class UnitOfWork : IUnitOfWork
         AttributeRepository = attributeRepository;
         AttributeValueRepository = attributeValueRepository;
         ItemAttributeRepository = itemAttributeRepository;
+        ShippingAddressRepository = shippingAddressRepository;
     }
 
     public AppDbContext Context { get; }
@@ -98,10 +101,9 @@ public class UnitOfWork : IUnitOfWork
     public IServiceAttachmentRepository ServiceAttachmentRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
     public IFAQRepository FAQRepository { get; }
-
     public ISubCategoryRepository SubCategoryRepository { get; }
-
-    public IItemRepository ItemRepository {get;}
+    public IItemRepository ItemRepository { get; }
+    public IShippingAddressRepository ShippingAddressRepository { get; }
 
     public IItemAttributeRepository ItemAttributeRepository { get; }
 

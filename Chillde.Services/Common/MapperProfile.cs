@@ -6,6 +6,7 @@ using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
+using Chillde.Repositories.Models.PackageModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
@@ -47,5 +48,8 @@ public class MapperProfile : Profile
 
         //FAQ
         CreateMap<FAQModel, FAQ>().ReverseMap();
+
+        //Package
+        CreateMap<PackageModel, Package>().ReverseMap();
     }
 }

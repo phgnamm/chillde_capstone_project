@@ -3,6 +3,7 @@ using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -93,6 +94,25 @@ namespace Chillde.API.Controllers
             }
         }
 
+        [Authorize("Artist")]
+        [HttpPost]
+        public async Task<IActionResult> AddServiceAsync([FromBody] ServiceAddModel serviceAddModel)
+        {
+            try
+            {
+                var result = await _serviceService.AddAsync(serviceAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [Authorize]
         [HttpGet("{serviceId}/service-attachments")]
         public async Task<IActionResult> GetAllServiceAttachmentsAsync(Guid serviceId)
@@ -100,6 +120,25 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceService.GetServiceAttachmentssAsync(serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("{serviceId}/packages")]
+        public async Task<IActionResult> GetAllPackagesAsync(Guid serviceId, [FromQuery] PackageFilterModel packageFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.GetAllPackagesAsync(packageFilterModel, serviceId);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

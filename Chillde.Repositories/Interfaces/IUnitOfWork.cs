@@ -39,6 +39,7 @@ public interface IUnitOfWork
     IItemAttributeRepository ItemAttributeRepository { get; }
     IAttributeRepository AttributeRepository { get; }
     IAttributeValueRepository AttributeValueRepository { get; }
+    IShippingAddressRepository ShippingAddressRepository { get; }
 
     #endregion
 }
