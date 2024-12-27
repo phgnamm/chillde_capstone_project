@@ -33,8 +33,7 @@ public class UnitOfWork : IUnitOfWork
         IFAQRepository faqRepository,
         IAttributeRepository attributeRepository,
         IAttributeValueRepository attributeValueRepository,
-        IItemAttributeRepository itemAttributeRepository
-        IFAQRepository faqRepository,
+        IItemAttributeRepository itemAttributeRepository,
         IShippingAddressRepository shippingAddressRepository
         )
     {

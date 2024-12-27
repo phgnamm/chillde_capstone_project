@@ -7,8 +7,6 @@ using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Repositories.Models.PackageModels;
-using Chillde.Services.Common;
-using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FAQModels;
@@ -260,7 +258,7 @@ namespace Chillde.Services.Services
                     serviceAttachmentList.Add(new ServiceAttachment
                     {
                         AttachmentAlt = serviceAttachment.AttachmentAlt,
-                        AttachmentUrl = serviceAttachment.AttachmentUrl.ToString(),
+                        AttachmentUrl = serviceAttachment?.AttachmentUrl?.ToString(),
                         ServiceId = service.Id
                     });
                 }

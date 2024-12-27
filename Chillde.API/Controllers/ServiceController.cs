@@ -21,7 +21,7 @@ namespace Chillde.API.Controllers
             _serviceService = serviceService;
         }
         //[Authorize]
-        [HttpPost]
+        [HttpPost("feedbacks")]
         public async Task<IActionResult> Add([FromForm] FeedbackAddModel feedbackAddModel)
         {
             try
