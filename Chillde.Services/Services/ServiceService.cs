@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Xml.Linq;
+using Chillde.Repositories.Enums;
 
 namespace Chillde.Services.Services
 {
@@ -218,6 +219,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
         public async Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel)
         {
             try
@@ -271,6 +273,81 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status201Created,
                     Message = "Service successfully created.",
                     Data = service
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> UpdateAsync(ServiceStatus serviceStatus, Guid id)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                service.Status = serviceStatus;
+
+                _unitOfWork.ServiceRepository.Update(service);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Service successfully updated.",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> DeleteAsync(Guid id)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrder(id);
+
+                if (anyOrder == null)
+                {
+                    _unitOfWork.ServiceRepository.HardRemove(service);
+                }
+
+                _unitOfWork.ServiceRepository.SoftRemove(service);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully delete."
                 };
             }
             catch (Exception ex)

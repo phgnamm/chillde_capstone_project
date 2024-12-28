@@ -21,6 +21,6 @@ public class AccountUpdateModel
     [Phone] [StringLength(15)] public string? PhoneNumber { get; set; }
     public string? StoreAddress { get; set; }
     public string? StoreDescription { get; set; }
-    public IFormFile? Image { get; set; }
-    public IFormFile? Banner { get; set; }
+    public IFormFile? NewImage { get; set; }
+    public IFormFile? NewBanner { get; set; }
 }
