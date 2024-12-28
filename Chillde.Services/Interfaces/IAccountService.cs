@@ -22,4 +22,5 @@ public interface IAccountService
     Task<ResponseModel> UpdateRoles(Guid id, AccountUpdateRolesModel accountUpdateRolesModel);
     Task<ResponseModel> Delete(Guid id);
     Task<ResponseModel> Restore(Guid id);
+    Task<ResponseModel> BecomeASeller(Guid id, AccountBecomeASellerModel accountBecomeASellerModel);
 }
