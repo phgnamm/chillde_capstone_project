@@ -12,8 +12,9 @@ namespace Chillde.Services.Interfaces
 {
     public interface IOrderService
     {
-        Task<ResponseModel> BalancePayment(OrderAddModel orderModel, HttpContext context);
-        Task<ResponseModel> CreatePaymentUrl(OrderAddModel order, string ipAddress);
+        Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel);
+        Task<ResponseModel> CreatePaymentUrl(OrderAddModel orderAddModel, string ipAddress);
+        Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId);
 
     }
 }

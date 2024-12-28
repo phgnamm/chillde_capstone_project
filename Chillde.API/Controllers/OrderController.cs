@@ -58,18 +58,48 @@ namespace Chillde.API.Controllers
 
                     if (paymentResult.IsSuccess)
                     {
-                        return Ok(paymentResult);
-                    }
+                        var orderId = paymentResult.PaymentId; 
 
-                    return BadRequest(paymentResult);
+                        var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
+
+                        if (updateResult.Code == StatusCodes.Status200OK)
+                        {
+                            return Ok(new
+                            {
+                                Message = "Payment and order update successful.",
+                                PaymentResult = paymentResult,
+                                OrderUpdateResult = updateResult
+                            });
+                        }
+
+                        return BadRequest(new
+                        {
+                            Message = "Payment successful but order update failed.",
+                            PaymentResult = paymentResult,
+                            OrderUpdateResult = updateResult
+                        });
+                    }
+                    return BadRequest(new
+                    {
+                        Message = "Payment failed.",
+                        PaymentResult = paymentResult
+                    });
                 }
                 catch (Exception ex)
                 {
-                    return BadRequest(ex.Message);
+                    return BadRequest(new
+                    {
+                        Message = "An error occurred during payment callback.",
+                        Error = ex.Message
+                    });
                 }
             }
 
-            return NotFound("Không tìm thấy thông tin thanh toán.");
+            return NotFound(new
+            {
+                Message = "No payment information found in the request."
+            });
         }
+
     }
 }

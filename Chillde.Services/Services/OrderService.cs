@@ -8,6 +8,7 @@ using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,195 +35,153 @@ namespace Chillde.Services.Services
             _vnpay.Initialize(_configuration["Vnpay:TmnCode"], _configuration["Vnpay:HashSecret"], _configuration["Vnpay:BaseUrl"], _configuration["Vnpay:CallbackUrl"]);
 
         }
-
-        public Task<ResponseModel> BalancePayment(OrderAddModel orderModel, HttpContext context)
+        public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
-            throw new NotImplementedException();
-        }
-
-        //public async Task<ResponseModel> CreatePaymentUrl(OrderAddModel order, string ipAddress)
-        //{
-        //    var currentUserId = _claimService.GetCurrentUserId;
-        //    if (!currentUserId.HasValue)
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status401Unauthorized,
-        //            Message = "Unauthorized"
-        //        };
-
-        //    var package = await _unitOfWork.PackageRepository.Get(order.PackageId);
-        //    if (package == null)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status404NotFound,
-        //            Message = "Package not found."
-        //        };
-        //    }
-
-        //    decimal totalPrice = (decimal)package.Price;
-
-        //    var newOrder = new Order
-        //    {
-        //        CreatedById = currentUserId.Value,
-        //        Phone = order.Phone,
-        //        Address = order.Address,
-        //        TotalPrice = totalPrice,
-        //        PackagePrice = package.Price,
-        //        Quantity = order.Quantity,
-        //        PackageId = order.PackageId
-        //    };
-        //    if(order.OrderInformationAddModels != null)
-        //    {
-        //        newOrder.OrderInformations = order.OrderInformationAddModels.Select(_ => new OrderInformation
-        //        {
-        //            Description = _.Description,
-        //            PackageFeatureId = _.PackageFeatureId
-        //        }).ToList();
-        //        var extraFeatureCost = await _unitOfWork.PackageFeatureRepository.SumPriceOfExtraFeatures(order.OrderInformationAddModels.Select(_ => _.PackageFeatureId).ToList());
-
-        //        if (extraFeatureCost > 0)
-        //        {
-        //            totalPrice += extraFeatureCost;
-        //            newOrder.TotalPrice = totalPrice;
-        //        }
-        //    }
-        //    if (order.WithBalance == true)
-        //    {
-        //        var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
-        //        var balance = wallet.Balance;
-        //        if (balance <= 0) {
-        //            return new ResponseModel
-        //            {
-        //                Message = "Your balance do not have enough money to order",
-        //                Code = StatusCodes.Status400BadRequest
-        //            };
-        //        }
-        //        if(balance > totalPrice)
-        //        {
-        //            return new ResponseModel
-        //            {
-        //                Message = "Your balance greater than total price in the order, if you want to checkout with balance, please select the checkout with balance!",
-        //                Code = StatusCodes.Status400BadRequest
-        //            };
-        //        }
-        //        var checkVnpayValid = totalPrice - balance;
-        //        if (checkVnpayValid < 5000)
-        //        {
-        //            return new ResponseModel
-        //            {
-        //                Message = $"Cannot checkout vnPay with '{checkVnpayValid}VND'!",
-        //                Code = StatusCodes.Status400BadRequest
-        //            };
-        //        }
-        //        wallet.Balance -= balance;
-
-        //        var walletHistory = new WalletHistory
-        //        {
-        //            WalletId = wallet.Id,
-        //            Amount = balance,
-        //            Type = WalletHistoryType.TransferOut, 
-        //            Status = WalletHistoryStatus.Completed, 
-        //        };
-        //        wallet.WalletHistories.Add(walletHistory);
-
-        //        // Lưu thay đổi vào cơ sở dữ liệu
-        //        _unitOfWork.WalletRepository.Update(wallet);
-
-        //        newOrder.Payments = order.PaymentAddModels.Select(payment => new Payment
-        //        {
-        //            PaymentType = PaymentType.VnPay,
-        //            Amount = payment.Amount,
-        //        }).ToList();
-
-        //    }
-        //    await _unitOfWork.OrderRepository.AddAsync(newOrder);
-        //    var check = await _unitOfWork.SaveChangeAsync();
-        //    if(check < 0)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status400BadRequest,
-        //            Message = "Fail to save"
-        //        };
-        //    }
-
-        //    var paymentRequest = new PaymentRequest
-        //    {
-        //        PaymentId = newOrder.Id,
-        //        Money = (double)newOrder.TotalPrice,
-        //        Description = $"Payment for order {newOrder.Id}",
-        //        IpAddress = ipAddress,
-        //        BankCode = BankCode.ANY,
-        //        CreatedDate = DateTime.Now,
-        //        Currency = Currency.VND,
-        //        Language = DisplayLanguage.Vietnamese
-        //    };
-        //    var result = await _vnpay.GetPaymentUrl(paymentRequest);
-        //    return new ResponseModel
-        //    {
-        //        Data = result
-        //    };
-        //}
-        public async Task<ResponseModel> CreatePaymentUrl(OrderAddModel order, string ipAddress)
-        {
-            // Lấy thông tin người dùng hiện tại
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
-                return UnauthorizedResponse();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
 
-            // Kiểm tra package
-            var package = await _unitOfWork.PackageRepository.Get(order.PackageId);
+            var package = await _unitOfWork.PackageRepository.Get(orderAddModel.PackageId);
             if (package == null)
-                return NotFoundResponse("Package not found.");
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Package not found"
+                };
 
-            // Tính tổng giá
             decimal totalPrice = (decimal)package.Price;
-            var newOrder = InitializeOrder(order, package, currentUserId.Value, ref totalPrice);
+            var newOrder = InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
 
-            // Xử lý thông tin bổ sung nếu có
-            if (order.OrderInformationAddModels != null)
-                await ProcessExtraFeatures(order, newOrder,  totalPrice);
+            if (orderAddModel.OrderInformationAddModels != null)
+                await ProcessExtraFeatures(orderAddModel, newOrder, totalPrice);
 
-            // Xử lý thanh toán với số dư (Balance)
-            if (order.WithBalance == true)
+            var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
+            if (wallet == null)
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Wallet not found"
+                };
+
+            if (wallet.Balance < totalPrice)
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Your balance does not have enough money to complete this order"
+                };
+
+            wallet.Balance -= totalPrice;
+
+            var walletHistory = new WalletHistory
             {
-                var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
-                var response = ProcessWalletPayment(wallet, ref totalPrice, newOrder);
-                if (response != null) return response;
+                WalletId = wallet.Id,
+                Amount = totalPrice,
+                Type = WalletHistoryType.TransferOut,
+                Status = WalletHistoryStatus.Completed
+            };
+            wallet.WalletHistories.Add(walletHistory);
+
+            _unitOfWork.WalletRepository.Update(wallet);
+            newOrder.Payments.Add(new Payment
+            {
+                PaymentType = PaymentType.Balance,
+                Amount = totalPrice,
+                PaymentStatus = PaymentStatus.Success
+            });              
+            await _unitOfWork.OrderRepository.AddAsync(newOrder);
+            var result = await _unitOfWork.SaveChangeAsync();
+           return result < 0 ?
+                 new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Failed to process the payment"
+                }
+                :
+                 new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Payment successfully completed using balance",
+                };
+        }
+        public async Task<ResponseModel> CreatePaymentUrl(OrderAddModel orderAddModel, string ipAddress)
+        {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
             }
 
-            // Lưu đơn hàng vào cơ sở dữ liệu
+            var package = await _unitOfWork.PackageRepository.Get(orderAddModel.PackageId);
+            if (package == null)               
+               return new ResponseModel
+               {
+                   Code = StatusCodes.Status400BadRequest,
+                   Message = "Package not found."
+               };
+                
+
+            decimal totalPrice = (decimal)package.Price;
+            var newOrder = InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
+
+            if (orderAddModel.OrderInformationAddModels != null)
+                await ProcessExtraFeatures(orderAddModel, newOrder,  totalPrice);
+
+            if ((bool)orderAddModel.WithBalance)
+            {
+                var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
+                var response = ProcessWalletPayment(wallet, totalPrice, newOrder);
+                if (response != null) return response;
+            }
+            if(!(bool)orderAddModel.WithBalance)
+            {
+                newOrder.Payments.Add(new Payment
+                {
+                    PaymentType = PaymentType.VnPay,
+                    Amount = totalPrice,
+                    PaymentStatus = PaymentStatus.Pending,
+                });
+            }    
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             if (await _unitOfWork.SaveChangeAsync() < 0)
-                return BadRequestResponse("Failed to save order.");
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Fail to save order"
+                };
 
-            // Tạo URL thanh toán VnPay
             var paymentUrl = await GenerateVnPayUrl(newOrder, ipAddress);
 
-            return new ResponseModel { Data = paymentUrl };
+            return new ResponseModel { Data = paymentUrl, Message = "Created paymentUrl successfully" };
         }
-        private Order InitializeOrder(OrderAddModel order, Package package, Guid userId, ref decimal totalPrice)
+        private Repositories.Entities.Order InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId, decimal totalPrice)
         {
-            return new Order
+            return new Repositories.Entities.Order
             {
                 CreatedById = userId,
-                Phone = order.Phone,
-                Address = order.Address,
+                Phone = orderAddModel.Phone,
+                Address = orderAddModel.Address,
                 TotalPrice = totalPrice,
                 PackagePrice = package.Price,
-                Quantity = order.Quantity,
-                PackageId = order.PackageId,
-                OrderInformations = order.OrderInformationAddModels?.Select(info => new OrderInformation
+                Quantity = orderAddModel.Quantity,
+                PackageId = orderAddModel.PackageId,
+                OrderInformations = orderAddModel?.OrderInformationAddModels?.Select(_ => new OrderInformation
                 {
-                    Description = info.Description,
-                    PackageFeatureId = info.PackageFeatureId
+                    Description = _.Description,
+                    PackageFeatureId = _.PackageFeatureId
                 }).ToList()
             };
         }
-        private async Task ProcessExtraFeatures(OrderAddModel order, Order newOrder, decimal totalPrice)
+        private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder, decimal totalPrice)
         {
-            var featureIds = order.OrderInformationAddModels.Select(info => info.PackageFeatureId).ToList();
+            var featureIds = orderAddModel.OrderInformationAddModels.Select(_ => _.PackageFeatureId).ToList();
             var extraFeatureCost = await _unitOfWork.PackageFeatureRepository.SumPriceOfExtraFeatures(featureIds);
 
             if (extraFeatureCost > 0)
@@ -231,54 +190,65 @@ namespace Chillde.Services.Services
                 newOrder.TotalPrice = totalPrice;
             }
         }
-        private ResponseModel? ProcessWalletPayment(Wallet wallet, ref decimal totalPrice, Order order)
+        private ResponseModel? ProcessWalletPayment(Wallet wallet, decimal totalPrice, Repositories.Entities.Order orderAddModel)
         {
             var balance = wallet.Balance;
 
             if (balance <= 0)
-                return BadRequestResponse("Your balance does not have enough money to order.");
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Your balance does not have enough money to order"
+                };
 
             if (balance > totalPrice)
-                return BadRequestResponse("Your balance is greater than the total price in the order.");
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Your balance is greater than the total price in the order. Do you want to checkout with balance payment!"
+                };
 
             var remainingAmount = totalPrice - balance;
             if (remainingAmount < 5000)
-                return BadRequestResponse($"Cannot checkout VNPay with '{remainingAmount} VND'.");
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = $"Cannot checkout VNPay with '{remainingAmount} VND'. Please checkout with just vnPay payment!"
+                };
 
-            // Trừ số dư trong ví và tạo lịch sử giao dịch
             wallet.Balance -= balance;
             wallet.WalletHistories.Add(new WalletHistory
             {
                 WalletId = wallet.Id,
                 Amount = balance,
                 Type = WalletHistoryType.TransferOut,
-                Status = WalletHistoryStatus.Completed
+                Status = WalletHistoryStatus.InProcess
             });
 
-            // Thêm phương thức thanh toán với số dư
-            order.Payments.Add(new Payment
+            orderAddModel.Payments.Add(new Payment
             {
                 PaymentType = PaymentType.Balance,
-                Amount = balance
+                Amount = balance,
+                PaymentStatus = PaymentStatus.Pending
             });
 
-            // Thêm phương thức thanh toán với VNPay
-            order.Payments.Add(new Payment
+            orderAddModel.Payments.Add(new Payment
             {
                 PaymentType = PaymentType.VnPay,
-                Amount = remainingAmount
+                Amount = remainingAmount,
+                PaymentStatus = PaymentStatus.Pending
             });
 
             _unitOfWork.WalletRepository.Update(wallet);
             return null;
         }
-        private async Task<string> GenerateVnPayUrl(Order order, string ipAddress)
+        private async Task<string> GenerateVnPayUrl(Repositories.Entities.Order orderAddModel, string ipAddress)
         {
             var paymentRequest = new PaymentRequest
             {
-                PaymentId = order.Id,
-                Money = (double)order.TotalPrice,
-                Description = $"Payment for order {order.Id}",
+                PaymentId = orderAddModel.Id,
+                Money = (double)orderAddModel.TotalPrice,
+                Description = $"Payment for order {orderAddModel.Id}",
                 IpAddress = ipAddress,
                 BankCode = BankCode.ANY,
                 CreatedDate = DateTime.Now,
@@ -288,33 +258,76 @@ namespace Chillde.Services.Services
 
             return await _vnpay.GetPaymentUrl(paymentRequest);
         }
-        private ResponseModel UnauthorizedResponse()
+        public async Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId)
         {
-            return new ResponseModel
+            var order = await _unitOfWork.OrderRepository.GetAsync(
+                orderId,
+                _ => _.Include(_ => _.CreatedBy).Include(_ => _.Payments)
+            );
+
+            if (order == null)
             {
-                Code = StatusCodes.Status401Unauthorized,
-                Message = "Unauthorized"
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Order not found."
+                };
+            }
+
+            if (order.Status == OrderStatus.Success)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Order is already completed."
+                };
+            }
+
+            order.Status = OrderStatus.Success;
+            foreach (var payment in order.Payments)
+            {
+                payment.PaymentStatus = PaymentStatus.Success;
+            }
+
+            var balancePayment = order.Payments.FirstOrDefault(p => p.PaymentType == PaymentType.Balance);
+            if (balancePayment != null)
+            {
+                var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount((Guid)order.CreatedById);
+                if (wallet == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Wallet not found for the user."
+                    };
+                }
+
+                var walletHistory = new WalletHistory
+                {
+                    WalletId = wallet.Id,
+                    Amount = balancePayment.Amount, 
+                    Type = WalletHistoryType.TransferOut,
+                    Status = WalletHistoryStatus.Completed
+                };
+
+                wallet.WalletHistories.Add(walletHistory);
+                wallet.Balance -= balancePayment.Amount;
+
+                _unitOfWork.WalletRepository.Update(wallet);
+            }
+            _unitOfWork.OrderRepository.Update(order);
+            var result = await _unitOfWork.SaveChangeAsync();
+         
+            return result > 0 ? new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Order status updated to completed successfully."
+            } : new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = "Failed to update order status and wallet."
             };
         }
-
-        private ResponseModel NotFoundResponse(string message)
-        {
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status404NotFound,
-                Message = message
-            };
-        }
-
-        private ResponseModel BadRequestResponse(string message)
-        {
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status400BadRequest,
-                Message = message
-            };
-        }
-
 
 
     }

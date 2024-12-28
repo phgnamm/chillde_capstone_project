@@ -20,18 +20,18 @@ namespace Chillde.Services.Models.OrderModels
         [StringLength(200, ErrorMessage = "Address cannot exceed 200 characters.")]
         public string Address { get; set; } = null!;
 
-        [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "Total price must be greater than 0.")]
-        public decimal TotalPrice { get; set; }
+        //[Required]
+        //[Range(1, double.MaxValue, ErrorMessage = "Total price must be greater than 0.")]
+        //public decimal TotalPrice { get; set; }
 
-        [Range(1, double.MaxValue, ErrorMessage = "Package price must be greater than 0.")]
-        public decimal? PackagePrice { get; set; }
+        //[Range(1, double.MaxValue, ErrorMessage = "Package price must be greater than 0.")]
+        //public decimal? PackagePrice { get; set; }
 
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int Quantity { get; set; } = 1;
 
-        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        //public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
         [Required]
         public Guid PackageId { get; set; }

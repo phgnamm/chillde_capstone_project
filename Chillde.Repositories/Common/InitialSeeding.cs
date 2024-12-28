@@ -56,7 +56,7 @@ public static class InitialSeeding
             IsOffter = true,
             Status = Enums.ServiceStatus.Active,
             ItemId = Items[6].Id,
-            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b") //TỰ TẠO TÀI KHOẢN BỎ VÔ
+            CreatedById = Guid.Parse("01940e1c-3cbb-7356-a667-62b5bd55f008") //TỰ TẠO TÀI KHOẢN BỎ VÔ
         },
     };
 
