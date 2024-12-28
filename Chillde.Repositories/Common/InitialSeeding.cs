@@ -177,7 +177,7 @@ public static class InitialSeeding
 
         foreach (var service in Services)
         {
-            if (!context.Items.Any(i => i.Id == service.Id))
+            if (!context.Services.Any(i => i.Id == service.Id))
             {
                 service.CreationDate = DateTime.UtcNow;
                 context.Services.Add(service);
@@ -186,7 +186,7 @@ public static class InitialSeeding
 
         foreach (var package in Packages)
         {
-            if (!context.Items.Any(i => i.Id == package.Id))
+            if (!context.Packages.Any(i => i.Id == package.Id))
             {
                 package.CreationDate = DateTime.UtcNow;
                 context.Packages.Add(package);
@@ -195,7 +195,7 @@ public static class InitialSeeding
 
         foreach (var feature in Features)
         {
-            if (!context.Items.Any(i => i.Id == feature.Id))
+            if (!context.Features.Any(i => i.Id == feature.Id))
             {
                 feature.CreationDate = DateTime.UtcNow;
                 context.Features.Add(feature);
@@ -204,7 +204,7 @@ public static class InitialSeeding
 
         foreach (var packageFeature in PackageFeatures)
         {
-            if (!context.Items.Any(i => i.Id == packageFeature.Id))
+            if (!context.PackageFeatures.Any(i => i.Id == packageFeature.Id))
             {
                 packageFeature.CreationDate = DateTime.UtcNow;
                 context.PackageFeatures.Add(packageFeature);
