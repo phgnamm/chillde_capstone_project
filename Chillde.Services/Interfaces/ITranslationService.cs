@@ -18,6 +18,7 @@ namespace Chillde.Services.Interfaces
             string entityType,
             Guid entityId,
             string sourceLanguageCode);
+        Task<TranslationResponseModel> TranslateMultipleFieldsAsync(Dictionary<string, string> fieldsToTranslate, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> UpdateAsync(TransaltionAddModel model, LanguageCode languageCode);
         Task<ResponseModel> DeleteAsync(string entityType, Guid entityId, string fieldName, Guid languageId);
     }
