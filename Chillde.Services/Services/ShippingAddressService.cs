@@ -5,6 +5,7 @@ using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -256,6 +258,147 @@ namespace Chillde.Services.Services
 
             return null;
         }
+
+        public async Task<ResponseModel> GetAllAsync(ShippingAddressFilterModel shippingAddressFilterModel)
+        {
+            Expression<Func<ShippingAddress, bool>> filter = address =>
+                    address.IsDeleted == shippingAddressFilterModel.IsDeleted &&
+                (string.IsNullOrEmpty(shippingAddressFilterModel.Search) ||
+                    address.FullName.Contains(shippingAddressFilterModel.Search) ||
+                    address.PhoneNumber.Contains(shippingAddressFilterModel.Search) ||
+                    address.ProvinceName.Contains(shippingAddressFilterModel.Search) ||
+                    address.DistrictName.Contains(shippingAddressFilterModel.Search) ||
+                    address.WardName.Contains(shippingAddressFilterModel.Search));
+
+            var shippingAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
+                filter: filter,
+                pageIndex: shippingAddressFilterModel.PageIndex,
+                pageSize: shippingAddressFilterModel.PageSize
+            );
+
+            var shippingAddressModels = _mapper.Map<List<ShippingAddressModel>>(shippingAddresses.Data);
+
+            var result = new Pagination<ShippingAddressModel>(
+                shippingAddressModels,
+                shippingAddressFilterModel.PageIndex,
+                shippingAddressFilterModel.PageSize,
+                shippingAddresses.TotalCount
+            );
+
+            return new ResponseModel
+            {
+                Message = "Get all shipping addresses successfully",
+                Data = result
+            };
+        }
+
+        public async Task<ResponseModel> GetByIdAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid ID",
+                    Data = null
+                };
+            }
+            var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+
+            if (shippingAddress == null || shippingAddress.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Shipping address not found",
+                    Data = null
+                };
+            }
+            var shippingAddressModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Get shipping address successfully",
+                Data = shippingAddressModel
+            };
+        }
+
+        public async Task<ResponseModel> UpdateShippingAddressAsync(Guid id, ShippingAddressUpdateModel request)
+        {
+            if (id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid ID",
+                    Data = null
+                };
+            }
+
+            var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+            if (shippingAddress == null || shippingAddress.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Shipping address not found",
+                    Data = null
+                };
+            }
+
+            _mapper.Map(request, shippingAddress);
+
+            if (request.IsDefault)
+            {
+                var otherAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
+                    filter: sa => sa.CreatedById == shippingAddress.CreatedById && sa.Id != id && !sa.IsDeleted
+                );
+
+                foreach (var address in otherAddresses.Data)
+                {
+                    address.IsDefault = false;
+                }
+            }
+
+            shippingAddress.IsDefault = request.IsDefault;
+
+            _unitOfWork.ShippingAddressRepository.Update(shippingAddress);
+            await _unitOfWork.SaveChangeAsync();
+
+            var updatedShippingAddress = _mapper.Map<ShippingAddressModel>(shippingAddress);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Shipping address updated successfully",
+                Data = updatedShippingAddress
+            };
+        }
+        public async Task<ResponseModel> Delete(Guid id)
+        {
+            var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+            if (shippingAddress == null || shippingAddress.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Shipping address not found or already deleted",
+                    Data = null
+                };
+            }
+
+            _unitOfWork.ShippingAddressRepository.SoftRemove(shippingAddress); 
+            await _unitOfWork.SaveChangeAsync();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Shipping address deleted successfully",
+                Data = null
+            };
+        }
+
 
     }
 }

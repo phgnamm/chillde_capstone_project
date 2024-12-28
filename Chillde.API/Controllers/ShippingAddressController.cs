@@ -90,6 +90,75 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] ShippingAddressFilterModel shippingAddressFilterModel)
+        {
+            try
+            {
+                var result = await _shippingAddressService.GetAllAsync(shippingAddressFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetByIdAsync(Guid id)
+        {
+            try
+            {
+                var result = await _shippingAddressService.GetByIdAsync(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        //      [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] ShippingAddressUpdateModel shippingAddressUpdateModel)
+        {
+            try
+            {
+                var result = await _shippingAddressService.UpdateShippingAddressAsync(id, shippingAddressUpdateModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var result = await _shippingAddressService.Delete(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
 
     }
 
