@@ -1,12 +1,9 @@
 ﻿using Chillde.API.Helper;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.ConversationModels;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -28,7 +25,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _requestService.GetAll(requestFilterModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _requestService.GetAll(requestFilterModel,sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -46,7 +46,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _requestService.Add(requestAddModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _requestService.Add(requestAddModel,sourceLanguageCode,targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -95,8 +98,8 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [HttpPost("{request_id}/Offer")]
-        public async Task<IActionResult> Add([FromBody] OfferAddModel model, Guid request_id)
+        [HttpPost("{requestId}/offer")]
+        public async Task<IActionResult> Add([FromBody] OfferAddModel model, Guid requestId)
         {
             try
             {
@@ -104,7 +107,7 @@ namespace Chillde.API.Controllers
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
-                var result = await _offerService.AddAsync(model, request_id, sourceLanguageCode, targetLanguageCode);
+                var result = await _offerService.AddAsync(model, requestId, sourceLanguageCode, targetLanguageCode);
                 if (result.Code != StatusCodes.Status201Created)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
@@ -125,8 +128,8 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [HttpGet("{request_id}/Offers")]
-        public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter, Guid request_id)
+        [HttpGet("{requestId}/offers")]
+        public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter, Guid requestId)
         {
             try
             {
@@ -134,7 +137,7 @@ namespace Chillde.API.Controllers
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
-                var result = await _offerService.GetAllAsync(filterParameter, request_id, sourceLanguageCode, targetLanguageCode);
+                var result = await _offerService.GetAllAsync(filterParameter, requestId, sourceLanguageCode, targetLanguageCode);
                 if (result.Code != StatusCodes.Status200OK)
                 {
                     return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
