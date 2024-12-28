@@ -5,6 +5,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IBadWordFilterService
     {
-        Task<ResponseModel> FilterBadWordsAsync(BadWordFilterModel badWordFilterModel);
+        Task<ResponseModel> FilterBadWordsAsync(BadWordFilterModel badWordFilterModel, string sourceLanguageCode, string targetLanguageCode);
     }
 }

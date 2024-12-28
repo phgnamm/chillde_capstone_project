@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.API.Helper;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.BadWordFilterModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceModels;
@@ -25,7 +26,11 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _badWordFilterService.FilterBadWordsAsync(serviceAddModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+
+                var result = await _badWordFilterService.FilterBadWordsAsync(serviceAddModel, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

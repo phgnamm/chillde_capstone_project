@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.FAQModels;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
@@ -15,6 +16,8 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId);
         Task<ResponseModel> GetAsync(Guid id);
         Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel);
+        Task<ResponseModel> UpdateAsync(ServiceStatus serviceStatus, Guid id);
+        Task<ResponseModel> DeleteAsync(Guid id);
         Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId);
         Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId);
         Task<ResponseModel> GetAllFAQsAsync(Guid serviceId, FAQFilterModel faqFilterModel);

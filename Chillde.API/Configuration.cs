@@ -282,6 +282,10 @@ public static class Configuration
         services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
         services.AddScoped<IShippingAddressService, ShippingAddressService>();
 
+        //Feature
+        services.AddScoped<IFeatureRepository, FeatureRepository>();
+        services.AddScoped<IFeatureService, FeatureService>();
+
         //BadWordFilter
         services.AddScoped<IBadWordFilterService, BadWordFilterService>();
         #endregion
