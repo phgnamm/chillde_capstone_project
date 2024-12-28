@@ -140,77 +140,6 @@ namespace Chillde.Services.Services
                 TimeSpan.FromDays(30)
             );
         }
-        /*        public async Task<ResponseModel> AddShippingAddressAsync(ShippingAddressAddModel request)
-                {
-                    // Validate input
-                    if (request.ProvinceId <= 0 || request.DistrictId <= 0 || string.IsNullOrEmpty(request.WardCode))
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status400BadRequest,
-                            Message = "Invalid input data",
-                            Data = null
-                        };
-                    }
-
-                    // Get Province Name
-                    var provincesResponse = await GetProvincesAsync();
-                    var province = ((List<ProvinceModel>)provincesResponse.Data)?.FirstOrDefault(p => p.ProvinceID == request.ProvinceId);
-                    if (province == null)
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status404NotFound,
-                            Message = "Province not found",
-                            Data = null
-                        };
-                    }
-
-                    // Get District Name
-                    var districtsResponse = await GetDistrictsAsync(request.ProvinceId);
-                    var district = ((List<DistrictModel>)districtsResponse.Data)?.FirstOrDefault(d => d.DistrictID == request.DistrictId);
-                    if (district == null)
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status404NotFound,
-                            Message = "District not found",
-                            Data = null
-                        };
-                    }
-
-                    // Get Ward Name
-                    var wardsResponse = await GetWardsAsync(request.DistrictId);
-                    var ward = ((List<WardModel>)wardsResponse.Data)?.FirstOrDefault(w => w.WardCode == request.WardCode);
-                    if (ward == null)
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status404NotFound,
-                            Message = "Ward not found",
-                            Data = null
-                        };
-                    }
-
-                    var shippingAddress = _mapper.Map<ShippingAddress>(request);
-                    shippingAddress.ProvinceName = province.ProvinceName;
-                    shippingAddress.DistrictName = district.DistrictName;
-                    shippingAddress.WardName = ward.WardName;
-                    shippingAddress.IsDefault = false;
-
-                    await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
-                    await _unitOfWork.SaveChangeAsync();
-
-                    var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
-
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status201Created,
-                        Message = "Shipping address created successfully",
-                        Data = responseModel
-                    };
-                }
-        */
         public async Task<ResponseModel> AddShippingAddressAsync(ShippingAddressAddModel request)
         {
             if (request.ProvinceId <= 0 || request.DistrictId <= 0 || string.IsNullOrEmpty(request.WardCode))
@@ -272,7 +201,7 @@ namespace Chillde.Services.Services
                 shippingAddress.IsDefault = false;
                 await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
 /*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
-*/                await _unitOfWork.SaveChangeAsync();
+*/              await _unitOfWork.SaveChangeAsync();
 
                 var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);          
                 return new ResponseModel
