@@ -109,7 +109,7 @@ namespace Chillde.Services.Services
         }
 
         public async Task<ResponseModel> GetWardsAsync(int districtId)
-        {         
+        {
             string cacheKey = $"wards_{districtId}";
             return await _redisHelper.GetOrSetAsync(
                 cacheKey,
@@ -270,13 +270,11 @@ namespace Chillde.Services.Services
                 shippingAddress.DistrictName = district.DistrictName;
                 shippingAddress.WardName = ward.WardName;
                 shippingAddress.IsDefault = false;
-                shippingAddress.CreatedById = currentUserId;
-
                 await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
+                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
                 await _unitOfWork.SaveChangeAsync();
 
-                var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
-
+                var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);          
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
