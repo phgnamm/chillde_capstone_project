@@ -864,6 +864,79 @@ public class AccountService : IAccountService
         };
     }
 
+    public async Task<ResponseModel> BecomeASeller(Guid id, AccountBecomeASellerModel accountBecomeASellerModel)
+    {
+        var currentUserId = _claimService.GetCurrentUserId;
+        if (!currentUserId.HasValue)
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status401Unauthorized,
+                Message = "Unauthorized"
+            };
+
+        var account = await _unitOfWork.AccountRepository.GetAsync(id);
+        if (!account!.EmailConfirmed)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status400BadRequest,
+                Message = "Email must be confirmed"
+            };
+        }
+
+        _mapper.Map(accountBecomeASellerModel, account);
+        if (accountBecomeASellerModel.NewImage != null)
+            account!.Image = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewImage,
+                $"{account.Id.ToString()}_image",
+                $"{account.Id.ToString()}_image");
+
+        if (accountBecomeASellerModel.NewBanner != null)
+            account!.Banner = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewBanner,
+                $"{account.Id.ToString()}_banner",
+                $"{account.Id.ToString()}_banner");
+
+        if (account!.Image == null || account.Banner == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status400BadRequest,
+                Message = "Image and banner is required"
+            };
+        }
+
+        _unitOfWork.AccountRepository.Update(account);
+        var currentRoles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(id);
+        if (currentRoles.All(role => role.Name != Role.Artist.ToString()))
+        {
+            var roleArtist = await _unitOfWork.RoleRepository.FindByNameAsync(Role.Artist.ToString());
+            await _unitOfWork.AccountRoleRepository.AddAsync(
+                new AccountRole
+                {
+                    Account = account,
+                    Role = roleArtist!
+                }
+            );
+        }
+
+        if (await _unitOfWork.SaveChangeAsync() > 0)
+        {
+            await _redisHelper.InvalidateCacheByPatternAsync($"account_{account.Id}");
+            await _redisHelper.InvalidateCacheByPatternAsync($"account_{account.Username}");
+            await _redisHelper.InvalidateCacheByPatternAsync("accounts_*");
+
+            return new ResponseModel
+            {
+                Message = "Become a seller successfully"
+            };
+        }
+
+        return new ResponseModel
+        {
+            Code = StatusCodes.Status500InternalServerError,
+            Message = "Cannot become a seller"
+        };
+    }
+
     #region Helper
 
     private async Task SendVerificationEmail(Account account)
@@ -873,7 +946,7 @@ public class AccountService : IAccountService
             true);
     }
 
-    private async Task<TokenModel?> GenerateJwtToken(Account account, RefreshToken? refreshToken = null,
+   private async Task<TokenModel?> GenerateJwtToken(Account account, RefreshToken? refreshToken = null,
         ClaimsPrincipal? principal = null)
     {
         // Refresh token information
@@ -881,11 +954,14 @@ public class AccountService : IAccountService
         var deviceId = Guid.NewGuid();
         var refreshTokenString =
             AuthenticationTools.GenerateUniqueToken(DateTime.UtcNow.AddDays(Constant.RefreshTokenValidityInDays));
+        var roles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(account.Id);
 
         // If refresh token then reuse the claims
         if (refreshToken != null && principal != null)
         {
-            authClaims = principal.Claims.ToList();
+            authClaims = principal.Claims
+                .Where(claim => claim.Type != ClaimTypes.Role && claim.Type != JwtRegisteredClaimNames.Aud).ToList();
+            foreach (var role in roles) authClaims.Add(new Claim(ClaimTypes.Role, role.Name));
             refreshToken.Token = refreshTokenString;
             deviceId = refreshToken.DeviceId;
             _unitOfWork.RefreshTokenRepository.Update(refreshToken);
@@ -898,7 +974,6 @@ public class AccountService : IAccountService
             authClaims.Add(new Claim("accountEmail", account.Email));
             authClaims.Add(new Claim("deviceId", deviceId.ToString()));
             authClaims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-            var roles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(account.Id);
             foreach (var role in roles) authClaims.Add(new Claim(ClaimTypes.Role, role.Name));
             await _unitOfWork.RefreshTokenRepository.AddAsync(new RefreshToken
             {
