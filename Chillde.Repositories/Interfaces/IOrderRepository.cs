@@ -10,5 +10,6 @@ namespace Chillde.Repositories.Interfaces
     public interface IOrderRepository : IGenericRepository<Order>
     {
         Task<bool> HasCompletedOrder(Guid accountId, Guid serviceId);
+        Task<bool> HasAnyOrder(Guid serviceId);
     }
 }

@@ -26,15 +26,34 @@ namespace Chillde.Services.Services
             _apiKey = configuration["NeutrinoApi:ApiKey"];
         }
 
-        public async Task<ResponseModel> FilterBadWordsAsync(BadWordFilterModel badWordFilterModel)
+        public async Task<ResponseModel> FilterBadWordsAsync(BadWordFilterModel badWordFilterModel, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
+                string? translatedMessage = null;
+
+                if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
+                {
+                    var translationResponse = await _translationService.TranslateAsync(badWordFilterModel.Content, sourceLanguageCode, targetLanguageCode);
+
+                    if (translationResponse.Code != StatusCodes.Status200OK)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = "Failed to translate message."
+                        };
+                    }
+
+                    translatedMessage = translationResponse.Message;
+                    badWordFilterModel.Content = targetLanguageCode == "en" ? translatedMessage : badWordFilterModel.Content;
+                }
+
                 var formData = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("content", badWordFilterModel.content),
-                    new KeyValuePair<string, string>("catalog", badWordFilterModel.catalog),
-                    new KeyValuePair<string, string>("censor-character", badWordFilterModel.censorCharacter)
+                    new KeyValuePair<string, string>("content", badWordFilterModel.Content),
+                    new KeyValuePair<string, string>("catalog", badWordFilterModel.Catalog),
+                    new KeyValuePair<string, string>("censor-character", badWordFilterModel.CensorCharacter)
                 });
 
                 _httpClient.DefaultRequestHeaders.Clear();
