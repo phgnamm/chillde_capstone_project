@@ -7,12 +7,11 @@ public class Order : BaseEntity
     public string? Phone { get; set; }
     public string? Address { get; set; }
     public decimal? TotalPrice { get; set; }
+    public decimal? PackagePrice { get; set; }
     public int? Quantity { get; set; }
-    public DateTime? OrderDateTime { get; set; }
-    public OrderStatus Status { get; set; }
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
     // Foreign key
-    public Guid PaymentId { get; set; }
     public Guid PackageId { get; set; }
     public Guid ShipmentId { get; set; }
 

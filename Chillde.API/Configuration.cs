@@ -281,6 +281,12 @@ public static class Configuration
         //ShippingAddress
         services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
         services.AddScoped<IShippingAddressService, ShippingAddressService>();
+
+        //VnPay
+        services.AddSingleton<IVnpay, Vnpay>();
+        //PackageFeature
+        services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+
         #endregion
 
         return services;

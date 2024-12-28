@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Interfaces
 {
-    public interface IItemAttributeRepository : IGenericRepository<ItemAttribute>
+    public interface IPackageFeatureRepository : IGenericRepository<PackageFeature>
     {
-        Task<ItemAttribute> FirstOrDefaultAsync(Guid itemId, Guid attributeId); 
+        Task<decimal> SumPriceOfExtraFeatures(List<Guid> ids);
     }
 }
