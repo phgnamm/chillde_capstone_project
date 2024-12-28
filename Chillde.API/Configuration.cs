@@ -287,6 +287,13 @@ public static class Configuration
         //PackageFeature
         services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
 
+
+        //Feature
+        services.AddScoped<IFeatureRepository, FeatureRepository>();
+        services.AddScoped<IFeatureService, FeatureService>();
+
+        //BadWordFilter
+        services.AddScoped<IBadWordFilterService, BadWordFilterService>();
         #endregion
 
         return services;

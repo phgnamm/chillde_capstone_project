@@ -17,13 +17,32 @@ namespace Chillde.API.Controllers
             _packageService = packageService;
         }
 
-        [Authorize("Artist")]
+        //[Authorize("Artist")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] PackageUpdateModel packageUpdateModel, Guid id)
         {
             try
             {
                 var result = await _packageService.UpdateAsync(packageUpdateModel, id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artist, Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var result = await _packageService.DeleteAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

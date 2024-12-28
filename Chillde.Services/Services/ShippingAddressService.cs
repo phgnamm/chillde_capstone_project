@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
@@ -11,7 +14,9 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
@@ -23,152 +28,377 @@ namespace Chillde.Services.Services
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IMapper _mapper;
         private readonly HttpClient _httpClient;
+        private readonly IRedisHelper _redisHelper;
 
-        public ShippingAddressService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper, IHttpClientFactory httpClientFactory)
+
+        public ShippingAddressService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper, IHttpClientFactory httpClientFactory, IRedisHelper redisHelper)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
             _httpClient = httpClientFactory.CreateClient("GhnClient");
+            _redisHelper = redisHelper;
+
         }
 
         public async Task<ResponseModel> GetDistrictsAsync(int provinceId)
         {
-
-            var response = await _httpClient.GetAsync($"master-data/district?province_id={provinceId}");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ResponseModel
+            string cacheKey = $"districts_{provinceId}";
+            return await _redisHelper.GetOrSetAsync(
+                cacheKey,
+                async () =>
                 {
-                    Code = (int)response.StatusCode,
-                    Message = "Failed to fetch districts from GHN",
-                    Data = null
-                };
-            }
+                    var response = await _httpClient.GetAsync($"master-data/district?province_id={provinceId}");
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = (int)response.StatusCode,
+                            Message = "Failed to fetch districts from GHN",
+                            Data = null
+                        };
+                    }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+                    var content = await response.Content.ReadAsStringAsync();
+                    var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+                    var data = jsonObject["data"]?.ToObject<List<DistrictModel>>();
 
-            var data = jsonObject?["data"]?.ToObject<List<DistrictModel>>();
-
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status200OK,
-                Message = "Success",
-                Data = data
-            };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Success",
+                        Data = data
+                    };
+                },
+                TimeSpan.FromDays(30)
+            );
 
 
         }
 
-        public async Task<ResponseModel> GetProvincesAsync(ProvinceFilterModel provinceFilterModel)
+        public async Task<ResponseModel> GetProvincesAsync()
         {
-
-            var response = await _httpClient.GetAsync("master-data/province");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                return new ResponseModel
+            const string cacheKey = "provinces";
+            return await _redisHelper.GetOrSetAsync(
+                cacheKey,
+                async () =>
                 {
-                    Code = (int)response.StatusCode,
-                    Message = "Failed to fetch provinces from GHN",
-                    Data = null
-                };
-            }
-            var content = await response.Content.ReadAsStringAsync();
-            var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
-            var data = jsonObject?["data"]?.ToObject<List<ProvinceModel>>();
+                    var response = await _httpClient.GetAsync("master-data/province");
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = (int)response.StatusCode,
+                            Message = "Failed to fetch provinces from GHN",
+                            Data = null
+                        };
+                    }
 
-            if (data == null || !data.Any())
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "No provinces found",
-                    Data = null
-                };
-            }
+                    var content = await response.Content.ReadAsStringAsync();
+                    var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+                    var data = jsonObject["data"]?.ToObject<List<ProvinceModel>>();
 
-            if (!string.IsNullOrWhiteSpace(provinceFilterModel.Search))
-            {
-                data = data
-                    .Where(p => p.ProvinceName != null &&
-                                p.ProvinceName.Contains(provinceFilterModel.Search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-
-            if (!string.IsNullOrWhiteSpace(provinceFilterModel.Order))
-            {
-                if (provinceFilterModel.OrderByDescending)
-                {
-                    data = data.OrderByDescending(p => p.GetType().GetProperty(provinceFilterModel.Order)?.GetValue(p)).ToList();
-                }
-                else
-                {
-                    data = data.OrderBy(p => p.GetType().GetProperty(provinceFilterModel.Order)?.GetValue(p)).ToList();
-                }
-            }
-
-            var totalItems = data.Count;
-            var totalPages = (int)Math.Ceiling(totalItems / (double)provinceFilterModel.PageSize);
-            var pagedData = data
-            .Skip((provinceFilterModel.PageIndex - 1) * provinceFilterModel.PageSize)
-            .Take(provinceFilterModel.PageSize)
-                .ToList();
-
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status200OK,
-                Message = "Success",
-                Data = new
-                {
-                    TotalItems = totalItems,
-                    TotalPages = totalPages,
-                    CurrentPage = provinceFilterModel.PageIndex,
-                    PageSize = provinceFilterModel.PageSize,
-                    Data = pagedData
-                }
-            };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Success",
+                        Data = data
+                    };
+                },
+                TimeSpan.FromDays(30)
+            );
         }
 
         public async Task<ResponseModel> GetWardsAsync(int districtId)
         {
-            if (districtId <= 0)
+            string cacheKey = $"wards_{districtId}";
+            return await _redisHelper.GetOrSetAsync(
+                cacheKey,
+                async () =>
+                {
+                    var response = await _httpClient.GetAsync($"master-data/ward?district_id={districtId}");
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = (int)response.StatusCode,
+                            Message = "Failed to fetch wards from API",
+                            Data = null
+                        };
+                    }
+
+                    var content = await response.Content.ReadAsStringAsync();
+                    var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+                    var data = jsonObject["data"]?.ToObject<List<WardModel>>();
+
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Success",
+                        Data = data
+                    };
+                },
+                TimeSpan.FromDays(30)
+            );
+        }
+        public async Task<ResponseModel> AddShippingAddressAsync(ShippingAddressAddModel request)
+        {
+            if (request.ProvinceId <= 0 || request.DistrictId <= 0 || string.IsNullOrEmpty(request.WardCode))
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid districtId",
+                    Message = "Invalid input data",
                     Data = null
                 };
             }
 
-            var response = await _httpClient.GetAsync($"master-data/ward?district_id={districtId}");
+            try
+            {
+                var province = await GetProvinceByIdAsync(request.ProvinceId);
+                if (province == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Province not found",
+                        Data = null
+                    };
+                }
 
-            if (!response.IsSuccessStatusCode)
+                var district = await GetDistrictByIdAsync(request.ProvinceId, request.DistrictId);
+                if (district == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "District not found",
+                        Data = null
+                    };
+                }
+
+                var ward = await GetWardByCodeAsync(request.DistrictId, request.WardCode);
+                if (ward == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Ward not found",
+                        Data = null
+                    };
+                }
+
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                var shippingAddress = _mapper.Map<ShippingAddress>(request);
+                shippingAddress.ProvinceName = province.ProvinceName;
+                shippingAddress.DistrictName = district.DistrictName;
+                shippingAddress.WardName = ward.WardName;
+                shippingAddress.IsDefault = false;
+                await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
+/*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
+*/              await _unitOfWork.SaveChangeAsync();
+
+                var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);          
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Shipping address created successfully",
+                    Data = responseModel
+                };
+            }
+            catch (Exception ex)
             {
                 return new ResponseModel
                 {
-                    Code = (int)response.StatusCode,
-                    Message = "Failed to fetch wards from API",
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"An error occurred: {ex.Message}",
                     Data = null
                 };
             }
+        }
+        private async Task<ProvinceModel?> GetProvinceByIdAsync(int provinceId)
+        {
+            var provincesResponse = await GetProvincesAsync();
+            if (provincesResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                var provinces = JsonConvert.DeserializeObject<List<ProvinceModel>>(jsonElement.ToString());
+                return provinces?.FirstOrDefault(p => p.ProvinceID == provinceId);
+            }
 
-            var content = await response.Content.ReadAsStringAsync();
-            var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+            return null;
+        }
 
-            var data = jsonObject?["data"]?.ToObject<List<WardModel>>();
+        private async Task<DistrictModel?> GetDistrictByIdAsync(int provinceId, int districtId)
+        {
+            var districtsResponse = await GetDistrictsAsync(provinceId);
+            if (districtsResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                var districts = JsonConvert.DeserializeObject<List<DistrictModel>>(jsonElement.ToString());
+                return districts?.FirstOrDefault(d => d.DistrictID == districtId);
+            }
+
+            return null;
+        }
+
+        private async Task<WardModel?> GetWardByCodeAsync(int districtId, string wardCode)
+        {
+            var wardsResponse = await GetWardsAsync(districtId);
+            if (wardsResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                var wards = JsonConvert.DeserializeObject<List<WardModel>>(jsonElement.ToString());
+                return wards?.FirstOrDefault(w => w.WardCode == wardCode);
+            }
+
+            return null;
+        }
+
+        public async Task<ResponseModel> GetAllAsync(ShippingAddressFilterModel shippingAddressFilterModel)
+        {
+            Expression<Func<ShippingAddress, bool>> filter = address =>
+                    address.IsDeleted == shippingAddressFilterModel.IsDeleted &&
+                (string.IsNullOrEmpty(shippingAddressFilterModel.Search) ||
+                    address.FullName.Contains(shippingAddressFilterModel.Search) ||
+                    address.PhoneNumber.Contains(shippingAddressFilterModel.Search) ||
+                    address.ProvinceName.Contains(shippingAddressFilterModel.Search) ||
+                    address.DistrictName.Contains(shippingAddressFilterModel.Search) ||
+                    address.WardName.Contains(shippingAddressFilterModel.Search));
+
+            var shippingAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
+                filter: filter,
+                pageIndex: shippingAddressFilterModel.PageIndex,
+                pageSize: shippingAddressFilterModel.PageSize
+            );
+
+            var shippingAddressModels = _mapper.Map<List<ShippingAddressModel>>(shippingAddresses.Data);
+
+            var result = new Pagination<ShippingAddressModel>(
+                shippingAddressModels,
+                shippingAddressFilterModel.PageIndex,
+                shippingAddressFilterModel.PageSize,
+                shippingAddresses.TotalCount
+            );
+
+            return new ResponseModel
+            {
+                Message = "Get all shipping addresses successfully",
+                Data = result
+            };
+        }
+
+        public async Task<ResponseModel> GetByIdAsync(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid ID",
+                    Data = null
+                };
+            }
+            var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+
+            if (shippingAddress == null || shippingAddress.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Shipping address not found",
+                    Data = null
+                };
+            }
+            var shippingAddressModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
 
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
-                Message = "Success",
-                Data = data
+                Message = "Get shipping address successfully",
+                Data = shippingAddressModel
             };
         }
+
+        public async Task<ResponseModel> UpdateShippingAddressAsync(Guid id, ShippingAddressUpdateModel request)
+        {
+            if (id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid ID",
+                    Data = null
+                };
+            }
+
+            var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+            if (shippingAddress == null || shippingAddress.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Shipping address not found",
+                    Data = null
+                };
+            }
+
+            _mapper.Map(request, shippingAddress);
+
+            if (request.IsDefault)
+            {
+                var otherAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
+                    filter: sa => sa.CreatedById == shippingAddress.CreatedById && sa.Id != id && !sa.IsDeleted
+                );
+
+                foreach (var address in otherAddresses.Data)
+                {
+                    address.IsDefault = false;
+                }
+            }
+
+            shippingAddress.IsDefault = request.IsDefault;
+
+            _unitOfWork.ShippingAddressRepository.Update(shippingAddress);
+            await _unitOfWork.SaveChangeAsync();
+
+            var updatedShippingAddress = _mapper.Map<ShippingAddressModel>(shippingAddress);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Shipping address updated successfully",
+                Data = updatedShippingAddress
+            };
+        }
+        public async Task<ResponseModel> Delete(Guid id)
+        {
+            var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+            if (shippingAddress == null || shippingAddress.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Shipping address not found or already deleted",
+                    Data = null
+                };
+            }
+
+            _unitOfWork.ShippingAddressRepository.SoftRemove(shippingAddress); 
+            await _unitOfWork.SaveChangeAsync();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Shipping address deleted successfully",
+                Data = null
+            };
+        }
+
 
     }
 }
