@@ -11,9 +11,11 @@ namespace Chillde.Services.Interfaces
 {
     public interface IShippingAddressService
     {
-        Task<ResponseModel> GetProvincesAsync(ProvinceFilterModel provinceFilterModel);
+        Task<ResponseModel> GetProvincesAsync();
         Task<ResponseModel> GetDistrictsAsync(int provinceId);
         Task<ResponseModel> GetWardsAsync(int districtId);
+        Task<ResponseModel> AddShippingAddressAsync(ShippingAddressAddModel request);
+
 
 
     }

@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.Repositories.Models.CategoriesModels;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShippingAddressModels;
@@ -8,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/shippingaddresses")]
+    [Route("api/v1/shipping-addresses")]
     [ApiController]
     public class ShippingAddressController : ControllerBase
     {
@@ -20,11 +21,11 @@ namespace Chillde.API.Controllers
         }
 
         [HttpGet("provinces")]
-        public async Task<IActionResult> GetProvinces([FromQuery] ProvinceFilterModel provinceFilterModel)
+        public async Task<IActionResult> GetProvinces()
         {
             try
             {
-                var result = await _shippingAddressService.GetProvincesAsync(provinceFilterModel);
+                var result = await _shippingAddressService.GetProvincesAsync();
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -71,6 +72,24 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> Add([FromBody] ShippingAddressAddModel shippingAddressAddModel)
+        {
+            try
+            {
+                var result = await _shippingAddressService.AddShippingAddressAsync(shippingAddressAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
     }
 
 }

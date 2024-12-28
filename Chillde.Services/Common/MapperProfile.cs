@@ -11,6 +11,7 @@ using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.MessageModels;
+using Chillde.Services.Models.ShippingAddressModels;
 using Chillde.Services.Models.SubcategoryModels;
 using Role = Chillde.Repositories.Enums.Role;
 
@@ -51,5 +52,8 @@ public class MapperProfile : Profile
 
         //Package
         CreateMap<PackageModel, Package>().ReverseMap();
+
+        //ShippingAddress
+        CreateMap<ShippingAddress,ShippingAddressAddModel>().ReverseMap();
     }
 }
