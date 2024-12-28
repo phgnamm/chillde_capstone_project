@@ -1,23 +1,15 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Services.Common;
-using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.AccountModels;
-using Chillde.Services.Models.ConversationModels;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
-using CloudinaryDotNet;
+using Chillde.Services.Resources;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Localization;
+using System.Globalization;
 
 namespace Chillde.Services.Services
 {
@@ -27,269 +19,325 @@ namespace Chillde.Services.Services
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly ITranslationService _translationService;
+        private readonly IStringLocalizer<OfferLanguage> _localizer;
 
-        public RequestService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, ITranslationService translationService)
+        public RequestService(IUnitOfWork unitOfWork, IClaimService claimService,
+            ICloudinaryHelper cloudinaryHelper,
+            ITranslationService translationService,
+            IStringLocalizer<OfferLanguage> localizer)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _translationService = translationService;
+            _localizer = localizer;
         }
 
-        public async Task<ResponseModel> Add(RequestAddModel requestAddModel)
+        public async Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
+            {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Unauthorized"
                 };
+            }
             if (requestAddModel.MinBudget > requestAddModel.MaxBudget)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "MinBudget must be less or equal more than MaxBudget"
+                    Message = "MinBudget must be less or equal to MaxBudget"
                 };
             }
-            var newRequest = new Request
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
             {
-                Id = Guid.NewGuid(),
-                CreatedById = currentUserId,
-                ItemId = requestAddModel.ItemId,
-                Name = requestAddModel.Name,
-                Description = requestAddModel.Description,
-                MinBudget = requestAddModel.MinBudget,
-                MaxBudget = requestAddModel.MaxBudget,
-                Timeline = requestAddModel.Timeline,
-                RequestDetails = requestAddModel.RequestDetailAddModels.Select(_ => new RequestDetail
+                var fieldsToTranslate = new Dictionary<string, string>
+                    {
+                        { "Name", requestAddModel.Name },
+                        { "Description", requestAddModel.Description }
+                    };
+
+                foreach (var detail in requestAddModel.RequestDetailAddModels)
+                {
+                    fieldsToTranslate.Add($"RequestDetail_{detail.AttributeId}_Description", detail.Description);
+                }
+
+                var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+                if (translationResponse.Code != StatusCodes.Status200OK)
+                {
+                    throw new Exception("Failed to translate fields.");
+                }
+
+                string translatedName = translationResponse.TranslatedFields["Name"];
+                string translatedDescription = translationResponse.TranslatedFields["Description"];
+
+                var newRequest = new Request
                 {
                     Id = Guid.NewGuid(),
-                    AttributeId = _.AttributeId,
-                    Description = _.Description,
                     CreatedById = currentUserId,
-                }).ToList()
-            };
-            if (requestAddModel.AttachmentUrl != null)
-            {
-                newRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-                    requestAddModel.AttachmentUrl,
-                    newRequest.Id.ToString(),
-                    newRequest.Id.ToString());
-            }
-
-            await _unitOfWork.RequestRepository.AddAsync(newRequest);
-
-            var result = await _unitOfWork.SaveChangeAsync();
-            return result > 0
-                ? new ResponseModel
-                {
-                    Code = StatusCodes.Status201Created,
-                    Message = "Request created successfully"
-                }
-                : new ResponseModel
-                {
-                    Code = StatusCodes.Status409Conflict,
-                    Message = "Failed to create request"
+                    ItemId = requestAddModel.ItemId,
+                    Name = sourceLanguageCode == "en" ? requestAddModel.Name : translatedName,
+                    Description = sourceLanguageCode == "en" ? requestAddModel.Description : translatedDescription,
+                    MinBudget = requestAddModel.MinBudget,
+                    MaxBudget = requestAddModel.MaxBudget,
+                    Timeline = requestAddModel.Timeline,
+                    RequestDetails = new List<RequestDetail>()
                 };
 
+                foreach (var detail in requestAddModel.RequestDetailAddModels)
+                {
+                    string translatedDetailDescription = translationResponse.TranslatedFields[$"RequestDetail_{detail.AttributeId}_Description"];
+
+                    newRequest.RequestDetails.Add(new RequestDetail
+                    {
+                        Id = Guid.NewGuid(),
+                        AttributeId = detail.AttributeId,
+                        Description = sourceLanguageCode == "en" ? detail.Description : translatedDetailDescription,
+                        CreatedById = currentUserId
+                    });
+                }
+
+                if (requestAddModel.AttachmentUrl != null)
+                {
+                    newRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
+                        requestAddModel.AttachmentUrl,
+                        newRequest.Id.ToString(),
+                        newRequest.Id.ToString());
+                }
+                await _unitOfWork.RequestRepository.AddAsync(newRequest);
+
+                var translations = new List<Translation>();
+                Guid? languageId = null;
+                if (sourceLanguageCode != "en")
+                {
+                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+                }
+                else
+                {
+                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                }
+                if (!string.IsNullOrEmpty(requestAddModel.Name))
+                {
+                    translations.Add(new Translation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityType = "Request",
+                        EntityId = newRequest.Id,
+                        FieldName = "Name",
+                        TranslationText = sourceLanguageCode != "en" ? requestAddModel.Name : translatedName,
+                        LanguageId = languageId.Value
+                    });
+                }
+                if (!string.IsNullOrEmpty(requestAddModel.Description))
+                {
+                    translations.Add(new Translation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityType = "Request",
+                        EntityId = newRequest.Id,
+                        FieldName = "Description",
+                        TranslationText = sourceLanguageCode != "en" ? requestAddModel.Description : translatedDescription,
+                        LanguageId = languageId.Value
+                    });
+                }
+                foreach (var detail in requestAddModel.RequestDetailAddModels)
+                {
+                    if (!string.IsNullOrEmpty(detail.Description))
+                    {
+                        translations.Add(new Translation
+                        {
+                            Id = Guid.NewGuid(),
+                            EntityType = "RequestDetail",
+                            EntityId = detail.AttributeId,
+                            FieldName = "Description",
+                            TranslationText = detail.Description,
+                            LanguageId = languageId.Value
+                        });
+                    }
+                }
+
+                await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
+                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Request created successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
         }
 
-        //public async Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode)
+        //public async Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel)
         //{
-        //    var currentUserId = _claimService.GetCurrentUserId;
-        //    if (!currentUserId.HasValue)
+        //    var requests = await _unitOfWork.RequestRepository.GetAllAsync(
+        //         _ => _.IsDeleted == requestFilterModel.IsDeleted &&
+        //                     _.Name.ToLower().Contains(requestFilterModel.Search.ToLower()),
+        //         requests =>
+        //         {
+        //             switch (requestFilterModel.Order.ToLower())
+        //             {
+        //                 case "creationDate":
+        //                     return requestFilterModel.OrderByDescending
+        //                         ? requests.OrderByDescending(request => request.CreationDate)
+        //                         : requests.OrderBy(request => request.CreationDate);
+        //                 default:
+        //                     return requestFilterModel.OrderByDescending
+        //                         ? requests.OrderByDescending(request => request.CreationDate)
+        //                         : requests.OrderBy(request => request.CreationDate);
+        //             }
+        //         },
+        //        include: requests => requests.Include(_ => _.Item),
+        //        pageIndex: requestFilterModel.PageIndex,
+        //        pageSize: requestFilterModel.PageSize
+        //    );
+
+        //    var requestModels = requests.Data.Select(_ => new RequestModel
         //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status401Unauthorized,
-        //            Message = "Unauthorized"
-        //        };
-        //    }
-        //    if (requestAddModel.MinBudget > requestAddModel.MaxBudget)
+        //        Id = _.Id,
+        //        Name = _.Name,
+        //        IsDeleted = _.IsDeleted,
+        //        ItemName = _.Item?.Name,
+        //        CreationDate = _.CreationDate,
+        //        MaxBudget = _.MaxBudget,
+        //        MinBudget = _.MinBudget,
+        //        Timeline = _.Timeline,
+        //        Description = _.Description,
+        //        Status = _.Status,
+        //    }).ToList();
+
+        //    var result = new Pagination<RequestModel>(requestModels, requestFilterModel.PageIndex,
+        //        requestFilterModel.PageSize, requests.TotalCount);
+
+        //    return new ResponseModel
         //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status400BadRequest,
-        //            Message = "MinBudget must be less or equal to MaxBudget"
-        //        };
-        //    }
-        //    await _unitOfWork.BeginTransactionAsync();
-
-        //    try
-        //    {
-        //        var fieldsToTranslate = new Dictionary<string, string>
-        //{
-        //    { "Name", requestAddModel.Name },
-        //    { "Description", requestAddModel.Description }
-        //};
-
-        //        foreach (var detail in requestAddModel.RequestDetailAddModels)
-        //        {
-        //            fieldsToTranslate.Add($"RequestDetail_{detail.ItemAttributeId}_Description", detail.Description);
-        //        }
-
-        //        var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
-        //        if (translationResponse.Code != StatusCodes.Status200OK)
-        //        {
-        //            throw new Exception("Failed to translate fields.");
-        //        }
-
-        //        string translatedName = translationResponse.TranslatedFields["Name"];
-        //        string translatedDescription = translationResponse.TranslatedFields["Description"];
-
-        //        var newRequest = new Request
-        //        {
-        //            Id = Guid.NewGuid(),
-        //            CreatedById = currentUserId,
-        //            ItemId = requestAddModel.ItemId,
-        //            Name = sourceLanguageCode == "en" ? requestAddModel.Name : translatedName,
-        //            Description = sourceLanguageCode == "en" ? requestAddModel.Description : translatedDescription,
-        //            MinBudget = requestAddModel.MinBudget,
-        //            MaxBudget = requestAddModel.MaxBudget,
-        //            Timeline = requestAddModel.Timeline,
-        //            RequestDetails = new List<RequestDetail>()
-        //        };
-
-        //        foreach (var detail in requestAddModel.RequestDetailAddModels)
-        //        {
-        //            string translatedDetailDescription = translationResponse.TranslatedFields[$"RequestDetail_{detail.ItemAttributeId}_Description"];
-
-        //            newRequest.RequestDetails.Add(new RequestDetail
-        //            {
-        //                Id = Guid.NewGuid(),
-        //                ItemAttributeId = detail.ItemAttributeId,
-        //                Description = sourceLanguageCode != "en" ? detail.Description : translatedDetailDescription,
-        //                CreatedById = currentUserId
-        //            });
-        //        }
-
-        //        if (requestAddModel.AttachmentUrl != null)
-        //        {
-        //            newRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-        //                requestAddModel.AttachmentUrl,
-        //                newRequest.Id.ToString(),
-        //                newRequest.Id.ToString());
-        //        }
-        //        await _unitOfWork.RequestRepository.AddAsync(newRequest);
-
-        //        var translations = new List<Translation>();
-        //        var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
-        //        if (!string.IsNullOrEmpty(requestAddModel.Name))
-        //        {
-        //            translations.Add(new Translation
-        //            {
-        //                Id = Guid.NewGuid(),
-        //                EntityType = "Request",
-        //                EntityId = newRequest.Id,
-        //                FieldName = "Name",
-        //                TranslationText = sourceLanguageCode != "en" ? requestAddModel.Name : translatedName,
-        //                LanguageId = languageId
-        //            });
-        //        }
-        //        if (!string.IsNullOrEmpty(requestAddModel.Description))
-        //        {
-        //            translations.Add(new Translation
-        //            {
-        //                Id = Guid.NewGuid(),
-        //                EntityType = "Request",
-        //                EntityId = newRequest.Id,
-        //                FieldName = "Description",
-        //                TranslationText = sourceLanguageCode != "en" ? requestAddModel.Description : translatedDescription,
-        //                LanguageId = languageId
-        //            });
-        //        }
-        //        foreach (var detail in requestAddModel.RequestDetailAddModels)
-        //        {
-        //            if (!string.IsNullOrEmpty(detail.Description))
-        //            {
-        //                translations.Add(new Translation
-        //                {
-        //                    Id = Guid.NewGuid(),
-        //                    EntityType = "RequestDetail",
-        //                    EntityId = detail.ItemAttributeId,
-        //                    FieldName = "Description",
-        //                    TranslationText = detail.Description,
-        //                    LanguageId = languageId
-        //                });
-        //            }
-        //        }
-
-        //        await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
-        //        await _unitOfWork.SaveChangeAsync();
-        //        await _unitOfWork.CommitTransactionAsync();
-
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status201Created,
-        //            Message = "Request created successfully."
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        await _unitOfWork.RollbackTransactionAsync();
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status500InternalServerError,
-        //            Message = $"Internal server error: {ex.Message}"
-        //        };
-        //    }
+        //        Message = "Get all requests successfully",
+        //        Data = result
+        //    };
         //}
 
-        public async Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel)
+        public async Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguage)
         {
-            var requests = await _unitOfWork.RequestRepository.GetAllAsync(
-                 _ => _.IsDeleted == requestFilterModel.IsDeleted &&
-                             _.Name.ToLower().Contains(requestFilterModel.Search.ToLower()),
-                 requests =>
-                 {
-                     switch (requestFilterModel.Order.ToLower())
-                     {                     
-                         case "creationDate":
-                             return requestFilterModel.OrderByDescending
-                                 ? requests.OrderByDescending(request => request.CreationDate)
-                                 : requests.OrderBy(request => request.CreationDate);
-                         default:
-                             return requestFilterModel.OrderByDescending
-                                 ? requests.OrderByDescending(request => request.CreationDate)
-                                 : requests.OrderBy(request => request.CreationDate);
-                     }
-                 },
-                include: requests => requests.Include(_ => _.Item),
-                pageIndex: requestFilterModel.PageIndex,
-                pageSize: requestFilterModel.PageSize
-            );
-
-            var requestModels = requests.Data.Select(_ => new RequestModel
+            var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+            try
             {
-                Id = _.Id,
-                Name = _.Name,
-                IsDeleted = _.IsDeleted,
-                ItemName = _.Item?.Name,
-                CreationDate = _.CreationDate,
-                MaxBudget = _.MaxBudget,
-                MinBudget = _.MinBudget,
-                Timeline = _.Timeline,
-                Description = _.Description,
-                Status = _.Status,
-            }).ToList();
+                if (sourceLanguageCode.ToLower() == "en")
+                {
+                    var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
+                        _ => _.IsDeleted == filterParameter.IsDeleted &&
+                            (string.IsNullOrEmpty(filterParameter.Search) || _.Name.ToLower().Contains(filterParameter.Search.ToLower())),
+                        requests =>
+                        {
+                            switch (filterParameter.Order.ToLower())
+                            {
+                                case "creationDate":
+                                    return filterParameter.OrderByDescending
+                                        ? requests.OrderByDescending(request => request.CreationDate)
+                                        : requests.OrderBy(request => request.CreationDate);
+                                default:
+                                    return filterParameter.OrderByDescending
+                                        ? requests.OrderByDescending(request => request.CreationDate)
+                                        : requests.OrderBy(request => request.CreationDate);
+                            }
+                        },
+                        include: requests => requests.Include(_ => _.Item),
+                        pageIndex: filterParameter.PageIndex,
+                        pageSize: filterParameter.PageSize
+                    );
 
-            var result = new Pagination<RequestModel>(requestModels, requestFilterModel.PageIndex,
-                requestFilterModel.PageSize, requests.TotalCount);
+                    var requestModels = requestsResult.Data.Select(_ => new RequestModel
+                    {
+                        Id = _.Id,
+                        Name = _.Name,
+                        IsDeleted = _.IsDeleted,
+                        ItemName = _.Item?.Name,
+                        CreationDate = _.CreationDate,
+                        MaxBudget = _.MaxBudget,
+                        MinBudget = _.MinBudget,
+                        Timeline = _.Timeline,
+                        Description = _.Description,
+                        Status = _localizer[_.Status.ToString()],
+                    }).ToList();
 
-            return new ResponseModel
+                    var result = new Pagination<RequestModel>(requestModels, filterParameter.PageIndex,
+                        filterParameter.PageSize, requestsResult.TotalCount);
+
+                    return new ResponseModel
+                    {
+                        Message = "Get all requests successfully",
+                        Data = result
+                    };
+                }
+                else
+                {
+                    var requests = await _unitOfWork.RequestRepository.GetAllAsync(
+                        r => r.IsDeleted == filterParameter.IsDeleted
+                    );
+
+                    var requestIds = requests.Data.Select(r => r.Id).ToList();
+
+                    var translationFields = new[] { "Name", "Description" };
+                    var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestModel>(
+                        requestIds,
+                        sourceLanguageCode,
+                        request => new RequestModel
+                        {
+                            Id = request.Id,
+                            Name = request.Name,
+                            IsDeleted = request.IsDeleted,
+                            ItemName = request.Item?.Name,
+                            CreationDate = request.CreationDate,
+                            MaxBudget = request.MaxBudget,
+                            MinBudget = request.MinBudget,
+                            Timeline = request.Timeline,
+                            Description = request.Description,
+                            Status = _localizer[request.Status.ToString()],
+                        },
+                        translationFields
+                    );
+
+                    var localizedRequests = translations.Where(r => string.IsNullOrEmpty(filterParameter.Search) || r.Name!.ToLower().Contains(filterParameter.Search.ToLower())).ToList();
+                    var result = new Pagination<RequestModel>(localizedRequests, filterParameter.PageIndex,
+                        filterParameter.PageSize, localizedRequests.Count);
+
+                    return new ResponseModel
+                    {
+                        Message = "Get all requests with translations successfully",
+                        Data = result
+                    };
+                }
+            }
+            catch (Exception ex)
             {
-                Message = "Get all requests successfully",
-                Data = result
-            };
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
         }
 
 
         public async Task<ResponseModel> GetById(Guid id)
         {
             var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails)
-                                                                                         .ThenInclude(_ => _.Attribute) 
+                                                                                         .ThenInclude(_ => _.Attribute)
                                                                                          .Include(_ => _.Item));
             if (existingRequest == null)
             {
@@ -304,9 +352,9 @@ namespace Chillde.Services.Services
                 Id = existingRequest.Id,
                 Name = existingRequest.Name ?? "Unknown",
                 Description = existingRequest.Description ?? "Unknown",
-                MinBudget = (decimal)existingRequest.MinBudget,
-                MaxBudget = (decimal)existingRequest.MaxBudget,
-                Timeline = (int)existingRequest.Timeline,
+                MinBudget = (decimal)existingRequest.MinBudget!,
+                MaxBudget = (decimal)existingRequest.MaxBudget!,
+                Timeline = (int)existingRequest.Timeline!,
                 AttachmentUrl = existingRequest.AttachmentUrl ?? "Unknown",
                 Status = existingRequest.Status,
                 ItemId = existingRequest.ItemId,
@@ -319,7 +367,7 @@ namespace Chillde.Services.Services
                     Description = _.Description,
                     ItemAttributeId = _.AttributeId,
                     ItemAttributeName = _.Attribute.Name ?? "Unknown"
-                }).ToList()                
+                }).ToList()
             };
             return new ResponseModel
             {
