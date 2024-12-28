@@ -271,8 +271,8 @@ namespace Chillde.Services.Services
                 shippingAddress.WardName = ward.WardName;
                 shippingAddress.IsDefault = false;
                 await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
-                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
-                await _unitOfWork.SaveChangeAsync();
+/*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
+*/                await _unitOfWork.SaveChangeAsync();
 
                 var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);          
                 return new ResponseModel
