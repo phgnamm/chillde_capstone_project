@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
@@ -101,6 +102,44 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceService.AddAsync(serviceAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artist, Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update([FromBody] ServiceStatus serviceStatus, Guid id)
+        {
+            try
+            {
+                var result = await _serviceService.UpdateAsync(serviceStatus, id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artist, Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var result = await _serviceService.DeleteAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
