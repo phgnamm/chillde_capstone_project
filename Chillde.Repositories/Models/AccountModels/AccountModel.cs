@@ -16,12 +16,15 @@ public class AccountModel : BaseEntity
     public Gender? Gender { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? PhoneNumber { get; set; }
-    public string? Address { get; set; }
+    public string? StoreAddress { get; set; }
+    public string? StoreDescription { get; set; }
     public string? Image { get; set; }
+    public string? Banner { get; set; }
 
     // Status
     public bool EmailConfirmed { get; set; }
     public bool PhoneNumberConfirmed { get; set; }
+    public AccountStatus Status { get; set; }
 
     // Relationship
     public List<Enums_Role> Roles { get; set; } = null!;

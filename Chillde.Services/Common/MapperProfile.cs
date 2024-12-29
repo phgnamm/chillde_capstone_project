@@ -32,6 +32,7 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Role.Name)));
         CreateMap<Account, AccountLiteModel>();
         CreateMap<AccountUpdateModel, Account>();
+        CreateMap<AccountBecomeASellerModel, Account>();
 
         // Message
         CreateMap<MessageAddModel, Message>();
