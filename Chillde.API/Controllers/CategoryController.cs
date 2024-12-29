@@ -114,7 +114,7 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpPost("{categoryId}/subcategories")]
+        [HttpPost("{categoryId}/sub-categories")]
         public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddRangeModel subCategoryAddRangeModel)
         {
             try
@@ -132,7 +132,7 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpGet("{categoryId}/subcategories")]
+        [HttpGet("{categoryId}/sub-categories")]
         public async Task<IActionResult> GetSubcategories(Guid categoryId, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
         {
             try
