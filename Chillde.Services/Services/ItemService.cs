@@ -125,7 +125,7 @@ namespace Chillde.Services.Services
 
             item.Name = itemUpdateModel.Name;
             item.Code = string.IsNullOrEmpty(itemUpdateModel.Code)
-                ? GenerateSlug(itemUpdateModel.Name)
+                ? GenerateSlug(itemUpdateModel.Name!)
                 : GenerateSlug(itemUpdateModel.Code);
 
             _unitOfWork.ItemRepository.Update(item);

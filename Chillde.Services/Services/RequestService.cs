@@ -145,17 +145,19 @@ namespace Chillde.Services.Services
                         LanguageId = languageId.Value
                     });
                 }
-                foreach (var detail in requestAddModel.RequestDetailAddModels)
+                var requestDetailsList = newRequest.RequestDetails.ToList();
+
+                foreach (var detail in requestAddModel.RequestDetailAddModels.Select((value, index) => new { value, index }))
                 {
-                    if (!string.IsNullOrEmpty(detail.Description))
+                    if (!string.IsNullOrEmpty(detail.value.Description))
                     {
                         translations.Add(new Translation
                         {
                             Id = Guid.NewGuid(),
                             EntityType = "RequestDetail",
-                            EntityId = detail.AttributeId,
+                            EntityId = requestDetailsList[detail.index].Id,
                             FieldName = "Description",
-                            TranslationText = detail.Description,
+                            TranslationText = detail.value.Description,
                             LanguageId = languageId.Value
                         });
                     }
@@ -182,54 +184,6 @@ namespace Chillde.Services.Services
             }
         }
 
-        //public async Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel)
-        //{
-        //    var requests = await _unitOfWork.RequestRepository.GetAllAsync(
-        //         _ => _.IsDeleted == requestFilterModel.IsDeleted &&
-        //                     _.Name.ToLower().Contains(requestFilterModel.Search.ToLower()),
-        //         requests =>
-        //         {
-        //             switch (requestFilterModel.Order.ToLower())
-        //             {
-        //                 case "creationDate":
-        //                     return requestFilterModel.OrderByDescending
-        //                         ? requests.OrderByDescending(request => request.CreationDate)
-        //                         : requests.OrderBy(request => request.CreationDate);
-        //                 default:
-        //                     return requestFilterModel.OrderByDescending
-        //                         ? requests.OrderByDescending(request => request.CreationDate)
-        //                         : requests.OrderBy(request => request.CreationDate);
-        //             }
-        //         },
-        //        include: requests => requests.Include(_ => _.Item),
-        //        pageIndex: requestFilterModel.PageIndex,
-        //        pageSize: requestFilterModel.PageSize
-        //    );
-
-        //    var requestModels = requests.Data.Select(_ => new RequestModel
-        //    {
-        //        Id = _.Id,
-        //        Name = _.Name,
-        //        IsDeleted = _.IsDeleted,
-        //        ItemName = _.Item?.Name,
-        //        CreationDate = _.CreationDate,
-        //        MaxBudget = _.MaxBudget,
-        //        MinBudget = _.MinBudget,
-        //        Timeline = _.Timeline,
-        //        Description = _.Description,
-        //        Status = _.Status,
-        //    }).ToList();
-
-        //    var result = new Pagination<RequestModel>(requestModels, requestFilterModel.PageIndex,
-        //        requestFilterModel.PageSize, requests.TotalCount);
-
-        //    return new ResponseModel
-        //    {
-        //        Message = "Get all requests successfully",
-        //        Data = result
-        //    };
-        //}
-
         public async Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguage)
         {
             var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
@@ -241,7 +195,7 @@ namespace Chillde.Services.Services
                 {
                     var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
                         _ => _.IsDeleted == filterParameter.IsDeleted &&
-                            (string.IsNullOrEmpty(filterParameter.Search) || _.Name.ToLower().Contains(filterParameter.Search.ToLower())),
+                            (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower())),
                         requests =>
                         {
                             switch (filterParameter.Order.ToLower())

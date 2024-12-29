@@ -40,6 +40,7 @@ public interface IUnitOfWork
     IAttributeRepository AttributeRepository { get; }
     IAttributeValueRepository AttributeValueRepository { get; }
     IShippingAddressRepository ShippingAddressRepository { get; }
+    IServiceCollectionRepository ServiceCollectionRepository { get; }
 
     #endregion
 }

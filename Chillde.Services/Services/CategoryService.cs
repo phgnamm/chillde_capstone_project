@@ -104,7 +104,7 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> AddList(CategoryAddRangeModel categoryAddRangeModel)
         {
-            if (categoryAddRangeModel.CategoryAddRequestModels.Count != categoryAddRangeModel.ImageUrls.Count)
+            if (categoryAddRangeModel.CategoryAddRequestModels.Count != categoryAddRangeModel.ImageUrls!.Count)
             {
                 return new ResponseModel
                 {
@@ -261,8 +261,8 @@ namespace Chillde.Services.Services
             Expression<Func<Category, bool>> filter = category =>
                     category.IsDeleted == categoryFilterModel.IsDeleted &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-                    category.Name.Contains(categoryFilterModel.Search) ||
-                    category.Code.Contains(categoryFilterModel.Search));
+                    category.Name!.Contains(categoryFilterModel.Search) ||
+                    category.Code!.Contains(categoryFilterModel.Search));
 
             Func<IQueryable<Category>, IQueryable<Category>> include = categories =>
                      categories.Include(c => c.SubCategories);
@@ -310,8 +310,8 @@ namespace Chillde.Services.Services
                    subcategory.CategoryId == categoryId && 
                    subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
                    (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
-                   subcategory.Name.Contains(subCategoryFilterModel.Search) ||
-                   subcategory.Code.Contains(subCategoryFilterModel.Search));
+                   subcategory.Name!.Contains(subCategoryFilterModel.Search) ||
+                   subcategory.Code!.Contains(subCategoryFilterModel.Search));
 
 
             var subcategories = await _unitOfWork.SubCategoryRepository.GetAllAsync(
@@ -367,7 +367,7 @@ namespace Chillde.Services.Services
 
             category.Name = categoryUpdateModel.Name;
             category.Code = string.IsNullOrEmpty(categoryUpdateModel.Code)
-                ? GenerateSlug(categoryUpdateModel.Name)
+                ? GenerateSlug(categoryUpdateModel.Name!)
                 : GenerateSlug(categoryUpdateModel.Code);
 
             _unitOfWork.CategoryRepository.Update(category);
