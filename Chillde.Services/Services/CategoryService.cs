@@ -234,7 +234,6 @@ namespace Chillde.Services.Services
             };
         }
 
-
         public async Task<ResponseModel> Delete(Guid id)
         {
             var category = await _unitOfWork.CategoryRepository.GetAsync(id);
@@ -295,6 +294,29 @@ namespace Chillde.Services.Services
 
         }
 
+        public async Task<ResponseModel> GetById(Guid id)
+        {
+            var category = await _unitOfWork.CategoryRepository.GetAsync(id);
+
+            if (category == null || category.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Category not found."
+                };
+            }
+
+            var cateroryModels = _mapper.Map<CategoryModel>(category);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Category retrieved successfully.",
+                Data = cateroryModels
+            };
+        }
+
         public async Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel)
         {
             var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
@@ -307,7 +329,7 @@ namespace Chillde.Services.Services
                 };
             }
             Expression<Func<SubCategory, bool>> filter = subcategory =>
-                   subcategory.CategoryId == categoryId && 
+                   subcategory.CategoryId == categoryId &&
                    subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
                    (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
                    subcategory.Name!.Contains(subCategoryFilterModel.Search) ||

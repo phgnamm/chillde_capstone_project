@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Interfaces;
@@ -94,6 +95,29 @@ namespace Chillde.Services.Services
                 Code = StatusCodes.Status201Created,
                 Message = "Items added successfully.",
                 Data = newItems
+            };
+        }
+
+        public async Task<ResponseModel> GetById(Guid id)
+        {
+            var subcategory = await _unitOfWork.SubCategoryRepository.GetAsync(id);
+
+            if (subcategory == null || subcategory.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "SubCategory not found."
+                };
+            }
+
+            var cateroryModels = _mapper.Map<SubCategoryModel>(subcategory);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "SubCategory retrieved successfully.",
+                Data = cateroryModels
             };
         }
 

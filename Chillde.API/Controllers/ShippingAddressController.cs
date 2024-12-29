@@ -20,7 +20,7 @@ namespace Chillde.API.Controllers
         {
             _shippingAddressService = shippingAddressService;
         }
-
+        //      [Authorize]
         [HttpGet("provinces")]
         public async Task<IActionResult> GetProvinces()
         {
@@ -38,7 +38,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
+        //      [Authorize]
         [HttpGet("districts/{provinceId}")]
         public async Task<IActionResult> GetDistricts(int provinceId)
         {
@@ -56,6 +56,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
         [HttpGet("wards/{districtId}")]
         public async Task<IActionResult> GetWards(int districtId)
         {
@@ -73,6 +74,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] ShippingAddressAddModel shippingAddressAddModel)
         {
@@ -90,6 +92,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] ShippingAddressFilterModel shippingAddressFilterModel)
         {
@@ -107,6 +110,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
@@ -142,6 +146,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //      [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

@@ -14,5 +14,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> Update(Guid id, SubCategoryUpdateModel subCategoryUpdateModel);
         Task<ResponseModel> AddItem(Guid subcategoryId, ItemAddRangeModel itemAddRangeModel);
         Task<ResponseModel> GetItemBySubCategory(Guid subcategoryId, ItemFilterModel itemFilterModel);
+        Task<ResponseModel> GetById(Guid id);
+
     }
 }
