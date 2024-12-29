@@ -15,6 +15,28 @@ public static class InitialSeeding
         new() { Name = Enums.Role.Artist.ToString() }
     };
 
+    private static readonly List<Wallet> Wallets = new()
+    {
+        new() {Id = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c"), Balance = 1000000000000, CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b")}
+    };
+
+    private static readonly List<Account> Accounts = new()
+    {
+        new()
+        {
+            Id = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
+            FirstName = "Test",
+            LastName = "Test",
+            Username = "Test",
+            Email = "Test",
+            HashedPassword = "Test",
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = true,
+            Status = Enums.AccountStatus.Active,
+            WalletId = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c")
+        }
+    };
+
     private static readonly List<Category> Categories = new()
     {
         new() { Id = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"), Code = "C01", Name = "Accessories" },
@@ -56,7 +78,7 @@ public static class InitialSeeding
             IsOffter = true,
             Status = Enums.ServiceStatus.Active,
             ItemId = Items[6].Id,
-            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b") //TỰ TẠO TÀI KHOẢN BỎ VÔ
+            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b")
         },
     };
 
@@ -144,6 +166,24 @@ public static class InitialSeeding
             {
                 role.CreationDate = DateTime.UtcNow;
                 context.Roles.Add(role);
+            }
+        }
+
+        foreach (var wallet in Wallets)
+        {
+            if (!context.Wallets.Any(c => c.Id == wallet.Id))
+            {
+                wallet.CreationDate = DateTime.UtcNow;
+                context.Wallets.Add(wallet);
+            }
+        }
+
+        foreach (var account in Accounts)
+        {
+            if (!context.Accounts.Any(c => c.Id == account.Id))
+            {
+                account.CreationDate = DateTime.UtcNow;
+                context.Accounts.Add(account);
             }
         }
 
