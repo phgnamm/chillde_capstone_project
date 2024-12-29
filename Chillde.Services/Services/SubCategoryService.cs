@@ -112,8 +112,8 @@ namespace Chillde.Services.Services
                    item.SubCategoryId == subcategoryId &&
                    item.IsDeleted == itemFilterModel.IsDeleted &&
                    (string.IsNullOrEmpty(itemFilterModel.Search) ||
-                   item.Name.Contains(itemFilterModel.Search) ||
-                   item.Code.Contains(itemFilterModel.Search));
+                   item.Name!.Contains(itemFilterModel.Search) ||
+                   item.Code!.Contains(itemFilterModel.Search));
 
 
             var items = await _unitOfWork.ItemRepository.GetAllAsync(
@@ -169,7 +169,7 @@ namespace Chillde.Services.Services
 
             subcategory.Name = subCategoryUpdateModel.Name;
             subcategory.Code = string.IsNullOrEmpty(subCategoryUpdateModel.Code)
-                ? GenerateSlug(subCategoryUpdateModel.Name)
+                ? GenerateSlug(subCategoryUpdateModel.Name!)
                 : GenerateSlug(subCategoryUpdateModel.Code);
 
             _unitOfWork.SubCategoryRepository.Update(subcategory);

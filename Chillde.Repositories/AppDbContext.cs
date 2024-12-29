@@ -88,6 +88,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ServiceCollection>(entity =>
         {
             entity.Property(serviceCollection => serviceCollection.Name).HasMaxLength(100);
+            entity.Property(serviceCollection => serviceCollection.CreatedById).IsRequired();
         });
 
         modelBuilder.Entity<Shipment>(entity => { entity.Property(shipment => shipment.Code).HasMaxLength(50); });

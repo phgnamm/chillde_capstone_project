@@ -288,6 +288,10 @@ public static class Configuration
 
         //BadWordFilter
         services.AddScoped<IBadWordFilterService, BadWordFilterService>();
+
+        //ServiceCollection
+        services.AddScoped<IServiceCollectionRepository, ServiceCollectionRepository>();
+        services.AddScoped<IServiceCollectionService, ServiceCollectionService>();
         #endregion
 
         return services;

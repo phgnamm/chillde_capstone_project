@@ -1,6 +1,4 @@
 ﻿using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Repositories.Common;
@@ -34,7 +32,8 @@ public class UnitOfWork : IUnitOfWork
         IAttributeRepository attributeRepository,
         IAttributeValueRepository attributeValueRepository,
         IItemAttributeRepository itemAttributeRepository,
-        IShippingAddressRepository shippingAddressRepository
+        IShippingAddressRepository shippingAddressRepository,
+        IServiceCollectionRepository serviceCollectionRepository
         )
     {
         Context = context;
@@ -67,6 +66,7 @@ public class UnitOfWork : IUnitOfWork
         AttributeValueRepository = attributeValueRepository;
         ItemAttributeRepository = itemAttributeRepository;
         ShippingAddressRepository = shippingAddressRepository;
+        ServiceCollectionRepository = serviceCollectionRepository;
     }
 
     public AppDbContext Context { get; }
@@ -109,6 +109,7 @@ public class UnitOfWork : IUnitOfWork
     public IAttributeRepository AttributeRepository {get;}
 
     public IAttributeValueRepository AttributeValueRepository {get;}
+    public IServiceCollectionRepository ServiceCollectionRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {
