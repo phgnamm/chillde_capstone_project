@@ -34,8 +34,7 @@ public class UnitOfWork : IUnitOfWork
         IItemAttributeRepository itemAttributeRepository,
         IShippingAddressRepository shippingAddressRepository,
         IFeatureRepository featureRepository,
-        IPackageFeatureRepository packageFeatureRepository
-        IShippingAddressRepository shippingAddressRepository,
+        IPackageFeatureRepository packageFeatureRepository,
         IServiceCollectionRepository serviceCollectionRepository
         )
     {
