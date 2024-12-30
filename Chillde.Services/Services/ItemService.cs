@@ -1,35 +1,24 @@
-﻿using AutoMapper;
-using Chillde.Repositories.Interfaces;
+﻿using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AttributeModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ItemModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
     public class ItemService : IItemService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
-        private readonly IMapper _mapper;
 
-        public ItemService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
+        public ItemService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper)
         {
             _unitOfWork = unitOfWork;
-            _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
-            _mapper = mapper;
         }
 
         public async Task<ResponseModel> GetAllAttributesById(Guid itemId)
@@ -74,9 +63,9 @@ namespace Chillde.Services.Services
                 Code = entity.Code,
                 ImageUrl = entity.ImageUrl,
                 SubCategoryId = entity.SubCategoryId,
-                SubCategoryName = entity.SubCategory?.Name,
-                CategoryId = entity.SubCategory?.CategoryId,
-                CategoryName = entity.SubCategory?.Category?.Name
+                SubCategoryName = entity.SubCategory.Name,
+                CategoryId = entity.SubCategory.CategoryId,
+                CategoryName = entity.SubCategory.Category.Name
             };
 
             return new ResponseModel
@@ -156,10 +145,10 @@ namespace Chillde.Services.Services
 
             return input;
         }
-        private bool IsValidSlug(string code)
+        /*private bool IsValidSlug(string code)
         {
             return System.Text.RegularExpressions.Regex.IsMatch(code, @"^[a-z0-9-_]+$");
-        }
+        }*/
 
     }
 }
