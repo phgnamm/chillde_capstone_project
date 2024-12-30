@@ -45,11 +45,13 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetDistrictsAsync(int provinceId)
         {
             string cacheKey = $"districts_{provinceId}";
-            return await _redisHelper.GetOrSetAsync(
+
+            var result = await _redisHelper.GetOrSetAsync<ResponseModel>(
                 cacheKey,
                 async () =>
                 {
                     var response = await _httpClient.GetAsync($"master-data/district?province_id={provinceId}");
+
                     if (!response.IsSuccessStatusCode)
                     {
                         return new ResponseModel
@@ -74,17 +76,25 @@ namespace Chillde.Services.Services
                 TimeSpan.FromDays(30)
             );
 
+            if (result.Code != StatusCodes.Status200OK)
+            {
+                await _redisHelper.InvalidateCacheByPatternAsync(cacheKey);
+            }
 
+            return result;
         }
+
 
         public async Task<ResponseModel> GetProvincesAsync()
         {
             const string cacheKey = "provinces";
-            return await _redisHelper.GetOrSetAsync(
+
+            var result = await _redisHelper.GetOrSetAsync<ResponseModel>(
                 cacheKey,
                 async () =>
                 {
                     var response = await _httpClient.GetAsync("master-data/province");
+
                     if (!response.IsSuccessStatusCode)
                     {
                         return new ResponseModel
@@ -108,16 +118,26 @@ namespace Chillde.Services.Services
                 },
                 TimeSpan.FromDays(30)
             );
+
+            if (result.Code != StatusCodes.Status200OK)
+            {
+                await _redisHelper.InvalidateCacheByPatternAsync(cacheKey);
+            }
+
+            return result;
         }
+
 
         public async Task<ResponseModel> GetWardsAsync(int districtId)
         {
             string cacheKey = $"wards_{districtId}";
-            return await _redisHelper.GetOrSetAsync(
+
+            var result = await _redisHelper.GetOrSetAsync<ResponseModel>(
                 cacheKey,
                 async () =>
                 {
                     var response = await _httpClient.GetAsync($"master-data/ward?district_id={districtId}");
+
                     if (!response.IsSuccessStatusCode)
                     {
                         return new ResponseModel
@@ -127,7 +147,6 @@ namespace Chillde.Services.Services
                             Data = null
                         };
                     }
-
                     var content = await response.Content.ReadAsStringAsync();
                     var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
                     var data = jsonObject["data"]?.ToObject<List<WardModel>>();
@@ -141,7 +160,15 @@ namespace Chillde.Services.Services
                 },
                 TimeSpan.FromDays(30)
             );
+
+            if (result.Code != StatusCodes.Status200OK)
+            {
+                await _redisHelper.InvalidateCacheByPatternAsync(cacheKey);
+            }
+
+            return result;
         }
+
         public async Task<ResponseModel> AddShippingAddressAsync(ShippingAddressAddModel request)
         {
             if (request.ProvinceId <= 0 || request.DistrictId <= 0 || string.IsNullOrEmpty(request.WardCode))
@@ -202,10 +229,11 @@ namespace Chillde.Services.Services
                 shippingAddress.WardName = ward.WardName;
                 shippingAddress.IsDefault = false;
                 await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
-/*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
-*/              await _unitOfWork.SaveChangeAsync();
+                /*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
+                */
+                await _unitOfWork.SaveChangeAsync();
 
-                var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);          
+                var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
@@ -388,7 +416,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            _unitOfWork.ShippingAddressRepository.SoftRemove(shippingAddress); 
+            _unitOfWork.ShippingAddressRepository.SoftRemove(shippingAddress);
             await _unitOfWork.SaveChangeAsync();
 
             return new ResponseModel
