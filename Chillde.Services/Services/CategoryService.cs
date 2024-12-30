@@ -1,44 +1,30 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
-using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
-using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SubcategoryModels;
-using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OpenAI.GPT3.ObjectModels.ResponseModels;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
     public class CategoryService : ICategoryServive
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IMapper _mapper;
 
-        public CategoryService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
+        public CategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
         }
@@ -82,9 +68,6 @@ namespace Chillde.Services.Services
                     Guid.NewGuid().ToString()
                 );
             }
-
-            string generatedCode = GenerateSlug(categoryAddModel.Name);
-
             var newCategory = new Category
             {
                 Name = categoryAddModel.Name,
@@ -144,7 +127,7 @@ namespace Chillde.Services.Services
                 }
 
                 string? imageUrl = null;
-                if (imageFile != null)
+                if (imageFile!= null)
                 {
                     imageUrl = await _cloudinaryHelper.UploadImageAsync(
                         imageFile,
@@ -423,7 +406,7 @@ namespace Chillde.Services.Services
         }
         private bool IsValidSlug(string code)
         {
-            return System.Text.RegularExpressions.Regex.IsMatch(code, @"^[a-z0-9-_]+$");
+            return Regex.IsMatch(code, @"^[a-z0-9-_]+$");
         }
     }
 }

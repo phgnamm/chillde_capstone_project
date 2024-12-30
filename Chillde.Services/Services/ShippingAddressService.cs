@@ -3,21 +3,14 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Services.Common;
-using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
@@ -25,28 +18,26 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
-        private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IMapper _mapper;
         private readonly HttpClient _httpClient;
         private readonly IRedisHelper _redisHelper;
 
 
-        public ShippingAddressService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper, IHttpClientFactory httpClientFactory, IRedisHelper redisHelper)
+        public ShippingAddressService(IUnitOfWork unitOfWork, IClaimService claimService, IMapper mapper,
+            IHttpClientFactory httpClientFactory, IRedisHelper redisHelper)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
-            _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
             _httpClient = httpClientFactory.CreateClient("GhnClient");
             _redisHelper = redisHelper;
-
         }
 
         public async Task<ResponseModel> GetDistrictsAsync(int provinceId)
         {
             string cacheKey = $"districts_{provinceId}";
 
-            var result = await _redisHelper.GetOrSetAsync<ResponseModel>(
+            var result = await _redisHelper.GetOrSetAsync(
                 cacheKey,
                 async () =>
                 {
@@ -64,7 +55,7 @@ namespace Chillde.Services.Services
 
                     var content = await response.Content.ReadAsStringAsync();
                     var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
-                    var data = jsonObject["data"]?.ToObject<List<DistrictModel>>();
+                    var data = jsonObject?["data"]?.ToObject<List<DistrictModel>>();
 
                     return new ResponseModel
                     {
@@ -90,7 +81,7 @@ namespace Chillde.Services.Services
         {
             const string cacheKey = "provinces";
 
-            var result = await _redisHelper.GetOrSetAsync<ResponseModel>(
+            var result = await _redisHelper.GetOrSetAsync(
                 cacheKey,
                 async () =>
                 {
@@ -108,7 +99,7 @@ namespace Chillde.Services.Services
 
                     var content = await response.Content.ReadAsStringAsync();
                     var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
-                    var data = jsonObject["data"]?.ToObject<List<ProvinceModel>>();
+                    var data = jsonObject?["data"]?.ToObject<List<ProvinceModel>>();
 
                     return new ResponseModel
                     {
@@ -134,7 +125,7 @@ namespace Chillde.Services.Services
         {
             string cacheKey = $"wards_{districtId}";
 
-            var result = await _redisHelper.GetOrSetAsync<ResponseModel>(
+            var result = await _redisHelper.GetOrSetAsync(
                 cacheKey,
                 async () =>
                 {
@@ -149,9 +140,10 @@ namespace Chillde.Services.Services
                             Data = null
                         };
                     }
+
                     var content = await response.Content.ReadAsStringAsync();
                     var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
-                    var data = jsonObject["data"]?.ToObject<List<WardModel>>();
+                    var data = jsonObject?["data"]?.ToObject<List<WardModel>>();
 
                     return new ResponseModel
                     {
@@ -254,6 +246,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
         private async Task<ProvinceModel?> GetProvinceByIdAsync(int provinceId)
         {
             var provincesResponse = await GetProvincesAsync();
@@ -292,14 +285,26 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAllAsync(ShippingAddressFilterModel shippingAddressFilterModel)
         {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (currentUserId == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized",
+                    Data = null
+                };
+            }
+
             Expression<Func<ShippingAddress, bool>> filter = address =>
-                    address.IsDeleted == shippingAddressFilterModel.IsDeleted &&
+                address.CreatedById == currentUserId && 
+                address.IsDeleted == shippingAddressFilterModel.IsDeleted &&
                 (string.IsNullOrEmpty(shippingAddressFilterModel.Search) ||
-                    address.FullName.Contains(shippingAddressFilterModel.Search) ||
-                    address.PhoneNumber.Contains(shippingAddressFilterModel.Search) ||
-                    address.ProvinceName.Contains(shippingAddressFilterModel.Search) ||
-                    address.DistrictName.Contains(shippingAddressFilterModel.Search) ||
-                    address.WardName.Contains(shippingAddressFilterModel.Search));
+                 address.FullName.Contains(shippingAddressFilterModel.Search) ||
+                 address.PhoneNumber.Contains(shippingAddressFilterModel.Search) ||
+                 address.ProvinceName!.Contains(shippingAddressFilterModel.Search) ||
+                 address.DistrictName!.Contains(shippingAddressFilterModel.Search) ||
+                 address.WardName!.Contains(shippingAddressFilterModel.Search));
 
             var shippingAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
                 filter: filter,
@@ -318,10 +323,12 @@ namespace Chillde.Services.Services
 
             return new ResponseModel
             {
+                Code = StatusCodes.Status200OK,
                 Message = "Get all shipping addresses successfully",
                 Data = result
             };
         }
+
 
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
@@ -334,26 +341,40 @@ namespace Chillde.Services.Services
                     Data = null
                 };
             }
+
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (currentUserId == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized",
+                    Data = null
+                };
+            }
+
             var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
 
-            if (shippingAddress == null || shippingAddress.IsDeleted)
+            if (shippingAddress == null || shippingAddress.IsDeleted || shippingAddress.CreatedById != currentUserId)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status404NotFound,
-                    Message = "Shipping address not found",
+                    Message = "Shipping address not found or access denied",
                     Data = null
                 };
             }
+
             var shippingAddressModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
 
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
-                Message = "Get shipping address successfully",
+                Message = "Shipping address retrieved successfully",
                 Data = shippingAddressModel
             };
         }
+
 
         public async Task<ResponseModel> UpdateShippingAddressAsync(Guid id, ShippingAddressUpdateModel request)
         {
@@ -368,6 +389,7 @@ namespace Chillde.Services.Services
             }
 
             var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+
             if (shippingAddress == null || shippingAddress.IsDeleted)
             {
                 return new ResponseModel
@@ -377,6 +399,7 @@ namespace Chillde.Services.Services
                     Data = null
                 };
             }
+
 
             _mapper.Map(request, shippingAddress);
 
@@ -389,13 +412,25 @@ namespace Chillde.Services.Services
                 foreach (var address in otherAddresses.Data)
                 {
                     address.IsDefault = false;
+                    _unitOfWork.ShippingAddressRepository.Update(address);
                 }
             }
 
             shippingAddress.IsDefault = request.IsDefault;
 
-            _unitOfWork.ShippingAddressRepository.Update(shippingAddress);
-            await _unitOfWork.SaveChangeAsync();
+            _unitOfWork.ShippingAddressRepository.Update(shippingAddress, isOwnerRequired: true);
+
+            var saveResult = await _unitOfWork.SaveChangeAsync();
+
+            if (saveResult <= 0)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "Failed to update the shipping address. Please try again.",
+                    Data = null
+                };
+            }
 
             var updatedShippingAddress = _mapper.Map<ShippingAddressModel>(shippingAddress);
 
@@ -406,9 +441,12 @@ namespace Chillde.Services.Services
                 Data = updatedShippingAddress
             };
         }
+
+
         public async Task<ResponseModel> Delete(Guid id)
         {
             var shippingAddress = await _unitOfWork.ShippingAddressRepository.GetAsync(id);
+
             if (shippingAddress == null || shippingAddress.IsDeleted)
             {
                 return new ResponseModel
@@ -419,8 +457,20 @@ namespace Chillde.Services.Services
                 };
             }
 
-            _unitOfWork.ShippingAddressRepository.SoftRemove(shippingAddress);
-            await _unitOfWork.SaveChangeAsync();
+
+            _unitOfWork.ShippingAddressRepository.HardRemove(shippingAddress, isOwnerRequired: true);
+
+            var saveResult = await _unitOfWork.SaveChangeAsync();
+
+            if (saveResult <= 0)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "Failed to delete the shipping address. Please try again.",
+                    Data = null
+                };
+            }
 
             return new ResponseModel
             {
@@ -429,9 +479,5 @@ namespace Chillde.Services.Services
                 Data = null
             };
         }
-
-
     }
 }
-
-

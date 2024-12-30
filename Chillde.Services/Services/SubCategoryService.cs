@@ -1,36 +1,27 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ItemModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SubcategoryModels;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
     public class SubCategoryService : ISubCategoryService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IMapper _mapper;
 
-        public SubCategoryService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
+        public SubCategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
         }
@@ -58,6 +49,7 @@ namespace Chillde.Services.Services
                     Message = "The number of images must match the number of items."
                 };
             }
+
             var itemsToAdd = new List<Item>();
             for (int i = 0; i < itemAddRangeModel.ItemAddRequestModels.Count; i++)
             {
@@ -86,6 +78,7 @@ namespace Chillde.Services.Services
                 itemsToAdd.Add(item);
                 newItems.Add(_mapper.Map<ItemModel>(item));
             }
+
             await _unitOfWork.ItemRepository.AddRangeAsync(itemsToAdd);
             await _unitOfWork.SaveChangeAsync();
 
@@ -132,12 +125,13 @@ namespace Chillde.Services.Services
                     Message = "SubCategory not found."
                 };
             }
+
             Expression<Func<Item, bool>> filter = item =>
-                   item.SubCategoryId == subcategoryId &&
-                   item.IsDeleted == itemFilterModel.IsDeleted &&
-                   (string.IsNullOrEmpty(itemFilterModel.Search) ||
-                   item.Name!.Contains(itemFilterModel.Search) ||
-                   item.Code!.Contains(itemFilterModel.Search));
+                item.SubCategoryId == subcategoryId &&
+                item.IsDeleted == itemFilterModel.IsDeleted &&
+                (string.IsNullOrEmpty(itemFilterModel.Search) ||
+                 item.Name!.Contains(itemFilterModel.Search) ||
+                 item.Code!.Contains(itemFilterModel.Search));
 
 
             var items = await _unitOfWork.ItemRepository.GetAllAsync(
@@ -205,6 +199,7 @@ namespace Chillde.Services.Services
                 Message = "SubCategory updated successfully."
             };
         }
+
         private string GenerateSlug(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -224,9 +219,9 @@ namespace Chillde.Services.Services
 
             return input;
         }
-        private bool IsValidSlug(string code)
+        /*private bool IsValidSlug(string code)
         {
             return System.Text.RegularExpressions.Regex.IsMatch(code, @"^[a-z0-9-_]+$");
-        }
+        }*/
     }
 }
