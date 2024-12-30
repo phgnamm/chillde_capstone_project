@@ -42,6 +42,7 @@ public interface IUnitOfWork
     IShippingAddressRepository ShippingAddressRepository { get; }
     IFeatureRepository FeatureRepository { get; }
     IPackageFeatureRepository PackageFeatureRepository { get; }
+    IServiceCollectionRepository ServiceCollectionRepository { get; }
 
     #endregion
 }

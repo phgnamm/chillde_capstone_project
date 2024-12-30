@@ -291,6 +291,10 @@ public static class Configuration
 
         //PackageFeature
         services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+
+        //ServiceCollection
+        services.AddScoped<IServiceCollectionRepository, ServiceCollectionRepository>();
+        services.AddScoped<IServiceCollectionService, ServiceCollectionService>();
         #endregion
 
         return services;

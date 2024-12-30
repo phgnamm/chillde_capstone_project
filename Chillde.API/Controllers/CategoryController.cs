@@ -114,7 +114,7 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpPost("{categoryId}/subcategories")]
+        [HttpPost("{categoryId}/sub-categories")]
         public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddRangeModel subCategoryAddRangeModel)
         {
             try
@@ -132,7 +132,7 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpGet("{categoryId}/subcategories")]
+        [HttpGet("{categoryId}/sub-categories")]
         public async Task<IActionResult> GetSubcategories(Guid categoryId, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
         {
             try
@@ -149,7 +149,24 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
+        //      [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            try
+            {
+                var response = await _categoryService.GetById(id);
+                return StatusCode(response.Code, response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
 
     }
 }

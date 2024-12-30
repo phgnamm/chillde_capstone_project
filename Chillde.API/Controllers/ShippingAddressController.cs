@@ -1,11 +1,7 @@
-﻿using Chillde.Repositories.Models.CategoriesModels;
-using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
+﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShippingAddressModels;
-using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -20,7 +16,7 @@ namespace Chillde.API.Controllers
         {
             _shippingAddressService = shippingAddressService;
         }
-
+        //[Authorize]
         [HttpGet("provinces")]
         public async Task<IActionResult> GetProvinces()
         {
@@ -38,8 +34,8 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
-        [HttpGet("districts/{provinceId}")]
+        //      [Authorize]
+        [HttpGet("provinces/{provinceId}/districts")]
         public async Task<IActionResult> GetDistricts(int provinceId)
         {
             try
@@ -56,7 +52,8 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpGet("wards/{districtId}")]
+    //    [Authorize]
+        [HttpGet("districts/{districtId}/wards")]
         public async Task<IActionResult> GetWards(int districtId)
         {
             try
@@ -72,7 +69,8 @@ namespace Chillde.API.Controllers
                     Message = ex.Message
                 });
             }
-        }
+        } 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] ShippingAddressAddModel shippingAddressAddModel)
         {
@@ -90,6 +88,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] ShippingAddressFilterModel shippingAddressFilterModel)
         {
@@ -107,6 +106,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
@@ -124,7 +124,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //      [Authorize]
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] ShippingAddressUpdateModel shippingAddressUpdateModel)
         {
@@ -142,6 +142,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

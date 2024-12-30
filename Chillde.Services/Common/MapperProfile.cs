@@ -59,5 +59,6 @@ public class MapperProfile : Profile
         CreateMap<ShippingAddress,ShippingAddressAddModel>().ReverseMap();
         CreateMap<ShippingAddress, ShippingAddressModel>().ReverseMap();
         CreateMap<ShippingAddressAddModel, ShippingAddressModel>().ReverseMap();
+        CreateMap<ShippingAddressUpdateModel, ShippingAddress>().ReverseMap();
     }
 }

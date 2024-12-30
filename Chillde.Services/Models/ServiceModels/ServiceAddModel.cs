@@ -7,13 +7,13 @@ namespace Chillde.Services.Models.ServiceModels
     public class ServiceAddModel
     {
         [Required]
-        public string Name { get; set; }
+        public required string Name { get; set; }
         [Required]
-        public string Description { get; set; }
+        public required string Description { get; set; }
         [Required]
-        public bool IsOffter { get; set; }
+        public required bool IsOffter { get; set; }
         [Required]
-        public Guid ItemId { get; set; }
-        public List<ServiceAttachmentAddModel> ServiceAttachments { get; set; }
+        public required Guid ItemId { get; set; }
+        public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
     }
 }
