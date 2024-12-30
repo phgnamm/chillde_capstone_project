@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.PackageModels;
+﻿using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 
 namespace Chillde.Services.Interfaces
@@ -7,5 +8,6 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id);
         Task<ResponseModel> DeleteAsync(Guid id);
+        Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, Guid packageId);
     }
 }
