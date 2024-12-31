@@ -250,22 +250,32 @@ namespace Chillde.Services.Services
         private async Task<ProvinceModel?> GetProvinceByIdAsync(int provinceId)
         {
             var provincesResponse = await GetProvincesAsync();
-            if (provincesResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+
+            if (provincesResponse.Data is List<ProvinceModel> provinces)
             {
-                var provinces = JsonConvert.DeserializeObject<List<ProvinceModel>>(jsonElement.ToString());
-                return provinces?.FirstOrDefault(p => p.ProvinceID == provinceId);
+                return provinces.FirstOrDefault(p => p.ProvinceID == provinceId);
+            }
+            else if (provincesResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                var deserializedProvinces = JsonConvert.DeserializeObject<List<ProvinceModel>>(jsonElement.ToString());
+                return deserializedProvinces?.FirstOrDefault(p => p.ProvinceID == provinceId);
             }
 
             return null;
         }
 
+
         private async Task<DistrictModel?> GetDistrictByIdAsync(int provinceId, int districtId)
         {
             var districtsResponse = await GetDistrictsAsync(provinceId);
-            if (districtsResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            if (districtsResponse.Data is List<DistrictModel> districts)
             {
-                var districts = JsonConvert.DeserializeObject<List<DistrictModel>>(jsonElement.ToString());
-                return districts?.FirstOrDefault(d => d.DistrictID == districtId);
+                return districts.FirstOrDefault(d => d.DistrictID == districtId);
+            }
+            else if (districtsResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                var deserializedDistricts = JsonConvert.DeserializeObject<List<DistrictModel>>(jsonElement.ToString());
+                return deserializedDistricts?.FirstOrDefault(d => d.DistrictID == districtId);
             }
 
             return null;
@@ -274,14 +284,21 @@ namespace Chillde.Services.Services
         private async Task<WardModel?> GetWardByCodeAsync(int districtId, string wardCode)
         {
             var wardsResponse = await GetWardsAsync(districtId);
-            if (wardsResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+
+            if (wardsResponse.Data is List<WardModel> wards)
             {
-                var wards = JsonConvert.DeserializeObject<List<WardModel>>(jsonElement.ToString());
-                return wards?.FirstOrDefault(w => w.WardCode == wardCode);
+                return wards.FirstOrDefault(w => w.WardCode == wardCode);
+            }
+            else if (wardsResponse.Data is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.Array)
+            {
+                // Deserialize JsonElement thành List<WardModel>
+                var deserializedWards = JsonConvert.DeserializeObject<List<WardModel>>(jsonElement.ToString());
+                return deserializedWards?.FirstOrDefault(w => w.WardCode == wardCode);
             }
 
             return null;
         }
+
 
         public async Task<ResponseModel> GetAllAsync(ShippingAddressFilterModel shippingAddressFilterModel)
         {
