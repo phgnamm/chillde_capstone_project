@@ -70,7 +70,7 @@ namespace Chillde.API.Controllers
                 });
             }
         } 
-        [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] ShippingAddressAddModel shippingAddressAddModel)
         {

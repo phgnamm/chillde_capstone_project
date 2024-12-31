@@ -76,7 +76,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetAsync(Guid id)
         {
@@ -95,7 +95,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize("Artist")]
+        //[Authorize("Artist")]
         [HttpPost]
         public async Task<IActionResult> AddServiceAsync([FromBody] ServiceAddModel serviceAddModel)
         {
@@ -152,7 +152,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{serviceId}/service-attachments")]
         public async Task<IActionResult> GetAllServiceAttachmentsAsync(Guid serviceId)
         {
@@ -171,7 +171,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{serviceId}/packages")]
         public async Task<IActionResult> GetAllPackagesAsync(Guid serviceId, [FromQuery] PackageFilterModel packageFilterModel)
         {
@@ -190,7 +190,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize("Artist")]
+        //[Authorize("Artist")]
         [HttpPost("{serviceId}/packages")]
         public async Task<IActionResult> AddPackageAsync([FromBody] PackageAddModel packageAddModel, Guid serviceId)
         {
@@ -209,7 +209,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize("Artist")]
+        //[Authorize("Artist")]
         [HttpPost("{serviceId}/faqs")]
         public async Task<IActionResult> AddFAQAsync([FromBody] FAQAddAndUpdateModel faqAddModel, Guid serviceId)
         {
@@ -228,7 +228,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet("{serviceId}/faqs")]
         public async Task<IActionResult> GetAllFAQsAsync(Guid serviceId, [FromQuery]FAQFilterModel faqFilterModel)
         {

@@ -289,6 +289,9 @@ public static class Configuration
         //BadWordFilter
         services.AddScoped<IBadWordFilterService, BadWordFilterService>();
 
+        //PackageFeature
+        services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+
         //ServiceCollection
         services.AddScoped<IServiceCollectionRepository, ServiceCollectionRepository>();
         services.AddScoped<IServiceCollectionService, ServiceCollectionService>();
