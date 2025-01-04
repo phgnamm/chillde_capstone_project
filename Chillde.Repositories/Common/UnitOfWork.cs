@@ -35,7 +35,8 @@ public class UnitOfWork : IUnitOfWork
         IShippingAddressRepository shippingAddressRepository,
         IFeatureRepository featureRepository,
         IPackageFeatureRepository packageFeatureRepository,
-        IServiceCollectionRepository serviceCollectionRepository
+        IServiceCollectionRepository serviceCollectionRepository,
+        IServiceWishlistRepository serviceWishlistRepository
         )
     {
         Context = context;
@@ -71,6 +72,7 @@ public class UnitOfWork : IUnitOfWork
         FeatureRepository = featureRepository;
         PackageFeatureRepository = packageFeatureRepository;
         ServiceCollectionRepository = serviceCollectionRepository;
+        ServiceWishlistRepository = serviceWishlistRepository;
     }
 
     public AppDbContext Context { get; }
@@ -114,9 +116,11 @@ public class UnitOfWork : IUnitOfWork
 
     public IAttributeValueRepository AttributeValueRepository {get;}
     public IServiceCollectionRepository ServiceCollectionRepository { get; }
+    public IServiceWishlistRepository ServiceWishlistRepository { get; }
 
     public IFeatureRepository FeatureRepository { get; }
     public IPackageFeatureRepository PackageFeatureRepository { get; }
+
 
     public async Task<int> SaveChangeAsync()
     {

@@ -43,6 +43,7 @@ public interface IUnitOfWork
     IFeatureRepository FeatureRepository { get; }
     IPackageFeatureRepository PackageFeatureRepository { get; }
     IServiceCollectionRepository ServiceCollectionRepository { get; }
+    IServiceWishlistRepository ServiceWishlistRepository { get; }
 
     #endregion
 }
