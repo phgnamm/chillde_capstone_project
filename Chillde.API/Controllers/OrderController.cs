@@ -5,6 +5,7 @@ using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Services;
 using Chillde.Services.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
@@ -27,8 +28,8 @@ namespace Chillde.API.Controllers
             _vnpay.Initialize(_configuration["Vnpay:TmnCode"], _configuration["Vnpay:HashSecret"], _configuration["Vnpay:BaseUrl"], _configuration["Vnpay:CallbackUrl"]);
 
         }
-
-        [HttpGet("createPaymentUrl")]
+        [Authorize]
+        [HttpPost("create-payment-url")]
         public async Task<IActionResult> CreatePaymentUrl([FromBody] OrderAddModel order)
         {
             try
@@ -58,7 +59,7 @@ namespace Chillde.API.Controllers
 
                     if (paymentResult.IsSuccess)
                     {
-                        var orderId = paymentResult.PaymentId; 
+                        var orderId = paymentResult.OrderId; 
 
                         var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
 

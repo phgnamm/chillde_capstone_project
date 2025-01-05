@@ -6,11 +6,7 @@ namespace Chillde.Services.Utils
 {
     public class NetworkHelper
     {
-        /// <summary>
-        /// Lấy địa chỉ IP từ HttpContext của API Controller.
-        /// </summary>
-        /// <param name="context"></param>
-        /// <returns></returns>
+       
         public static string GetIpAddress(HttpContext context)
         {
             var remoteIpAddress = context.Connection.RemoteIpAddress;

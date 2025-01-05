@@ -37,12 +37,6 @@ namespace Chillde.Services.Services
 
             EnsureParametersBeforePayment();
         }
-
-        /// <summary>
-        /// Tạo URL thanh toán 
-        /// </summary>
-        /// <param name="request">Thông tin cần có để tạo yêu cầu</param>
-        /// <returns></returns>
         public async Task<string> GetPaymentUrl(PaymentRequest request)
         {
             EnsureParametersBeforePayment();
@@ -75,16 +69,10 @@ namespace Chillde.Services.Services
             helper.AddRequestData("vnp_OrderInfo", request.Description.Trim());
             helper.AddRequestData("vnp_OrderType", _orderType);
             helper.AddRequestData("vnp_ReturnUrl", _callbackUrl);
-            helper.AddRequestData("vnp_TxnRef", request.PaymentId.ToString());
+            helper.AddRequestData("vnp_TxnRef", request.OrderId.ToString());
 
             return await helper.GetPaymentUrl(_baseUrl, _hashSecret);
         }
-
-        /// <summary>
-        /// Lấy kết quả thanh toán sau khi thực hiện giao dịch.
-        /// </summary>
-        /// <param name="parameters">Các tham số trong chuỗi truy vấn của <c>CallbackUrl</c></param>
-        /// <returns></returns>
         public async Task<PaymentResult> GetPaymentResult(IQueryCollection parameters)
         {
             var responseData = parameters
@@ -127,7 +115,7 @@ namespace Chillde.Services.Services
 
             return new PaymentResult
             {
-                PaymentId = Guid.Parse(vnp_TxnRef),
+                OrderId = Guid.Parse(vnp_TxnRef),
                 VnpayTransactionId = long.Parse(vnp_TransactionNo),
                 IsSuccess = transactionStatusCode == TransactionStatusCode.Code_00 && responseCode == ResponseCode.Code_00 && helper.IsSignatureCorrect(vnp_SecureHash, _hashSecret),
                 Description = vnp_OrderInfo,

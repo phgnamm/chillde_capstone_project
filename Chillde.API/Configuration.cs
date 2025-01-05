@@ -265,7 +265,6 @@ public static class Configuration
 
         //Payment
         services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IPaymentService, PaymentService>();
         //Order
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderService, OrderService>();

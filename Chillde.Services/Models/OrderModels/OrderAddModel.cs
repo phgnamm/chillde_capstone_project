@@ -39,23 +39,23 @@ namespace Chillde.Services.Models.OrderModels
 
         [Required]
         [MinLength(1, ErrorMessage = "The payment list must contain at least one item.")]
-        public ICollection<PaymentAddModel> PaymentAddModels { get; set; } = null!;
+        //public ICollection<PaymentAddModel> PaymentAddModels { get; set; } = null!;
 
         public ICollection<OrderInformationAddModel>? OrderInformationAddModels { get; set; }
     }
 
-    public class PaymentAddModel
-    {
-        //[Required]
-        //public PaymentType PaymentType { get; set; } = PaymentType.VnPay;
+    //public class PaymentAddModel
+    //{
+    //    //[Required]
+    //    //public PaymentType PaymentType { get; set; } = PaymentType.VnPay;
 
-        [Required]
-        [Range(1, double.MaxValue, ErrorMessage = "Payment amount must be greater than 0.")]
-        public decimal Amount { get; set; }
+    //    [Required]
+    //    [Range(1, double.MaxValue, ErrorMessage = "Payment amount must be greater than 0.")]
+    //    public decimal Amount { get; set; }
 
-        //[Required]
-        //public PaymentStatus PaymentStatus { get; set; }
-    }
+    //    //[Required]
+    //    //public PaymentStatus PaymentStatus { get; set; }
+    //}
 
     public class OrderInformationAddModel
     {

@@ -32,7 +32,6 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _vnpay = vnpay;
-            _vnpay.Initialize(_configuration["Vnpay:TmnCode"], _configuration["Vnpay:HashSecret"], _configuration["Vnpay:BaseUrl"], _configuration["Vnpay:CallbackUrl"]);
 
         }
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
@@ -54,7 +53,7 @@ namespace Chillde.Services.Services
                 };
 
             decimal totalPrice = (decimal)package.Price;
-            var newOrder = InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
+            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
 
             if (orderAddModel.OrderInformationAddModels != null)
                 await ProcessExtraFeatures(orderAddModel, newOrder, totalPrice);
@@ -97,7 +96,7 @@ namespace Chillde.Services.Services
            return result < 0 ?
                  new ResponseModel
                 {
-                    Code = StatusCodes.Status401Unauthorized,
+                    Code = StatusCodes.Status400BadRequest,
                     Message = "Failed to process the payment"
                 }
                 :
@@ -126,10 +125,11 @@ namespace Chillde.Services.Services
                    Code = StatusCodes.Status400BadRequest,
                    Message = "Package not found."
                };
-                
 
             decimal totalPrice = (decimal)package.Price;
-            var newOrder = InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
+            decimal remainingAmount = 0;
+
+            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
 
             if (orderAddModel.OrderInformationAddModels != null)
                 await ProcessExtraFeatures(orderAddModel, newOrder,  totalPrice);
@@ -137,8 +137,9 @@ namespace Chillde.Services.Services
             if ((bool)orderAddModel.WithBalance)
             {
                 var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
-                var response = ProcessWalletPayment(wallet, totalPrice, newOrder);
+                var response = await ProcessWalletPayment(wallet, totalPrice, newOrder);
                 if (response != null) return response;
+                remainingAmount = (decimal)response.Data;
             }
             if(!(bool)orderAddModel.WithBalance)
             {
@@ -157,18 +158,34 @@ namespace Chillde.Services.Services
                     Message = "Fail to save order"
                 };
 
-            var paymentUrl = await GenerateVnPayUrl(newOrder, ipAddress);
+            var paymentUrl = await GenerateVnPayUrl(newOrder, ipAddress, (decimal)remainingAmount);
 
             return new ResponseModel { Data = paymentUrl, Message = "Created paymentUrl successfully" };
         }
-        private Repositories.Entities.Order InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId, decimal totalPrice)
+        private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId, decimal totalPrice)
         {
+            var requiredFeatures = package.PackageFeatures.Where(_ => _.IsInformationRequired == true).ToList();
+
+            foreach (var feature in requiredFeatures)
+            {
+                var correspondingInfo = orderAddModel.OrderInformationAddModels?
+                    .FirstOrDefault(_ => _.PackageFeatureId == feature.Id);
+
+                if (correspondingInfo == null || string.IsNullOrWhiteSpace(correspondingInfo.Description))
+                {
+                    new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty when a question is present."
+                    };
+                }
+            }
             return new Repositories.Entities.Order
             {
                 CreatedById = userId,
                 Phone = orderAddModel.Phone,
                 Address = orderAddModel.Address,
-                TotalPrice = totalPrice,
+                TotalPrice = totalPrice * orderAddModel.Quantity,
                 PackagePrice = package.Price,
                 Quantity = orderAddModel.Quantity,
                 PackageId = orderAddModel.PackageId,
@@ -190,7 +207,7 @@ namespace Chillde.Services.Services
                 newOrder.TotalPrice = totalPrice;
             }
         }
-        private ResponseModel? ProcessWalletPayment(Wallet wallet, decimal totalPrice, Repositories.Entities.Order orderAddModel)
+        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, decimal totalPrice, Repositories.Entities.Order order)
         {
             var balance = wallet.Balance;
 
@@ -208,7 +225,7 @@ namespace Chillde.Services.Services
                     Message = "Your balance is greater than the total price in the order. Do you want to checkout with balance payment!"
                 };
 
-            var remainingAmount = totalPrice - balance;
+            var remainingAmount = order.TotalPrice - balance;
             if (remainingAmount < 5000)
                 return new ResponseModel
                 {
@@ -216,39 +233,28 @@ namespace Chillde.Services.Services
                     Message = $"Cannot checkout VNPay with '{remainingAmount} VND'. Please checkout with just vnPay payment!"
                 };
 
-            wallet.Balance -= balance;
-            wallet.WalletHistories.Add(new WalletHistory
-            {
-                WalletId = wallet.Id,
-                Amount = balance,
-                Type = WalletHistoryType.TransferOut,
-                Status = WalletHistoryStatus.InProcess
-            });
-
-            orderAddModel.Payments.Add(new Payment
+            order.Payments.Add(new Payment
             {
                 PaymentType = PaymentType.Balance,
                 Amount = balance,
                 PaymentStatus = PaymentStatus.Pending
             });
 
-            orderAddModel.Payments.Add(new Payment
+            order.Payments.Add(new Payment
             {
                 PaymentType = PaymentType.VnPay,
-                Amount = remainingAmount,
+                Amount = (decimal)remainingAmount,
                 PaymentStatus = PaymentStatus.Pending
             });
-
-            _unitOfWork.WalletRepository.Update(wallet);
-            return null;
+            return new ResponseModel { Data = remainingAmount };
         }
-        private async Task<string> GenerateVnPayUrl(Repositories.Entities.Order orderAddModel, string ipAddress)
+        private async Task<string> GenerateVnPayUrl(Repositories.Entities.Order order, string ipAddress, decimal remainingAmount)
         {
             var paymentRequest = new PaymentRequest
             {
-                PaymentId = orderAddModel.Id,
-                Money = (double)orderAddModel.TotalPrice,
-                Description = $"Payment for order {orderAddModel.Id}",
+                OrderId = order.Id,
+                Money = (double)(remainingAmount > 0 ? remainingAmount : order.TotalPrice),
+                Description = $"Payment for order {order.Id}",
                 IpAddress = ipAddress,
                 BankCode = BankCode.ANY,
                 CreatedDate = DateTime.Now,
@@ -289,7 +295,7 @@ namespace Chillde.Services.Services
                 payment.PaymentStatus = PaymentStatus.Success;
             }
 
-            var balancePayment = order.Payments.FirstOrDefault(p => p.PaymentType == PaymentType.Balance);
+            var balancePayment = order.Payments.FirstOrDefault(_ => _.PaymentType == PaymentType.Balance);
             if (balancePayment != null)
             {
                 var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount((Guid)order.CreatedById);

@@ -17,7 +17,7 @@ namespace Chillde.Repositories.Repositories
 
         public async Task<Package> Get(Guid id)
         {
-            return await _dbSet.FirstOrDefaultAsync(_ => _.Id == id);
+            return await _dbSet.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).FirstOrDefaultAsync(_ => _.Id == id);
         }
 
         public async Task<List<Package>> GetAllPackageFromService(Guid serviceId)
