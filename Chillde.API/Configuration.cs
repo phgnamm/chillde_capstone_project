@@ -94,7 +94,7 @@ public static class Configuration
         //Translation
         services.AddOpenAIService(settings =>
         {
-            settings.ApiKey = configuration["OpenAI:ApiKey"];
+            settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
 
         services.Configure<RequestLocalizationOptions>(options =>
@@ -138,7 +138,7 @@ public static class Configuration
         // GHNClient 
         services.AddHttpClient("GhnClient", client =>
         {
-            client.BaseAddress = new Uri(configuration["GhnSettings:BaseUrl"]);
+            client.BaseAddress = new Uri(configuration["GhnSettings:BaseUrl"]!);
             client.DefaultRequestHeaders.Add("Token", configuration["GhnSettings:Token"]);
         });
         #endregion
@@ -293,6 +293,17 @@ public static class Configuration
 
         //BadWordFilter
         services.AddScoped<IBadWordFilterService, BadWordFilterService>();
+
+        //PackageFeature
+        services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+
+        //ServiceCollection
+        services.AddScoped<IServiceCollectionRepository, ServiceCollectionRepository>();
+        services.AddScoped<IServiceCollectionService, ServiceCollectionService>();
+
+        //ServiceWishlist
+        services.AddScoped<IServiceWishlistRepository, ServiceWishlistRepository>();
+        services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
         #endregion
 
         return services;

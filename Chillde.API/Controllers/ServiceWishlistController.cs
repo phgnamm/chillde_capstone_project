@@ -1,31 +1,32 @@
-﻿using Chillde.Repositories.Models.FeatureModels;
-using Chillde.Services.Interfaces;
-using Chillde.Services.Models.PackageModels;
+﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/packages")]
+    [Route("api/v1/service-wishlists")]
     [ApiController]
-    public class PackageController : ControllerBase
+    public class ServiceWishlistController : Controller
     {
-        private readonly IPackageService _packageService;
+        private readonly IServiceWishlistService _serviceWishlistService;
 
-        public PackageController(IPackageService packageService)
+        public ServiceWishlistController(IServiceWishlistService serviceWishlistService)
         {
-            _packageService = packageService;
+            _serviceWishlistService = serviceWishlistService;
         }
 
-        //[Authorize("Artist")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] PackageUpdateModel packageUpdateModel, Guid id)
+        [Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             try
             {
-                var result = await _packageService.UpdateAsync(packageUpdateModel, id);
+                var result = await _serviceWishlistService.GetByIdAsync(id);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -38,32 +39,40 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist, Admin")]
+        [Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] Guid newServiceId)
+        {
+            try
+            {
+                var result = await _serviceWishlistService.UpdateAsync(id, newServiceId);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _packageService.DeleteAsync(id);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                var result = await _serviceWishlistService.DeleteAsync(id);
+                if (result.Code == StatusCodes.Status404NotFound)
                 {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-
-        //[Authorize("Artist")]
-        [HttpPost("{packageId}/features")]
-        public async Task<IActionResult> AddPackageAsync([FromBody] FeatureAddModel featureAddModel, Guid packageId)
-        {
-            try
-            {
-                var result = await _packageService.AddFeatureAsync(featureAddModel, packageId);
+                    return NotFound(result);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

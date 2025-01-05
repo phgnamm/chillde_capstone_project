@@ -144,4 +144,23 @@ public class AccountController : ControllerBase
             });
         }
     }
+    
+    [Authorize(Roles = "Customer")]
+    [HttpPut("{id}/become-a-seller")]
+    public async Task<IActionResult> BecomeASeller(Guid id, [FromForm] AccountBecomeASellerModel accountBecomeASellerModel)
+    {
+        try
+        {
+            var result = await _accountService.BecomeASeller(id, accountBecomeASellerModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
 }

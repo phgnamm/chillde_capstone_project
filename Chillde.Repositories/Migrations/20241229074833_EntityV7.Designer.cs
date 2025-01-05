@@ -3,6 +3,7 @@ using System;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241229074833_EntityV7")]
+    partial class EntityV7
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -886,11 +889,14 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("OrderDateTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("PackageId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal?>("PackagePrice")
-                        .HasColumnType("numeric");
+                    b.Property<Guid>("PaymentId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(15)
@@ -899,7 +905,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("ShipmentId")
+                    b.Property<Guid>("ShipmentId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Status")
@@ -2174,7 +2180,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Shipment", "Shipment")
                         .WithOne("Order")
-                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId");
+                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CreatedBy");
 

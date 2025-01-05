@@ -1,44 +1,30 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
-using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
-using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SubcategoryModels;
-using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using OpenAI.GPT3.ObjectModels.ResponseModels;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
     public class CategoryService : ICategoryServive
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IMapper _mapper;
 
-        public CategoryService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
+        public CategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
         }
@@ -82,9 +68,6 @@ namespace Chillde.Services.Services
                     Guid.NewGuid().ToString()
                 );
             }
-
-            string generatedCode = GenerateSlug(categoryAddModel.Name);
-
             var newCategory = new Category
             {
                 Name = categoryAddModel.Name,
@@ -104,7 +87,7 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> AddList(CategoryAddRangeModel categoryAddRangeModel)
         {
-            if (categoryAddRangeModel.CategoryAddRequestModels.Count != categoryAddRangeModel.ImageUrls.Count)
+            if (categoryAddRangeModel.CategoryAddRequestModels.Count != categoryAddRangeModel.ImageUrls!.Count)
             {
                 return new ResponseModel
                 {
@@ -144,7 +127,7 @@ namespace Chillde.Services.Services
                 }
 
                 string? imageUrl = null;
-                if (imageFile != null)
+                if (imageFile!= null)
                 {
                     imageUrl = await _cloudinaryHelper.UploadImageAsync(
                         imageFile,
@@ -234,7 +217,6 @@ namespace Chillde.Services.Services
             };
         }
 
-
         public async Task<ResponseModel> Delete(Guid id)
         {
             var category = await _unitOfWork.CategoryRepository.GetAsync(id);
@@ -261,8 +243,8 @@ namespace Chillde.Services.Services
             Expression<Func<Category, bool>> filter = category =>
                     category.IsDeleted == categoryFilterModel.IsDeleted &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-                    category.Name.Contains(categoryFilterModel.Search) ||
-                    category.Code.Contains(categoryFilterModel.Search));
+                    category.Name!.Contains(categoryFilterModel.Search) ||
+                    category.Code!.Contains(categoryFilterModel.Search));
 
             Func<IQueryable<Category>, IQueryable<Category>> include = categories =>
                      categories.Include(c => c.SubCategories);
@@ -295,6 +277,29 @@ namespace Chillde.Services.Services
 
         }
 
+        public async Task<ResponseModel> GetById(Guid id)
+        {
+            var category = await _unitOfWork.CategoryRepository.GetAsync(id);
+
+            if (category == null || category.IsDeleted)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Category not found."
+                };
+            }
+
+            var cateroryModels = _mapper.Map<CategoryModel>(category);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Category retrieved successfully.",
+                Data = cateroryModels
+            };
+        }
+
         public async Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel)
         {
             var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
@@ -307,11 +312,11 @@ namespace Chillde.Services.Services
                 };
             }
             Expression<Func<SubCategory, bool>> filter = subcategory =>
-                   subcategory.CategoryId == categoryId && 
+                   subcategory.CategoryId == categoryId &&
                    subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
                    (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
-                   subcategory.Name.Contains(subCategoryFilterModel.Search) ||
-                   subcategory.Code.Contains(subCategoryFilterModel.Search));
+                   subcategory.Name!.Contains(subCategoryFilterModel.Search) ||
+                   subcategory.Code!.Contains(subCategoryFilterModel.Search));
 
 
             var subcategories = await _unitOfWork.SubCategoryRepository.GetAllAsync(
@@ -367,7 +372,7 @@ namespace Chillde.Services.Services
 
             category.Name = categoryUpdateModel.Name;
             category.Code = string.IsNullOrEmpty(categoryUpdateModel.Code)
-                ? GenerateSlug(categoryUpdateModel.Name)
+                ? GenerateSlug(categoryUpdateModel.Name!)
                 : GenerateSlug(categoryUpdateModel.Code);
 
             _unitOfWork.CategoryRepository.Update(category);
@@ -401,7 +406,7 @@ namespace Chillde.Services.Services
         }
         private bool IsValidSlug(string code)
         {
-            return System.Text.RegularExpressions.Regex.IsMatch(code, @"^[a-z0-9-_]+$");
+            return Regex.IsMatch(code, @"^[a-z0-9-_]+$");
         }
     }
 }

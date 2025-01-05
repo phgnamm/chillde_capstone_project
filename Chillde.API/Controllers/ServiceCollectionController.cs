@@ -1,82 +1,34 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ShippingAddressModels;
+using Chillde.Services.Models.ServiceCollectionModels;
+using Chillde.Services.Models.ServiceWishlistModels;
+using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/shipping-addresses")]
+    [Route("api/v1/service-collections")]
     [ApiController]
-    public class ShippingAddressController : ControllerBase
+    public class ServiceCollectionController : Controller
     {
-        private readonly IShippingAddressService _shippingAddressService;
+        private readonly IServiceCollectionService _serviceCollectionService;
+        private readonly IServiceWishlistService _serviceWishlistService;
 
-        public ShippingAddressController(IShippingAddressService shippingAddressService)
+        public ServiceCollectionController(IServiceCollectionService serviceCollectionService, IServiceWishlistService serviceWishlistService)
         {
-            _shippingAddressService = shippingAddressService;
+            _serviceCollectionService = serviceCollectionService;
+            _serviceWishlistService = serviceWishlistService;
         }
-        //[Authorize]
-        [HttpGet("provinces")]
-        public async Task<IActionResult> GetProvinces()
-        {
-            try
-            {
-                var result = await _shippingAddressService.GetProvincesAsync();
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        //      [Authorize]
-        [HttpGet("provinces/{provinceId}/districts")]
-        public async Task<IActionResult> GetDistricts(int provinceId)
-        {
-            try
-            {
-                var result = await _shippingAddressService.GetDistrictsAsync(provinceId);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-    //    [Authorize]
-        [HttpGet("districts/{districtId}/wards")]
-        public async Task<IActionResult> GetWards(int districtId)
-        {
-            try
-            {
-                var result = await _shippingAddressService.GetWardsAsync(districtId);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        } 
-        //[Authorize]
+
+
+        [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] ShippingAddressAddModel shippingAddressAddModel)
+        public async Task<IActionResult> Add([FromForm] ServiceCollectionAddModel serviceCollectionAddModel)
         {
             try
             {
-                var result = await _shippingAddressService.AddShippingAddressAsync(shippingAddressAddModel);
+                var result = await _serviceCollectionService.AddAsync(serviceCollectionAddModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -88,49 +40,18 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] ShippingAddressFilterModel shippingAddressFilterModel)
-        {
-            try
-            {
-                var result = await _shippingAddressService.GetAllAsync(shippingAddressFilterModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(Guid id)
-        {
-            try
-            {
-                var result = await _shippingAddressService.GetByIdAsync(id);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
+
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] ShippingAddressUpdateModel shippingAddressUpdateModel)
+        public async Task<IActionResult> Update(Guid id, [FromForm] ServiceCollectionAddModel serviceCollectionUpdateModel)
         {
             try
             {
-                var result = await _shippingAddressService.UpdateShippingAddressAsync(id, shippingAddressUpdateModel);
+                var result = await _serviceCollectionService.UpdateAsync(id, serviceCollectionUpdateModel);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -142,13 +63,66 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
+
+        
+
+        //[Authorize]
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] ServiceCollectionFilterModel filterModel)
+        {
+            try
+            {
+                var result = await _serviceCollectionService.GetAllAsync(filterModel);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            try
+            {
+                var result = await _serviceCollectionService.GetByIdAsync(id);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        // [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _shippingAddressService.Delete(id);
+                var result = await _serviceCollectionService.DeleteAsync(id);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -161,6 +135,50 @@ namespace Chillde.API.Controllers
             }
         }
 
-    }
+        [Authorize]
+        [HttpPost("{serviceCollectionId}/service-wishlist")]
+        public async Task<IActionResult> AddRange(Guid serviceCollectionId, [FromBody] List<Guid> serviceIds)
+        {
+            try
+            {
+                var result = await _serviceWishlistService.AddRangeAsync(serviceCollectionId, serviceIds);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
 
+        [Authorize]
+        [HttpGet("{serviceCollectionId}/service-wishlist")]
+        public async Task<IActionResult> GetAll(Guid serviceCollectionId, [FromQuery] ServiceWishlistFilterModel filterModel)
+        {
+            try
+            {
+                var result = await _serviceWishlistService.GetAllAsync(serviceCollectionId, filterModel);
+                if (result.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+    }
 }

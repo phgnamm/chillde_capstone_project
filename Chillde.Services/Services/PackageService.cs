@@ -1,11 +1,10 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Services.Common;
+using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
-using StackExchange.Redis;
 using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
@@ -101,56 +100,65 @@ namespace Chillde.Services.Services
             }
         }
 
-            //public async Task<ResponseModel> AddFeatureAsync(PackageAddModel packageAddModel, Guid serviceId)
-            //{
-            //    try
-            //    {
-            //        var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
-            //        if (service == null)
-            //        {
-            //            return new ResponseModel
-            //            {
-            //                Code = StatusCodes.Status404NotFound,
-            //                Message = "Service not found."
-            //            };
-            //        }
+        public async Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, Guid packageId)
+        {
+            try
+            {
+                var package = await _unitOfWork.PackageRepository.GetAsync(packageId);
+                if (package == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Package not found."
+                    };
+                }
 
-            //        var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
-            //        if (numberOfExistedPackage > 3)
-            //        {
-            //            return new ResponseModel
-            //            {
-            //                Code = StatusCodes.Status422UnprocessableEntity,
-            //                Message = "Number of packages cannot exceed 3."
-            //            };
-            //        }
+                //var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(packageId).Result.Count();
+                //if (numberOfExistedPackage > 3)
+                //{
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status422UnprocessableEntity,
+                //        Message = "Number of packages cannot exceed 3."
+                //    };
+                //}
 
-            //        var package = new Package
-            //        {
-            //            Name = packageAddModel.Name,
-            //            Description = packageAddModel.Description,
-            //            Price = packageAddModel.Price,
-            //            ServiceId = serviceId,
-            //        };
+                var feature = new Feature
+                {
+                    Name = featureAddModel.Name
+                };
 
-            //        await _unitOfWork.PackageRepository.AddAsync(package);
-            //        await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.FeatureRepository.AddAsync(feature);
 
-            //        return new ResponseModel
-            //        {
-            //            Code = StatusCodes.Status201Created,
-            //            Message = "Package successfully created.",
-            //            Data = package
-            //        };
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        return new ResponseModel
-            //        {
-            //            Code = StatusCodes.Status500InternalServerError,
-            //            Message = ex.Message
-            //        };
-            //    }
-            //}
+                var packageFeature = new PackageFeature
+                {
+                    Question = featureAddModel.Question,
+                    IsInformationRequired = featureAddModel.IsInformationRequired,
+                    IsExtra = featureAddModel.IsExtra,
+                    AdditionalCost = featureAddModel.AdditionalCost,
+                    AdditionalDay = featureAddModel.AdditionalDay,
+                    FeatureId = feature.Id,
+                    PackageId = packageId
+                };
+
+                await _unitOfWork.PackageFeatureRepository.AddAsync(packageFeature);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Successfully created."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
         }
+    }
 }

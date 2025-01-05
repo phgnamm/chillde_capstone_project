@@ -1,6 +1,4 @@
 ﻿using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Repositories.Common;
@@ -35,7 +33,10 @@ public class UnitOfWork : IUnitOfWork
         IAttributeValueRepository attributeValueRepository,
         IItemAttributeRepository itemAttributeRepository,
         IShippingAddressRepository shippingAddressRepository,
-        IPackageFeatureRepository packageFeatureRepository
+        IFeatureRepository featureRepository,
+        IPackageFeatureRepository packageFeatureRepository,
+        IServiceCollectionRepository serviceCollectionRepository,
+        IServiceWishlistRepository serviceWishlistRepository
         )
     {
         Context = context;
@@ -68,7 +69,10 @@ public class UnitOfWork : IUnitOfWork
         AttributeValueRepository = attributeValueRepository;
         ItemAttributeRepository = itemAttributeRepository;
         ShippingAddressRepository = shippingAddressRepository;
+        FeatureRepository = featureRepository;
         PackageFeatureRepository = packageFeatureRepository;
+        ServiceCollectionRepository = serviceCollectionRepository;
+        ServiceWishlistRepository = serviceWishlistRepository;
     }
 
     public AppDbContext Context { get; }
@@ -111,6 +115,12 @@ public class UnitOfWork : IUnitOfWork
     public IAttributeRepository AttributeRepository {get;}
 
     public IAttributeValueRepository AttributeValueRepository {get;}
+    public IServiceCollectionRepository ServiceCollectionRepository { get; }
+    public IServiceWishlistRepository ServiceWishlistRepository { get; }
+
+    public IFeatureRepository FeatureRepository { get; }
+    public IPackageFeatureRepository PackageFeatureRepository { get; }
+
 
     public IPackageFeatureRepository PackageFeatureRepository { get; }
 
