@@ -304,6 +304,10 @@ public static class Configuration
         //ServiceWishlist
         services.AddScoped<IServiceWishlistRepository, ServiceWishlistRepository>();
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
+
+        //OpenApi
+        services.AddHttpClient<IOpenAiService, OpenAiService>();
+
         #endregion
 
         return services;

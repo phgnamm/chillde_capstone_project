@@ -8,6 +8,6 @@ namespace Chillde.Services.Models.ServiceAttachmentModels
         [Required]
         public required string AttachmentAlt { get; set; }
         [Required]
-        public required IFormFile AttachmentUrl { get; set; }
+        public required string AttachmentUrl { get; set; }
     }
 }

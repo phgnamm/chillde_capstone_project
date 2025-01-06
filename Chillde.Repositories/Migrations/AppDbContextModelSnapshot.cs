@@ -1468,6 +1468,10 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.PrimitiveCollection<float[]>("EmbeddingVector")
+                        .IsRequired()
+                        .HasColumnType("real[]");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -1723,7 +1727,6 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("DistrictName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
@@ -1752,7 +1755,6 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("ProvinceName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("WardCode")
@@ -1761,7 +1763,6 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("WardName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

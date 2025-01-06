@@ -58,6 +58,23 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] ServiceFilterModel serviceFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.Search(serviceFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
         //[Authorize]
         [HttpGet("{id}/feedbacks-users")]
         public async Task<IActionResult> GetAllByServiceAndUser(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)

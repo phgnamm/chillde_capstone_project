@@ -11,6 +11,7 @@ public class Service : BaseEntity
 
     // Foreign key
     public Guid ItemId { get; set; }
+    public float[] EmbeddingVector { get; set; } = Array.Empty<float>();
 
     // Relationship
     public Account CreatedBy { get; set; } = null!;

@@ -19,18 +19,22 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Xml.Linq;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.ServiceModels;
+using Chillde.Repositories.Models.RequestModels;
 
 namespace Chillde.Services.Services
 {
     public class ServiceService : IServiceService
     {
+        private readonly IOpenAiService _openAiService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
 
-        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper)
+        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper)
         {
+            _openAiService = openAiService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _claimService = claimService;
@@ -224,6 +228,7 @@ namespace Chillde.Services.Services
         {
             try
             {
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(serviceAddModel.Description);
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
                 {
@@ -240,7 +245,8 @@ namespace Chillde.Services.Services
                     Description = serviceAddModel.Description,
                     IsOffter = serviceAddModel.IsOffter,
                     ItemId = serviceAddModel.ItemId,
-                    Status = Repositories.Enums.ServiceStatus.Active
+                    Status = Repositories.Enums.ServiceStatus.Active,
+                    EmbeddingVector = embeddingVector
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
@@ -249,14 +255,14 @@ namespace Chillde.Services.Services
                 foreach (var serviceAttachment in serviceAddModel.ServiceAttachments) 
                 {
                     string? imageUrl = null;
-                    if (serviceAttachment.AttachmentUrl != null)
-                    {
-                        imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                            serviceAttachment.AttachmentUrl,
-                            serviceAttachment.AttachmentAlt,
-                            Guid.NewGuid().ToString()
-                        );
-                    }
+                    //if (serviceAttachment.AttachmentUrl != null)
+                    //{
+                    //    imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                    //        serviceAttachment.AttachmentUrl,
+                    //        serviceAttachment.AttachmentAlt,
+                    //        Guid.NewGuid().ToString()
+                    //    );
+                    //}
                     serviceAttachmentList.Add(new ServiceAttachment
                     {
                         AttachmentAlt = serviceAttachment.AttachmentAlt,
@@ -586,5 +592,52 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
+        public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
+        {
+
+            var inputEmbedding = await _openAiService.GetEmbeddingAsync(serviceFilterModel.Description);
+
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync();
+            var results = services.Data.Select(service =>
+            {
+                var serviceEmbedding = service.EmbeddingVector; 
+                var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+                return new ServiceModel
+                {
+                    Id = service.Id,
+                    Name = service.Name,
+                    Description = service.Description,
+                    Similarity = similarity
+                };
+            })
+            .OrderByDescending(r => r.Similarity)
+            .ToList();
+
+            var result = new Pagination<ServiceModel>(results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+           .Take(serviceFilterModel.PageSize).ToList(), serviceFilterModel.PageIndex,
+                      serviceFilterModel.PageSize, results.Count);
+
+            return new ResponseModel
+            {
+                Message = "Get all services successfully",
+                Data = result
+            };
+        }
+        private static double CosineSimilarity(float[] vectorA, float[] vectorB)
+        {
+            if (vectorA.Length == 0 || vectorB.Length == 0)
+                throw new ArgumentException("Embedding vectors cannot be empty.");
+
+            var dotProduct = vectorA.Zip(vectorB, (a, b) => a * b).Sum();
+            var magnitudeA = Math.Sqrt(vectorA.Sum(a => a * a));
+            var magnitudeB = Math.Sqrt(vectorB.Sum(b => b * b));
+
+            if (magnitudeA == 0 || magnitudeB == 0)
+                return 0;
+
+            return dotProduct / (magnitudeA * magnitudeB);
+        }
+
     }
 }

@@ -122,7 +122,6 @@ public class UnitOfWork : IUnitOfWork
     public IPackageFeatureRepository PackageFeatureRepository { get; }
 
 
-    public IPackageFeatureRepository PackageFeatureRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {
