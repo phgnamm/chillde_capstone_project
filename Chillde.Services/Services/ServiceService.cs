@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using System.Xml.Linq;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.ServiceModels;
 
 namespace Chillde.Services.Services
 {
@@ -193,6 +194,9 @@ namespace Chillde.Services.Services
         {
             try
             {
+                //Func<IQueryable<Service>, IQueryable<Service>> include = services =>
+                //     services.Include(_ => _.ServiceAttachments);
+
                 var service = await _unitOfWork.ServiceRepository.GetAsync(id);
                 if (service == null)
                 {
@@ -202,6 +206,8 @@ namespace Chillde.Services.Services
                         Message = "Service not found."
                     };
                 }
+
+                var serviceModel = _mapper.Map<ServiceModel>(service);
 
                 return new ResponseModel
                 {
@@ -285,7 +291,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(ServiceStatus serviceStatus, Guid id)
+        public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id)
         {
             try
             {
@@ -299,7 +305,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                service.Status = serviceStatus;
+                service.Status = serviceUpdateModel.Status;
 
                 _unitOfWork.ServiceRepository.Update(service);
                 await _unitOfWork.SaveChangeAsync();

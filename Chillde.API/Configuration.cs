@@ -291,6 +291,7 @@ public static class Configuration
 
         //PackageFeature
         services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+        services.AddScoped<IPackageFeatureService, PackageFeatureService>();
 
         //ServiceCollection
         services.AddScoped<IServiceCollectionRepository, ServiceCollectionRepository>();
