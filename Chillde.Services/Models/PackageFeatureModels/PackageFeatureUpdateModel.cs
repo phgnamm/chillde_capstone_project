@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Chillde.Repositories.Models.FeatureModels
+namespace Chillde.Services.Models.PackageFeatureModels
 {
-    public class FeatureAddModel
+    public class PackageFeatureUpdateModel
     {
-        [Required]
-        public string Name { get; set; }
         [Required]
         public string Question { get; set; }
         [Required]

@@ -1,37 +1,41 @@
-﻿using Chillde.Repositories.Interfaces;
+﻿using AutoMapper;
+using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
+using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 
 namespace Chillde.Services.Services
 {
-    public class FeatureService : IFeatureService
+    public class PackageFeatureService : IPackageFeatureService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public FeatureService(IUnitOfWork unitOfWork)
+        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork; 
+            _mapper = mapper;
         }
 
-        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id)
+        public async Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id)
         {
             try
             {
-                var feature = await _unitOfWork.FeatureRepository.GetAsync(id);
-                if (feature == null)
+                var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(id);
+                if (packageFeature == null)
                 {
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status404NotFound,
-                        Message = "Feature not found."
+                        Message = "Package feature not found."
                     };
                 }
 
-                feature.Name = featureUpdateModel.Name;
+                _mapper.Map(packageFeatureUpdateModel, packageFeature);
 
-                _unitOfWork.FeatureRepository.Update(feature);
+                _unitOfWork.PackageFeatureRepository.Update(packageFeature);
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel

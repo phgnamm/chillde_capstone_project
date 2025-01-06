@@ -116,11 +116,11 @@ namespace Chillde.API.Controllers
 
         //[Authorize("Artist, Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] ServiceStatus serviceStatus, Guid id)
+        public async Task<IActionResult> Update([FromBody] ServiceUpdateModel serviceUpdateModel, Guid id)
         {
             try
             {
-                var result = await _serviceService.UpdateAsync(serviceStatus, id);
+                var result = await _serviceService.UpdateAsync(serviceUpdateModel, id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
