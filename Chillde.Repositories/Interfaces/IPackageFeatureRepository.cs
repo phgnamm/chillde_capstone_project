@@ -1,6 +1,4 @@
-﻿using Chillde.Repositories.Common;
-using Chillde.Repositories.Entities;
-using System.Linq.Expressions;
+﻿using Chillde.Repositories.Entities;
 
 namespace Chillde.Repositories.Interfaces
 {

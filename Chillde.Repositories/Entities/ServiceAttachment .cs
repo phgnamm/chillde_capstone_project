@@ -1,4 +1,6 @@
-﻿namespace Chillde.Repositories.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace Chillde.Repositories.Entities;
 
 public class ServiceAttachment : BaseEntity
 {
@@ -9,5 +11,6 @@ public class ServiceAttachment : BaseEntity
     public Guid ServiceId { get; set; }
 
     // Relationship
+    [JsonIgnore]
     public Service Service { get; set; } = null!;
 }

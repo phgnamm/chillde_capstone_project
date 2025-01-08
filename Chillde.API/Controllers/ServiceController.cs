@@ -97,7 +97,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize("Artist")]
         [HttpPost]
-        public async Task<IActionResult> AddServiceAsync([FromBody] ServiceAddModel serviceAddModel)
+        public async Task<IActionResult> AddServiceAsync([FromForm] ServiceAddModel serviceAddModel)
         {
             try
             {

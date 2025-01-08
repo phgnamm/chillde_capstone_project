@@ -14,6 +14,6 @@ namespace Chillde.Services.Models.ServiceModels
         public bool IsOffter { get; set; }
         [Required]
         public Guid ItemId { get; set; }
-        public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
+        public ServiceAttachmentAddModel? ServiceAttachments { get; set; }
     }
 }
