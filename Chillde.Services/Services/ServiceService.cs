@@ -3,12 +3,9 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.FeedbackModels;
-using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Common;
-using Chillde.Services.Helpers;
 using Chillde.Repositories.Models.PackageModels;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
@@ -17,8 +14,6 @@ using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
-using System.Xml.Linq;
-using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.ServiceModels;
 
 namespace Chillde.Services.Services
@@ -29,13 +24,16 @@ namespace Chillde.Services.Services
         private readonly IMapper _mapper;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IServiceAttachmentService _serviceAttachmentService;
 
-        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper)
+        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, 
+            IServiceAttachmentService serviceAttachmentService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
+            _serviceAttachmentService = serviceAttachmentService;
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
@@ -194,10 +192,10 @@ namespace Chillde.Services.Services
         {
             try
             {
-                //Func<IQueryable<Service>, IQueryable<Service>> include = services =>
-                //     services.Include(_ => _.ServiceAttachments);
+                Func<IQueryable<Service>, IQueryable<Service>> include = services =>
+                     services.Include(_ => _.ServiceAttachments);
 
-                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                var service = await _unitOfWork.ServiceRepository.GetAsync(id, include);
                 if (service == null)
                 {
                     return new ResponseModel
@@ -213,7 +211,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Successfully.",
-                    Data = service
+                    Data = serviceModel
                 };
             }
             catch (Exception ex)
@@ -251,27 +249,52 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
 
-                var serviceAttachmentList = new List<ServiceAttachment>();
-                foreach (var serviceAttachment in serviceAddModel.ServiceAttachments) 
-                {
-                    string? imageUrl = null;
-                    if (serviceAttachment.AttachmentUrl != null)
-                    {
-                        imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                            serviceAttachment.AttachmentUrl,
-                            serviceAttachment.AttachmentAlt,
-                            Guid.NewGuid().ToString()
-                        );
-                    }
-                    serviceAttachmentList.Add(new ServiceAttachment
-                    {
-                        AttachmentAlt = serviceAttachment.AttachmentAlt,
-                        AttachmentUrl = serviceAttachment?.AttachmentUrl?.ToString(),
-                        ServiceId = service.Id
-                    });
-                }
 
-                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentList);
+                //if (serviceAddModel.ServiceAttachments != null && serviceAddModel.ServiceAttachments.Count > 0)
+                //{
+                //    var serviceAttachmentList = new List<ServiceAttachment>();
+
+                //    foreach (var attachment in serviceAddModel.ServiceAttachments)
+                //    {
+                //        var path = await _cloudinaryHelper.UploadImageAsync(
+                //            attachment.AttachmentUrls,
+                //            "feedbacks",
+                //            Guid.NewGuid().ToString()
+                //        );
+
+                //        serviceAttachmentList.Add(new ServiceAttachment
+                //        {
+                //            ServiceId = service.Id,
+                //            AttachmentUrl = path,
+                //            AttachmentAlt = attachment.AttachmentAlt,
+                //        });
+                //    }
+
+                //    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentList);
+                //}
+                //foreach (var serviceAttachment in serviceAddModel.ServiceAttachments)
+                //{
+                //    //string? imageUrl = null;
+                //    //if (serviceAttachment.AttachmentUrls != null)
+                //    //{
+                //    //    imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                //    //        serviceAttachment.AttachmentUrls,
+                //    //        serviceAttachment.ServiceAttachmentAddRequestModels.AttachmentAlt,
+                //    //        Guid.NewGuid().ToString()
+                //    //    );
+                //    //}
+                //    //serviceAttachmentList.Add(new ServiceAttachment
+                //    //{
+                //    //    AttachmentAlt = serviceAttachment.AttachmentAlt,
+                //    //    AttachmentUrl = serviceAttachment?.AttachmentUrls?.ToString(),
+                //    //    ServiceId = service.Id
+                //    //});
+
+
+                //}
+
+                _serviceAttachmentService.AddRangeAsync(service.Id, serviceAddModel.ServiceAttachments);
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel

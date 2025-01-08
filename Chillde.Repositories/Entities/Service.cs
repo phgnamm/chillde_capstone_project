@@ -19,6 +19,6 @@ public class Service : BaseEntity
     public virtual ICollection<ServiceWishlist> ServiceWishlists { get; set; } = new List<ServiceWishlist>();
     public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
-    public virtual ICollection<ServiceAttachment> ServiceAttachments { get; set; } = new List<ServiceAttachment>();
+    public virtual ICollection<ServiceAttachment > ServiceAttachments { get; set; } = new List<ServiceAttachment>();
     public virtual ICollection<Package> Packages { get; set; } = new List<Package>();
 }
