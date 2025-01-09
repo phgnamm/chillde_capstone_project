@@ -228,6 +228,16 @@ namespace Chillde.Services.Services
         {
             try
             {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
+
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
                 {
@@ -249,59 +259,40 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
 
+                var newServiceAttachment = new List<ServiceAttachment>();
+                var model = serviceAddModel.ServiceAttachments;
+                for (int i = 0; i < model.AttachmentAlt.Count; i++)
+                {
+                    var attachmentAlt = model.AttachmentAlt[i];
+                    var attachmentUrl = model.AttachmentUrls[i];
 
-                //if (serviceAddModel.ServiceAttachments != null && serviceAddModel.ServiceAttachments.Count > 0)
-                //{
-                //    var serviceAttachmentList = new List<ServiceAttachment>();
+                    string? path = null;
+                    if (attachmentUrl != null)
+                    {
+                        path = await _cloudinaryHelper.UploadImageAsync(
+                            attachmentUrl,
+                            "serviceAttachments",
+                            Guid.NewGuid().ToString()
+                        );
+                    }
+                    
+                    newServiceAttachment.Add(new ServiceAttachment
+                    {
+                        AttachmentAlt = attachmentAlt,
+                        AttachmentUrl = path,
+                        ServiceId = service.Id
+                    });
+                }
 
-                //    foreach (var attachment in serviceAddModel.ServiceAttachments)
-                //    {
-                //        var path = await _cloudinaryHelper.UploadImageAsync(
-                //            attachment.AttachmentUrls,
-                //            "feedbacks",
-                //            Guid.NewGuid().ToString()
-                //        );
-
-                //        serviceAttachmentList.Add(new ServiceAttachment
-                //        {
-                //            ServiceId = service.Id,
-                //            AttachmentUrl = path,
-                //            AttachmentAlt = attachment.AttachmentAlt,
-                //        });
-                //    }
-
-                //    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentList);
-                //}
-                //foreach (var serviceAttachment in serviceAddModel.ServiceAttachments)
-                //{
-                //    //string? imageUrl = null;
-                //    //if (serviceAttachment.AttachmentUrls != null)
-                //    //{
-                //    //    imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                //    //        serviceAttachment.AttachmentUrls,
-                //    //        serviceAttachment.ServiceAttachmentAddRequestModels.AttachmentAlt,
-                //    //        Guid.NewGuid().ToString()
-                //    //    );
-                //    //}
-                //    //serviceAttachmentList.Add(new ServiceAttachment
-                //    //{
-                //    //    AttachmentAlt = serviceAttachment.AttachmentAlt,
-                //    //    AttachmentUrl = serviceAttachment?.AttachmentUrls?.ToString(),
-                //    //    ServiceId = service.Id
-                //    //});
-
-
-                //}
-
-                _serviceAttachmentService.AddRangeAsync(service.Id, serviceAddModel.ServiceAttachments);
-
+                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                 await _unitOfWork.SaveChangeAsync();
 
+                var serviceModel = _mapper.Map<ServiceModel>(service);
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Service successfully created.",
-                    Data = service
+                    Data = serviceModel
                 };
             }
             catch (Exception ex)

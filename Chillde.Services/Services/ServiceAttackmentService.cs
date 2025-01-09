@@ -38,31 +38,8 @@ namespace Chillde.Services.Services
 
                 for (int i = 0; i < model.AttachmentAlt.Count; i++)
                 {
-                    var serviceAttachmentModel = model.AttachmentAlt[i];
+                    var attachmentAlt = model.AttachmentAlt[i];
                     var attachmentUrl = model.AttachmentUrls[i];
-
-                    //var existingAttachment = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(s => s.Name == serviceAttachmentModel.Name);
-                    //if (existingAttachment != null)
-                    //{
-                    //    return new ResponseModel
-                    //    {
-                    //        Code = StatusCodes.Status400BadRequest,
-                    //        Message = $"Category with name '{serviceAttachmentModel.Name}' already exists."
-                    //    };
-                    //}
-
-                    //string code = string.IsNullOrWhiteSpace(serviceAttachmentModel.Code)
-                    //    ? GenerateSlug(serviceAttachmentModel.Name)
-                    //    : serviceAttachmentModel.Code;
-
-                    //if (!IsValidSlug(code))
-                    //{
-                    //    return new ResponseModel
-                    //    {
-                    //        Code = StatusCodes.Status400BadRequest,
-                    //        Message = $"Invalid format for Code in category '{serviceAttachmentModel.Name}'. Use only lowercase letters, numbers, hyphens, or underscores."
-                    //    };
-                    //}
 
                     string? path = null;
                     if (attachmentUrl != null)
@@ -76,7 +53,7 @@ namespace Chillde.Services.Services
 
                     newServiceAttachment.Add(new ServiceAttachment
                     {
-                        AttachmentAlt = serviceAttachmentModel,
+                        AttachmentAlt = attachmentAlt,
                         AttachmentUrl = path,
                         ServiceId = serviceId,
                     });

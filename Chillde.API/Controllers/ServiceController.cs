@@ -27,7 +27,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize]
         [HttpPost("feedbacks")]
-        public async Task<IActionResult> Add([FromForm] FeedbackAddModel feedbackAddModel)
+        public async Task<IActionResult> AddFeedback([FromForm] FeedbackAddModel feedbackAddModel)
         {
             try
             {

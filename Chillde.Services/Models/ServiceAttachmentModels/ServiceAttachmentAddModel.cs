@@ -9,7 +9,7 @@ namespace Chillde.Services.Models.ServiceAttachmentModels
         [Required]
         public required List<string> AttachmentAlt { get; set; }
         [Required]
-        public List<IFormFile>? AttachmentUrls { get; set; }
+        public IFormFileCollection? AttachmentUrls { get; set; }
     }
     public class ServiceAttachmentAddRequestModel
     {
