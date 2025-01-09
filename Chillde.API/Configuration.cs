@@ -92,10 +92,12 @@ public static class Configuration
         });
 
         //Translation
+        services.Configure<ModelConfigurationOptions>(configuration.GetSection("ModelConfiguration"));
         services.AddOpenAIService(settings =>
         {
             settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
+
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
@@ -301,6 +303,9 @@ public static class Configuration
         //ServiceWishlist
         services.AddScoped<IServiceWishlistRepository, ServiceWishlistRepository>();
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
+
+        //OpenAiService
+        services.AddScoped<IOpenAiService, OpenAiService>();
         #endregion
 
         return services;
