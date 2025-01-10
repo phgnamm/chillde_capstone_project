@@ -44,6 +44,7 @@ public interface IUnitOfWork
     IPackageFeatureRepository PackageFeatureRepository { get; }
     IServiceCollectionRepository ServiceCollectionRepository { get; }
     IServiceWishlistRepository ServiceWishlistRepository { get; }
+    IShipmentRepository ShipmentRepository { get; }
 
     #endregion
 }

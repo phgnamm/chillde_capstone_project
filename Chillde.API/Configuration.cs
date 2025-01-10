@@ -301,6 +301,10 @@ public static class Configuration
         //ServiceWishlist
         services.AddScoped<IServiceWishlistRepository, ServiceWishlistRepository>();
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
+
+        //Shipment 
+        services.AddScoped<IShipmentRepository,ShipmentRepository>();
+        services.AddScoped<IShipmentService,ShipmentService>(); 
         #endregion
 
         return services;
