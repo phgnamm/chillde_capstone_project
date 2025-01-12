@@ -14,7 +14,7 @@ namespace Chillde.API.Controllers
     {
         private readonly IShipmentService _shipmentService;
 
-        public ShipmentController(ShipmentService shipmentService)
+        public ShipmentController(IShipmentService shipmentService)
         {
             _shipmentService = shipmentService;
         }

@@ -35,15 +35,18 @@ namespace Chillde.Services.Services
             var requestPayload = new
             {
                 from_district_id = requestModel.FromDistrictId,
+                from_ward_code = requestModel.FromWardCode, 
                 service_id = requestModel.ServiceId,
                 service_type_id = requestModel.ServiceTypeId,
                 to_district_id = requestModel.ToDistrictId,
                 to_ward_code = requestModel.ToWardCode,
-                height = requestModel.Height,
-                length = requestModel.Length,
+                height = requestModel.Height > 0 ? requestModel.Height : null,
+                length = requestModel.Length > 0 ? requestModel.Length : null,
+                width = requestModel.Width > 0 ? requestModel.Width : null,
                 weight = requestModel.Weight,
-                width = requestModel.Width,
-                insurance_value = requestModel.InsuranceValue
+                insurance_value = requestModel.InsuranceValue > 0 ? requestModel.InsuranceValue : null,
+                cod_failed_amount = requestModel.CodFailedAmount > 0 ? requestModel.CodFailedAmount : null,
+                coupon = requestModel.Coupon
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8,

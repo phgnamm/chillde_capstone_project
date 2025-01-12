@@ -1,6 +1,11 @@
-﻿namespace Chillde.Repositories.Interfaces;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Models.OfferModels;
 
-public interface IShipmentRepository
+namespace Chillde.Repositories.Interfaces;
+
+public interface IShipmentRepository : IGenericRepository<Shipment>
 {
-    
+
+
+
 }
