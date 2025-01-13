@@ -186,11 +186,11 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguage)
         {
-            var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
-            Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
-            Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
             try
             {
+                var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+                Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
                 if (sourceLanguageCode.ToLower() == "en")
                 {
                     var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
@@ -263,6 +263,7 @@ namespace Chillde.Services.Services
                             Description = request.Description,
                             Status = _localizer[request.Status.ToString()],
                         },
+                        null,
                         translationFields
                     );
 
@@ -287,50 +288,122 @@ namespace Chillde.Services.Services
             }
         }
 
-
-        public async Task<ResponseModel> GetById(Guid id)
+        public async Task<ResponseModel> GetById(Guid id, string sourceLanguageCode, string targetLanguage)
         {
-            var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails)
-                                                                                         .ThenInclude(_ => _.Attribute)
-                                                                                         .Include(_ => _.Item));
-            if (existingRequest == null)
+            try
+            {
+                var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+                Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails)
+                                                                                             .ThenInclude(_ => _.Attribute)
+                                                                                             .Include(_ => _.Item));
+                if (existingRequest == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Request not found."
+                    };
+                }
+
+                if (sourceLanguageCode.ToLower() != "en")
+                {
+                    var translationFields = new[] { "Name", "Description" };
+                    var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestGetByIdModel>(
+                        new List<Guid> { id },
+                        sourceLanguageCode,
+                        request => new RequestGetByIdModel
+                        {
+                            Id = request.Id,
+                            Name = request.Name!,
+                            Description = request.Description!,
+                            MinBudget = request.MinBudget ?? 0,
+                            MaxBudget = request.MaxBudget ?? 0,
+                            Timeline = request.Timeline ?? 0,
+                            AttachmentUrl = request.AttachmentUrl!,
+                            Status = request.Status,
+                            ItemId = request.ItemId,
+                            ItemName = _localizer[request.Item.Name!.ToString()],
+                            ItemCode = request.Item?.Code!,
+                            ItemImageUrl = request.Item?.ImageUrl!,
+                            RequestDetailGetByIdModels = request.RequestDetails.Select(detail => new RequestDetailGetByIdModel
+                            {
+                                Id = detail.Id,
+                                Description = detail.Description,
+                                ItemAttributeId = detail.AttributeId,
+                                ItemAttributeName = detail.Attribute?.Name!
+                            }).ToList()
+                        },
+                        "RequestDetails",
+                        translationFields,
+                        nestedRelationships: new[] { "Attribute" },
+                        "Description"
+                    );
+
+                    if (translations != null)
+                    {
+                        var updatedTranslations = translations.Select(translation =>
+                        {
+                            translation.RequestDetailGetByIdModels = translation.RequestDetailGetByIdModels!
+                                .Select(detail => new RequestDetailGetByIdModel
+                                {
+                                    Id = detail.Id,
+                                    Description = detail.Description ?? detail.Description,
+                                    ItemAttributeId = existingRequest.RequestDetails.FirstOrDefault()!.Attribute.Id,
+                                    ItemAttributeName = _localizer[existingRequest.RequestDetails.FirstOrDefault()!.Attribute.Name.ToString()]
+                                }).ToList();
+                            return translation;
+                        }).ToList();
+
+                        return new ResponseModel
+                        {
+                            Data = updatedTranslations,
+                            Message = "Get request detail successfully"
+                        };
+                    }
+                }
+
+                var requestModel = new RequestGetByIdModel
+                {
+                    Id = existingRequest.Id,
+                    Name = existingRequest.Name ?? "Unknown",
+                    Description = existingRequest.Description ?? "Unknown",
+                    MinBudget = existingRequest.MinBudget ?? 0,
+                    MaxBudget = existingRequest.MaxBudget ?? 0,
+                    Timeline = existingRequest.Timeline ?? 0,
+                    AttachmentUrl = existingRequest.AttachmentUrl ?? "Unknown",
+                    Status = existingRequest.Status,
+                    ItemId = existingRequest.ItemId,
+                    ItemName = existingRequest.Item?.Name ?? "Unknown",
+                    ItemCode = existingRequest.Item?.Code ?? "Unknown",
+                    ItemImageUrl = existingRequest.Item?.ImageUrl ?? "Unknown",
+                    RequestDetailGetByIdModels = existingRequest.RequestDetails.Select(_ => new RequestDetailGetByIdModel
+                    {
+                        Id = _.Id,
+                        Description = _.Description,
+                        ItemAttributeId = _.AttributeId,
+                        ItemAttributeName = _.Attribute?.Name ?? "Unknown"
+                    }).ToList()
+                };
+
+                return new ResponseModel
+                {
+                    Data = requestModel,
+                    Message = "Get request detail success"
+                };
+            }
+            catch (Exception ex)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request not found."
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
                 };
             }
-            var existingRequestModel = new RequestGetByIdModel
-            {
-                Id = existingRequest.Id,
-                Name = existingRequest.Name ?? "Unknown",
-                Description = existingRequest.Description ?? "Unknown",
-                MinBudget = (decimal)existingRequest.MinBudget!,
-                MaxBudget = (decimal)existingRequest.MaxBudget!,
-                Timeline = (int)existingRequest.Timeline!,
-                AttachmentUrl = existingRequest.AttachmentUrl ?? "Unknown",
-                Status = existingRequest.Status,
-                ItemId = existingRequest.ItemId,
-                ItemName = existingRequest.Item.Name ?? "Unknown",
-                ItemCode = existingRequest.Item.Code ?? "Unknown",
-                ItemImageUrl = existingRequest.Item.ImageUrl ?? "Unknown",
-                RequestDetailGetByIdModels = existingRequest.RequestDetails.Select(_ => new RequestDetailGetByIdModel
-                {
-                    Id = _.Id,
-                    Description = _.Description,
-                    ItemAttributeId = _.AttributeId,
-                    ItemAttributeName = _.Attribute.Name ?? "Unknown"
-                }).ToList()
-            };
-            return new ResponseModel
-            {
-                Data = existingRequestModel,
-                Message = "Get request detail success"
-            };
         }
 
-        public async Task<ResponseModel> Update(Guid id, RequestUpdateModel requestUpdateModel)
+        public async Task<ResponseModel> Update(Guid id, RequestUpdateModel requestUpdateModel, string sourceLanguageCode, string targetLanguageCode)
         {
             if (requestUpdateModel == null || id == Guid.Empty)
             {
@@ -340,90 +413,108 @@ namespace Chillde.Services.Services
                     Message = "Invalid input."
                 };
             }
-            var hasOffered = await _unitOfWork.OfferRepository.RequestHasOffered(id);
-            if (hasOffered)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request cannot update."
-                };
-            }
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized."
-                };
-            }
 
-            var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails));
-            if (existingRequest == null)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request not found."
-                };
-            }
+            await _unitOfWork.BeginTransactionAsync();
 
-            existingRequest.Name = requestUpdateModel.Name ?? existingRequest.Name;
-            existingRequest.Description = requestUpdateModel.Description ?? existingRequest.Description;
-            existingRequest.MinBudget = requestUpdateModel.MinBudget ?? existingRequest.MinBudget;
-            existingRequest.MaxBudget = requestUpdateModel.MaxBudget ?? existingRequest.MaxBudget;
-            existingRequest.Timeline = requestUpdateModel.Timeline ?? existingRequest.Timeline;
-            existingRequest.ItemId = requestUpdateModel.ItemId != Guid.Empty ? requestUpdateModel.ItemId : existingRequest.ItemId;
-            existingRequest.ModifiedById = currentUserId.Value;
-            existingRequest.ModificationDate = DateTime.UtcNow;
-            if (requestUpdateModel.AttachmentUrl != null)
+            try
             {
-                existingRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-                    requestUpdateModel.AttachmentUrl,
-                    existingRequest.Id.ToString(),
-                    existingRequest.Id.ToString());
-            }
-            if (requestUpdateModel.RequestDetailUpdateModels != null)
-            {
-                foreach (var detail in requestUpdateModel.RequestDetailUpdateModels)
+                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails));
+                if (existingRequest == null)
                 {
-                    var existingDetail = existingRequest.RequestDetails.FirstOrDefault(_ => _.Id == detail.Id);
-                    if (existingDetail != null)
+                    return new ResponseModel
                     {
-                        existingDetail.Description = detail.Description ?? existingDetail.Description;
-                        existingDetail.AttributeId = detail.AttributeId != Guid.Empty ? detail.AttributeId : existingDetail.AttributeId;
-                        existingDetail.ModifiedById = currentUserId.Value;
-                        existingDetail.ModificationDate = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        existingRequest.RequestDetails.Add(new RequestDetail
-                        {
-                            Id = Guid.NewGuid(),
-                            Description = detail.Description,
-                            AttributeId = detail.AttributeId,
-                            CreatedById = currentUserId.Value,
-                            CreationDate = DateTime.UtcNow
-                        });
-                    }
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Request not found."
+                    };
                 }
-            }
+                var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Name", languageId);
+                var translationDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Description", languageId);
 
-            _unitOfWork.RequestRepository.Update(existingRequest);
-            var result = await _unitOfWork.SaveChangeAsync();
+                bool changesMade = false;
 
-            return result > 0
-                ? new ResponseModel
+                if (!string.Equals(requestUpdateModel.Name, existingRequest.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (translationName != null && translationName.TranslationText != requestUpdateModel.Name)
+                    {
+                        translationName.TranslationText = requestUpdateModel.Name!;
+                        _unitOfWork.TranslationRepository.Update(translationName);
+                    }
+
+                    var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Name!, sourceLanguageCode, targetLanguageCode);
+                    if (translationResponse.Code != StatusCodes.Status200OK)
+                    {
+                        throw new Exception("Failed to translate Name.");
+                    }
+
+                    existingRequest.Name = translationResponse.Message;
+                    changesMade = true;
+                }
+
+                if (!string.Equals(requestUpdateModel.Description, existingRequest.Description, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (translationDescription != null && translationDescription.TranslationText != requestUpdateModel.Description)
+                    {
+                        translationDescription.TranslationText = requestUpdateModel.Description!;
+                        _unitOfWork.TranslationRepository.Update(translationDescription);
+                    }
+
+                    var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Description!, sourceLanguageCode, targetLanguageCode);
+                    if (translationResponse.Code != StatusCodes.Status200OK)
+                    {
+                        throw new Exception("Failed to translate Description.");
+                    }
+
+                    existingRequest.Description = translationResponse.Message;
+                    changesMade = true;
+                }
+
+                if (requestUpdateModel.MinBudget.HasValue && existingRequest.MinBudget != requestUpdateModel.MinBudget.Value)
+                {
+                    existingRequest.MinBudget = requestUpdateModel.MinBudget.Value;
+                    changesMade = true;
+                }
+
+                if (requestUpdateModel.MaxBudget.HasValue && existingRequest.MaxBudget != requestUpdateModel.MaxBudget.Value)
+                {
+                    existingRequest.MaxBudget = requestUpdateModel.MaxBudget.Value;
+                    changesMade = true;
+                }
+
+                if (requestUpdateModel.AttachmentUrl != null)
+                {
+                    existingRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(requestUpdateModel.AttachmentUrl, existingRequest.Id.ToString());
+                    changesMade = true;
+                }
+
+                if (!changesMade)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
+                _unitOfWork.RequestRepository.Update(existingRequest);
+                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Request updated successfully."
-                }
-                : new ResponseModel
-                {
-                    Code = StatusCodes.Status409Conflict,
-                    Message = "Failed to update request."
                 };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error: {ex.Message}"
+                };
+            }
         }
     }
 }

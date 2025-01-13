@@ -123,6 +123,9 @@
   <data name="Approved" xml:space="preserve">
     <value>Đã phê duyệt</value>
   </data>
+  <data name="Attribute1" xml:space="preserve">
+    <value>Thuộc tính 1</value>
+  </data>
   <data name="Cancelled" xml:space="preserve">
     <value>Đã huỷ</value>
   </data>
