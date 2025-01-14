@@ -44,8 +44,8 @@ namespace Chillde.Services.Services
                 length = requestModel.Length > 0 ? requestModel.Length : null,
                 width = requestModel.Width > 0 ? requestModel.Width : null,
                 weight = requestModel.Weight,
-                insurance_value = requestModel.InsuranceValue > 0 ? requestModel.InsuranceValue : null,
-                cod_failed_amount = requestModel.CodFailedAmount > 0 ? requestModel.CodFailedAmount : null,
+                insurance_value = requestModel.InsuranceValue > 0 ? (int?)requestModel.InsuranceValue : null,
+                cod_failed_amount = requestModel.CodFailedAmount > 0 ? (int?)requestModel.CodFailedAmount : null,
                 coupon = requestModel.Coupon
             };
 
@@ -54,7 +54,7 @@ namespace Chillde.Services.Services
 
             try
             {
-                var response = await _httpClient.PostAsync("/v2/shipping-order/fee", content);
+                var response = await _httpClient.PostAsync("v2/shipping-order/fee", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
