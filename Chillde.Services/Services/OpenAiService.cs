@@ -20,12 +20,13 @@ namespace Chillde.Services.Services
             _configuration = configuration;
         }
 
-        public async Task<float[]> GetEmbeddingAsync(string description)
+        public async Task<float[]> GetEmbeddingAsync(List<string> texts)
         {
-            if (string.IsNullOrWhiteSpace(description))
-                throw new ArgumentException("Input cannot be empty.", nameof(description));
+            if (texts == null || texts.Count == 0)
+            {
+                throw new ArgumentException("Input cannot be empty.", nameof(texts));
+            }
 
-            // Lấy API key từ cấu hình
             var apiKey = _configuration["OpenAI:ApiKey"];
             if (string.IsNullOrEmpty(apiKey))
                 throw new Exception("API key is missing.");
@@ -36,7 +37,7 @@ namespace Chillde.Services.Services
             var requestBody = new
             {
                 model = "text-embedding-ada-002",
-                input = description
+                input = texts
             };
 
             var response = await httpClient.PostAsJsonAsync("https://api.openai.com/v1/embeddings", requestBody);
@@ -50,6 +51,7 @@ namespace Chillde.Services.Services
             var responseData = await response.Content.ReadFromJsonAsync<OpenAiEmbeddingResponse>();
             return responseData?.Data.FirstOrDefault()?.Embedding ?? throw new Exception("No embedding data returned.");
         }
+
     }
 
 

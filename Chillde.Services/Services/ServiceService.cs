@@ -228,7 +228,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var embeddingVector = await _openAiService.GetEmbeddingAsync(serviceAddModel.Description);
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(serviceAddModel.Description, serviceAddModel.Name);
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
                 {
@@ -595,28 +595,42 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
-
-            var inputEmbedding = await _openAiService.GetEmbeddingAsync(serviceFilterModel.Description);
-
+            serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
+            var inputEmbedding = await _openAiService.GetEmbeddingAsync(serviceFilterModel.Description, "");
             var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-            var results = services.Data.Select(service =>
-            {
-                var serviceEmbedding = service.EmbeddingVector; 
-                var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
-                return new ServiceModel
-                {
-                    Id = service.Id,
-                    Name = service.Name,
-                    Description = service.Description,
-                    Similarity = similarity
-                };
-            })
-            .OrderByDescending(r => r.Similarity)
-            .ToList();
+            var threshold = 0.80; 
+            var keywordThreshold = 0.2; 
+            var tasks = services.Data
+                                .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
+                                .Select(async _ =>
+                                {
+                                    var serviceEmbedding = _.EmbeddingVector;
+                                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+                                    var keywordScore = (similarity < 0.5 &&
+                                                        (_.Name.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
+                                                         _.Description.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
+                                                        ? keywordThreshold : 0;
 
-            var result = new Pagination<ServiceModel>(results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
-           .Take(serviceFilterModel.PageSize).ToList(), serviceFilterModel.PageIndex,
-                      serviceFilterModel.PageSize, results.Count);
+                                    return new ServiceModel
+                                    {
+                                        Id = _.Id,
+                                        Name = _.Name,
+                                        Description = _.Description,
+                                        Similarity = similarity + keywordScore
+                                    };
+                                }).ToList();
+
+            var results = (await Task.WhenAll(tasks))
+                          .Where(_ => _.Similarity >= threshold)
+                          .OrderByDescending(_ => _.Similarity)
+                          .ToList();
+
+            var result = new Pagination<ServiceModel>(
+                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                       .Take(serviceFilterModel.PageSize)
+                       .ToList(),
+                serviceFilterModel.PageIndex,
+                serviceFilterModel.PageSize, results.Count);
 
             return new ResponseModel
             {
@@ -624,6 +638,7 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+
         private static double CosineSimilarity(float[] vectorA, float[] vectorB)
         {
             if (vectorA.Length == 0 || vectorB.Length == 0)

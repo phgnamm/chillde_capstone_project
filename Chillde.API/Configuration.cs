@@ -306,7 +306,7 @@ public static class Configuration
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
 
         //OpenApi
-        services.AddHttpClient<IOpenAiService, OpenAiService>();
+        services.AddTransient<IOpenAiService, OpenAiService>();
 
         #endregion
 
