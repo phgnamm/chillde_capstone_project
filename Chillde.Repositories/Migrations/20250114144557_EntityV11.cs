@@ -23,14 +23,21 @@ namespace Chillde.Repositories.Migrations
                 oldNullable: true);
 
             migrationBuilder.AddColumn<int>(
-                name: "District",
+                name: "FromDistrict",
                 table: "Orders",
                 type: "integer",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
-                name: "Province",
+                name: "FromProvince",
+                table: "Orders",
+                type: "text",
+                nullable: false,
+                defaultValue: "");
+
+            migrationBuilder.AddColumn<string>(
+                name: "FromWard",
                 table: "Orders",
                 type: "text",
                 nullable: false,
@@ -41,32 +48,25 @@ namespace Chillde.Repositories.Migrations
                 table: "Orders",
                 type: "text",
                 nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Ward",
-                table: "Orders",
-                type: "text",
-                nullable: false,
-                defaultValue: "");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "District",
+                name: "FromDistrict",
                 table: "Orders");
 
             migrationBuilder.DropColumn(
-                name: "Province",
+                name: "FromProvince",
+                table: "Orders");
+
+            migrationBuilder.DropColumn(
+                name: "FromWard",
                 table: "Orders");
 
             migrationBuilder.DropColumn(
                 name: "ShipmentCode",
-                table: "Orders");
-
-            migrationBuilder.DropColumn(
-                name: "Ward",
                 table: "Orders");
 
             migrationBuilder.AlterColumn<string>(

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250114131818_EntityV11")]
+    [Migration("20250114144557_EntityV11")]
     partial class EntityV11
     {
         /// <inheritdoc />
@@ -881,8 +881,16 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("District")
+                    b.Property<int>("FromDistrict")
                         .HasColumnType("integer");
+
+                    b.Property<string>("FromProvince")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FromWard")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -903,10 +911,6 @@ namespace Chillde.Repositories.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)");
 
-                    b.Property<string>("Province")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
@@ -921,10 +925,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<decimal?>("TotalPrice")
                         .HasColumnType("numeric");
-
-                    b.Property<string>("Ward")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
