@@ -92,10 +92,12 @@ public static class Configuration
         });
 
         //Translation
+        services.Configure<ModelConfigurationOptions>(configuration.GetSection("ModelConfiguration"));
         services.AddOpenAIService(settings =>
         {
             settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
+
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
@@ -266,7 +268,6 @@ public static class Configuration
 
         //Payment
         services.AddScoped<IPaymentRepository, PaymentRepository>();
-        services.AddScoped<IPaymentService, PaymentService>();
         //Order
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderService, OrderService>();
@@ -282,6 +283,12 @@ public static class Configuration
         //ShippingAddress
         services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
         services.AddScoped<IShippingAddressService, ShippingAddressService>();
+
+        //VnPay
+        services.AddSingleton<IVnpay, Vnpay>();
+        //PackageFeature
+        services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+
 
         //Feature
         services.AddScoped<IFeatureRepository, FeatureRepository>();
@@ -302,9 +309,16 @@ public static class Configuration
         services.AddScoped<IServiceWishlistRepository, ServiceWishlistRepository>();
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
 
+        //OpenApi
+        services.AddTransient<IOpenAiService, OpenAiService>();
+
+
         //Shipment 
         services.AddScoped<IShipmentRepository,ShipmentRepository>();
         services.AddScoped<IShipmentService,ShipmentService>(); 
+
+        //OpenAiService
+        services.AddScoped<IOpenAiService, OpenAiService>();
         #endregion
 
         return services;

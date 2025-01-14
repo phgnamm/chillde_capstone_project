@@ -9,5 +9,6 @@ namespace Chillde.Repositories.Interfaces
 {
     public interface IItemAttributeRepository : IGenericRepository<ItemAttribute>
     {
+        Task<ItemAttribute> FirstOrDefaultAsync(Guid itemId, Guid attributeId); 
     }
 }

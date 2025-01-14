@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250109040047_EntityV8")]
+    [Migration("20241228162334_EntityV8")]
     partial class EntityV8
     {
         /// <inheritdoc />
@@ -889,14 +889,11 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("OrderDateTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("PackageId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PaymentId")
-                        .HasColumnType("uuid");
+                    b.Property<decimal?>("PackagePrice")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(15)
@@ -1553,7 +1550,10 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -1583,7 +1583,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("ServiceCollection");
                 });
@@ -1729,6 +1729,7 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("DistrictName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
@@ -1757,6 +1758,7 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("ProvinceName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("WardCode")
@@ -1765,6 +1767,7 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("WardName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -2368,13 +2371,13 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ServiceCollection", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
+                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
                         .WithMany("ServiceCollections")
-                        .HasForeignKey("CreatedById")
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ServiceWishlist", b =>

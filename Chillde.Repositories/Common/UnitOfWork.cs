@@ -37,7 +37,8 @@ public class UnitOfWork : IUnitOfWork
         IPackageFeatureRepository packageFeatureRepository,
         IServiceCollectionRepository serviceCollectionRepository,
         IServiceWishlistRepository serviceWishlistRepository,
-        IShipmentRepository shipmentRepository
+        IShipmentRepository shipmentRepository,
+        IPaymentRepository paymentRepository
         )
     {
         Context = context;
@@ -75,6 +76,7 @@ public class UnitOfWork : IUnitOfWork
         ServiceCollectionRepository = serviceCollectionRepository;
         ServiceWishlistRepository = serviceWishlistRepository;
         ShipmentRepository = shipmentRepository;
+        PaymentRepository = paymentRepository;
     }
 
     public AppDbContext Context { get; }
@@ -88,19 +90,12 @@ public class UnitOfWork : IUnitOfWork
     public IRoleRepository RoleRepository { get; }
     public IRequestRepository RequestRepository { get; }
     public IRequestDetailRepository RequestDetailRepository { get; }
-
     public IServiceRepository ServiceRepository { get; }
-
     public IFeedbackRepository FeedbackRepository { get; }
-
     public IOrderRepository OrderRepository { get; }
-
     public IPackageRepository PackageRepository { get; }
-
     public IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
-
     public IWalletRepository WalletRepository { get; }
-
     public IWalletHistoryRepository WalletHistoryRepository { get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
@@ -111,19 +106,16 @@ public class UnitOfWork : IUnitOfWork
     public ISubCategoryRepository SubCategoryRepository { get; }
     public IItemRepository ItemRepository { get; }
     public IShippingAddressRepository ShippingAddressRepository { get; }
-
     public IItemAttributeRepository ItemAttributeRepository { get; }
-
     public IAttributeRepository AttributeRepository {get;}
-
     public IAttributeValueRepository AttributeValueRepository {get;}
     public IServiceCollectionRepository ServiceCollectionRepository { get; }
     public IServiceWishlistRepository ServiceWishlistRepository { get; }
-
     public IFeatureRepository FeatureRepository { get; }
     public IPackageFeatureRepository PackageFeatureRepository { get; }
-
     public IShipmentRepository ShipmentRepository { get; }
+    public IPaymentRepository PaymentRepository { get; }
+
 
     public async Task<int> SaveChangeAsync()
     {

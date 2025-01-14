@@ -45,6 +45,7 @@ public interface IUnitOfWork
     IServiceCollectionRepository ServiceCollectionRepository { get; }
     IServiceWishlistRepository ServiceWishlistRepository { get; }
     IShipmentRepository ShipmentRepository { get; }
+    IPaymentRepository PaymentRepository { get; }
 
     #endregion
 }

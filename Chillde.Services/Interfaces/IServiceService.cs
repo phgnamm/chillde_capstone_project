@@ -12,6 +12,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel);
         Task<ResponseModel> GetAllFeedbacksByServiceAndUserAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel);
         Task<ResponseModel> GetAllFeedbacksByServiceAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel);
+        Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel);
         Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId);
         Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId);
         Task<ResponseModel> GetAsync(Guid id);

@@ -8,6 +8,7 @@ namespace Chillde.Repositories.Enums
 {
     public enum PaymentStatus
     {
+        Pending,
         Success,
         Fail
     }

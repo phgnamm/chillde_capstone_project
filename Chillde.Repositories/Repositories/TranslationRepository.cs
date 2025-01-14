@@ -1,8 +1,8 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.RequestModels;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Principal;
 
 namespace Chillde.Repositories.Repositories
 {
@@ -54,18 +54,21 @@ namespace Chillde.Repositories.Repositories
 
             return true;
         }
-
         public async Task<IEnumerable<TModel>> GetEntitiesWithTranslationsAsync<TEntity, TModel>(
-        List<Guid> entityIds,
-        string sourceLanguageCode,
-        Func<TEntity, TModel> mapEntityToModel,
-        params string[] fieldsToTranslate)
-        where TEntity : BaseEntity
+         List<Guid> entityIds,
+         string sourceLanguageCode,
+         Func<TEntity, TModel> mapEntityToModel,
+         string? relationshipToInclude,
+         string[] fieldsToTranslate,
+         string[] nestedRelationships = null,
+         params string[] relationshipfields)
+         where TEntity : BaseEntity
         {
             if (!Enum.TryParse(sourceLanguageCode, true, out LanguageCode languageCode))
             {
                 throw new ArgumentException($"Invalid language code: {sourceLanguageCode}", nameof(sourceLanguageCode));
             }
+
             foreach (var field in fieldsToTranslate)
             {
                 if (typeof(TModel).GetProperty(field) == null)
@@ -73,22 +76,56 @@ namespace Chillde.Repositories.Repositories
                     throw new ArgumentException($"Field '{field}' does not exist in model '{typeof(TModel).Name}'", nameof(fieldsToTranslate));
                 }
             }
-            var translations = await _context.Translations
-                .Where(t => entityIds.Contains(t.EntityId)
-                            && fieldsToTranslate.Contains(t.FieldName)
+
+            var entityIdsForRequest = entityIds;
+            var entityIdsForRelationship = new List<Guid>();
+
+            if (!string.IsNullOrEmpty(relationshipToInclude))
+            {
+                var relationshipProperty = typeof(TEntity).GetProperty(relationshipToInclude);
+                if (relationshipProperty != null)
+                {
+                    var relationshipEntities = _context.Set<TEntity>()
+                        .Where(e => entityIds.Contains(e.Id))
+                        .Select(e => relationshipProperty.GetValue(e) as IEnumerable<BaseEntity>)
+                        .ToList();
+
+                    foreach (var relationshipEntityList in relationshipEntities)
+                    {
+                        if (relationshipEntityList != null)
+                        {
+                            foreach (var relationshipEntity in relationshipEntityList)
+                            {
+                                entityIdsForRelationship.Add(relationshipEntity.Id);
+                            }
+                        }
+                    }
+                }
+            }
+
+            var translationsQuery = _context.Translations
+                .Where(t => (entityIdsForRequest.Contains(t.EntityId) || entityIdsForRelationship.Contains(t.EntityId))
+                            && (fieldsToTranslate.Contains(t.FieldName) || relationshipfields.Contains(t.FieldName))
                             && t.Language.Code == languageCode)
                 .GroupBy(t => t.EntityId)
                 .ToDictionaryAsync(
                     g => g.Key,
                     g => g.ToDictionary(t => t.FieldName, t => t.TranslationText)
                 );
-            var entities = await _context.Set<TEntity>()
-                .Where(e => entityIds.Contains(e.Id))
-                .ToListAsync();
+
+            var translations = await translationsQuery;
+            var entitiesQuery = _context.Set<TEntity>().Where(e => entityIds.Contains(e.Id));
+
+            if (!string.IsNullOrEmpty(relationshipToInclude))
+            {
+                entitiesQuery = entitiesQuery.Include(relationshipToInclude);
+            }
+
+            var entities = await entitiesQuery.ToListAsync();
+
             var result = entities.Select(entity =>
             {
                 var model = mapEntityToModel(entity);
-
                 if (translations.TryGetValue(entity.Id, out var entityTranslations))
                 {
                     foreach (var field in fieldsToTranslate)
@@ -100,12 +137,48 @@ namespace Chillde.Repositories.Repositories
                         }
                     }
                 }
+                if (relationshipToInclude != null)
+                {
+                    var relationshipProperty = entity.GetType().GetProperty(relationshipToInclude);
+                    if (relationshipProperty != null)
+                    {
+                        var relationshipValue = relationshipProperty.GetValue(entity) as IEnumerable<BaseEntity>;
+                        if (relationshipValue != null)
+                        {
+                            var translatedDetails = relationshipValue.Select(detail =>
+                            {
+                                if (translations.TryGetValue(detail.Id, out var detailTranslations))
+                                {
+                                    foreach (var field in relationshipfields)
+                                    {
+                                        var property = detail.GetType().GetProperty(field);
+                                        if (property != null && detailTranslations.TryGetValue(field, out var translation))
+                                        {
+                                            property.SetValue(detail, translation);
+                                        }
+                                    }
+                                }
+                                var requestDetail = detail as RequestDetail;
+                                return new RequestDetailGetByIdModel
+                                {
+                                    Id = requestDetail!.Id,
+                                    Description = requestDetail.Description,                                   
+                                };
+                            }).ToList();
 
+                            var modelProperty = typeof(TModel).GetProperty(relationshipToInclude) ??
+                                              typeof(TModel).GetProperty("RequestDetailGetByIdModels");
+
+                            if (modelProperty != null && modelProperty.CanWrite)
+                            {
+                                modelProperty.SetValue(model, translatedDetails);
+                            }
+                        }
+                    }
+                }
                 return model;
             });
-
             return result;
         }
-
     }
 }

@@ -15,20 +15,25 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
+using System.Xml.Linq;
+using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.ServiceModels;
+using Chillde.Repositories.Models.RequestModels;
 
 namespace Chillde.Services.Services
 {
     public class ServiceService : IServiceService
     {
+        private readonly IOpenAiService _openAiService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceAttachmentService _serviceAttachmentService;
 
-        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, 
-            IServiceAttachmentService serviceAttachmentService)
+        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService)
         {
+            _openAiService = openAiService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _claimService = claimService;
@@ -238,6 +243,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
                 {
@@ -254,7 +260,8 @@ namespace Chillde.Services.Services
                     Description = serviceAddModel.Description,
                     IsOffter = serviceAddModel.IsOffter,
                     ItemId = serviceAddModel.ItemId,
-                    Status = Repositories.Enums.ServiceStatus.Active
+                    Status = Repositories.Enums.ServiceStatus.Active,
+                    EmbeddingVector = embeddingVector
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
@@ -434,7 +441,7 @@ namespace Chillde.Services.Services
                 }
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
-                if (numberOfExistedPackage > 3)
+                if (numberOfExistedPackage >= 3)
                 {
                     return new ResponseModel
                     {
@@ -454,11 +461,13 @@ namespace Chillde.Services.Services
                 await _unitOfWork.PackageRepository.AddAsync(package);
                 await _unitOfWork.SaveChangeAsync();
 
+                var packageModel = _mapper.Map<PackageModel>(package);
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Package successfully created.",
-                    Data = package
+                    Data = packageModel
                 };
             }
             catch (Exception ex)
@@ -606,5 +615,67 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
+        public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
+        {
+            serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
+            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Description });
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync();
+            var threshold = 0.80; 
+            var keywordThreshold = 0.2; 
+            var tasks = services.Data
+                                .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
+                                .Select(async _ =>
+                                {
+                                    var serviceEmbedding = _.EmbeddingVector;
+                                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+                                    var keywordScore = (similarity < 0.5 &&
+                                                        (_.Name.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
+                                                         _.Description.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
+                                                        ? keywordThreshold : 0;
+
+                                    return new ServiceModel
+                                    {
+                                        Id = _.Id,
+                                        Name = _.Name,
+                                        Description = _.Description,
+                                        Similarity = similarity + keywordScore
+                                    };
+                                }).ToList();
+
+            var results = (await Task.WhenAll(tasks))
+                          .Where(_ => _.Similarity >= threshold)
+                          .OrderByDescending(_ => _.Similarity)
+                          .ToList();
+
+            var result = new Pagination<ServiceModel>(
+                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                       .Take(serviceFilterModel.PageSize)
+                       .ToList(),
+                serviceFilterModel.PageIndex,
+                serviceFilterModel.PageSize, results.Count);
+
+            return new ResponseModel
+            {
+                Message = "Get all services successfully",
+                Data = result
+            };
+        }
+
+        private static double CosineSimilarity(float[] vectorA, float[] vectorB)
+        {
+            if (vectorA.Length == 0 || vectorB.Length == 0)
+                throw new ArgumentException("Embedding vectors cannot be empty.");
+
+            var dotProduct = vectorA.Zip(vectorB, (a, b) => a * b).Sum();
+            var magnitudeA = Math.Sqrt(vectorA.Sum(a => a * a));
+            var magnitudeB = Math.Sqrt(vectorB.Sum(b => b * b));
+
+            if (magnitudeA == 0 || magnitudeB == 0)
+                return 0;
+
+            return dotProduct / (magnitudeA * magnitudeB);
+        }
+
     }
 }

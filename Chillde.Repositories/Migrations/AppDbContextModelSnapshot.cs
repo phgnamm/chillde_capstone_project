@@ -862,6 +862,7 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
@@ -877,6 +878,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("District")
+                        .HasColumnType("integer");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -886,23 +890,27 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("OrderDateTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("PackageId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PaymentId")
-                        .HasColumnType("uuid");
+                    b.Property<decimal?>("PackagePrice")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)");
 
+                    b.Property<string>("Province")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("ShipmentId")
+                    b.Property<string>("ShipmentCode")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ShipmentId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Status")
@@ -910,6 +918,10 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<decimal?>("TotalPrice")
                         .HasColumnType("numeric");
+
+                    b.Property<string>("Ward")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -1470,6 +1482,10 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.PrimitiveCollection<float[]>("EmbeddingVector")
+                        .IsRequired()
+                        .HasColumnType("real[]");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2174,9 +2190,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Shipment", "Shipment")
                         .WithOne("Order")
-                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId");
 
                     b.Navigation("CreatedBy");
 
