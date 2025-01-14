@@ -265,5 +265,55 @@ namespace Chillde.Services.Services
                 };
             }
         }
+        public async Task<ResponseModel> GetShipmentDetailAsync(string orderCode)
+        {
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Order code is required",
+                    Data = null
+                };
+            }
+
+            var requestPayload = new { order_code = orderCode };
+            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8, "application/json");
+
+            try
+            {
+                var response = await _httpClient.PostAsync("v2/shipping-order/detail", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = "Failed to retrieve shipment details",
+                        Data = null
+                    };
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+                var shipmentData = jsonObject?["data"]?.ToObject<ShipmentDetailResponseModel>();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment details retrieved successfully",
+                    Data = shipmentData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while retrieving shipment details",
+                    Data = ex.Message
+                };
+            }
+        }
     }
 }
