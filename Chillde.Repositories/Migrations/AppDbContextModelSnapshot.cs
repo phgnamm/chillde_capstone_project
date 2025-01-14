@@ -904,13 +904,13 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Quantity")
+                    b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
                     b.Property<string>("ShipmentCode")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ShipmentId")
+                    b.Property<Guid?>("ShipmentId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Status")

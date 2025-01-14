@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250114082655_EntityV9")]
-    partial class EntityV9
+    [Migration("20250114131818_EntityV11")]
+    partial class EntityV11
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -893,14 +893,11 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("OrderDateTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<Guid>("PackageId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PaymentId")
-                        .HasColumnType("uuid");
+                    b.Property<decimal?>("PackagePrice")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(15)
@@ -910,13 +907,13 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Quantity")
+                    b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
                     b.Property<string>("ShipmentCode")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("ShipmentId")
+                    b.Property<Guid?>("ShipmentId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Status")
@@ -1488,6 +1485,10 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
+
+                    b.PrimitiveCollection<float[]>("EmbeddingVector")
+                        .IsRequired()
+                        .HasColumnType("real[]");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2192,9 +2193,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Shipment", "Shipment")
                         .WithOne("Order")
-                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId");
 
                     b.Navigation("CreatedBy");
 

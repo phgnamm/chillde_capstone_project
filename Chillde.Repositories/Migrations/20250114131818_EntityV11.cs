@@ -5,21 +5,11 @@
 namespace Chillde.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class EntityV9 : Migration
+    public partial class EntityV11 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AlterColumn<int>(
-                name: "Quantity",
-                table: "Orders",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "integer",
-                oldNullable: true);
-
             migrationBuilder.AlterColumn<string>(
                 name: "Address",
                 table: "Orders",
@@ -78,14 +68,6 @@ namespace Chillde.Repositories.Migrations
             migrationBuilder.DropColumn(
                 name: "Ward",
                 table: "Orders");
-
-            migrationBuilder.AlterColumn<int>(
-                name: "Quantity",
-                table: "Orders",
-                type: "integer",
-                nullable: true,
-                oldClrType: typeof(int),
-                oldType: "integer");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Address",
