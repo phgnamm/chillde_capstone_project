@@ -878,17 +878,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("FromDistrict")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("FromProvince")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FromWard")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -919,6 +908,17 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<int>("ToDistrict")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ToProvince")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ToWard")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<decimal?>("TotalPrice")
                         .HasColumnType("numeric");
