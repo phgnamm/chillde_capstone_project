@@ -26,6 +26,14 @@ namespace Chillde.Services.Services
             var newItemAttributes = new List<ItemAttribute>();
             foreach (var attribute in itemAttributeAddModel.AttributeIds)
             {
+                var existingAttributeInItem = await _unitOfWork.ItemAttributeRepository.FirstOrDefaultAsync(itemAttributeAddModel.ItemId, attribute);
+                if (existingAttributeInItem != null) {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Attribute '{existingAttributeInItem.Attribute.Name}' has existed in this item"
+                    };
+                }
                 var newItemAttribute = new ItemAttribute
                 {
                     Id = Guid.NewGuid(),
