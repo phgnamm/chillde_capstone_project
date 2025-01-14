@@ -1,14 +1,13 @@
 ﻿using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.BadWordFilterModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
 using System.Text;
-using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace Chillde.Services.Services
 {
@@ -21,7 +20,8 @@ namespace Chillde.Services.Services
         private readonly HttpClient _httpClient;
         private readonly IUnitOfWork _unitOfWork;
 
-        public ShipmentService(HttpClient httpClient, IConfiguration configuration, IUnitOfWork unitOfWork)
+
+        public ShipmentService(HttpClient httpClient,IConfiguration configuration, IUnitOfWork unitOfWork)
         {
             _httpClient = httpClient;
             _url = configuration["GhnSettings:BaseUrl"]+ "shipping-order/create";
@@ -197,14 +197,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-        private readonly HttpClient _httpClient;
-
-
-        public ShipmentService(IHttpClientFactory httpClientFactory)
-        {
-            _httpClient = httpClientFactory.CreateClient("GhnClient");
-        }
-
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel? requestModel)
         {

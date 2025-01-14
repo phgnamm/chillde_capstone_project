@@ -90,21 +90,21 @@ namespace Chillde.Services.Services
                 PaymentType = PaymentType.Balance,
                 Amount = totalPrice,
                 PaymentStatus = PaymentStatus.Success
-            });              
+            });
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
-           return result < 0 ?
-                 new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Failed to process the payment"
-                }
-                :
-                 new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Payment successfully completed using balance",
-                };
+            return result < 0 ?
+                  new ResponseModel
+                  {
+                      Code = StatusCodes.Status400BadRequest,
+                      Message = "Failed to process the payment"
+                  }
+                 :
+                  new ResponseModel
+                  {
+                      Code = StatusCodes.Status200OK,
+                      Message = "Payment successfully completed using balance",
+                  };
         }
         public async Task<ResponseModel> CreatePaymentUrl(OrderAddModel orderAddModel, string ipAddress)
         {
@@ -119,12 +119,12 @@ namespace Chillde.Services.Services
             }
 
             var package = await _unitOfWork.PackageRepository.Get(orderAddModel.PackageId);
-            if (package == null)               
-               return new ResponseModel
-               {
-                   Code = StatusCodes.Status400BadRequest,
-                   Message = "Package not found."
-               };
+            if (package == null)
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Package not found."
+                };
 
             decimal totalPrice = (decimal)package.Price;
             decimal remainingAmount = 0;
@@ -132,7 +132,7 @@ namespace Chillde.Services.Services
             var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
 
             if (orderAddModel.OrderInformationAddModels != null)
-                await ProcessExtraFeatures(orderAddModel, newOrder,  totalPrice);
+                await ProcessExtraFeatures(orderAddModel, newOrder, totalPrice);
 
             if ((bool)orderAddModel.WithBalance)
             {
@@ -141,7 +141,7 @@ namespace Chillde.Services.Services
                 if (response != null) return response;
                 remainingAmount = (decimal)response.Data;
             }
-            if(!(bool)orderAddModel.WithBalance)
+            if (!(bool)orderAddModel.WithBalance)
             {
                 newOrder.Payments.Add(new Payment
                 {
@@ -149,7 +149,7 @@ namespace Chillde.Services.Services
                     Amount = totalPrice,
                     PaymentStatus = PaymentStatus.Pending,
                 });
-            }    
+            }
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             if (await _unitOfWork.SaveChangeAsync() < 0)
                 return new ResponseModel
@@ -311,7 +311,7 @@ namespace Chillde.Services.Services
                 var walletHistory = new WalletHistory
                 {
                     WalletId = wallet.Id,
-                    Amount = balancePayment.Amount, 
+                    Amount = balancePayment.Amount,
                     Type = WalletHistoryType.TransferOut,
                     Status = WalletHistoryStatus.Completed
                 };
@@ -323,7 +323,7 @@ namespace Chillde.Services.Services
             }
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
-         
+
             return result > 0 ? new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
