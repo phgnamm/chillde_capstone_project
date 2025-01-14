@@ -38,7 +38,7 @@ namespace Chillde.Services.Services
                 {
                     Messages = new List<ChatMessage>
                     {
-                        ChatMessage.FromSystem($"You are a translator from {sourceLanguageCode} to {targetLanguageCode}. Translate the following text, keeping any special formatting or technical terms unchanged."),
+                        ChatMessage.FromSystem($"You are a professional translator specializing in handmade crafts. Your task is to translate the following text from {sourceLanguageCode} to {targetLanguageCode} accurately, preserving any creative expressions, special formatting, or technical terms related to crafting. Ensure the translation maintains the charm and uniqueness of handmade products."),
                         ChatMessage.FromUser(text)
                     },
                     Model = defaultModel,
@@ -93,8 +93,7 @@ namespace Chillde.Services.Services
                 {
                     Messages = new List<ChatMessage>
             {
-                ChatMessage.FromSystem(
-                    $"You are a translator from {sourceLanguageCode} to {targetLanguageCode}. Translate the following fields separately, keeping the format and context intact."),
+                ChatMessage.FromSystem($"You are a professional translator specializing in handmade crafts. Your task is to translate the following text from {sourceLanguageCode} to {targetLanguageCode} accurately, preserving any creative expressions, special formatting, or technical terms related to crafting. Ensure the translation maintains the charm and uniqueness of handmade products."),
                 ChatMessage.FromUser(combinedText)
             },
                     Model = defaultModel,

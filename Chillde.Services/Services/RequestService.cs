@@ -427,47 +427,79 @@ namespace Chillde.Services.Services
                         Message = "Request not found."
                     };
                 }
-                var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode != "en" ? targetLanguageCode : sourceLanguageCode);
                 var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Name", languageId);
                 var translationDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Description", languageId);
-
                 bool changesMade = false;
 
-                if (!string.Equals(requestUpdateModel.Name, existingRequest.Name, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(requestUpdateModel.Name, existingRequest.Name, StringComparison.OrdinalIgnoreCase) &&
+                   (translationName != null && !string.Equals(requestUpdateModel.Name, translationName.TranslationText, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (translationName != null && translationName.TranslationText != requestUpdateModel.Name)
-                    {
-                        translationName.TranslationText = requestUpdateModel.Name!;
-                        _unitOfWork.TranslationRepository.Update(translationName);
-                    }
-
                     var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Name!, sourceLanguageCode, targetLanguageCode);
                     if (translationResponse.Code != StatusCodes.Status200OK)
                     {
                         throw new Exception("Failed to translate Name.");
                     }
-
-                    existingRequest.Name = translationResponse.Message;
+                    translationName!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : requestUpdateModel.Name!;
+                    existingRequest.Name = targetLanguageCode != "en" ? requestUpdateModel.Name : translationResponse.Message;
+                    _unitOfWork.TranslationRepository.Update(translationName);
                     changesMade = true;
                 }
 
-                if (!string.Equals(requestUpdateModel.Description, existingRequest.Description, StringComparison.OrdinalIgnoreCase))
+                if (!string.Equals(requestUpdateModel.Description, existingRequest.Description, StringComparison.OrdinalIgnoreCase) &&
+                   (translationDescription != null && !string.Equals(requestUpdateModel.Description, translationDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (translationDescription != null && translationDescription.TranslationText != requestUpdateModel.Description)
-                    {
-                        translationDescription.TranslationText = requestUpdateModel.Description!;
-                        _unitOfWork.TranslationRepository.Update(translationDescription);
-                    }
-
                     var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Description!, sourceLanguageCode, targetLanguageCode);
                     if (translationResponse.Code != StatusCodes.Status200OK)
                     {
                         throw new Exception("Failed to translate Description.");
                     }
 
-                    existingRequest.Description = translationResponse.Message;
+                    translationDescription!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : requestUpdateModel.Description!;
+                    existingRequest.Description = targetLanguageCode != "en" ? requestUpdateModel.Description : translationResponse.Message;
+                    _unitOfWork.TranslationRepository.Update(translationDescription);
                     changesMade = true;
                 }
+
+                foreach (var detailModel in requestUpdateModel.RequestDetailUpdateModels!)
+                {
+                    var translationRequestDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync(
+                        "RequestDetail",
+                        detailModel.Id,
+                        "Description",
+                        languageId
+                    );
+
+                    var existingDetail = existingRequest.RequestDetails.FirstOrDefault(rd => rd.Id == detailModel.Id);
+                    if (existingDetail == null)
+                    {
+                        continue;
+                    }
+                    if (!string.Equals(detailModel.Description, existingDetail.Description, StringComparison.OrdinalIgnoreCase) &&
+                        (translationRequestDescription != null && !string.Equals(detailModel.Description, translationRequestDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        var translationResponse = await _translationService.TranslateAsync(detailModel.Description!, sourceLanguageCode, targetLanguageCode);
+                        if (translationResponse.Code != StatusCodes.Status200OK)
+                        {
+                            throw new Exception($"Failed to translate Description for RequestDetail ID: {detailModel.Id}");
+                        }
+                        existingDetail.Description = targetLanguageCode != "en" ? detailModel.Description : translationResponse.Message;
+
+                        if (translationRequestDescription != null)
+                        {
+                            translationRequestDescription.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : detailModel.Description!;
+                            _unitOfWork.TranslationRepository.Update(translationRequestDescription);
+                        }
+
+                        changesMade = true;
+                    }
+                    if (existingDetail.AttributeId != detailModel.AttributeId)
+                    {
+                        existingDetail.AttributeId = detailModel.AttributeId;
+                        changesMade = true;
+                    }
+                }
+
 
                 if (requestUpdateModel.MinBudget.HasValue && existingRequest.MinBudget != requestUpdateModel.MinBudget.Value)
                 {
