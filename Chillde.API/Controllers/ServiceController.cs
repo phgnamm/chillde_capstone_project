@@ -5,6 +5,7 @@ using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceModels;
+using Chillde.Services.Models.SuggestModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,11 +17,14 @@ namespace Chillde.API.Controllers
     public class ServiceController : ControllerBase
     {
         private readonly IServiceService _serviceService;
+        private readonly IOpenAiService _openAiService;
 
-        public ServiceController(IServiceService serviceService)
+        public ServiceController(IServiceService serviceService, IOpenAiService openAiService)
         {
             _serviceService = serviceService;
+            _openAiService = openAiService;
         }
+
         //[Authorize]
         [HttpPost("feedbacks")]
         public async Task<IActionResult> AddFeedback([FromForm] FeedbackAddModel feedbackAddModel)
@@ -235,6 +239,25 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceService.GetAllFAQsAsync(serviceId, faqFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize]
+        [HttpPost("recommendations")]
+        public async Task<IActionResult> GetRecommendations([FromBody] SuggestAddModel suggestAddModel)
+        {
+            try
+            {
+                var result = await _openAiService.GetRecommendationsAsync(suggestAddModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
