@@ -5,7 +5,7 @@
 namespace Chillde.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class EntityV8 : Migration
+    public partial class EntityV10 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,11 +33,22 @@ namespace Chillde.Repositories.Migrations
                 nullable: true,
                 oldClrType: typeof(string),
                 oldType: "text");
+
+            migrationBuilder.AddColumn<float[]>(
+                name: "EmbeddingVector",
+                table: "Services",
+                type: "real[]",
+                nullable: false,
+                defaultValue: new float[0]);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "EmbeddingVector",
+                table: "Services");
+
             migrationBuilder.AlterColumn<string>(
                 name: "WardName",
                 table: "ShippingAddresses",

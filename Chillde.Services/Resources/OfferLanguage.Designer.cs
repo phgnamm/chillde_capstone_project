@@ -79,6 +79,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute1.
+        /// </summary>
+        public static string Attribute1 {
+            get {
+                return ResourceManager.GetString("Attribute1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancelled.
         /// </summary>
         public static string Cancelled {

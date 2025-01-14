@@ -6,9 +6,9 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TranslationModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using OpenAI.GPT3.Interfaces;
 using OpenAI.GPT3.ObjectModels.RequestModels;
-using System.Threading.Channels;
 
 namespace Chillde.Services.Services
 {
@@ -16,27 +16,32 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IOpenAIService _openAIService;
+        private readonly ModelConfigurationOptions _modelConfigurationOptions;
+
 
         public TranslationService(
             IUnitOfWork unitOfWork,
-            IOpenAIService openAIService)
+            IOpenAIService openAIService,
+            IOptions<ModelConfigurationOptions> modelConfigurationOptions)
         {
             _unitOfWork = unitOfWork;
             _openAIService = openAIService;
+            _modelConfigurationOptions = modelConfigurationOptions.Value;
         }
 
         public async Task<ResponseModel> TranslateAsync(string text, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
+                var defaultModel = _modelConfigurationOptions.DefaultModel;
                 var chatRequest = new ChatCompletionCreateRequest
                 {
                     Messages = new List<ChatMessage>
                     {
-                        ChatMessage.FromSystem($"You are a translator from {sourceLanguageCode} to {targetLanguageCode}. Translate the following text, keeping any special formatting or technical terms unchanged."),
+                        ChatMessage.FromSystem($"You are a professional translator specializing in handmade crafts. Your task is to translate the following text from {sourceLanguageCode} to {targetLanguageCode} accurately, preserving any creative expressions, special formatting, or technical terms related to crafting. Ensure the translation maintains the charm and uniqueness of handmade products."),
                         ChatMessage.FromUser(text)
                     },
-                    Model = "gpt-3.5-turbo",
+                    Model = defaultModel,
                     Temperature = 0.3f,
                     MaxTokens = 1000,
                     TopP = 1
@@ -73,6 +78,7 @@ namespace Chillde.Services.Services
         {
             try
             {
+                var defaultModel = _modelConfigurationOptions.DefaultModel;
                 if (fieldsToTranslate == null || fieldsToTranslate.Count == 0)
                 {
                     return new TranslationResponseModel
@@ -87,11 +93,10 @@ namespace Chillde.Services.Services
                 {
                     Messages = new List<ChatMessage>
             {
-                ChatMessage.FromSystem(
-                    $"You are a translator from {sourceLanguageCode} to {targetLanguageCode}. Translate the following fields separately, keeping the format and context intact."),
+                ChatMessage.FromSystem($"You are a professional translator specializing in handmade crafts. Your task is to translate the following text from {sourceLanguageCode} to {targetLanguageCode} accurately, preserving any creative expressions, special formatting, or technical terms related to crafting. Ensure the translation maintains the charm and uniqueness of handmade products."),
                 ChatMessage.FromUser(combinedText)
             },
-                    Model = "gpt-3.5-turbo",
+                    Model = defaultModel,
                     Temperature = 0.3f,
                     MaxTokens = 1000,
                     TopP = 1
