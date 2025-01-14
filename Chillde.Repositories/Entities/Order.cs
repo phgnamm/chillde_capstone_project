@@ -5,10 +5,14 @@ namespace Chillde.Repositories.Entities;
 public class Order : BaseEntity
 {
     public string? Phone { get; set; }
-    public string? Address { get; set; }
+    public string Address { get; set; }
+    public string Ward { get; set; }
+    public int District { get; set; }
+    public string Province { get; set; }
     public decimal? TotalPrice { get; set; }
     public decimal? PackagePrice { get; set; }
     public int? Quantity { get; set; }
+    public string? ShipmentCode { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
     // Foreign key

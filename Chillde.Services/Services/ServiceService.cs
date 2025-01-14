@@ -441,7 +441,7 @@ namespace Chillde.Services.Services
                 }
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
-                if (numberOfExistedPackage > 3)
+                if (numberOfExistedPackage >= 3)
                 {
                     return new ResponseModel
                     {
@@ -461,11 +461,13 @@ namespace Chillde.Services.Services
                 await _unitOfWork.PackageRepository.AddAsync(package);
                 await _unitOfWork.SaveChangeAsync();
 
+                var packageModel = _mapper.Map<PackageModel>(package);
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Package successfully created.",
-                    Data = package
+                    Data = packageModel
                 };
             }
             catch (Exception ex)

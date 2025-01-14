@@ -1,9 +1,7 @@
 ﻿using Chillde.Services.Interfaces;
-using Chillde.Services.Models.AttributeModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Chillde.Services.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -14,7 +12,7 @@ namespace Chillde.API.Controllers
     {
         private readonly IShipmentService _shipmentService;
 
-        public ShipmentController(ShipmentService shipmentService)
+        public ShipmentController(IShipmentService shipmentService)
         {
             _shipmentService = shipmentService;
         }
@@ -26,6 +24,25 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _shipmentService.CalculateShippingFeeAsync(shippingFeeRequestModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artist")]
+        [HttpPost()]
+        public async Task<IActionResult> AddShipmentAsync([FromBody] ShipmentAddModel model)
+        {
+            try
+            {
+                var result = await _shipmentService.AddShipmentAsync(model);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
