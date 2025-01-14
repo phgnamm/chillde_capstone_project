@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Chillde.API;
 using Chillde.API.Middlewares;
 using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
 using Chillde.Services.Hubs;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Localization;
@@ -52,6 +53,13 @@ builder.Services.AddSwaggerGen(x =>
 
 // Add API configuration
 builder.Services.AddApiConfiguration(builder.Configuration);
+
+//builder.Services.AddControllers()
+//    .AddJsonOptions(options =>
+//    {
+//        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+//        options.JsonSerializerOptions.MaxDepth = 64; // optional: to avoid issues with deeply nested objects
+//    });
 
 var app = builder.Build();
 

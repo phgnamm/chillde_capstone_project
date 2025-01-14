@@ -88,7 +88,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("22e1e7a3-bc97-438c-a36e-30379874165c"),
-            Name = "Bạc",
+            Name = "Basic",
             Description = "",
             Price = 2000000,
             ServiceId = Services[0].Id
@@ -96,7 +96,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("8fe3412e-e6cb-41e3-b43d-5a72cddd98f3"),
-            Name = "Vàng",
+            Name = "Plus",
             Description = "",
             Price = 5000000,
             ServiceId = Services[0].Id
@@ -104,7 +104,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("c68703b7-6ebc-4b98-aa35-b48d5452878f"),
-            Name = "Kim cương",
+            Name = "Premium",
             Description = "",
             Price = 10000000,
             ServiceId = Services[0].Id
@@ -113,7 +113,10 @@ public static class InitialSeeding
 
     private static readonly List<Feature> Features = new()
     {
-        new(){ Id = Guid.Parse("e51ae29b-e048-4db0-89a2-670a44e6eea7"), Name = "Chất liệu" }
+        new(){ Id = Guid.Parse("e51ae29b-e048-4db0-89a2-670a44e6eea7"), Name = "Thiết kế theo yêu cầu" },
+        new(){ Id = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c"), Name = "Khắc tên hoặc ký tự đặc biệt" },
+        new(){ Id = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"), Name = "Sơn màu lên sản phẩm" },
+        new(){ Id = Guid.Parse("6551bec5-12eb-49e1-ba72-134545db85dc"), Name = "Đính đá zirconia nhỏ" },
     };
 
     private static readonly List<PackageFeature> PackageFeatures = new()
@@ -121,35 +124,68 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("9117fe29-9fec-4cf5-8f52-37d1efec7b22"),
-            Question = "Bạc",
-            IsInformationRequired = true,
-            IsExtra = true,
-            AdditionalCost = 0,
-            AdditionalDay = 0,
+            Question = "Thiết kế theo yêu cầu",
+            IsInformationRequired = false,
+            IsExtra = false,
+            AdditionalCost = null,
+            AdditionalDay = null,
             PackageId = Packages[0].Id,
             FeatureId = Features[0].Id
         },
         new()
         {
             Id = Guid.Parse("fbfd784f-bfe3-49ed-99b5-19c46c19b6f1"),
-            Question = "Vàng",
-            IsInformationRequired = true,
-            IsExtra = true,
-            AdditionalCost = 0,
-            AdditionalDay = 0,
-            PackageId = Packages[1].Id,
-            FeatureId = Features[0].Id
+            Question = "Khắc tên hoặc ký tự đặc biệt (5 ký tự miễn phí)",
+            IsInformationRequired = false,
+            IsExtra = false,
+            AdditionalCost = null,
+            AdditionalDay = null,
+            PackageId = Packages[0].Id,
+            FeatureId = Features[1].Id
         },
         new()
         {
             Id = Guid.Parse("4871b8c7-af47-4bb6-8fad-226fb5e84d2e"),
-            Question = "Kim cương",
-            IsInformationRequired = true,
+            Question = "Sơn màu lên sản phẩm (2 màu tùy chọn)",
+            IsInformationRequired = false,
+            IsExtra = false,
+            AdditionalCost = null,
+            AdditionalDay = null,
+            PackageId = Packages[0].Id,
+            FeatureId = Features[2].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a03772d4-9c79-406c-8b1a-6c586df22b15"),
+            Question = "Đính đá zirconia nhỏ (tối đa 5 viên miễn phí)",
+            IsInformationRequired = false,
+            IsExtra = false,
+            AdditionalCost = null,
+            AdditionalDay = null,
+            PackageId = Packages[0].Id,
+            FeatureId = Features[3].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("6c8d8723-d2b1-48fd-8fea-46d3b70782e1"),
+            Question = "Khắc thêm ký tự đặc biệt",
+            IsInformationRequired = false,
             IsExtra = true,
-            AdditionalCost = 0,
-            AdditionalDay = 0,
+            AdditionalCost = 5000,
+            AdditionalDay = null,
+            PackageId = Packages[1].Id,
+            FeatureId = Features[1].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("7b218041-fe35-4c61-a6c0-83d887bbb67e"),
+            Question = "Khắc thêm ký tự đặc biệt được thiết kế riêng",
+            IsInformationRequired = false,
+            IsExtra = true,
+            AdditionalCost = 10000,
+            AdditionalDay = null,
             PackageId = Packages[2].Id,
-            FeatureId = Features[0].Id
+            FeatureId = Features[1].Id
         },
     };
     private static readonly List<Order> Orders = new()

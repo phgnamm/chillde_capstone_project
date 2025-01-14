@@ -4,14 +4,18 @@ using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.FAQModels;
+using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.MessageModels;
+using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ShippingAddressModels;
 using Chillde.Services.Models.SubcategoryModels;
 using Role = Chillde.Repositories.Enums.Role;
@@ -60,5 +64,15 @@ public class MapperProfile : Profile
         CreateMap<ShippingAddress, ShippingAddressModel>().ReverseMap();
         CreateMap<ShippingAddressAddModel, ShippingAddressModel>().ReverseMap();
         CreateMap<ShippingAddressUpdateModel, ShippingAddress>().ReverseMap();
+
+        //PackageFeature
+        CreateMap<PackageFeatureUpdateModel, PackageFeature>().ReverseMap();
+        CreateMap<PackageFeatureModel, PackageFeature>().ReverseMap();
+
+        //Feature
+        CreateMap<FeatureModel, Feature>().ReverseMap();
+
+        //Service
+        CreateMap<ServiceModel, Service>().ReverseMap();
     }
 }

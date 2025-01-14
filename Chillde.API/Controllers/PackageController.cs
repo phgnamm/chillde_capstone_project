@@ -1,5 +1,6 @@
-﻿using Chillde.Repositories.Models.FeatureModels;
-using Chillde.Services.Interfaces;
+﻿using Chillde.Services.Interfaces;
+using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Services;
@@ -59,11 +60,49 @@ namespace Chillde.API.Controllers
 
         //[Authorize("Artist")]
         [HttpPost("{packageId}/features")]
-        public async Task<IActionResult> AddPackageAsync([FromBody] FeatureAddModel featureAddModel, Guid packageId)
+        public async Task<IActionResult> AddFeatureAsync([FromBody] FeatureAddModel featureAddModel, Guid packageId)
         {
             try
             {
                 var result = await _packageService.AddFeatureAsync(featureAddModel, packageId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artist, Admin")]
+        [HttpDelete("{packageId}/package-features/{packageFeatureId}")]
+        public async Task<IActionResult> DeletePackageFeature(Guid packageId, Guid packageFeatureId)
+        {
+            try
+            {
+                var result = await _packageService.DeletePackageFeatureAsync(packageId, packageFeatureId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //        [Authorize]
+        [HttpGet("{packageId}/features")]
+        public async Task<IActionResult> GetAllFeatures([FromQuery] FeatureFilterModel model, Guid packageId)
+        {
+            try
+            {
+                var result = await _packageService.GetAllFeatureAsync(model, packageId);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

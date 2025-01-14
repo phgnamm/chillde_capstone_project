@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.ServiceAttachmentModels;
 
 namespace Chillde.Repositories.Models.ServiceModels
 {
@@ -15,6 +17,11 @@ namespace Chillde.Repositories.Models.ServiceModels
         public string? AttachmentAlt { get; set; }
         public string? AttachmentUrl { get; set; }
 
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public bool IsOffter { get; set; }
+        public ServiceStatus Status { get; set; }
+        public List<ServiceAttachment>? ServiceAttachments { get; set; }
     }
  
 }

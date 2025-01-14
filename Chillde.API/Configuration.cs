@@ -92,10 +92,12 @@ public static class Configuration
         });
 
         //Translation
+        services.Configure<ModelConfigurationOptions>(configuration.GetSection("ModelConfiguration"));
         services.AddOpenAIService(settings =>
         {
             settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
+
 
         services.Configure<RequestLocalizationOptions>(options =>
         {
@@ -215,6 +217,7 @@ public static class Configuration
 
         //ServiceAttachment
         services.AddScoped<IServiceAttachmentRepository, ServiceAttachmentRepository>();
+        services.AddScoped<IServiceAttachmentService, ServiceAttackmentService>();
 
         //Package
         services.AddScoped<IPackageRepository, PackageRepository>();
@@ -296,6 +299,7 @@ public static class Configuration
 
         //PackageFeature
         services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
+        services.AddScoped<IPackageFeatureService, PackageFeatureService>();
 
         //ServiceCollection
         services.AddScoped<IServiceCollectionRepository, ServiceCollectionRepository>();
@@ -308,6 +312,13 @@ public static class Configuration
         //OpenApi
         services.AddTransient<IOpenAiService, OpenAiService>();
 
+
+        //Shipment 
+        services.AddScoped<IShipmentRepository,ShipmentRepository>();
+        services.AddScoped<IShipmentService,ShipmentService>(); 
+
+        //OpenAiService
+        services.AddScoped<IOpenAiService, OpenAiService>();
         #endregion
 
         return services;

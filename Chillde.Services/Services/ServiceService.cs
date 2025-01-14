@@ -3,12 +3,9 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.FeedbackModels;
-using Chillde.Repositories.Models.SubCategoryModels;
 using Chillde.Services.Common;
-using Chillde.Services.Helpers;
 using Chillde.Repositories.Models.PackageModels;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
@@ -17,6 +14,7 @@ using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using Chillde.Repositories.Models.ServiceModels;
 using System.Xml.Linq;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.ServiceModels;
@@ -31,7 +29,10 @@ namespace Chillde.Services.Services
         private readonly IMapper _mapper;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IServiceAttachmentService _serviceAttachmentService;
 
+        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, 
+            IServiceAttachmentService serviceAttachmentService)
         public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper)
         {
             _openAiService = openAiService;
@@ -39,6 +40,7 @@ namespace Chillde.Services.Services
             _mapper = mapper;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
+            _serviceAttachmentService = serviceAttachmentService;
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
@@ -197,7 +199,10 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var service = await _unitOfWork.ServiceRepository.GetAsync(id);
+                Func<IQueryable<Service>, IQueryable<Service>> include = services =>
+                     services.Include(_ => _.ServiceAttachments);
+
+                var service = await _unitOfWork.ServiceRepository.GetAsync(id, include);
                 if (service == null)
                 {
                     return new ResponseModel
@@ -207,11 +212,13 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var serviceModel = _mapper.Map<ServiceModel>(service);
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Successfully.",
-                    Data = service
+                    Data = serviceModel
                 };
             }
             catch (Exception ex)
@@ -228,6 +235,16 @@ namespace Chillde.Services.Services
         {
             try
             {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
+
                 var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
@@ -251,34 +268,40 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
 
-                var serviceAttachmentList = new List<ServiceAttachment>();
-                foreach (var serviceAttachment in serviceAddModel.ServiceAttachments) 
+                var newServiceAttachment = new List<ServiceAttachment>();
+                var model = serviceAddModel.ServiceAttachments;
+                for (int i = 0; i < model.AttachmentAlt.Count; i++)
                 {
-                    string? imageUrl = null;
-                    //if (serviceAttachment.AttachmentUrl != null)
-                    //{
-                    //    imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                    //        serviceAttachment.AttachmentUrl,
-                    //        serviceAttachment.AttachmentAlt,
-                    //        Guid.NewGuid().ToString()
-                    //    );
-                    //}
-                    serviceAttachmentList.Add(new ServiceAttachment
+                    var attachmentAlt = model.AttachmentAlt[i];
+                    var attachmentUrl = model.AttachmentUrls[i];
+
+                    string? path = null;
+                    if (attachmentUrl != null)
                     {
-                        AttachmentAlt = serviceAttachment.AttachmentAlt,
-                        AttachmentUrl = serviceAttachment?.AttachmentUrl?.ToString(),
+                        path = await _cloudinaryHelper.UploadImageAsync(
+                            attachmentUrl,
+                            "serviceAttachments",
+                            Guid.NewGuid().ToString()
+                        );
+                    }
+                    
+                    newServiceAttachment.Add(new ServiceAttachment
+                    {
+                        AttachmentAlt = attachmentAlt,
+                        AttachmentUrl = path,
                         ServiceId = service.Id
                     });
                 }
 
-                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentList);
+                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                 await _unitOfWork.SaveChangeAsync();
 
+                var serviceModel = _mapper.Map<ServiceModel>(service);
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Service successfully created.",
-                    Data = service
+                    Data = serviceModel
                 };
             }
             catch (Exception ex)
@@ -291,7 +314,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(ServiceStatus serviceStatus, Guid id)
+        public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id)
         {
             try
             {
@@ -305,7 +328,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                service.Status = serviceStatus;
+                service.Status = serviceUpdateModel.Status;
 
                 _unitOfWork.ServiceRepository.Update(service);
                 await _unitOfWork.SaveChangeAsync();

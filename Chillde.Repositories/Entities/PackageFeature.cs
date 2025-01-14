@@ -1,4 +1,6 @@
-﻿namespace Chillde.Repositories.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace Chillde.Repositories.Entities;
 
 public class PackageFeature : BaseEntity
 {
@@ -13,7 +15,9 @@ public class PackageFeature : BaseEntity
     public Guid FeatureId { get; set; }
 
     // Relationship
+    [JsonIgnore]
     public Package Package { get; set; } = null!;
+    [JsonIgnore]
     public Feature Feature { get; set; } = null!;
     public virtual ICollection<OrderInformation> OrderInformations { get; set; } = new List<OrderInformation>();
 }

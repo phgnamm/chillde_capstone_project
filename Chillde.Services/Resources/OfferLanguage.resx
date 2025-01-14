@@ -123,6 +123,9 @@
   <data name="Approved" xml:space="preserve">
     <value>Approved</value>
   </data>
+  <data name="Attribute1" xml:space="preserve">
+    <value>Attribute1</value>
+  </data>
   <data name="Cancelled" xml:space="preserve">
     <value>Cancelled</value>
   </data>
