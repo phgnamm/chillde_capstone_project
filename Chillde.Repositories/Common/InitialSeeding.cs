@@ -71,10 +71,10 @@ public static class InitialSeeding
 
     private static readonly List<Service> Services = new()
     {
-        new() 
-        { 
-            Id = Guid.Parse("1844b073-513f-4bd3-9fc3-8c77422cf22c"), 
-            Name = "Làm dây chuyền chữ Y", 
+        new()
+        {
+            Id = Guid.Parse("1844b073-513f-4bd3-9fc3-8c77422cf22c"),
+            Name = "Làm dây chuyền chữ Y",
             Description = "Thiết kế và tạo một chiếc dây đeo hoàn toàn mới theo yêu cầu của khách hàng.",
             IsOffter = true,
             Status = Enums.ServiceStatus.Active,
@@ -195,6 +195,9 @@ public static class InitialSeeding
         Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
         Phone = "0912345678",
         Address = "123 Fake Street, City, Country",
+        FromWard = "20308",
+        FromDistrict = 1444,
+        FromProvince = "HCM",
         TotalPrice = 250.50m,
         PackagePrice = 50.00m,
         Quantity = 2,
@@ -235,6 +238,9 @@ public static class InitialSeeding
         Id = Guid.Parse("4871b8c7-af42-4bb6-8fad-226fb5e84d2e"),
         Phone = "0987654321",
         Address = "456 Another Street, City, Country",
+        FromWard = "20308",
+        FromDistrict = 1444,
+        FromProvince = "HCM",
         TotalPrice = 100.75m,
         PackagePrice = 25.00m,
         Quantity = 1,
