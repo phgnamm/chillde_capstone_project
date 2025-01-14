@@ -5,11 +5,15 @@ namespace Chillde.Repositories.Entities;
 public class Order : BaseEntity
 {
     public string? Phone { get; set; }
-    public string? Address { get; set; }
+    public string Address { get; set; }
+    public string Ward { get; set; }
+    public int District { get; set; }
+    public string Province { get; set; }
     public decimal? TotalPrice { get; set; }
-    public int? Quantity { get; set; }
+    public int Quantity { get; set; }
     public DateTime? OrderDateTime { get; set; }
     public OrderStatus Status { get; set; }
+    public string? ShipmentCode { get; set; }
 
     // Foreign key
     public Guid PaymentId { get; set; }

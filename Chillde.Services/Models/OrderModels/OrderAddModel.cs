@@ -1,22 +1,23 @@
 ﻿using Chillde.Repositories.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace Chillde.Services.Models.OrderModels
 {
     public class OrderAddModel
     {
+        [Required]
         public required string Phone { get; set; }
+        [Required]
         public required string Address { get; set; }
+        [Required]
         public required decimal TotalPrice { get; set; }
+        [Required]
         public required int Quantity { get; set; }
-        public DateTime? OrderDateTime { get; set; }
-        public OrderStatus Status { get; set; }
+        [Required]
         public Guid PaymentId { get; set; }
+        [Required]
         public Guid PackageId { get; set; }
+        [Required]
         public Guid ShipmentId { get; set; }
     }
 }
