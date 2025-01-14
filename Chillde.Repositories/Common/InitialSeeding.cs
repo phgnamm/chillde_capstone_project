@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Chillde.Repositories.Common;
@@ -8,7 +9,7 @@ namespace Chillde.Repositories.Common;
 /// </summary>
 public static class InitialSeeding
 {
-    private static readonly List<Role> Roles = new()
+    private static readonly List<Entities.Role> Roles = new()
     {
         new() { Name = Enums.Role.Admin.ToString() },
         new() { Name = Enums.Role.Customer.ToString() },
@@ -151,6 +152,92 @@ public static class InitialSeeding
             FeatureId = Features[0].Id
         },
     };
+    private static readonly List<Order> Orders = new()
+{
+    new()
+    {
+        Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
+        Phone = "0912345678",
+        Address = "123 Fake Street, City, Country",
+        TotalPrice = 250.50m,
+        PackagePrice = 50.00m,
+        Quantity = 2,
+        Status = OrderStatus.Pending,
+        PackageId = Packages[0].Id,
+        CreatedById = Accounts[0].Id,
+        Payments = new List<Payment>
+        {
+            new Payment
+            {
+                Id = Guid.Parse("4871b8c7-af45-4bb6-8fad-226fb5e84d2e"),
+                PaymentType = PaymentType.VnPay,
+                Amount = 200.50m,
+                PaymentStatus = PaymentStatus.Success
+            }
+        },
+        OrderInformations = new List<OrderInformation>
+        {
+            new OrderInformation
+            {
+                Id = Guid.Parse("4871b8c7-af44-4bb6-8fad-226fb5e84d2e"),
+                Description = "Order Information for Product A",
+                PackageFeatureId = PackageFeatures[0].Id,
+                OrderInformationAttachments = new List<OrderInformationAttachment>
+                {
+                    new OrderInformationAttachment
+                    {
+                        Id = Guid.Parse("4871b8c7-af43-4bb6-8fad-226fb5e84d2e"),
+                        AttachmentUrl = "path/to/file.jpg",
+                        AttachmentAlt = "image",
+                    }
+                }
+            }
+        }
+    },
+    new()
+    {
+        Id = Guid.Parse("4871b8c7-af42-4bb6-8fad-226fb5e84d2e"),
+        Phone = "0987654321",
+        Address = "456 Another Street, City, Country",
+        TotalPrice = 100.75m,
+        PackagePrice = 25.00m,
+        Quantity = 1,
+        Status = OrderStatus.Pending,
+        PackageId = Packages[0].Id,
+        CreatedById = Accounts[0].Id,
+        Payments = new List<Payment>
+        {
+            new Payment
+            {
+                Id = Guid.Parse("4871b8c7-af41-4bb6-8fad-226fb5e84d2e"),
+                PaymentType = PaymentType.VnPay,
+                Amount = 100.75m,
+                PaymentStatus = PaymentStatus.Success
+            }
+        },
+        OrderInformations = new List<OrderInformation>
+        {
+            new OrderInformation
+            {
+                Id = Guid.Parse("4871b8c7-af40-4bb6-8fad-226fb5e84d2e"),
+                Description = "Order Information for Product B",
+                PackageFeatureId = PackageFeatures[1].Id,
+                OrderInformationAttachments = new List<OrderInformationAttachment>
+                {
+                    new OrderInformationAttachment
+                    {
+                        Id = Guid.Parse("4871b8c7-af39-4bb6-8fad-226fb5e84d2e"),
+                        AttachmentUrl = "path/to/attachment.pdf",
+                        AttachmentAlt = "pdf",
+                    }
+                }
+            }
+    }
+
+        }
+    };
+
+    // This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
 
     /// <summary>
     /// Initialize and seed the database with roles, categories, and subcategories.
@@ -248,6 +335,14 @@ public static class InitialSeeding
             {
                 packageFeature.CreationDate = DateTime.UtcNow;
                 context.PackageFeatures.Add(packageFeature);
+            }
+        }
+        foreach (var order in Orders)
+        {
+            if (!context.Orders.Any(i => i.Id == order.Id))
+            {
+                order.CreationDate = DateTime.UtcNow;
+                context.Orders.Add(order);
             }
         }
 

@@ -228,7 +228,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var embeddingVector = await _openAiService.GetEmbeddingAsync(serviceAddModel.Description, serviceAddModel.Name);
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
                 {
@@ -596,7 +596,7 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
             serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
-            var inputEmbedding = await _openAiService.GetEmbeddingAsync(serviceFilterModel.Description, "");
+            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Description });
             var services = await _unitOfWork.ServiceRepository.GetAllAsync();
             var threshold = 0.80; 
             var keywordThreshold = 0.2; 

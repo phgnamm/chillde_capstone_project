@@ -8,6 +8,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IOpenAiService
     {
-        Task<float[]> GetEmbeddingAsync(string description, string name);
+        Task<float[]> GetEmbeddingAsync(List<string> texts);
     }
 }
