@@ -23,11 +23,9 @@ namespace Chillde.Services.Services
         private readonly IOpenAIService _openAiService;
         private readonly ModelConfigurationOptions _modelConfigurationOptions;
 
-        public OpenAiService(
-            IOpenAIService openAiService,
+        public OpenAiService(IConfiguration configuration, IOpenAIService openAiService,
             IOptions<ModelConfigurationOptions> modelConfigurationOptions
-           )
-        public OpenAiService(IConfiguration configuration)
+)
         {
             _openAiService = openAiService;
             _modelConfigurationOptions = modelConfigurationOptions.Value;
@@ -35,34 +33,18 @@ namespace Chillde.Services.Services
         }
 
         public async Task<ResponseModel> GetRecommendationsAsync(SuggestAddModel suggestAddModel)
-        public async Task<float[]> GetEmbeddingAsync(List<string> texts)
         {
             var fineTunedModel = _modelConfigurationOptions.FineTunedModelId;
             var defaultModel = _modelConfigurationOptions.DefaultModel;
             var eventPrompt = "What are the upcoming events in Vietnam within the next 1.5 months?";
-            if (texts == null || texts.Count == 0)
-            {
-                throw new ArgumentException("Input cannot be empty.", nameof(texts));
-            }
 
             var eventResponse = await _openAiService.Completions.CreateCompletion(
                 new CompletionCreateRequest
-            var apiKey = _configuration["OpenAI:ApiKey"];
-            if (string.IsNullOrEmpty(apiKey))
-                throw new Exception("API key is missing.");
-
-            using var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-
-            var requestBody = new
                 {
                     Prompt = eventPrompt,
                     Model = defaultModel,
                     MaxTokens = 100
                 });
-                model = "text-embedding-ada-002",
-                input = texts
-            };
 
             string? eventInfo = eventResponse?.Choices?.FirstOrDefault()?.Text?.Trim();
             if (string.IsNullOrEmpty(eventInfo))
@@ -74,15 +56,10 @@ namespace Chillde.Services.Services
             {
                 var eventRecommendation = await SuggestServicesBasedOnEvent(eventInfo, fineTunedModel);
                 response = new ResponseModel
-            var response = await httpClient.PostAsJsonAsync("https://api.openai.com/v1/embeddings", requestBody);
-
-            if (!response.IsSuccessStatusCode)
                 {
                     Code = StatusCodes.Status200OK,
                     Message = eventRecommendation
                 };
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Failed to retrieve embeddings: {response.StatusCode} - {errorContent}");
             }
             else
             {
@@ -92,9 +69,6 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status200OK,
                     Message = userInputRecommendation
                 };
-
-            var responseData = await response.Content.ReadFromJsonAsync<OpenAiEmbeddingResponse>();
-            return responseData?.Data.FirstOrDefault()?.Embedding ?? throw new Exception("No embedding data returned.");
             }
 
             return response;
@@ -106,7 +80,6 @@ namespace Chillde.Services.Services
 
             var recommendationResponse = await _openAiService.Completions.CreateCompletion(
                 new CompletionCreateRequest
-    public class OpenAiEmbeddingResponse
                 {
                     Prompt = prompt,
                     Model = fineTunedModel,
@@ -114,7 +87,6 @@ namespace Chillde.Services.Services
                 });
 
             return recommendationResponse?.Choices?.FirstOrDefault()?.Text?.Trim() ?? "No service recommendations available.";
-        public List<EmbeddingData> Data { get; set; } = new List<EmbeddingData>();
         }
 
         private async Task<string> SuggestServicesBasedOnUserInput(string userInput, string fineTunedModel)
@@ -123,16 +95,53 @@ namespace Chillde.Services.Services
 
             var recommendationResponse = await _openAiService.Completions.CreateCompletion(
                 new CompletionCreateRequest
-    public class EmbeddingData
                 {
                     Prompt = prompt,
                     Model = fineTunedModel,
                     MaxTokens = 150
                 });
-        public float[] Embedding { get; set; } = Array.Empty<float>();
-    }
 
             return recommendationResponse?.Choices?.FirstOrDefault()?.Text?.Trim() ?? "No suitable services found.";
+        }
+        public async Task<float[]> GetEmbeddingAsync(List<string> texts)
+        {
+            if (texts == null || texts.Count == 0)
+            {
+                throw new ArgumentException("Input cannot be empty.", nameof(texts));
+            }
+
+            var apiKey = _configuration["OpenAI:ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+                throw new Exception("API key is missing.");
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+            var requestBody = new
+            {
+                model = "text-embedding-ada-002",
+                input = texts
+            };
+
+            var response = await httpClient.PostAsJsonAsync("https://api.openai.com/v1/embeddings", requestBody);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new Exception($"Failed to retrieve embeddings: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseData = await response.Content.ReadFromJsonAsync<OpenAiEmbeddingResponse>();
+            return responseData?.Data.FirstOrDefault()?.Embedding ?? throw new Exception("No embedding data returned.");
+        }
+        public class OpenAiEmbeddingResponse
+        {
+            public List<EmbeddingData> Data { get; set; } = new List<EmbeddingData>();
+        }
+
+        public class EmbeddingData
+        {
+            public float[] Embedding { get; set; } = Array.Empty<float>();
         }
     }
 }

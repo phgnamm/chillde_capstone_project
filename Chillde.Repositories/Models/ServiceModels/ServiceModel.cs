@@ -14,11 +14,6 @@ namespace Chillde.Repositories.Models.ServiceModels
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public double Similarity { get; set; }
-        public string? AttachmentAlt { get; set; }
-        public string? AttachmentUrl { get; set; }
-
-        public string? Name { get; set; }
-        public string? Description { get; set; }
         public bool IsOffter { get; set; }
         public ServiceStatus Status { get; set; }
         public List<ServiceAttachment>? ServiceAttachments { get; set; }
