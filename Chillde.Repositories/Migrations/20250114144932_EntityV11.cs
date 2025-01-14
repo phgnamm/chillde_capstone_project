@@ -22,51 +22,51 @@ namespace Chillde.Repositories.Migrations
                 oldMaxLength: 256,
                 oldNullable: true);
 
+            migrationBuilder.AddColumn<string>(
+                name: "ShipmentCode",
+                table: "Orders",
+                type: "text",
+                nullable: true);
+
             migrationBuilder.AddColumn<int>(
-                name: "FromDistrict",
+                name: "ToDistrict",
                 table: "Orders",
                 type: "integer",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
-                name: "FromProvince",
+                name: "ToProvince",
                 table: "Orders",
                 type: "text",
                 nullable: false,
                 defaultValue: "");
 
             migrationBuilder.AddColumn<string>(
-                name: "FromWard",
+                name: "ToWard",
                 table: "Orders",
                 type: "text",
                 nullable: false,
                 defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "ShipmentCode",
-                table: "Orders",
-                type: "text",
-                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "FromDistrict",
-                table: "Orders");
-
-            migrationBuilder.DropColumn(
-                name: "FromProvince",
-                table: "Orders");
-
-            migrationBuilder.DropColumn(
-                name: "FromWard",
-                table: "Orders");
-
-            migrationBuilder.DropColumn(
                 name: "ShipmentCode",
+                table: "Orders");
+
+            migrationBuilder.DropColumn(
+                name: "ToDistrict",
+                table: "Orders");
+
+            migrationBuilder.DropColumn(
+                name: "ToProvince",
+                table: "Orders");
+
+            migrationBuilder.DropColumn(
+                name: "ToWard",
                 table: "Orders");
 
             migrationBuilder.AlterColumn<string>(

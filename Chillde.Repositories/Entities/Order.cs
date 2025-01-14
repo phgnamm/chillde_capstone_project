@@ -6,9 +6,9 @@ public class Order : BaseEntity
 {
     public string? Phone { get; set; }
     public string Address { get; set; }
-    public string FromWard { get; set; }
-    public int FromDistrict { get; set; }
-    public string FromProvince { get; set; }
+    public string ToWard { get; set; }
+    public int ToDistrict { get; set; }
+    public string ToProvince { get; set; }
     public decimal? TotalPrice { get; set; }
     public decimal? PackagePrice { get; set; }
     public int? Quantity { get; set; }
