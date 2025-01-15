@@ -1,5 +1,6 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.ShipmentModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Mvc;

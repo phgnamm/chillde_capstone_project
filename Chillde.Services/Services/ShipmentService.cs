@@ -13,21 +13,18 @@ namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
     {
-        private readonly string _url;
-        private readonly string _shopId;
-        private readonly string _token;
-
+        private readonly string? _shopId;
         private readonly HttpClient _httpClient;
         private readonly IUnitOfWork _unitOfWork;
 
 
-        public ShipmentService(HttpClient httpClient,IConfiguration configuration, IUnitOfWork unitOfWork)
+        public ShipmentService(HttpClient httpClient, IConfiguration configuration, IUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory)
+
         {
-            _httpClient = httpClient;
-            _url = configuration["GhnSettings:BaseUrl"]+ "shipping-order/create";
             _shopId = configuration["GhnSettings:ShopId"];
-            _token = configuration["GhnSettings:Token"];
             _unitOfWork = unitOfWork;
+            _httpClient = httpClientFactory.CreateClient("GhnClient");
+
         }
 
         
@@ -47,15 +44,18 @@ namespace Chillde.Services.Services
             var requestPayload = new
             {
                 from_district_id = requestModel.FromDistrictId,
+                from_ward_code = requestModel.FromWardCode,
                 service_id = requestModel.ServiceId,
                 service_type_id = requestModel.ServiceTypeId,
                 to_district_id = requestModel.ToDistrictId,
                 to_ward_code = requestModel.ToWardCode,
-                height = requestModel.Height,
-                length = requestModel.Length,
+                height = requestModel.Height > 0 ? requestModel.Height : null,
+                length = requestModel.Length > 0 ? requestModel.Length : null,
+                width = requestModel.Width > 0 ? requestModel.Width : null,
                 weight = requestModel.Weight,
-                width = requestModel.Width,
-                insurance_value = requestModel.InsuranceValue
+                insurance_value = requestModel.InsuranceValue > 0 ? (int?)requestModel.InsuranceValue : null,
+                cod_failed_amount = requestModel.CodFailedAmount > 0 ? (int?)requestModel.CodFailedAmount : null,
+                coupon = requestModel.Coupon
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8,
@@ -63,7 +63,8 @@ namespace Chillde.Services.Services
 
             try
             {
-                var response = await _httpClient.PostAsync("/v2/shipping-order/fee", content);
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                var response = await _httpClient.PostAsync("v2/shipping-order/fee", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -92,6 +93,57 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status500InternalServerError,
                     Message = "An error occurred while calculating shipping fee",
+                    Data = ex.Message
+                };
+            }
+        }
+        public async Task<ResponseModel> GetShipmentDetailAsync(string orderCode)
+        {
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Order code is required",
+                    Data = null
+                };
+            }
+
+            var requestPayload = new { order_code = orderCode };
+            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8, "application/json");
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                var response = await _httpClient.PostAsync("v2/shipping-order/detail", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = "Failed to retrieve shipment details",
+                        Data = null
+                    };
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+                var shipmentData = jsonObject?["data"]?.ToObject<ShipmentDetailResponseModel>();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment details retrieved successfully",
+                    Data = shipmentData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while retrieving shipment details",
                     Data = ex.Message
                 };
             }

@@ -6,5 +6,7 @@ namespace Chillde.Services.Interfaces
     public interface IShipmentService
     {
         Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel? requestModel);
+        Task<ResponseModel> GetShipmentDetailAsync(string orderCode);
+
     }
 }
