@@ -13,21 +13,18 @@ namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
     {
-        private readonly string _url;
-        private readonly string _shopId;
-        private readonly string _token;
-
+        private readonly string? _shopId;
         private readonly HttpClient _httpClient;
         private readonly IUnitOfWork _unitOfWork;
 
 
-        public ShipmentService(HttpClient httpClient,IConfiguration configuration, IUnitOfWork unitOfWork)
+        public ShipmentService(HttpClient httpClient, IConfiguration configuration, IUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory)
+
         {
-            _httpClient = httpClient;
-            _url = configuration["GhnSettings:BaseUrl"]+ "shipping-order/create";
             _shopId = configuration["GhnSettings:ShopId"];
-            _token = configuration["GhnSettings:Token"];
             _unitOfWork = unitOfWork;
+            _httpClient = httpClientFactory.CreateClient("GhnClient");
+
         }
 
         public async Task<ResponseModel> AddShipmentAsync(ShipmentAddModel model)
@@ -63,11 +60,9 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                _httpClient.DefaultRequestHeaders.Clear();
+                // _httpClient.DefaultRequestHeaders.Clear();
                 //_httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
                 _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                _httpClient.DefaultRequestHeaders.Add("Token", _token);
-
                 var payload = new
                 {
                     payment_type_id = 2,
@@ -118,56 +113,56 @@ namespace Chillde.Services.Services
                         }
                     }
                 };
-    //            var payload = new
-    //            {
-    //                payment_type_id = 2,
-    //                note = "Tintest 123",
-    //                required_note = "KHONGCHOXEMHANG",
-    //                from_name = "TinTest124",
-    //                from_phone = "0987654321",
-    //                from_address = "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam",
-    //                from_ward_name = "Phường 14",
-    //                from_district_name = "Quận 10",
-    //                from_province_name = "HCM",
-    //                return_phone = "0332190444",
-    //                return_address = "39 NTT",
-    //                return_district_id = (string)null,
-    //                return_ward_code = "",
-    //                client_order_code = (string)null,
-    //                to_name = "TinTest124",
-    //                to_phone = "0987654321",
-    //                to_address = "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam",
-    //                to_ward_code = "20308",
-    //                to_district_id = 1444,
-    //                cod_amount = 200000,
-    //                content = "Theo New York Times",
-    //                weight = 200,
-    //                length = 1,
-    //                width = 19,
-    //                height = 10,
-    //                pick_station_id = 1444,
-    //                deliver_station_id = (int?)null,
-    //                insurance_value = 0,
-    //                service_id = 0,
-    //                service_type_id = 2,
-    //                coupon = (string)null,
-    //                pick_shift = new[] { 2 },
-    //                items = new[]
-    //{
-    //    new
-    //    {
-    //        name = "Áo Polo",
-    //        code = "Polo123",
-    //        quantity = 1,
-    //        price = 200000,
-    //        length = 12,
-    //        width = 12,
-    //        height = 12,
-    //        weight = 1200,
-    //        category = new { level1 = "Áo" }
-    //    }
-    //}
-    //            };
+                //            var payload = new
+                //            {
+                //                payment_type_id = 2,
+                //                note = "Tintest 123",
+                //                required_note = "KHONGCHOXEMHANG",
+                //                from_name = "TinTest124",
+                //                from_phone = "0987654321",
+                //                from_address = "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam",
+                //                from_ward_name = "Phường 14",
+                //                from_district_name = "Quận 10",
+                //                from_province_name = "HCM",
+                //                return_phone = "0332190444",
+                //                return_address = "39 NTT",
+                //                return_district_id = (string)null,
+                //                return_ward_code = "",
+                //                client_order_code = (string)null,
+                //                to_name = "TinTest124",
+                //                to_phone = "0987654321",
+                //                to_address = "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam",
+                //                to_ward_code = "20308",
+                //                to_district_id = 1444,
+                //                cod_amount = 200000,
+                //                content = "Theo New York Times",
+                //                weight = 200,
+                //                length = 1,
+                //                width = 19,
+                //                height = 10,
+                //                pick_station_id = 1444,
+                //                deliver_station_id = (int?)null,
+                //                insurance_value = 0,
+                //                service_id = 0,
+                //                service_type_id = 2,
+                //                coupon = (string)null,
+                //                pick_shift = new[] { 2 },
+                //                items = new[]
+                //{
+                //    new
+                //    {
+                //        name = "Áo Polo",
+                //        code = "Polo123",
+                //        quantity = 1,
+                //        price = 200000,
+                //        length = 12,
+                //        width = 12,
+                //        height = 12,
+                //        weight = 1200,
+                //        category = new { level1 = "Áo" }
+                //    }
+                //}
+                //            };
 
 
 
@@ -175,7 +170,7 @@ namespace Chillde.Services.Services
                 var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
                 // Send POST request
-                var response = await _httpClient.PostAsync(_url, content);
+                var response = await _httpClient.PostAsync("shipping-order/create", content);
                 //response.EnsureSuccessStatusCode();
 
                 var responseContent = await response.Content.ReadAsStringAsync();
@@ -213,15 +208,18 @@ namespace Chillde.Services.Services
             var requestPayload = new
             {
                 from_district_id = requestModel.FromDistrictId,
+                from_ward_code = requestModel.FromWardCode,
                 service_id = requestModel.ServiceId,
                 service_type_id = requestModel.ServiceTypeId,
                 to_district_id = requestModel.ToDistrictId,
                 to_ward_code = requestModel.ToWardCode,
-                height = requestModel.Height,
-                length = requestModel.Length,
+                height = requestModel.Height > 0 ? requestModel.Height : null,
+                length = requestModel.Length > 0 ? requestModel.Length : null,
+                width = requestModel.Width > 0 ? requestModel.Width : null,
                 weight = requestModel.Weight,
-                width = requestModel.Width,
-                insurance_value = requestModel.InsuranceValue
+                insurance_value = requestModel.InsuranceValue > 0 ? (int?)requestModel.InsuranceValue : null,
+                cod_failed_amount = requestModel.CodFailedAmount > 0 ? (int?)requestModel.CodFailedAmount : null,
+                coupon = requestModel.Coupon
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8,
@@ -229,7 +227,8 @@ namespace Chillde.Services.Services
 
             try
             {
-                var response = await _httpClient.PostAsync("/v2/shipping-order/fee", content);
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                var response = await _httpClient.PostAsync("v2/shipping-order/fee", content);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -258,6 +257,57 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status500InternalServerError,
                     Message = "An error occurred while calculating shipping fee",
+                    Data = ex.Message
+                };
+            }
+        }
+        public async Task<ResponseModel> GetShipmentDetailAsync(string orderCode)
+        {
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Order code is required",
+                    Data = null
+                };
+            }
+
+            var requestPayload = new { order_code = orderCode };
+            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8, "application/json");
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                var response = await _httpClient.PostAsync("v2/shipping-order/detail", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = "Failed to retrieve shipment details",
+                        Data = null
+                    };
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+                var shipmentData = jsonObject?["data"]?.ToObject<ShipmentDetailResponseModel>();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment details retrieved successfully",
+                    Data = shipmentData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while retrieving shipment details",
                     Data = ex.Message
                 };
             }
