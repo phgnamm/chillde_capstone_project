@@ -15,5 +15,7 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> AddShipmentAsync(ShipmentAddModel model);
         Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel? requestModel);
+        Task<ResponseModel> GetShipmentDetailAsync(string orderCode);
+
     }
 }
