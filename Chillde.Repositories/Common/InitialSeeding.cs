@@ -30,6 +30,7 @@ public static class InitialSeeding
             LastName = "Test",
             Username = "Test",
             Email = "Test",
+            PhoneNumber = "0975993464",
             HashedPassword = "Test",
             EmailConfirmed = true,
             PhoneNumberConfirmed = true,
