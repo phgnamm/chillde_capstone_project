@@ -11,6 +11,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> CreatePaymentUrl(OrderAddModel orderAddModel, string ipAddress);
         Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId);
         Task<ResponseModel> CreateShipmentAsync(ShipmentAddModel model, Guid orderId);
-
+        Task<ResponseModel> CancelShipmentAsync(Guid orderId, string shipmentCode);
     }
 }

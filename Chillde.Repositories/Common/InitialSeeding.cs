@@ -209,7 +209,7 @@ public static class InitialSeeding
         {
             new Payment
             {
-                Id = Guid.Parse("4871b8c7-af45-4bb6-8fad-226fb5e84d2e"),
+                Id = Guid.Parse("f07caba7-842c-46be-acef-fcb6a5d20fd0"),
                 PaymentType = PaymentType.VnPay,
                 Amount = 200.50m,
                 PaymentStatus = PaymentStatus.Success
@@ -219,14 +219,14 @@ public static class InitialSeeding
         {
             new OrderInformation
             {
-                Id = Guid.Parse("4871b8c7-af44-4bb6-8fad-226fb5e84d2e"),
+                Id = Guid.Parse("d082cfcd-b5d9-4c1a-9f18-d8a0a6113bcc"),
                 Description = "Order Information for Product A",
                 PackageFeatureId = PackageFeatures[0].Id,
                 OrderInformationAttachments = new List<OrderInformationAttachment>
                 {
                     new OrderInformationAttachment
                     {
-                        Id = Guid.Parse("4871b8c7-af43-4bb6-8fad-226fb5e84d2e"),
+                        Id = Guid.Parse("d4675207-1a94-4493-8e5f-f2672d31dd52"),
                         AttachmentUrl = "path/to/file.jpg",
                         AttachmentAlt = "image",
                     }
@@ -236,7 +236,7 @@ public static class InitialSeeding
     },
     new()
     {
-        Id = Guid.Parse("4871b8c7-af42-4bb6-8fad-226fb5e84d2e"),
+        Id = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
         Phone = "0987654321",
         Address = "456 Another Street, City, Country",
         ToWard = "20308",
@@ -252,7 +252,7 @@ public static class InitialSeeding
         {
             new Payment
             {
-                Id = Guid.Parse("4871b8c7-af41-4bb6-8fad-226fb5e84d2e"),
+                Id = Guid.Parse("7604cdf4-3fa1-464c-824d-9b89e567ee8c"),
                 PaymentType = PaymentType.VnPay,
                 Amount = 100.75m,
                 PaymentStatus = PaymentStatus.Success
@@ -262,14 +262,14 @@ public static class InitialSeeding
         {
             new OrderInformation
             {
-                Id = Guid.Parse("4871b8c7-af40-4bb6-8fad-226fb5e84d2e"),
+                Id = Guid.Parse("753a3b34-d33e-479b-8940-da24f2a5bacd"),
                 Description = "Order Information for Product B",
                 PackageFeatureId = PackageFeatures[1].Id,
                 OrderInformationAttachments = new List<OrderInformationAttachment>
                 {
                     new OrderInformationAttachment
                     {
-                        Id = Guid.Parse("4871b8c7-af39-4bb6-8fad-226fb5e84d2e"),
+                        Id = Guid.Parse("dca69da4-8772-4d70-9736-a59e49a61e5f"),
                         AttachmentUrl = "path/to/attachment.pdf",
                         AttachmentAlt = "pdf",
                     }

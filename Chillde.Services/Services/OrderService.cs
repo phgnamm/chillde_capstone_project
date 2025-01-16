@@ -378,18 +378,9 @@ namespace Chillde.Services.Services
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status404NotFound,
-                        Message = "Order not found."
+                        Message = "Customer not found."
                     };
                 }
-                //    var customer = await _unitOfWork.AccountRepository.GetAsync(Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"));
-                //if (customer == null)
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status404NotFound,
-                //        Message = "Order not found."
-                //    };
-                //}
 
                 _httpClient.DefaultRequestHeaders.Clear();
                 //_httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
@@ -462,7 +453,7 @@ namespace Chillde.Services.Services
                 var response = await _httpClient.PostAsync("v2/shipping-order/create", content);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<ShipmentResponseModel>(responseContent);
+                var result = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
 
                 if (result.Code == StatusCodes.Status200OK.ToString())
                 {
@@ -475,7 +466,86 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
-                    Message = "Successfully",
+                    Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+        public async Task<ResponseModel> CancelShipmentAsync(Guid orderId, string shipmentCode)
+        {
+            try
+            {
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+
+                if (order.ShipmentCode == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status406NotAcceptable,
+                        Message = "Đơn hàng chưa có đơn vận chuyển"
+                    };
+                }
+
+                var customer = await _unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById);
+                if (customer == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+
+                var payload = new
+                {
+                    order_codes = new[] { order.ShipmentCode }
+                };
+
+                //var jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
+                //var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                //var response = await _httpClient.PostAsync(_url, content);
+
+                //var responseContent = await response.Content.ReadAsStringAsync();
+                //var result = JsonConvert.DeserializeObject<ShipmentResponseModel>(responseContent);
+
+                var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                _httpClient.DefaultRequestHeaders.Add("Token", _token);
+                var response = await _httpClient.PostAsync("v2/switch-status/cancel", content);
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var result = JsonConvert.DeserializeObject<ShipmentCancelResponseModel>(responseContent);
+
+                if (result.Code == StatusCodes.Status200OK.ToString())
+                {
+                    order.ShipmentCode = null;
+                }
+
+                _unitOfWork.OrderRepository.Update(order);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
                     Data = result
                 };
             }

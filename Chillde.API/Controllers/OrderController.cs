@@ -121,6 +121,23 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
+        //[Authorize("Artist")]
+        [HttpPost("{orderId}/shipments/{shipmentCode}")]
+        public async Task<IActionResult> CancelShipmentAsync(Guid orderId, string shipmentCode)
+        {
+            try
+            {
+                var result = await _orderService.CancelShipmentAsync(orderId, shipmentCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }
