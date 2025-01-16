@@ -15,10 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
-using System.Xml.Linq;
-using Chillde.Repositories.Enums;
-using Chillde.Repositories.Models.ServiceModels;
-using Chillde.Repositories.Models.RequestModels;
+using Chillde.Services.Models.RequestModels;
+using System.Net;
 
 namespace Chillde.Services.Services
 {
@@ -30,8 +28,9 @@ namespace Chillde.Services.Services
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceAttachmentService _serviceAttachmentService;
+        private readonly ITranslationService _translationService;
 
-        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService)
+        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService)
         {
             _openAiService = openAiService;
             _unitOfWork = unitOfWork;
@@ -39,6 +38,7 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _serviceAttachmentService = serviceAttachmentService;
+            _translationService = translationService;
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
@@ -282,7 +282,7 @@ namespace Chillde.Services.Services
                             Guid.NewGuid().ToString()
                         );
                     }
-                    
+
                     newServiceAttachment.Add(new ServiceAttachment
                     {
                         AttachmentAlt = attachmentAlt,
@@ -426,7 +426,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId)
+        public async Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -439,7 +439,7 @@ namespace Chillde.Services.Services
                         Message = "Service not found."
                     };
                 }
-
+                await _unitOfWork.BeginTransactionAsync();
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 if (numberOfExistedPackage >= 3)
                 {
@@ -449,17 +449,65 @@ namespace Chillde.Services.Services
                         Message = "Number of packages cannot exceed 3."
                     };
                 }
+                var fieldsToTranslate = new Dictionary<string, string>
+                {
+                    { "Name", packageAddModel.Name },
+                    { "Description", packageAddModel.Description }
+                };
+                var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+                if (translationResponse.Code != StatusCodes.Status200OK)
+                {
+                    throw new Exception("Failed to translate fields.");
+                }
+                string translatedName = translationResponse.TranslatedFields["Name"];
+                string translatedDescription = translationResponse.TranslatedFields["Description"];
 
                 var package = new Package
                 {
-                    Name = packageAddModel.Name,
-                    Description = packageAddModel.Description,
+                    Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
+                    Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
                     Price = packageAddModel.Price,
                     ServiceId = serviceId,
                 };
 
                 await _unitOfWork.PackageRepository.AddAsync(package);
+                var translations = new List<Translation>();
+                Guid? languageId = null;
+                if (sourceLanguageCode != "en")
+                {
+                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+                }
+                else
+                {
+                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                }
+                if (!string.IsNullOrEmpty(packageAddModel.Name))
+                {
+                    translations.Add(new Translation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityType = "Request",
+                        EntityId = package.Id,
+                        FieldName = "Name",
+                        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Name : translatedName,
+                        LanguageId = languageId.Value
+                    });
+                }
+                if (!string.IsNullOrEmpty(packageAddModel.Description))
+                {
+                    translations.Add(new Translation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityType = "Request",
+                        EntityId = package.Id,
+                        FieldName = "Description",
+                        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Description : translatedDescription,
+                        LanguageId = languageId.Value
+                    });
+                }
+                await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
 
                 var packageModel = _mapper.Map<PackageModel>(package);
 
@@ -472,6 +520,7 @@ namespace Chillde.Services.Services
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
@@ -621,8 +670,8 @@ namespace Chillde.Services.Services
             serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
             var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Description });
             var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-            var threshold = 0.80; 
-            var keywordThreshold = 0.2; 
+            var threshold = 0.80;
+            var keywordThreshold = 0.2;
             var tasks = services.Data
                                 .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
                                 .Select(async _ =>

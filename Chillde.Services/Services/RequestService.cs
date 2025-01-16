@@ -191,30 +191,31 @@ namespace Chillde.Services.Services
                 var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
                 Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
                 Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+                var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
+                    _ => _.IsDeleted == filterParameter.IsDeleted &&
+                        (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower())),
+                    requests =>
+                    {
+                        switch (filterParameter.Order.ToLower())
+                        {
+                            case "creationDate":
+                                return filterParameter.OrderByDescending
+                                    ? requests.OrderByDescending(request => request.CreationDate)
+                                    : requests.OrderBy(request => request.CreationDate);
+                            default:
+                                return filterParameter.OrderByDescending
+                                    ? requests.OrderByDescending(request => request.CreationDate)
+                                    : requests.OrderBy(request => request.CreationDate);
+                        }
+                    },
+                    include: requests => requests.Include(_ => _.Item),
+                    pageIndex: filterParameter.PageIndex,
+                    pageSize: filterParameter.PageSize
+                );
+
+                var requestIds = requestsResult.Data.Select(r => r.Id).ToList();
                 if (sourceLanguageCode.ToLower() == "en")
                 {
-                    var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
-                        _ => _.IsDeleted == filterParameter.IsDeleted &&
-                            (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower())),
-                        requests =>
-                        {
-                            switch (filterParameter.Order.ToLower())
-                            {
-                                case "creationDate":
-                                    return filterParameter.OrderByDescending
-                                        ? requests.OrderByDescending(request => request.CreationDate)
-                                        : requests.OrderBy(request => request.CreationDate);
-                                default:
-                                    return filterParameter.OrderByDescending
-                                        ? requests.OrderByDescending(request => request.CreationDate)
-                                        : requests.OrderBy(request => request.CreationDate);
-                            }
-                        },
-                        include: requests => requests.Include(_ => _.Item),
-                        pageIndex: filterParameter.PageIndex,
-                        pageSize: filterParameter.PageSize
-                    );
-
                     var requestModels = requestsResult.Data.Select(_ => new RequestModel
                     {
                         Id = _.Id,
@@ -240,12 +241,6 @@ namespace Chillde.Services.Services
                 }
                 else
                 {
-                    var requests = await _unitOfWork.RequestRepository.GetAllAsync(
-                        r => r.IsDeleted == filterParameter.IsDeleted
-                    );
-
-                    var requestIds = requests.Data.Select(r => r.Id).ToList();
-
                     var translationFields = new[] { "Name", "Description" };
                     var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestModel>(
                         requestIds,
@@ -349,7 +344,7 @@ namespace Chillde.Services.Services
                                 .Select(detail => new RequestDetailGetByIdModel
                                 {
                                     Id = detail.Id,
-                                    Description = detail.Description ?? detail.Description,
+                                    Description = detail.Description,
                                     ItemAttributeId = existingRequest.RequestDetails.FirstOrDefault()!.Attribute.Id,
                                     ItemAttributeName = _localizer[existingRequest.RequestDetails.FirstOrDefault()!.Attribute.Name.ToString()]
                                 }).ToList();
@@ -358,6 +353,7 @@ namespace Chillde.Services.Services
 
                         return new ResponseModel
                         {
+                            Code = StatusCodes.Status200OK,
                             Data = updatedTranslations,
                             Message = "Get request detail successfully"
                         };
@@ -389,6 +385,7 @@ namespace Chillde.Services.Services
 
                 return new ResponseModel
                 {
+                    Code = StatusCodes.Status200OK,
                     Data = requestModel,
                     Message = "Get request detail success"
                 };
