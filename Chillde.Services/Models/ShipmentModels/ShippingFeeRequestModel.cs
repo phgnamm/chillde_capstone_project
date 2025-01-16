@@ -2,8 +2,7 @@
 
 public class ShippingFeeRequestModel
 {
-    public int FromDistrictId { get; set; }
-    
+    public int FromDistrictId { get; set; } 
     public string? FromWardCode { get; set; }
     public int ToDistrictId { get; set; }
     public string? ToWardCode { get; set; }
