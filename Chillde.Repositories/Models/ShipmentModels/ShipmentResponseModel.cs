@@ -4,6 +4,8 @@ namespace Chillde.Repositories.Models.ShipmentModels
 {
     public class ShipmentResponseModel
     {
+        [JsonProperty("code")]
+        public string? Code { get; set; }
         [JsonProperty("message")]
         public string? Message { get; set; }
         [JsonProperty("code_message_value")]
