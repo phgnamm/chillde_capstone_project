@@ -37,40 +37,6 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist")]
-        [HttpPost()]
-        public async Task<IActionResult> AddShipmentAsync([FromBody] ShipmentAddModel model)
-        {
-            try
-            {
-                var result = await _shipmentService.AddShipmentAsync(model);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        [HttpGet("order-infor")]
-        public async Task<IActionResult> GetShipmentDetail(string orderCode)
-        {
-            try
-            {
-                var result = await _shipmentService.GetShipmentDetailAsync(orderCode);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
+        
     }
 }

@@ -3,6 +3,7 @@ using Chillde.Repositories.Models.VnPayModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ShipmentModels;
 using Chillde.Services.Services;
 using Chillde.Services.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -100,6 +101,25 @@ namespace Chillde.API.Controllers
             {
                 Message = "No payment information found in the request."
             });
+        }
+
+        //[Authorize("Artist")]
+        [HttpPost("{orderId}/shipments")]
+        public async Task<IActionResult> AddShipmentAsync([FromBody] ShipmentAddModel model, Guid orderId)
+        {
+            try
+            {
+                var result = await _orderService.CreateShipmentAsync(model, orderId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
         }
 
     }
