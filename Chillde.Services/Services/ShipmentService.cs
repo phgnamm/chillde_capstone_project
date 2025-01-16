@@ -312,5 +312,57 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
+        public async Task<ResponseModel> SwitchToReturnStatusAsync(string orderCode)
+        {
+            if (string.IsNullOrEmpty(orderCode))
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Order code is required",
+                    Data = null
+                };
+            }
+
+            var requestPayload = new { order_codes = new[] { orderCode } };
+            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8, "application/json");
+
+            try
+            {
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                var response = await _httpClient.PostAsync("/v2/switch-status/return", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = "Failed to switch status to return",
+                        Data = null
+                    };
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+                var switchStatusData = jsonObject?["data"]?.ToObject<List<SwitchStatusResponseModel>>();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Status switched to return successfully",
+                    Data = switchStatusData
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while switching status to return",
+                    Data = ex.Message
+                };
+            }
+        }
     }
 }
