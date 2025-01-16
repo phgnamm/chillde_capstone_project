@@ -18,7 +18,7 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
 
 
-        public ShipmentService(HttpClient httpClient, IConfiguration configuration, IUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory)
+        public ShipmentService(IConfiguration configuration, IUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory)
 
         {
             _shopId = configuration["GhnSettings:ShopId"];

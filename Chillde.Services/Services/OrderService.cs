@@ -32,21 +32,22 @@ namespace Chillde.Services.Services
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
 
-        private readonly string _url;
-        private readonly string _shopId;
-        private readonly string _token;
+        private readonly string? _shopId;
+        private readonly string? _token;
 
         public OrderService(IUnitOfWork unitOfWork, IClaimService claimService, 
             ICloudinaryHelper cloudinaryHelper, 
             IVnpay vnpay, 
             IConfiguration configuration,
-            HttpClient httpClient)
+            IHttpClientFactory httpClientFactory)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _vnpay = vnpay;
-            _httpClient = httpClient;
+            _httpClient = httpClientFactory.CreateClient("GhnClient");
+            _shopId = configuration["GhnSettings:ShopId"];
+            _token = configuration["GhnSettings:Token"];
         }
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
@@ -362,6 +363,15 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                if (order.ShipmentCode != null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status406NotAcceptable,
+                        Message = "Đơn hàng đã có đơn vận chuyển"
+                    };
+                }
+
                 var customer = await _unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById);
                 if (customer == null)
                 {
@@ -383,8 +393,8 @@ namespace Chillde.Services.Services
 
                 _httpClient.DefaultRequestHeaders.Clear();
                 //_httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                _httpClient.DefaultRequestHeaders.Add("Token", _token);
+                //_httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                //_httpClient.DefaultRequestHeaders.Add("Token", _token);
 
                 var payload = new
                 {
@@ -437,13 +447,30 @@ namespace Chillde.Services.Services
                     }
                 };
 
-                var jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                //var jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
+                //var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync(_url, content);
+                //var response = await _httpClient.PostAsync(_url, content);
+
+                //var responseContent = await response.Content.ReadAsStringAsync();
+                //var result = JsonConvert.DeserializeObject<ShipmentResponseModel>(responseContent);
+
+                var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                _httpClient.DefaultRequestHeaders.Add("Token", _token);
+                var response = await _httpClient.PostAsync("v2/shipping-order/create", content);
 
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<ShipmentResponseModel>(responseContent);
+
+                if (result.Code == StatusCodes.Status200OK.ToString())
+                {
+                    order.ShipmentCode = result.Data.OrderCode;
+                }
+
+                _unitOfWork.OrderRepository.Update(order);
+                await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
                 {
