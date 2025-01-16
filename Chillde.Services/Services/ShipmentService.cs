@@ -63,7 +63,7 @@ namespace Chillde.Services.Services
 
             try
             {
-             //   _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
+                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
                 var response = await _httpClient.PostAsync("v2/shipping-order/fee", content);
 
                 if (!response.IsSuccessStatusCode)
