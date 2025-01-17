@@ -24,15 +24,18 @@ public class ConversationService : IConversationService
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICloudinaryHelper _cloudinaryHelper;
 
     public ConversationService(IClaimService claimService, IMapper mapper,
-        IRedisHelper redisHelper, IUnitOfWork unitOfWork, IHubContext<RealTimeHub> hubContext)
+        IRedisHelper redisHelper, IUnitOfWork unitOfWork, IHubContext<RealTimeHub> hubContext,
+        ICloudinaryHelper cloudinaryHelper)
     {
         _claimService = claimService;
         _mapper = mapper;
         _redisHelper = redisHelper;
         _unitOfWork = unitOfWork;
         _hubContext = hubContext;
+        _cloudinaryHelper = cloudinaryHelper;
     }
 
     public async Task<ResponseModel> Add(ConversationAddModel conversationAddModel)
@@ -258,6 +261,15 @@ public class ConversationService : IConversationService
 
     public async Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel)
     {
+        if (string.IsNullOrWhiteSpace(messageAddModel.Content) && messageAddModel.Attachment == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status400BadRequest,
+                Message = "Please provide content or attachment"
+            };
+        }
+
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
             return new ResponseModel
@@ -283,6 +295,11 @@ public class ConversationService : IConversationService
             };
 
         var message = _mapper.Map<Message>(messageAddModel);
+        if (messageAddModel.Attachment != null)
+        {
+            message.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment);
+        }
+
         var accountConversations = new List<AccountConversation>();
         foreach (var accountConversation in existedConversation.AccountConversations)
         {
@@ -353,6 +370,7 @@ public class ConversationService : IConversationService
         );
         var messageModels = new List<MessageModel>();
         var unreadMessages = new List<MessageRecipient>();
+        messages.Data.Reverse();
         foreach (var message in messages.Data)
         {
             var currentUserMessageRecipient =

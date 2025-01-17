@@ -1,6 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
-using Enums_Role = Chillde.Repositories.Enums.Role;
+using Role = Chillde.Repositories.Enums.Role;
 
 namespace Chillde.Repositories.Models.AccountModels;
 
@@ -20,6 +20,7 @@ public class AccountModel : BaseEntity
     public string? StoreDescription { get; set; }
     public string? Image { get; set; }
     public string? Banner { get; set; }
+    public double? SuccessDeliveryRate { get; set; }
 
     // Status
     public bool EmailConfirmed { get; set; }
@@ -27,6 +28,7 @@ public class AccountModel : BaseEntity
     public AccountStatus Status { get; set; }
 
     // Relationship
-    public List<Enums_Role> Roles { get; set; } = null!;
+    public List<Role> Roles { get; set; } = null!;
     public List<string> RoleNames { get; set; } = null!;
+    public List<string> Skills { get; set; } = null!;
 }

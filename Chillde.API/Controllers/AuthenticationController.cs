@@ -94,7 +94,10 @@ public class AuthenticationController : ControllerBase
             // Refresh token
             HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshTokenFromCookie);
             if (!string.IsNullOrWhiteSpace(refreshTokenFromCookie))
-                accountRefreshTokenModel.RefreshToken = refreshTokenFromCookie;
+            {
+                Guid.TryParse(refreshTokenFromCookie, out var refreshToken);
+                accountRefreshTokenModel.RefreshToken = refreshToken;
+            }
 
             #endregion
 
