@@ -323,12 +323,28 @@ public class ConversationService : IConversationService
         {
             var recipientIds = message.MessageRecipients.Select(messageRecipient => messageRecipient.AccountId)
                 .ToList();
-            foreach (var recipientId in recipientIds)
-                await _hubContext.Clients
-                    .Clients(_connections.GetConnections(recipientIds))
-                    .SendAsync("ReceiveConversation",
-                        MapFromConversationToConversationModel(existedConversation, recipientId));
-
+            // foreach (var recipientId in recipientIds)
+            // {
+            // var updateConversation =
+            //     await _unitOfWork.ConversationRepository.FindByAccountIdAndConversationIdAsync(recipientId,
+            //         conversationId, conversations => conversations
+            //             .Include(conversation => conversation.AccountConversations)
+            //             .ThenInclude(accountConversation => accountConversation.Account)
+            //             .Include(conversation => conversation.AccountConversations).ThenInclude(
+            //                 accountConversation =>
+            //                     accountConversation.MessageRecipients
+            //                         .Where(messageRecipient => !messageRecipient.IsDeleted)
+            //                         .OrderByDescending(messageRecipient => messageRecipient.Message.CreationDate)
+            //                         .Take(6))
+            //             .ThenInclude(messageRecipient => messageRecipient.Message));
+            //     await _hubContext.Clients
+            //         .Clients(_connections.GetConnections(recipientIds))
+            //         .SendAsync("ReceiveConversation");
+            // }
+            
+            await _hubContext.Clients
+                .Clients(_connections.GetConnections(recipientIds))
+                .SendAsync("ReceiveConversation", conversationId);
             await _hubContext.Clients
                 .Clients(_connections.GetConnections(recipientIds)).SendAsync("ReceiveMessage",
                     MapFromMessageToMessageModel(message, currentUserId));
