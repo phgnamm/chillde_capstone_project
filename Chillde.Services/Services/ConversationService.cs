@@ -341,13 +341,21 @@ public class ConversationService : IConversationService
             //         .Clients(_connections.GetConnections(recipientIds))
             //         .SendAsync("ReceiveConversation");
             // }
-            
+
             await _hubContext.Clients
                 .Clients(_connections.GetConnections(recipientIds))
-                .SendAsync("ReceiveConversation", conversationId);
+                .SendAsync("ReceiveConversation",
+                    new
+                    {
+                        ConversationId = conversationId
+                    });
             await _hubContext.Clients
                 .Clients(_connections.GetConnections(recipientIds)).SendAsync("ReceiveMessage",
-                    MapFromMessageToMessageModel(message, currentUserId));
+                    new
+                    {
+                        ConversationId = conversationId,
+                        Message = MapFromMessageToMessageModel(message, currentUserId)
+                    });
 
             return new ResponseModel
             {
