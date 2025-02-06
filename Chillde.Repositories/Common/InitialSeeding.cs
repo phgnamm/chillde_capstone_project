@@ -77,7 +77,7 @@ public static class InitialSeeding
             Id = Guid.Parse("1844b073-513f-4bd3-9fc3-8c77422cf22c"),
             Name = "Làm dây chuyền chữ Y",
             Description = "Thiết kế và tạo một chiếc dây đeo hoàn toàn mới theo yêu cầu của khách hàng.",
-            IsOffter = true,
+            IsOffer = true,
             Status = Enums.ServiceStatus.Active,
             ItemId = Items[6].Id,
             CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b")
