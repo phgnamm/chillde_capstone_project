@@ -7,12 +7,12 @@ namespace Chillde.Services.Models.ServiceAttachmentModels
     public class ServiceAttachmentAddModel
     {
         [Required]
-        public required List<string> AttachmentAlt { get; set; }
+        public string AttachmentAlt { get; set; }
         [Required]
-        public IFormFileCollection? AttachmentUrls { get; set; }
+        public IFormFile AttachmentUrls { get; set; }
     }
-    public class ServiceAttachmentAddRequestModel
-    {
-        public required string AttachmentAlt { get; set; }
-    }
+    //public class ServiceAttachmentAddRequestModel
+    //{
+    //    public required string AttachmentAlt { get; set; }
+    //}
 }

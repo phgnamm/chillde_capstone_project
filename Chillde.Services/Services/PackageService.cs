@@ -1,18 +1,14 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.FeatureModels;
-using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using OpenAI.GPT3.ObjectModels.ResponseModels;
 using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
