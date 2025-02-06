@@ -278,34 +278,43 @@ namespace Chillde.Services.Services
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrls;
 
-                    string? path = null;
-                    if (attachmentUrl != null)
-                    {
-                        path = await _cloudinaryHelper.UploadImageAsync(
-                            attachmentUrl,
-                            "serviceAttachments",
-                            Guid.NewGuid().ToString()
-                        );
+                        string? path = null;
+                        if (attachmentUrl != null)
+                        {
+                            path = await _cloudinaryHelper.UploadImageAsync(
+                                attachmentUrl,
+                                "serviceAttachments",
+                                Guid.NewGuid().ToString()
+                            );
+                        }
+
+                        newServiceAttachment.Add(new ServiceAttachment
+                        {
+                            AttachmentAlt = attachmentAlt,
+                            AttachmentUrl = path,
+                            ServiceId = service.Id
+                        });
                     }
 
-                    newServiceAttachment.Add(new ServiceAttachment
+                    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
+                    await _unitOfWork.SaveChangeAsync();
+
+                    var serviceModel = _mapper.Map<ServiceModel>(service);
+                    return new ResponseModel
                     {
-                        AttachmentAlt = attachmentAlt,
-                        AttachmentUrl = path,
-                        ServiceId = service.Id
-                    });
+                        Code = StatusCodes.Status201Created,
+                        Message = "Service successfully created.",
+                        Data = serviceModel
+                    };
                 }
-
-                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
-                await _unitOfWork.SaveChangeAsync();
-
-                var serviceModel = _mapper.Map<ServiceModel>(service);
-                return new ResponseModel
+                else
                 {
-                    Code = StatusCodes.Status201Created,
-                    Message = "Service successfully created.",
-                    Data = serviceModel
-                };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Service attachments are required."
+                    };
+                }
             }
             catch (Exception ex)
             {

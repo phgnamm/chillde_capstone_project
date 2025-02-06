@@ -6,6 +6,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -348,7 +349,7 @@ namespace Chillde.Services.Services
                         feature => new FeatureModel
                         {
                             Name = feature.Name,
-                            PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeatureModel
+                            PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeature
                             {
                                 Id = pf.Id,
                                 Question = pf.Question,
