@@ -30,6 +30,50 @@ namespace Chillde.API.Controllers
 
         }
         [Authorize]
+        [HttpGet("artists")]
+        public async Task<IActionResult> GetAll([FromQuery] OrderFilterModel orderFilterModel)
+        {
+            try
+            {
+                var result = await _orderService.GetAll(orderFilterModel);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpPut("artists")]
+        public async Task<IActionResult> UpdateStatus(Guid orderId, [FromBody] OrderStatus orderStatus)
+        {
+            try
+            {
+                var result = await _orderService.UpdateStatus(orderId, orderStatus);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
         [HttpPost("create-payment-url")]
         public async Task<IActionResult> CreatePaymentUrl([FromBody] OrderAddModel order)
         {
