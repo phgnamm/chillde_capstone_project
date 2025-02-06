@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ServiceCollectionModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
@@ -74,7 +75,9 @@ namespace Chillde.Services.Services
                             : requests.OrderBy(collection => collection.CreationDate);
                 }
             },
-                      include: collections => collections.Include(sc => sc.ServiceWishlists),
+                    include: collections => collections
+                            .Include(sc => sc.ServiceWishlists)
+                            .Include(sc => sc.CreatedBy),
                       pageIndex: filterModel.PageIndex,
                       pageSize: filterModel.PageSize);
 
@@ -84,7 +87,14 @@ namespace Chillde.Services.Services
                 Id = sc.Id,
                 Name = sc.Name,
                 ImageUrl = sc.ImageUrl,
-                CreatedById = sc.CreatedById,
+                CreatedBy = new AccountLiteModel
+                {
+                    FirstName = sc.CreatedBy!.FirstName,
+                    LastName = sc.CreatedBy.LastName,
+                    Username = sc.CreatedBy.Username,
+                    Email = sc.CreatedBy.Email,
+                    Image = sc.CreatedBy.Image
+                }
             }).ToList();
 
             return new ResponseModel
@@ -100,7 +110,7 @@ namespace Chillde.Services.Services
         {
             var serviceCollection = await _unitOfWork.ServiceCollectionRepository.GetAsync(
                 id: id,
-                include: query => query.Where(sc => sc.Id == id).Include(sc => sc.ServiceWishlists));
+                include: query => query.Where(sc => sc.Id == id).Include(sc => sc.ServiceWishlists).Include(sc => sc.CreatedBy));
 
             if (serviceCollection == null)
             {
@@ -110,6 +120,20 @@ namespace Chillde.Services.Services
                     Message = "Service collection not found."
                 };
             }
+            var serviceCollectionModel = new ServiceCollectionModel
+            {
+                Id = serviceCollection.Id,
+                Name = serviceCollection.Name,
+                ImageUrl = serviceCollection.ImageUrl,
+                CreatedBy = new AccountLiteModel
+                {
+                    FirstName = serviceCollection.CreatedBy!.FirstName,
+                    LastName = serviceCollection.CreatedBy.LastName,
+                    Username = serviceCollection.CreatedBy.Username,
+                    Email = serviceCollection.CreatedBy.Email,
+                    Image = serviceCollection.CreatedBy.Image
+                }
+            };
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,

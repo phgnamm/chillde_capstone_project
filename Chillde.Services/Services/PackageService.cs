@@ -361,7 +361,7 @@ namespace Chillde.Services.Services
                         },
                         "PackageFeatures",
                         translationFields,
-                        null,
+                        null!,
                         "Question"
                     );
 
