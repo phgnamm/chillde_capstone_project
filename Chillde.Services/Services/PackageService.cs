@@ -2,7 +2,6 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeatureModels;
-using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
