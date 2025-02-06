@@ -19,6 +19,7 @@ using System.Xml.Linq;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.FeatureModels;
 
 namespace Chillde.Services.Services
 {
@@ -258,7 +259,7 @@ namespace Chillde.Services.Services
                 {
                     Name = serviceAddModel.Name,
                     Description = serviceAddModel.Description,
-                    IsOffter = serviceAddModel.IsOffter,
+                    IsOffter = serviceAddModel.IsOffer,
                     ItemId = serviceAddModel.ItemId,
                     Status = Repositories.Enums.ServiceStatus.Active,
                     EmbeddingVector = embeddingVector
@@ -267,28 +268,31 @@ namespace Chillde.Services.Services
                 await _unitOfWork.ServiceRepository.AddAsync(service);
 
                 var newServiceAttachment = new List<ServiceAttachment>();
-                var model = serviceAddModel.ServiceAttachments;
-                for (int i = 0; i < model.AttachmentAlt.Count; i++)
+                var attachmentModel = serviceAddModel.ServiceAttachments;
+                if (serviceAddModel.ServiceAttachments != null)
                 {
-                    var attachmentAlt = model.AttachmentAlt[i];
-                    var attachmentUrl = model.AttachmentUrls[i];
+                    for (int i = 0; i < attachmentModel.Count; i++)
+                    {
+                        var attachmentAlt = attachmentModel[i].AttachmentAlt;
+                        var attachmentUrl = attachmentModel[i].AttachmentUrls;
 
-                    string? path = null;
-                    if (attachmentUrl != null)
-                    {
-                        path = await _cloudinaryHelper.UploadImageAsync(
-                            attachmentUrl,
-                            "serviceAttachments",
-                            Guid.NewGuid().ToString()
-                        );
+                        string? path = null;
+                        if (attachmentUrl != null)
+                        {
+                            path = await _cloudinaryHelper.UploadImageAsync(
+                                attachmentUrl,
+                                "serviceAttachments",
+                                Guid.NewGuid().ToString()
+                            );
+                        }
+
+                        newServiceAttachment.Add(new ServiceAttachment
+                        {
+                            AttachmentAlt = attachmentAlt,
+                            AttachmentUrl = path,
+                            ServiceId = service.Id
+                        });
                     }
-                    
-                    newServiceAttachment.Add(new ServiceAttachment
-                    {
-                        AttachmentAlt = attachmentAlt,
-                        AttachmentUrl = path,
-                        ServiceId = service.Id
-                    });
                 }
 
                 await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
@@ -562,7 +566,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
         public async Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId)
         {
             try
@@ -584,20 +587,36 @@ namespace Chillde.Services.Services
                      package.Name.Contains(packageFilterModel.Search));
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
-                         packages.Include(c => c.PackageFeatures).ThenInclude(_ => _.Feature);
+                         packages.Include(c => c.PackageFeatures)
+                                 .ThenInclude(pf => pf.Feature);  // Include Feature Name
 
                 var packages = await _unitOfWork.PackageRepository.GetAllAsync(
                                 filter: filter,
                                 include: include,
                                 pageIndex: packageFilterModel.PageIndex,
-                pageSize: packageFilterModel.PageSize
+                                pageSize: packageFilterModel.PageSize
                 );
 
-                var packageModels = _mapper.Map<List<PackageModel>>(packages.Data);
+                var packageModels = packages.Data.Select(package => new PackageModel
+                {
+                    Id = package.Id,
+                    Name = package.Name,
+                    Description = package.Description,
+                    Price = package.Price,
+                    ServiceId = package.ServiceId,
+                    IsDeleted = package.IsDeleted,
+                    CreationDate = package.CreationDate,
+                    Features = package.PackageFeatures
+                        .GroupBy(pf => pf.Feature.Name) // Group by Feature Name
+                        .Select(g => new FeatureModel
+                        {
+                            Name = g.Key,
+                            PackageFeatures = g.ToList()
+                        }).ToList()
+                }).ToList();
 
                 var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
                   packageFilterModel.PageSize, packages.TotalCount);
-
 
                 return new ResponseModel
                 {
@@ -615,6 +634,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
