@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Entities;
+﻿using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ServiceCollectionModels;
@@ -43,7 +44,8 @@ namespace Chillde.Services.Services
                         : await _cloudinaryHelper.UploadImageAsync(
                           model.ImageUrl,
                           "collections",
-                          Guid.NewGuid().ToString()
+                          Guid.NewGuid().ToString(),
+                          folderName: FolderAttachment.COLLECTION
                          ),
                 CreatedById = currentUserId!.Value,
             };
@@ -167,7 +169,8 @@ namespace Chillde.Services.Services
                 serviceCollection.ImageUrl = await _cloudinaryHelper.UploadImageAsync(
                     model.ImageUrl,
                     "collections",
-                    id.ToString()
+                    id.ToString(),
+                    folderName: FolderAttachment.COLLECTION
                 );
             }
             _unitOfWork.ServiceCollectionRepository.Update(serviceCollection);

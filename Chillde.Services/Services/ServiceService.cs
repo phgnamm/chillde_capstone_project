@@ -700,7 +700,7 @@ namespace Chillde.Services.Services
             var keywordThreshold = 0.2;
             var tasks = services.Data
                                 .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
-                                .Select(async _ =>
+                                .Select(_ => Task.Run(() =>
                                 {
                                     var serviceEmbedding = _.EmbeddingVector;
                                     var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
@@ -716,7 +716,7 @@ namespace Chillde.Services.Services
                                         Description = _.Description!,
                                         Similarity = similarity + keywordScore
                                     };
-                                }).ToList();
+                                })).ToList();
 
             var results = (await Task.WhenAll(tasks))
                           .Where(_ => _.Similarity >= threshold)

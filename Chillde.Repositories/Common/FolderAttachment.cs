@@ -9,5 +9,6 @@ namespace Chillde.Repositories.Common
     public class FolderAttachment
     {
         public static string CATEGORY = "CATEGORIES";
+        public static string COLLECTION = "COLLECTIONS";
     }
 }
