@@ -16,13 +16,14 @@ public class CloudinaryHelper : ICloudinaryHelper
     }
 
     public async Task<string> UploadImageAsync(IFormFile file, string? name = null, string? publicId = null,
-        bool? overwrite = true)
+        bool? overwrite = true, string? folderName = null)
     {
         var parameters = new ImageUploadParams
         {
             File = new FileDescription(name ?? file.FileName, file.OpenReadStream()),
             PublicId = publicId ?? AuthenticationTools.GenerateUniqueToken(),
-            Overwrite = overwrite
+            Overwrite = overwrite,
+            Folder = folderName,
         };
 
         var result = await _cloudinary.UploadAsync(parameters);
