@@ -257,7 +257,7 @@ namespace Chillde.Services.Services
                 {
                     Name = serviceAddModel.Name,
                     Description = serviceAddModel.Description,
-                    IsOffter = serviceAddModel.IsOffer,
+                    IsOffer = serviceAddModel.IsOffer,
                     ItemId = serviceAddModel.ItemId,
                     Status = Repositories.Enums.ServiceStatus.Active,
                     EmbeddingVector = embeddingVector

@@ -6,7 +6,7 @@ public class Service : BaseEntity
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public bool IsOffter { get; set; }
+    public bool IsOffer { get; set; }
     public ServiceStatus Status { get; set; }
 
     // Foreign key
