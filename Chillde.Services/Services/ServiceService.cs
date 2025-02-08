@@ -15,10 +15,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
-using System.Xml.Linq;
-using Chillde.Repositories.Enums;
-using Chillde.Repositories.Models.ServiceModels;
-using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Models.FeatureModels;
 
 namespace Chillde.Services.Services
@@ -93,7 +89,7 @@ namespace Chillde.Services.Services
                 foreach (var attachment in feedbackAddModel.FeedbackAttachmentAddModels)
                 {
                     var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
-                        attachment.AttachmentUrl,
+                        attachment.AttachmentUrl!,
                         "feedbacks",
                         feedback.Id.ToString()
                     );
@@ -273,7 +269,7 @@ namespace Chillde.Services.Services
                 var attachmentModel = serviceAddModel.ServiceAttachments;
                 if (serviceAddModel.ServiceAttachments != null)
                 {
-                    for (int i = 0; i < attachmentModel.Count; i++)
+                    for (int i = 0; i < attachmentModel!.Count; i++)
                     {
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrls;
@@ -643,7 +639,7 @@ namespace Chillde.Services.Services
                      package.ServiceId == serviceId &&
                      package.IsDeleted == packageFilterModel.IsDeleted &&
                      (string.IsNullOrEmpty(packageFilterModel.Search) ||
-                     package.Name.Contains(packageFilterModel.Search));
+                     package.Name!.Contains(packageFilterModel.Search));
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
                          packages.Include(c => c.PackageFeatures)
@@ -709,15 +705,15 @@ namespace Chillde.Services.Services
                                     var serviceEmbedding = _.EmbeddingVector;
                                     var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
                                     var keywordScore = (similarity < 0.5 &&
-                                                        (_.Name.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
-                                                         _.Description.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
+                                                        (_.Name!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
+                                                         _.Description!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
                                                         ? keywordThreshold : 0;
 
                                     return new ServiceModel
                                     {
                                         Id = _.Id,
-                                        Name = _.Name,
-                                        Description = _.Description,
+                                        Name = _.Name!,
+                                        Description = _.Description!,
                                         Similarity = similarity + keywordScore
                                     };
                                 }).ToList();
