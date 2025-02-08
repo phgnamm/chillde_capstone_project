@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.CategoriesModels;
@@ -65,7 +66,8 @@ namespace Chillde.Services.Services
                 imageUrl = await _cloudinaryHelper.UploadImageAsync(
                     categoryAddModel.ImageUrl,
                     "categories",
-                    Guid.NewGuid().ToString()
+                    Guid.NewGuid().ToString(),
+                    folderName: FolderAttachment.CATEGORY
                 );
             }
             var newCategory = new Category
