@@ -707,12 +707,12 @@ public class AccountService : IAccountService
         if (accountUpdateModel.NewImage != null)
             account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewImage,
                 $"{account.Id.ToString()}_image",
-                $"{account.Id.ToString()}_image");
+                $"{account.Id.ToString()}_image", folderName: FolderAttachment.ACCOUNT);
 
         if (accountUpdateModel.NewBanner != null)
             account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewBanner,
                 $"{account.Id.ToString()}_banner",
-                $"{account.Id.ToString()}_banner");
+                $"{account.Id.ToString()}_banner", folderName: FolderAttachment.ACCOUNT);
 
         _unitOfWork.AccountRepository.Update(account);
         if (await _unitOfWork.SaveChangeAsync() > 0)
