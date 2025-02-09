@@ -15,10 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
-using System.Xml.Linq;
-using Chillde.Repositories.Enums;
-using Chillde.Repositories.Models.ServiceModels;
-using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.FeatureModels;
 
 namespace Chillde.Services.Services
 {
@@ -30,8 +27,9 @@ namespace Chillde.Services.Services
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceAttachmentService _serviceAttachmentService;
+        private readonly ITranslationService _translationService;
 
-        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService)
+        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService)
         {
             _openAiService = openAiService;
             _unitOfWork = unitOfWork;
@@ -39,6 +37,7 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _serviceAttachmentService = serviceAttachmentService;
+            _translationService = translationService;
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
@@ -90,7 +89,7 @@ namespace Chillde.Services.Services
                 foreach (var attachment in feedbackAddModel.FeedbackAttachmentAddModels)
                 {
                     var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
-                        attachment.AttachmentUrl,
+                        attachment.AttachmentUrl!,
                         "feedbacks",
                         feedback.Id.ToString()
                     );
@@ -258,7 +257,7 @@ namespace Chillde.Services.Services
                 {
                     Name = serviceAddModel.Name,
                     Description = serviceAddModel.Description,
-                    IsOffter = serviceAddModel.IsOffter,
+                    IsOffer = serviceAddModel.IsOffer,
                     ItemId = serviceAddModel.ItemId,
                     Status = Repositories.Enums.ServiceStatus.Active,
                     EmbeddingVector = embeddingVector
@@ -267,40 +266,51 @@ namespace Chillde.Services.Services
                 await _unitOfWork.ServiceRepository.AddAsync(service);
 
                 var newServiceAttachment = new List<ServiceAttachment>();
-                var model = serviceAddModel.ServiceAttachments;
-                for (int i = 0; i < model.AttachmentAlt.Count; i++)
+                var attachmentModel = serviceAddModel.ServiceAttachments;
+                if (serviceAddModel.ServiceAttachments != null)
                 {
-                    var attachmentAlt = model.AttachmentAlt[i];
-                    var attachmentUrl = model.AttachmentUrls[i];
-
-                    string? path = null;
-                    if (attachmentUrl != null)
+                    for (int i = 0; i < attachmentModel!.Count; i++)
                     {
-                        path = await _cloudinaryHelper.UploadImageAsync(
-                            attachmentUrl,
-                            "serviceAttachments",
-                            Guid.NewGuid().ToString()
-                        );
+                        var attachmentAlt = attachmentModel[i].AttachmentAlt;
+                        var attachmentUrl = attachmentModel[i].AttachmentUrls;
+
+                        string? path = null;
+                        if (attachmentUrl != null)
+                        {
+                            path = await _cloudinaryHelper.UploadImageAsync(
+                                attachmentUrl,
+                                "serviceAttachments",
+                                Guid.NewGuid().ToString()
+                            );
+                        }
+
+                        newServiceAttachment.Add(new ServiceAttachment
+                        {
+                            AttachmentAlt = attachmentAlt,
+                            AttachmentUrl = path,
+                            ServiceId = service.Id
+                        });
                     }
-                    
-                    newServiceAttachment.Add(new ServiceAttachment
+
+                    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
+                    await _unitOfWork.SaveChangeAsync();
+
+                    var serviceModel = _mapper.Map<ServiceModel>(service);
+                    return new ResponseModel
                     {
-                        AttachmentAlt = attachmentAlt,
-                        AttachmentUrl = path,
-                        ServiceId = service.Id
-                    });
+                        Code = StatusCodes.Status201Created,
+                        Message = "Service successfully created.",
+                        Data = serviceModel
+                    };
                 }
-
-                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
-                await _unitOfWork.SaveChangeAsync();
-
-                var serviceModel = _mapper.Map<ServiceModel>(service);
-                return new ResponseModel
+                else
                 {
-                    Code = StatusCodes.Status201Created,
-                    Message = "Service successfully created.",
-                    Data = serviceModel
-                };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Service attachments are required."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -426,7 +436,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId)
+        public async Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -439,7 +449,7 @@ namespace Chillde.Services.Services
                         Message = "Service not found."
                     };
                 }
-
+                await _unitOfWork.BeginTransactionAsync();
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 if (numberOfExistedPackage >= 3)
                 {
@@ -449,17 +459,65 @@ namespace Chillde.Services.Services
                         Message = "Number of packages cannot exceed 3."
                     };
                 }
+                var fieldsToTranslate = new Dictionary<string, string>
+                {
+                    { "Name", packageAddModel.Name },
+                    { "Description", packageAddModel.Description }
+                };
+                var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+                if (translationResponse.Code != StatusCodes.Status200OK)
+                {
+                    throw new Exception("Failed to translate fields.");
+                }
+                string translatedName = translationResponse.TranslatedFields["Name"];
+                string translatedDescription = translationResponse.TranslatedFields["Description"];
 
                 var package = new Package
                 {
-                    Name = packageAddModel.Name,
-                    Description = packageAddModel.Description,
+                    Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
+                    Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
                     Price = packageAddModel.Price,
                     ServiceId = serviceId,
                 };
 
                 await _unitOfWork.PackageRepository.AddAsync(package);
+                var translations = new List<Translation>();
+                Guid? languageId = null;
+                if (sourceLanguageCode != "en")
+                {
+                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+                }
+                else
+                {
+                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                }
+                if (!string.IsNullOrEmpty(packageAddModel.Name))
+                {
+                    translations.Add(new Translation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityType = "Request",
+                        EntityId = package.Id,
+                        FieldName = "Name",
+                        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Name : translatedName,
+                        LanguageId = languageId.Value
+                    });
+                }
+                if (!string.IsNullOrEmpty(packageAddModel.Description))
+                {
+                    translations.Add(new Translation
+                    {
+                        Id = Guid.NewGuid(),
+                        EntityType = "Request",
+                        EntityId = package.Id,
+                        FieldName = "Description",
+                        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Description : translatedDescription,
+                        LanguageId = languageId.Value
+                    });
+                }
+                await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
 
                 var packageModel = _mapper.Map<PackageModel>(package);
 
@@ -472,6 +530,7 @@ namespace Chillde.Services.Services
             }
             catch (Exception ex)
             {
+                await _unitOfWork.RollbackTransactionAsync();
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
@@ -562,7 +621,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
         public async Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId)
         {
             try
@@ -581,23 +639,39 @@ namespace Chillde.Services.Services
                      package.ServiceId == serviceId &&
                      package.IsDeleted == packageFilterModel.IsDeleted &&
                      (string.IsNullOrEmpty(packageFilterModel.Search) ||
-                     package.Name.Contains(packageFilterModel.Search));
+                     package.Name!.Contains(packageFilterModel.Search));
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
-                         packages.Include(c => c.PackageFeatures).ThenInclude(_ => _.Feature);
+                         packages.Include(c => c.PackageFeatures)
+                                 .ThenInclude(pf => pf.Feature);  // Include Feature Name
 
                 var packages = await _unitOfWork.PackageRepository.GetAllAsync(
                                 filter: filter,
                                 include: include,
                                 pageIndex: packageFilterModel.PageIndex,
-                pageSize: packageFilterModel.PageSize
+                                pageSize: packageFilterModel.PageSize
                 );
 
-                var packageModels = _mapper.Map<List<PackageModel>>(packages.Data);
+                var packageModels = packages.Data.Select(package => new PackageModel
+                {
+                    Id = package.Id,
+                    Name = package.Name,
+                    Description = package.Description,
+                    Price = package.Price,
+                    ServiceId = package.ServiceId,
+                    IsDeleted = package.IsDeleted,
+                    CreationDate = package.CreationDate,
+                    Features = package.PackageFeatures
+                        .GroupBy(pf => pf.Feature.Name) // Group by Feature Name
+                        .Select(g => new FeatureModel
+                        {
+                            Name = g.Key,
+                            PackageFeatures = g.ToList()
+                        }).ToList()
+                }).ToList();
 
                 var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
                   packageFilterModel.PageSize, packages.TotalCount);
-
 
                 return new ResponseModel
                 {
@@ -616,32 +690,33 @@ namespace Chillde.Services.Services
             }
         }
 
+
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
             serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
             var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Description });
             var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-            var threshold = 0.80; 
-            var keywordThreshold = 0.2; 
+            var threshold = 0.80;
+            var keywordThreshold = 0.2;
             var tasks = services.Data
                                 .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
-                                .Select(async _ =>
+                                .Select(_ => Task.Run(() =>
                                 {
                                     var serviceEmbedding = _.EmbeddingVector;
                                     var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
                                     var keywordScore = (similarity < 0.5 &&
-                                                        (_.Name.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
-                                                         _.Description.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
+                                                        (_.Name!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
+                                                         _.Description!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
                                                         ? keywordThreshold : 0;
 
                                     return new ServiceModel
                                     {
                                         Id = _.Id,
-                                        Name = _.Name,
-                                        Description = _.Description,
+                                        Name = _.Name!,
+                                        Description = _.Description!,
                                         Similarity = similarity + keywordScore
                                     };
-                                }).ToList();
+                                })).ToList();
 
             var results = (await Task.WhenAll(tasks))
                           .Where(_ => _.Similarity >= threshold)

@@ -277,7 +277,7 @@ public class AccountService : IAccountService
     {
         if (!accountRefreshTokenModel.DeviceId.HasValue ||
             string.IsNullOrWhiteSpace(accountRefreshTokenModel.AccessToken) ||
-            string.IsNullOrWhiteSpace(accountRefreshTokenModel.RefreshToken))
+            !accountRefreshTokenModel.RefreshToken.HasValue)
             return new ResponseModel
             {
                 Code = StatusCodes.Status400BadRequest,
@@ -316,7 +316,7 @@ public class AccountService : IAccountService
         var account = await _unitOfWork.AccountRepository.GetAsync(accountId);
         if (account == null || account.IsDeleted || refreshToken.AccountId != account.Id ||
             refreshToken.Token != accountRefreshTokenModel.RefreshToken ||
-            AuthenticationTools.IsUniqueTokenExpired(accountRefreshTokenModel.RefreshToken))
+            refreshToken.Expires < DateTime.UtcNow)
             return new ResponseModel
             {
                 Code = StatusCodes.Status400BadRequest,
@@ -707,12 +707,12 @@ public class AccountService : IAccountService
         if (accountUpdateModel.NewImage != null)
             account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewImage,
                 $"{account.Id.ToString()}_image",
-                $"{account.Id.ToString()}_image");
+                $"{account.Id.ToString()}_image", folderName: FolderAttachment.ACCOUNT);
 
         if (accountUpdateModel.NewBanner != null)
             account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewBanner,
                 $"{account.Id.ToString()}_banner",
-                $"{account.Id.ToString()}_banner");
+                $"{account.Id.ToString()}_banner", folderName: FolderAttachment.ACCOUNT);
 
         _unitOfWork.AccountRepository.Update(account);
         if (await _unitOfWork.SaveChangeAsync() > 0)
@@ -946,14 +946,14 @@ public class AccountService : IAccountService
             true);
     }
 
-   private async Task<TokenModel?> GenerateJwtToken(Account account, RefreshToken? refreshToken = null,
+    private async Task<TokenModel?> GenerateJwtToken(Account account, RefreshToken? refreshToken = null,
         ClaimsPrincipal? principal = null)
     {
         // Refresh token information
         var authClaims = new List<Claim>();
         var deviceId = Guid.NewGuid();
-        var refreshTokenString =
-            AuthenticationTools.GenerateUniqueToken(DateTime.UtcNow.AddDays(Constant.RefreshTokenValidityInDays));
+        var refreshTokenString = Guid.NewGuid();
+        DateTime expires = DateTime.UtcNow.AddDays(Constant.RefreshTokenValidityInDays);
         var roles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(account.Id);
 
         // If refresh token then reuse the claims
@@ -963,6 +963,7 @@ public class AccountService : IAccountService
                 .Where(claim => claim.Type != ClaimTypes.Role && claim.Type != JwtRegisteredClaimNames.Aud).ToList();
             foreach (var role in roles) authClaims.Add(new Claim(ClaimTypes.Role, role.Name));
             refreshToken.Token = refreshTokenString;
+            refreshToken.Expires = expires;
             deviceId = refreshToken.DeviceId;
             _unitOfWork.RefreshTokenRepository.Update(refreshToken);
         }
@@ -979,6 +980,7 @@ public class AccountService : IAccountService
             {
                 DeviceId = deviceId,
                 Token = refreshTokenString,
+                Expires = expires,
                 Account = account
             });
         }
@@ -991,7 +993,8 @@ public class AccountService : IAccountService
             {
                 DeviceId = deviceId,
                 AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtToken),
-                RefreshToken = refreshTokenString
+                RefreshToken = refreshTokenString,
+                RefreshTokenExpires = expires,
             };
         }
 

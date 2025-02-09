@@ -268,7 +268,7 @@ namespace Chillde.Services.Services
                 bool offerMessageExists = existingOffer.Message == model.Message;
                 var existingTranslation = await _unitOfWork.TranslationRepository
                     .GetTranslationAsync("Offer", offerId, "Message", (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode));
-                if (existingTranslation == null && targetLanguageCode == "en") 
+                if (existingTranslation == null && targetLanguageCode == "en")
                 {
                     existingTranslation = await _unitOfWork.TranslationRepository
                     .GetTranslationAsync("Offer", offerId, "Message", (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode));

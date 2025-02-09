@@ -3,7 +3,8 @@
 public class RefreshToken : BaseEntity
 {
     public Guid DeviceId { get; set; }
-    public string Token { get; set; } = null!;
+    public Guid Token { get; set; }
+    public DateTime Expires { get; set; }
 
     // Foreign key
     public Guid AccountId { get; set; }

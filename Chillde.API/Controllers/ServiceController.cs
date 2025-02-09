@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.API.Helper;
+using Chillde.Repositories.Enums;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
@@ -217,7 +218,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceService.AddPackageAsync(packageAddModel, serviceId);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _serviceService.AddPackageAsync(packageAddModel, serviceId, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

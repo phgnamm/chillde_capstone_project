@@ -91,7 +91,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AccountStatusMiddleware>();
-
+//app.UseStaticFiles();
 
 app.MapControllers();
 app.MapHub<RealTimeHub>("/hub");

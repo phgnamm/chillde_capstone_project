@@ -20,6 +20,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Chillde.Repositories.Models.RequestModels;
+using Chillde.Services.Common;
+using Chillde.Repositories.Models.OrderModels;
 
 namespace Chillde.Services.Services
 {
@@ -404,10 +407,10 @@ namespace Chillde.Services.Services
                     //return_ward_code = "",
                     //client_order_code = "",
                     to_name = customer.FirstName + " " + customer.LastName,
-                    to_phone = "0987654321",//to_phone = order.Phone,
-                    to_address = "72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh, Vietnam",//to_address = order.Address,
-                    to_ward_code = "20308",//to_ward_code = order.Ward,
-                    to_district_id = 1444,//to_district_id = order.District,
+                    to_phone = order.Phone,
+                    to_address = order.Address,
+                    to_ward_code = order.ToWard,
+                    to_district_id = order.ToDistrict,
                     //cod_amount = (int?)null,
                     //content = (string?)null,
                     weight = model.Weight,
@@ -557,6 +560,87 @@ namespace Chillde.Services.Services
                     Message = ex.Message
                 };
             }
+        }
+
+        public async Task<ResponseModel> GetAll(OrderFilterModel orderFilterModel)
+        {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
+            }
+            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
+                filter: _ => _.Package.CreatedById == currentUserId.Value || (orderFilterModel.Status.HasValue && _.Status == orderFilterModel.Status),
+                include: _ => _.Include(_ => _.Package),
+                order: _ =>
+                {
+                    switch (orderFilterModel.Order.ToLower())
+                    {
+                    case "recentdays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderByDescending(account => account.CreationDate)
+                                : _.OrderBy(account => account.CreationDate);
+                    case "olddays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderBy(account => account.CreationDate)
+                                : _.OrderByDescending(account => account.CreationDate);
+                    default:
+                            return orderFilterModel.OrderByDescending
+                                 ? _.OrderByDescending(account => account.CreationDate)
+                                 : _.OrderBy(account => account.CreationDate);
+                    }
+                },
+                pageIndex: orderFilterModel.PageIndex,
+                pageSize: orderFilterModel.PageSize              
+                );
+            var orderModels = orders.Data.Select(_ => new OrderModel
+            {
+                Id = _.Id,
+                Phone = _.Phone,
+                Address = _.Address,
+                ToDistrict = _.ToDistrict,
+                ToProvince = _.ToProvince,
+                ToWard = _.ToWard,
+                TotalPrice = _.TotalPrice,
+                PackagePrice = _.PackagePrice,
+                PackageName = _.Package.Name,
+                Quantity = _.Quantity,
+                ShipmentCode = _.ShipmentCode,
+                Status = _.Status,
+
+            }).ToList();
+            var result = new Pagination<OrderModel>(orderModels, orderFilterModel.PageIndex,
+                        orderFilterModel.PageSize, orders.Data.Count);
+
+            return new ResponseModel
+            {
+                Message = "Get all orders successfully",
+                Data = result
+            };
+
+        }
+
+        public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus orderStatus)
+        {
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+            if (order == null)
+            {
+                return new ResponseModel
+                {
+                    Message = "Not found",
+                    Code = StatusCodes.Status404NotFound
+                };
+            }
+            order.Status = orderStatus;
+            _unitOfWork.OrderRepository.Update(order);
+            var result = await _unitOfWork.SaveChangeAsync();
+            return result > 0
+                ? new ResponseModel { Message = "Successfully" }
+                : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
         }
     }
 }

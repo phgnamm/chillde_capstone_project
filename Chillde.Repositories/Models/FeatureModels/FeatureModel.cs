@@ -6,6 +6,6 @@ namespace Chillde.Repositories.Models.FeatureModels
     public class FeatureModel : BaseEntity
     {
         public string? Name { get; set; }
-        public List<PackageFeatureModel>? PackageFeatures { get; set; }
+        public List<PackageFeature>? PackageFeatures { get; set; }
     }
 }

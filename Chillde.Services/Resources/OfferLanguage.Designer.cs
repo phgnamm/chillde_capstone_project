@@ -124,6 +124,24 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inactive.
+        /// </summary>
+        public static string Inactive {
+            get {
+                return ResourceManager.GetString("Inactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to InProgress.
+        /// </summary>
+        public static string InProgress {
+            get {
+                return ResourceManager.GetString("InProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pending.
         /// </summary>
         public static string Pending {
@@ -138,6 +156,24 @@ namespace Chillde.Services.Resources {
         public static string Rejected {
             get {
                 return ResourceManager.GetString("Rejected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolved.
+        /// </summary>
+        public static string Resolved {
+            get {
+                return ResourceManager.GetString("Resolved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Suspended.
+        /// </summary>
+        public static string Suspended {
+            get {
+                return ResourceManager.GetString("Suspended", resourceCulture);
             }
         }
     }

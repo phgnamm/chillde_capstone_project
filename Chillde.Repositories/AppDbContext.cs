@@ -119,6 +119,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
         modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
         modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
+        modelBuilder.Entity<SystemConfig>(entity =>{ entity.Property(e => e.Value).HasColumnType("jsonb"); });
 
 
         #endregion
@@ -136,6 +137,10 @@ public class AppDbContext : DbContext
             entity.HasOne(t => t.Language)
                   .WithMany(l => l.Translations)
                   .HasForeignKey(t => t.LanguageId);
+        });
+        modelBuilder.Entity<SystemConfig>(entity =>
+        {
+            entity.HasKey(sc => new { sc.EntityType, sc.EntityId, sc.FieldName });
         });
 
         #endregion
