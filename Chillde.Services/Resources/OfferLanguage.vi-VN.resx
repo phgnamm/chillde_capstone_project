@@ -133,15 +133,27 @@
     <value>Đã đóng</value>
   </data>
   <data name="Completed" xml:space="preserve">
-    <value>Hoàn thành</value>
+    <value>Đã hoàn thành</value>
   </data>
   <data name="Expired" xml:space="preserve">
     <value>Hết hạn</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Không hoạt động</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Đang tiến hành</value>
   </data>
   <data name="Pending" xml:space="preserve">
     <value>Đang xử lý</value>
   </data>
   <data name="Rejected" xml:space="preserve">
     <value>Bị từ chối</value>
+  </data>
+  <data name="Resolved" xml:space="preserve">
+    <value>Đã xử lý</value>
+  </data>
+  <data name="Suspended" xml:space="preserve">
+    <value>Tạm đình chỉ</value>
   </data>
 </root>

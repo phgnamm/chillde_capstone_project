@@ -10,5 +10,6 @@ namespace Chillde.Repositories.Common
     {
         public static string CATEGORY = "CATEGORIES";
         public static string ACCOUNT = "ACCOUNTS";
+        public static string COLLECTION = "COLLECTIONS";
     }
 }

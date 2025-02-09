@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.API.Helper;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageModels;
@@ -26,7 +27,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _packageService.UpdateAsync(packageUpdateModel, id);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _packageService.UpdateAsync(packageUpdateModel, id, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -64,7 +68,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _packageService.AddFeatureAsync(featureAddModel, packageId);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _packageService.AddFeatureAsync(featureAddModel, packageId, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -102,7 +109,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _packageService.GetAllFeatureAsync(model, packageId);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _packageService.GetAllFeatureAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
