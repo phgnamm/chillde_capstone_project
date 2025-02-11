@@ -574,7 +574,7 @@ namespace Chillde.Services.Services
                 };
             }
             var orders = await _unitOfWork.OrderRepository.GetAllAsync(
-                filter: _ => _.Package.CreatedById == currentUserId.Value || (orderFilterModel.Status.HasValue && _.Status == orderFilterModel.Status),
+                filter: _ => (_.Package.CreatedById == currentUserId.Value) || (_.CreatedById == currentUserId.Value) || (orderFilterModel.Status.HasValue && _.Status == orderFilterModel.Status),
                 include: _ => _.Include(_ => _.Package),
                 order: _ =>
                 {
