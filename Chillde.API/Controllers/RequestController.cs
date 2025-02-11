@@ -104,7 +104,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [HttpPost("{requestId}/offer")]
+        [HttpPost("{requestId}/offers")]
         public async Task<IActionResult> Add([FromBody] OfferAddModel model, Guid requestId)
         {
             try

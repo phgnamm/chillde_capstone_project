@@ -60,7 +60,7 @@ namespace Chillde.Repositories.Repositories
          Func<TEntity, TModel> mapEntityToModel,
          string? relationshipToInclude,
          string[] fieldsToTranslate,
-         string[] nestedRelationships = null,
+         string[]? nestedRelationships = null,
          params string[] relationshipfields)
          where TEntity : BaseEntity
         {
