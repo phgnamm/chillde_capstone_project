@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.FeatureModels;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Chillde.Services.Services
 {
@@ -693,42 +694,73 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
-            serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
-            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Description });
-            var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-            var threshold = 0.80;
-            var keywordThreshold = 0.2;
-            var tasks = services.Data
-                                .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
-                                .Select(_ => Task.Run(() =>
-                                {
-                                    var serviceEmbedding = _.EmbeddingVector;
-                                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
-                                    var keywordScore = (similarity < 0.5 &&
-                                                        (_.Name!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
-                                                         _.Description!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
-                                                        ? keywordThreshold : 0;
-
-                                    return new ServiceModel
+         
+                serviceFilterModel.Search = $"Find handmade services similar to: {serviceFilterModel.Search}";
+                var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
+                var services = await _unitOfWork.ServiceRepository.GetAllAsync();
+                var threshold = 0.80;
+                var keywordThreshold = 0.2;
+                var tasks = services.Data
+                                    .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
+                                    .Select(_ => Task.Run(() =>
                                     {
-                                        Id = _.Id,
-                                        Name = _.Name!,
-                                        Description = _.Description!,
-                                        Similarity = similarity + keywordScore
-                                    };
-                                })).ToList();
+                                        var serviceEmbedding = _.EmbeddingVector;
+                                        var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+                                        var keywordScore = (similarity < 0.5 &&
+                                                            (_.Name!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase) ||
+                                                             _.Description!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase)))
+                                                            ? keywordThreshold : 0;
 
-            var results = (await Task.WhenAll(tasks))
-                          .Where(_ => _.Similarity >= threshold)
-                          .OrderByDescending(_ => _.Similarity)
-                          .ToList();
+                                        return new ServiceModel
+                                        {
+                                            Id = _.Id,
+                                            Name = _.Name!,
+                                            Description = _.Description!,
+                                            Similarity = similarity + keywordScore
+                                        };
+                                    })).ToList();
 
+                var results = (await Task.WhenAll(tasks))
+                              .Where(_ => _.Similarity >= threshold)
+                              .OrderByDescending(_ => _.Similarity)
+                              .ToList();
+
+                var result = new Pagination<ServiceModel>(
+                    results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                           .Take(serviceFilterModel.PageSize)
+                           .ToList(),
+                    serviceFilterModel.PageIndex,
+                    serviceFilterModel.PageSize, results.Count);
+
+                return new ResponseModel
+                {
+                    Message = "Get all services successfully",
+                    Data = result
+                };
+            
+         
+        }
+
+        public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
+        {
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                   filter: _ => _.IsDeleted == false,
+                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                   pageIndex: serviceFilterModel.PageIndex,
+                   pageSize: serviceFilterModel.PageSize
+                   );
+            var serviceModels = services.Data.Select(_ => new ServiceModel
+            {
+                Id = _.Id,
+                Name = _.Name!,
+                Description = _.Description!,
+                ServiceAttachments = _.ServiceAttachments.ToList()
+            }).ToList();
             var result = new Pagination<ServiceModel>(
-                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
-                       .Take(serviceFilterModel.PageSize)
-                       .ToList(),
-                serviceFilterModel.PageIndex,
-                serviceFilterModel.PageSize, results.Count);
+               serviceModels,
+               serviceFilterModel.PageIndex,
+               serviceFilterModel.PageSize,
+               serviceModels.Count);
 
             return new ResponseModel
             {
@@ -736,7 +768,6 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
-
         private static double CosineSimilarity(float[] vectorA, float[] vectorB)
         {
             if (vectorA.Length == 0 || vectorB.Length == 0)
