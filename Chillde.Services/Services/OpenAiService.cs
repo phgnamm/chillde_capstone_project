@@ -26,7 +26,7 @@ namespace Chillde.Services.Services
             _configuration = configuration;
         }
 
-        public async Task<ResponseModel> GetRecommendationsAsync(SuggestAddModel suggestAddModel)
+        public async Task<ResponseModel> GetRecommendationsAsync()
         {
             var fineTunedModel = _modelConfigurationOptions.FineTunedModelId;
             var defaultModel = _modelConfigurationOptions.DefaultModel;
@@ -45,58 +45,14 @@ namespace Chillde.Services.Services
             {
                 eventInfo = "No upcoming events found.";
             }
-            ResponseModel response;
-            if (string.IsNullOrWhiteSpace(suggestAddModel.UserInput))
+            return new ResponseModel
             {
-                var eventRecommendation = await SuggestServicesBasedOnEvent(eventInfo, fineTunedModel);
-                response = new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = eventRecommendation
-                };
-            }
-            else
-            {
-                var userInputRecommendation = await SuggestServicesBasedOnUserInput(suggestAddModel.UserInput, fineTunedModel);
-                response = new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = userInputRecommendation
-                };
-            }
-
-            return response;
+                Code = StatusCodes.Status200OK,
+                Message = eventInfo,
+                Data = eventInfo
+            };
         }
 
-        private async Task<string> SuggestServicesBasedOnEvent(string eventInfo, string fineTunedModel)
-        {
-            var prompt = $"The nearest event is: '{eventInfo}'. Suggest services related to it.";
-
-            var recommendationResponse = await _openAiService.Completions.CreateCompletion(
-                new CompletionCreateRequest
-                {
-                    Prompt = prompt,
-                    Model = fineTunedModel,
-                    MaxTokens = 150
-                });
-
-            return recommendationResponse?.Choices?.FirstOrDefault()?.Text?.Trim() ?? "No service recommendations available.";
-        }
-
-        private async Task<string> SuggestServicesBasedOnUserInput(string userInput, string fineTunedModel)
-        {
-            var prompt = $"Based on the user's input: '{userInput}', suggest suitable services.";
-
-            var recommendationResponse = await _openAiService.Completions.CreateCompletion(
-                new CompletionCreateRequest
-                {
-                    Prompt = prompt,
-                    Model = fineTunedModel,
-                    MaxTokens = 150
-                });
-
-            return recommendationResponse?.Choices?.FirstOrDefault()?.Text?.Trim() ?? "No suitable services found.";
-        }
         public async Task<float[]> GetEmbeddingAsync(List<string> texts)
         {
             if (texts == null || texts.Count == 0)

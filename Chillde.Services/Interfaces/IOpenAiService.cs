@@ -11,6 +11,6 @@ namespace Chillde.Services.Interfaces
     public interface IOpenAiService
     {
         Task<float[]> GetEmbeddingAsync(List<string> texts);
-        Task<ResponseModel> GetRecommendationsAsync(SuggestAddModel suggestAddModel);
+        Task<ResponseModel> GetRecommendationsAsync();
     }
 }
