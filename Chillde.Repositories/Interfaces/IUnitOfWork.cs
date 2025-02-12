@@ -47,5 +47,7 @@ public interface IUnitOfWork
     IShipmentRepository ShipmentRepository { get; }
     IPaymentRepository PaymentRepository { get; }
 
+    IUserActivityLogRepository UserActivityLogRepository { get; }
+
     #endregion
 }

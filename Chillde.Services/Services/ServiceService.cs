@@ -768,6 +768,158 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+
+        //public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel)
+        //{
+        //    var currentUserId = _claimService.GetCurrentUserId;
+        //    if (serviceFilterModel.IsSuggestion)
+        //    {
+        //        string searchQuery = serviceFilterModel.Search;
+
+        //        if (string.IsNullOrEmpty(searchQuery))
+        //        {
+        //            // Lấy đề xuất sự kiện từ OpenAI nếu không có tìm kiếm gần đây
+        //            var eventRecommendation = await _openAiService.GetRecommendationsAsync();
+        //            var eventMessage = eventRecommendation.Data as string;
+
+        //            if (!string.IsNullOrEmpty(eventMessage) && eventMessage != "No upcoming events found.")
+        //            {
+        //                searchQuery = eventMessage;
+        //            }
+        //            else if (serviceFilterModel.IsAccountSuggestion)
+        //            {
+        //                // Lấy thông tin tài khoản từ bảng Account
+        //                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId!.Value);
+        //                if (account != null)
+        //                {
+        //                    // Tạo embedding từ thông tin tài khoản (ví dụ: sở thích, lịch sử mua hàng)
+        //                    string accountDetails = $"Preferred category: {account.PreferredCategory}, Interests: {account.Interests}";
+        //                    var accountEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { accountDetails });
+
+        //                    // Lấy tất cả dịch vụ để so sánh embedding
+        //                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: s => s.IsDeleted == false);
+
+        //                    var threshold = 0.80;
+        //                    var tasks = services.Data
+        //                        .Where(s => s.EmbeddingVector != null && s.EmbeddingVector.Length > 0)
+        //                        .Select(s => Task.Run(() =>
+        //                        {
+        //                            var serviceEmbedding = s.EmbeddingVector;
+        //                            var similarity = CosineSimilarity(accountEmbedding, serviceEmbedding);
+
+        //                            return new ServiceModel
+        //                            {
+        //                                Id = s.Id,
+        //                                Name = s.Name!,
+        //                                Description = s.Description!,
+        //                                Similarity = similarity,
+        //                                ServiceAttachments = s.ServiceAttachments.ToList()
+        //                            };
+        //                        })).ToList();
+
+        //                    var results = (await Task.WhenAll(tasks))
+        //                        .Where(r => r.Similarity >= threshold)
+        //                        .OrderByDescending(r => r.Similarity)
+        //                        .ToList();
+
+        //                    var paginatedResult = new Pagination<ServiceModel>(
+        //                        results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+        //                               .Take(serviceFilterModel.PageSize)
+        //                               .ToList(),
+        //                        serviceFilterModel.PageIndex,
+        //                        serviceFilterModel.PageSize,
+        //                        results.Count
+        //                    );
+
+        //                    return new ResponseModel
+        //                    {
+        //                        Message = "Get services based on user preferences successfully",
+        //                        Data = paginatedResult
+        //                    };
+        //                }
+        //            }
+        //        }
+
+        //        // Tìm kiếm dịch vụ bằng AI nếu có searchQuery
+        //        if (!string.IsNullOrEmpty(searchQuery))
+        //        {
+        //            searchQuery = $"Find handmade services similar to: {searchQuery}";
+        //            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { searchQuery });
+        //            var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: s => s.IsDeleted == false);
+
+        //            var threshold = 0.80;
+        //            var tasks = services.Data
+        //                .Where(s => s.EmbeddingVector != null && s.EmbeddingVector.Length > 0)
+        //                .Select(s => Task.Run(() =>
+        //                {
+        //                    var serviceEmbedding = s.EmbeddingVector;
+        //                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+
+        //                    return new ServiceModel
+        //                    {
+        //                        Id = s.Id,
+        //                        Name = s.Name!,
+        //                        Description = s.Description!,
+        //                        Similarity = similarity,
+        //                        ServiceAttachments = s.ServiceAttachments.ToList()
+        //                    };
+        //                })).ToList();
+
+        //            var results = (await Task.WhenAll(tasks))
+        //                .Where(r => r.Similarity >= threshold)
+        //                .OrderByDescending(r => r.Similarity)
+        //                .ToList();
+
+        //            var paginatedResult = new Pagination<ServiceModel>(
+        //                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+        //                       .Take(serviceFilterModel.PageSize)
+        //                       .ToList(),
+        //                serviceFilterModel.PageIndex,
+        //                serviceFilterModel.PageSize,
+        //                results.Count
+        //            );
+
+        //            return new ResponseModel
+        //            {
+        //                Message = "Get services based on AI recommendations successfully",
+        //                Data = paginatedResult
+        //            };
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // Lọc thông thường không dùng AI
+        //        var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+        //            filter: s => s.IsDeleted == false,
+        //            include: s => s.Include(p => p.Packages).Include(a => a.ServiceAttachments),
+        //            pageIndex: serviceFilterModel.PageIndex,
+        //            pageSize: serviceFilterModel.PageSize
+        //        );
+
+        //        var serviceModels = services.Data.Select(s => new ServiceModel
+        //        {
+        //            Id = s.Id,
+        //            Name = s.Name!,
+        //            Description = s.Description!,
+        //            ServiceAttachments = s.ServiceAttachments.ToList()
+        //        }).ToList();
+
+        //        var paginatedResult = new Pagination<ServiceModel>(
+        //            serviceModels,
+        //            serviceFilterModel.PageIndex,
+        //            serviceFilterModel.PageSize,
+        //            services.TotalCount
+        //        );
+
+        //        return new ResponseModel
+        //        {
+        //            Message = "Get all services successfully",
+        //            Data = paginatedResult
+        //        };
+        //    }
+        //}
+
+
         private static double CosineSimilarity(float[] vectorA, float[] vectorB)
         {
             if (vectorA.Length == 0 || vectorB.Length == 0)
