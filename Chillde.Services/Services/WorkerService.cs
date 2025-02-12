@@ -109,6 +109,7 @@ namespace Chillde.Services.Services
             };
 
             await unitOfWork.UserActivityLogRepository.AddAsync(userActivityLog);
+            await unitOfWork.SaveChangeAsync();
 
             _logger.LogInformation("User activity log saved to database for UserId: {UserId}", log.UserId);
         }
