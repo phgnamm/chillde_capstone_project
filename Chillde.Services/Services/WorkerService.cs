@@ -30,7 +30,7 @@ namespace Chillde.Services.Services
             _scopeFactory = scopeFactory;
             _logger = logger;
             _logQueue = new ConcurrentQueue<UserActivityLogAddModel>();
-            _timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(300));
 
             var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"]! };
             _connection = factory.CreateConnection();
@@ -95,7 +95,7 @@ namespace Chillde.Services.Services
                 var userId = entry.Key;
                 var userLogs = entry.ToList();
                 var userLogList = await unitOfWork.UserActivityLogRepository
-                    .GetAllAsync(log => log.UserId == userId && log.Timestamp >= DateTime.UtcNow.AddSeconds(-5000));
+                    .GetAllAsync(log => log.UserId == userId && log.Timestamp >= DateTime.UtcNow.AddSeconds(-1800));
 
                 var recentLog = userLogList.Data.OrderByDescending(log => log.Timestamp).FirstOrDefault();
 
