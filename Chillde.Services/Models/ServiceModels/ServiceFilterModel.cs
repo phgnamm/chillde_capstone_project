@@ -12,5 +12,6 @@ namespace Chillde.Services.Models.ServiceModels
         //public string? Description { get; set; } = string.Empty;
         public bool IsSuggestion { get; set; } = false;
         public bool IsAccountSuggestion { get; set; } = false;
+        public bool IsEvent { get; set; } = false;
     }
 }
