@@ -3,15 +3,14 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
-using System.Net.Http.Headers;
 using Chillde.Repositories.Entities;
 using Microsoft.Extensions.Configuration;
 using Chillde.Services.Interfaces;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.UserActivityLogModels;
 using Microsoft.Extensions.DependencyInjection;
-using Chillde.Repositories;
 using Microsoft.Extensions.Logging;
+using System.Collections.Concurrent;
+using Chillde.Repositories.Models.UserActivityLogModels;
 
 namespace Chillde.Services.Services
 {
@@ -20,116 +19,144 @@ namespace Chillde.Services.Services
         private readonly IConnection _connection;
         private readonly IModel _channel;
         private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<WorkerService> _logger;
+        private readonly ConcurrentQueue<UserActivityLogAddModel> _logQueue;
+        private readonly PeriodicTimer _timer;
 
         public WorkerService(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<WorkerService> logger)
         {
             _configuration = configuration;
             _scopeFactory = scopeFactory;
             _logger = logger;
+            _logQueue = new ConcurrentQueue<UserActivityLogAddModel>();
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
 
-            var factory = new ConnectionFactory()
-            {
-                HostName = _configuration["RabbitMQ:HostName"]!
-            };
+            var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"]! };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-            _channel.QueueDeclare(
-                queue: "user_activity_queue",
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", _configuration["OpenAI:ApiKey"]);
+            _channel.QueueDeclare(queue: "user_activity_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
 
             _logger.LogInformation("WorkerService initialized and connected to RabbitMQ.");
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("WorkerService is starting.");
 
             var consumer = new EventingBasicConsumer(_channel);
-
-            consumer.Received += async (model, ea) =>
+            consumer.Received += (model, ea) =>
             {
-                using var scope = _scopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var openAiService = scope.ServiceProvider.GetRequiredService<IOpenAiService>();
-                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var body = ea.Body.ToArray();
+                var message = Encoding.UTF8.GetString(body);
+                var log = JsonSerializer.Deserialize<UserActivityLogAddModel>(message);
 
-                try
+                if (log != null)
                 {
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    var log = JsonSerializer.Deserialize<UserActivityLogAddModel>(message);
+                    _logQueue.Enqueue(log);
+                    _logger.LogInformation("Queued log for UserId {UserId}: {ActivityType}", log.UserId, log.ActivityType);
+                }
 
-                    _logger.LogInformation("Message received from queue: {Message}", message);
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
 
-                    if (log != null)
+            _channel.BasicConsume(queue: "user_activity_queue", autoAck: false, consumer: consumer);
+
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await _timer.WaitForNextTickAsync(stoppingToken);
+                await ProcessLogs();
+            }
+        }
+
+        private async Task ProcessLogs()
+        {
+            if (_logQueue.IsEmpty)
+            {
+                _logger.LogInformation("No logs to process.");
+                return;
+            }
+
+            using var scope = _scopeFactory.CreateScope();
+            var openAiService = scope.ServiceProvider.GetRequiredService<IOpenAiService>();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            var logs = new List<UserActivityLogAddModel>();
+            while (_logQueue.TryDequeue(out var log))
+            {
+                logs.Add(log);
+            }
+            _logger.LogInformation("Processing {Count} logs...", logs.Count);
+
+            var groupedLogs = logs.GroupBy(log => log.UserId);
+
+            foreach (var entry in groupedLogs)
+            {
+                var userId = entry.Key;
+                var userLogs = entry.ToList();
+                var userLogList = await unitOfWork.UserActivityLogRepository
+                    .GetAllAsync(log => log.UserId == userId && log.Timestamp >= DateTime.UtcNow.AddSeconds(-5000));
+
+                var recentLog = userLogList.Data.OrderByDescending(log => log.Timestamp).FirstOrDefault();
+
+                var groupedByActivityType = userLogs
+                    .GroupBy(log => log.ActivityType)
+                    .Select(group => $"{group.Key}: {string.Join(" | ", group.Select(log => log.ActivityDetails))}")
+                    .ToList();
+
+                var combinedActivityDetails = string.Join("\n", groupedByActivityType);
+
+                if (recentLog != null)
+                {
+                    if (!recentLog.ActivityDetails.Contains(combinedActivityDetails))
                     {
-                        var embedding = await openAiService.GetEmbeddingAsync(new List<string> { log.ActivityType, log.ActivityDetails });
-                        await SaveEmbeddingToDatabase(unitOfWork, log, embedding);
-                        _channel.BasicAck(ea.DeliveryTag, false);
+                        var newActivityDetails = $"{recentLog.ActivityDetails}\n{combinedActivityDetails}";
+                        if (newActivityDetails.Length > 4000) 
+                        {
+                            newActivityDetails = newActivityDetails.Substring(newActivityDetails.Length - 1800);
+                        }
 
-                        _logger.LogInformation("Message processed and acknowledged successfully.");
+                        recentLog.ActivityDetails = newActivityDetails.Trim();
+                        recentLog.Timestamp = DateTime.UtcNow;
+
+                        recentLog.EmbeddingVector = await openAiService.GetEmbeddingAsync(new List<string> { newActivityDetails });
+
+                        unitOfWork.UserActivityLogRepository.Update(recentLog);
+                        _logger.LogInformation("Updated existing log for UserId {UserId}", userId);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No new activity to update for UserId {UserId}", userId);
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogError(ex, "Error processing message: {Message}", ea.Body);
-                    _channel.BasicNack(ea.DeliveryTag, false, true);
+                    var embedding = await openAiService.GetEmbeddingAsync(new List<string> { combinedActivityDetails });
+
+                    var userActivityLog = new UserActivityLog
+                    {
+                        UserId = userId,
+                        ActivityType = "Grouped Activities",
+                        ActivityDetails = combinedActivityDetails,
+                        EmbeddingVector = embedding,
+                        Timestamp = DateTime.UtcNow
+                    };
+
+                    await unitOfWork.UserActivityLogRepository.AddAsync(userActivityLog);
+                    _logger.LogInformation("Saved new grouped log for UserId {UserId}", userId);
                 }
-            };
+            }
 
-            _channel.BasicConsume(
-                queue: "user_activity_queue",
-                autoAck: false,
-                consumer: consumer);
-
-            _logger.LogInformation("WorkerService is now consuming messages from the queue.");
-
-            return Task.CompletedTask;
-        }
-
-        private async Task SaveEmbeddingToDatabase(IUnitOfWork unitOfWork, UserActivityLogAddModel log, float[] embedding)
-        {
-            var userActivityLog = new UserActivityLog
-            {
-                UserId = log.UserId,
-                ActivityType = log.ActivityType,
-                ActivityDetails = log.ActivityDetails,
-                EmbeddingVector = embedding,
-                Timestamp = log.Timestamp
-            };
-
-            await unitOfWork.UserActivityLogRepository.AddAsync(userActivityLog);
             await unitOfWork.SaveChangeAsync();
-
-            _logger.LogInformation("User activity log saved to database for UserId: {UserId}", log.UserId);
+            _logger.LogInformation("All logs processed and saved.");
         }
+
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("WorkerService is stopping.");
-
-            if (_channel != null)
-            {
-                _channel.Close();
-                _channel.Dispose();
-                _logger.LogInformation("RabbitMQ channel closed.");
-            }
-            if (_connection != null)
-            {
-                _connection.Close();
-                _connection.Dispose();
-                _logger.LogInformation("RabbitMQ connection closed.");
-            }
+            _channel.Close();
+            _connection.Close();
             await base.StopAsync(cancellationToken);
         }
     }
