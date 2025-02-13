@@ -18,6 +18,7 @@ using Chillde.Services.Helpers;
 using Chillde.Repositories.Repositories;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
+using RabbitMQ.Client;
 
 namespace Chillde.API;
 
@@ -97,6 +98,20 @@ public static class Configuration
         {
             settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
+
+        //RabbitMQ
+        services.AddSingleton<IConnection>(sp =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var factory = new ConnectionFactory()
+            {
+                HostName = configuration["RabbitMQ:HostName"]!,
+            };
+            return factory.CreateConnection();
+        });
+
+        //WorkerService
+        services.AddHostedService<WorkerService>();
 
 
         services.Configure<RequestLocalizationOptions>(options =>
@@ -309,16 +324,19 @@ public static class Configuration
         services.AddScoped<IServiceWishlistRepository, ServiceWishlistRepository>();
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
 
-        //OpenApi
-        services.AddTransient<IOpenAiService, OpenAiService>();
-
-
         //Shipment 
         services.AddScoped<IShipmentRepository,ShipmentRepository>();
         services.AddScoped<IShipmentService,ShipmentService>(); 
 
         //OpenAiService
         services.AddScoped<IOpenAiService, OpenAiService>();
+
+        //RabbitMQ
+        services.AddSingleton<IRabbitMQService, RabbitMQService>();
+
+        //UserActivityLog
+        services.AddScoped<IUserActivityLogRepository, UserActivityLogRepository>();
+
         #endregion
 
         return services;

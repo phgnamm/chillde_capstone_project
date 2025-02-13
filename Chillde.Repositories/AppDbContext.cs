@@ -187,6 +187,8 @@ public class AppDbContext : DbContext
     public DbSet<Translation> Translations { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
     public DbSet<WalletHistory> WalletHistory { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; }
+    public DbSet<UserActivityLog> UserActivityLogs { get; set; }
 
     #endregion
 }

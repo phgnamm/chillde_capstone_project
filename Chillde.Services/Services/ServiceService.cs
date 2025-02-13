@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.FeatureModels;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Chillde.Services.Services
 {
@@ -693,42 +694,73 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
-            serviceFilterModel.Description = $"Find handmade services similar to: {serviceFilterModel.Description}";
-            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Description });
-            var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-            var threshold = 0.80;
-            var keywordThreshold = 0.2;
-            var tasks = services.Data
-                                .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
-                                .Select(_ => Task.Run(() =>
-                                {
-                                    var serviceEmbedding = _.EmbeddingVector;
-                                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
-                                    var keywordScore = (similarity < 0.5 &&
-                                                        (_.Name!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase) ||
-                                                         _.Description!.Contains(serviceFilterModel.Description, StringComparison.OrdinalIgnoreCase)))
-                                                        ? keywordThreshold : 0;
-
-                                    return new ServiceModel
+         
+                serviceFilterModel.Search = $"Find handmade services similar to: {serviceFilterModel.Search}";
+                var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
+                var services = await _unitOfWork.ServiceRepository.GetAllAsync();
+                var threshold = 0.80;
+                var keywordThreshold = 0.2;
+                var tasks = services.Data
+                                    .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
+                                    .Select(_ => Task.Run(() =>
                                     {
-                                        Id = _.Id,
-                                        Name = _.Name!,
-                                        Description = _.Description!,
-                                        Similarity = similarity + keywordScore
-                                    };
-                                })).ToList();
+                                        var serviceEmbedding = _.EmbeddingVector;
+                                        var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+                                        var keywordScore = (similarity < 0.5 &&
+                                                            (_.Name!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase) ||
+                                                             _.Description!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase)))
+                                                            ? keywordThreshold : 0;
 
-            var results = (await Task.WhenAll(tasks))
-                          .Where(_ => _.Similarity >= threshold)
-                          .OrderByDescending(_ => _.Similarity)
-                          .ToList();
+                                        return new ServiceModel
+                                        {
+                                            Id = _.Id,
+                                            Name = _.Name!,
+                                            Description = _.Description!,
+                                            Similarity = similarity + keywordScore
+                                        };
+                                    })).ToList();
 
+                var results = (await Task.WhenAll(tasks))
+                              .Where(_ => _.Similarity >= threshold)
+                              .OrderByDescending(_ => _.Similarity)
+                              .ToList();
+
+                var result = new Pagination<ServiceModel>(
+                    results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                           .Take(serviceFilterModel.PageSize)
+                           .ToList(),
+                    serviceFilterModel.PageIndex,
+                    serviceFilterModel.PageSize, results.Count);
+
+                return new ResponseModel
+                {
+                    Message = "Get all services successfully",
+                    Data = result
+                };
+            
+         
+        }
+
+        public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
+        {
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                   filter: _ => _.IsDeleted == false,
+                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                   pageIndex: serviceFilterModel.PageIndex,
+                   pageSize: serviceFilterModel.PageSize
+                   );
+            var serviceModels = services.Data.Select(_ => new ServiceModel
+            {
+                Id = _.Id,
+                Name = _.Name!,
+                Description = _.Description!,
+                ServiceAttachments = _.ServiceAttachments.ToList()
+            }).ToList();
             var result = new Pagination<ServiceModel>(
-                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
-                       .Take(serviceFilterModel.PageSize)
-                       .ToList(),
-                serviceFilterModel.PageIndex,
-                serviceFilterModel.PageSize, results.Count);
+               serviceModels,
+               serviceFilterModel.PageIndex,
+               serviceFilterModel.PageSize,
+               serviceModels.Count);
 
             return new ResponseModel
             {
@@ -736,6 +768,157 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+
+        //public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel)
+        //{
+        //    var currentUserId = _claimService.GetCurrentUserId;
+        //    if (serviceFilterModel.IsSuggestion)
+        //    {
+        //        string searchQuery = serviceFilterModel.Search;
+
+        //        if (string.IsNullOrEmpty(searchQuery))
+        //        {
+        //            // Lấy đề xuất sự kiện từ OpenAI nếu không có tìm kiếm gần đây
+        //            var eventRecommendation = await _openAiService.GetRecommendationsAsync();
+        //            var eventMessage = eventRecommendation.Data as string;
+
+        //            if (!string.IsNullOrEmpty(eventMessage) && eventMessage != "No upcoming events found.")
+        //            {
+        //                searchQuery = eventMessage;
+        //            }
+        //            else if (serviceFilterModel.IsAccountSuggestion)
+        //            {
+        //                // Lấy thông tin tài khoản từ bảng Account
+        //                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId!.Value);
+        //                if (account != null)
+        //                {
+        //                    // Tạo embedding từ thông tin tài khoản (ví dụ: sở thích, lịch sử mua hàng)
+        //                    string accountDetails = $"Preferred category: {account.PreferredCategory}, Interests: {account.Interests}";
+        //                    var accountEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { accountDetails });
+
+        //                    // Lấy tất cả dịch vụ để so sánh embedding
+        //                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: s => s.IsDeleted == false);
+
+        //                    var threshold = 0.80;
+        //                    var tasks = services.Data
+        //                        .Where(s => s.EmbeddingVector != null && s.EmbeddingVector.Length > 0)
+        //                        .Select(s => Task.Run(() =>
+        //                        {
+        //                            var serviceEmbedding = s.EmbeddingVector;
+        //                            var similarity = CosineSimilarity(accountEmbedding, serviceEmbedding);
+
+        //                            return new ServiceModel
+        //                            {
+        //                                Id = s.Id,
+        //                                Name = s.Name!,
+        //                                Description = s.Description!,
+        //                                Similarity = similarity,
+        //                                ServiceAttachments = s.ServiceAttachments.ToList()
+        //                            };
+        //                        })).ToList();
+
+        //                    var results = (await Task.WhenAll(tasks))
+        //                        .Where(r => r.Similarity >= threshold)
+        //                        .OrderByDescending(r => r.Similarity)
+        //                        .ToList();
+
+        //                    var paginatedResult = new Pagination<ServiceModel>(
+        //                        results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+        //                               .Take(serviceFilterModel.PageSize)
+        //                               .ToList(),
+        //                        serviceFilterModel.PageIndex,
+        //                        serviceFilterModel.PageSize,
+        //                        results.Count
+        //                    );
+
+        //                    return new ResponseModel
+        //                    {
+        //                        Message = "Get services based on user preferences successfully",
+        //                        Data = paginatedResult
+        //                    };
+        //                }
+        //            }
+        //        }
+
+        //        // Tìm kiếm dịch vụ bằng AI nếu có searchQuery
+        //        if (!string.IsNullOrEmpty(searchQuery))
+        //        {
+        //            searchQuery = $"Find handmade services similar to: {searchQuery}";
+        //            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { searchQuery });
+        //            var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: s => s.IsDeleted == false);
+
+        //            var threshold = 0.80;
+        //            var tasks = services.Data
+        //                .Where(s => s.EmbeddingVector != null && s.EmbeddingVector.Length > 0)
+        //                .Select(s => Task.Run(() =>
+        //                {
+        //                    var serviceEmbedding = s.EmbeddingVector;
+        //                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+
+        //                    return new ServiceModel
+        //                    {
+        //                        Id = s.Id,
+        //                        Name = s.Name!,
+        //                        Description = s.Description!,
+        //                        Similarity = similarity,
+        //                        ServiceAttachments = s.ServiceAttachments.ToList()
+        //                    };
+        //                })).ToList();
+
+        //            var results = (await Task.WhenAll(tasks))
+        //                .Where(r => r.Similarity >= threshold)
+        //                .OrderByDescending(r => r.Similarity)
+        //                .ToList();
+
+        //            var paginatedResult = new Pagination<ServiceModel>(
+        //                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+        //                       .Take(serviceFilterModel.PageSize)
+        //                       .ToList(),
+        //                serviceFilterModel.PageIndex,
+        //                serviceFilterModel.PageSize,
+        //                results.Count
+        //            );
+
+        //            return new ResponseModel
+        //            {
+        //                Message = "Get services based on AI recommendations successfully",
+        //                Data = paginatedResult
+        //            };
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // Lọc thông thường không dùng AI
+        //        var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+        //            filter: s => s.IsDeleted == false,
+        //            include: s => s.Include(p => p.Packages).Include(a => a.ServiceAttachments),
+        //            pageIndex: serviceFilterModel.PageIndex,
+        //            pageSize: serviceFilterModel.PageSize
+        //        );
+
+        //        var serviceModels = services.Data.Select(s => new ServiceModel
+        //        {
+        //            Id = s.Id,
+        //            Name = s.Name!,
+        //            Description = s.Description!,
+        //            ServiceAttachments = s.ServiceAttachments.ToList()
+        //        }).ToList();
+
+        //        var paginatedResult = new Pagination<ServiceModel>(
+        //            serviceModels,
+        //            serviceFilterModel.PageIndex,
+        //            serviceFilterModel.PageSize,
+        //            services.TotalCount
+        //        );
+
+        //        return new ResponseModel
+        //        {
+        //            Message = "Get all services successfully",
+        //            Data = paginatedResult
+        //        };
+        //    }
+        //}
+
 
         private static double CosineSimilarity(float[] vectorA, float[] vectorB)
         {

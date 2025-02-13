@@ -80,6 +80,23 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] ServiceFilterModel serviceFilterModel)
+        {
+            try
+            {
+                var result = await _serviceService.GetAll(serviceFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
         //[Authorize]
         [HttpGet("{id}/feedbacks-users")]
         public async Task<IActionResult> GetAllByServiceAndUser(Guid id, [FromQuery] FeedbackFilterModel feedbackFilterModel)
@@ -272,23 +289,23 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize]
-        [HttpPost("recommendations")]
-        public async Task<IActionResult> GetRecommendations([FromBody] SuggestAddModel suggestAddModel)
-        {
-            try
-            {
-                var result = await _openAiService.GetRecommendationsAsync(suggestAddModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
+        ////[Authorize]
+        //[HttpPost("recommendations")]
+        //public async Task<IActionResult> GetRecommendations([FromBody] SuggestAddModel suggestAddModel)
+        //{
+        //    try
+        //    {
+        //        var result = await _openAiService.GetRecommendationsAsync(suggestAddModel);
+        //        return StatusCode(result.Code, result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status500InternalServerError,
+        //            Message = ex.Message
+        //        });
+        //    }
+        //}
     }
 }

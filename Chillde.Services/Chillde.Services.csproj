@@ -15,6 +15,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk.Analyzers" Version="1.2.2" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Compile Update="Resources\OfferLanguage.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
