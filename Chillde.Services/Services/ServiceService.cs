@@ -16,7 +16,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.FeatureModels;
-using Microsoft.AspNetCore.Http.HttpResults;
+using Chillde.Services.Helpers;
+using Chillde.Services.Utils;
 
 namespace Chillde.Services.Services
 {
@@ -29,8 +30,9 @@ namespace Chillde.Services.Services
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceAttachmentService _serviceAttachmentService;
         private readonly ITranslationService _translationService;
+        private readonly IRedisHelper _redisHelper;
 
-        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService)
+        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
         {
             _openAiService = openAiService;
             _unitOfWork = unitOfWork;
@@ -39,6 +41,7 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
             _serviceAttachmentService = serviceAttachmentService;
             _translationService = translationService;
+            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
@@ -694,51 +697,51 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
-         
-                serviceFilterModel.Search = $"Find handmade services similar to: {serviceFilterModel.Search}";
-                var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
-                var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-                var threshold = 0.80;
-                var keywordThreshold = 0.2;
-                var tasks = services.Data
-                                    .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
-                                    .Select(_ => Task.Run(() =>
+
+            serviceFilterModel.Search = $"Find handmade services similar to: {serviceFilterModel.Search}";
+            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync();
+            var threshold = 0.80;
+            var keywordThreshold = 0.2;
+            var tasks = services.Data
+                                .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
+                                .Select(_ => Task.Run(() =>
+                                {
+                                    var serviceEmbedding = _.EmbeddingVector;
+                                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
+                                    var keywordScore = (similarity < 0.5 &&
+                                                        (_.Name!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase) ||
+                                                         _.Description!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase)))
+                                                        ? keywordThreshold : 0;
+
+                                    return new ServiceModel
                                     {
-                                        var serviceEmbedding = _.EmbeddingVector;
-                                        var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
-                                        var keywordScore = (similarity < 0.5 &&
-                                                            (_.Name!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase) ||
-                                                             _.Description!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase)))
-                                                            ? keywordThreshold : 0;
+                                        Id = _.Id,
+                                        Name = _.Name!,
+                                        Description = _.Description!,
+                                        Similarity = similarity + keywordScore
+                                    };
+                                })).ToList();
 
-                                        return new ServiceModel
-                                        {
-                                            Id = _.Id,
-                                            Name = _.Name!,
-                                            Description = _.Description!,
-                                            Similarity = similarity + keywordScore
-                                        };
-                                    })).ToList();
+            var results = (await Task.WhenAll(tasks))
+                          .Where(_ => _.Similarity >= threshold)
+                          .OrderByDescending(_ => _.Similarity)
+                          .ToList();
 
-                var results = (await Task.WhenAll(tasks))
-                              .Where(_ => _.Similarity >= threshold)
-                              .OrderByDescending(_ => _.Similarity)
-                              .ToList();
+            var result = new Pagination<ServiceModel>(
+                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                       .Take(serviceFilterModel.PageSize)
+                       .ToList(),
+                serviceFilterModel.PageIndex,
+                serviceFilterModel.PageSize, results.Count);
 
-                var result = new Pagination<ServiceModel>(
-                    results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
-                           .Take(serviceFilterModel.PageSize)
-                           .ToList(),
-                    serviceFilterModel.PageIndex,
-                    serviceFilterModel.PageSize, results.Count);
+            return new ResponseModel
+            {
+                Message = "Get all services successfully",
+                Data = result
+            };
 
-                return new ResponseModel
-                {
-                    Message = "Get all services successfully",
-                    Data = result
-                };
-            
-         
+
         }
 
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
@@ -773,117 +776,148 @@ namespace Chillde.Services.Services
         {
             var currentUserId = _claimService.GetCurrentUserId;
 
-            if (serviceFilterModel.IsEvent)
-            {
-                var eventRecommendation = await _openAiService.GetRecommendationsAsync();
-                var eventMessage = eventRecommendation.Data as string;
-
-                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventMessage! });
-                var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                    filter: s => s.IsDeleted == false && s.EmbeddingVector != null);
-
-                var threshold = 0.80;
-                var serviceModels = services.Data
-                    .Where(s => CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
-                    .Select(s => new ServiceModel
-                    {
-                        Id = s.Id,
-                        Name = s.Name!,
-                        Description = s.Description!,
-                        ServiceAttachments = s.ServiceAttachments.ToList()
-                    }).ToList();
-
-                return new ResponseModel
-                {
-                    Message = "Get event-based service recommendations successfully",
-                    Data = serviceModels
-                };
-            }
-
             if (serviceFilterModel.IsSuggestion && currentUserId.HasValue)
             {
-                var recentLogs = await _unitOfWork.UserActivityLogRepository.GetAllAsync(
-                    filter: log => log.UserId == currentUserId.Value,
-                    order: q => q.OrderByDescending(log => log.Timestamp),
-                    pageIndex: 1,
-                    pageSize: 5
-                );
+                var cacheKey = "suggested_services";
+                var cacheDuration = TimeSpan.FromMinutes(15);
 
-                if (!recentLogs.Data.Any())
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
-                    return new ResponseModel { Message = "No recent activity found for recommendations.", Data = null };
-                }
-                var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
+                    var recentLogs = await _unitOfWork.UserActivityLogRepository.GetAllAsync(
+                        filter: log => log.UserId == currentUserId.Value,
+                        order: q => q.OrderByDescending(log => log.Timestamp),
+                        pageIndex: 1,
+                        pageSize: 5
+                    );
 
-                var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: s => s.IsDeleted == false);
-
-                var threshold = 0.80;
-                var tasks = services.Data
-                    .Where(s => s.EmbeddingVector != null && s.EmbeddingVector.Length > 0)
-                    .Select(s => Task.Run(() =>
+                    if (!recentLogs.Data.Any())
                     {
-                        var similarity = CosineSimilarity(averageEmbedding, s.EmbeddingVector);
-                        return new ServiceModel
+                        return new ResponseModel { Message = "No recent activity found for recommendations.", Data = null };
+                    }
+
+                    var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
+
+                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                        filter: _ => _.IsDeleted == false && _.IsOffer == false,
+                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                        pageIndex: serviceFilterModel.PageIndex,
+                        pageSize: 1000
+                     );
+
+                    var threshold = 0.75;
+                    var results = services.Data
+                        .Where(s => s.EmbeddingVector != null && CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
+                        .Select(s => new ServiceModel
                         {
                             Id = s.Id,
                             Name = s.Name!,
                             Description = s.Description!,
-                            Similarity = similarity,
-                            ServiceAttachments = s.ServiceAttachments.ToList()
-                        };
-                    })).ToList();
+                            Similarity = CosineSimilarity(averageEmbedding, s.EmbeddingVector),
+                            ServiceAttachments = s.ServiceAttachments.ToList(),
+                            Rate = s.Rate,
+                            FeedbackCount = s.FeedbackCount,
+                            Price = s.Packages.OrderBy(p => p.Price).Select(p => p.Price).FirstOrDefault()
+                        })
+                        .OrderByDescending(s => s.Similarity)
+                        .ToList();
 
-                var results = (await Task.WhenAll(tasks))
-                    .Where(r => r.Similarity >= threshold)
-                    .OrderByDescending(r => r.Similarity)
-                    .ToList();
+                    var paginatedResult = new Pagination<ServiceModel>(
+                        results,
+                        serviceFilterModel.PageIndex,
+                        serviceFilterModel.PageSize,
+                        results.Count
+                    );
 
-                var paginatedResult = new Pagination<ServiceModel>(
-                    results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
-                           .Take(serviceFilterModel.PageSize)
-                           .ToList(),
-                    serviceFilterModel.PageIndex,
-                    serviceFilterModel.PageSize,
-                    results.Count
-                );
+                    return new ResponseModel
+                    {
+                        Message = "Get services based on user activity log successfully",
+                        Data = paginatedResult
+                    };
+                }, cacheDuration);
 
-                return new ResponseModel
-                {
-                    Message = "Get services based on user activity log successfully",
-                    Data = paginatedResult
-                };
+                return responseModel;
             }
             else
             {
-                var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                    filter: s => s.IsDeleted == false,
-                    include: s => s.Include(p => p.Packages).Include(a => a.ServiceAttachments),
-                    pageIndex: serviceFilterModel.PageIndex,
-                    pageSize: serviceFilterModel.PageSize
-                );
+                var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
-                var serviceModels = services.Data.Select(s => new ServiceModel
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
-                    Id = s.Id,
-                    Name = s.Name!,
-                    Description = s.Description!,
-                    ServiceAttachments = s.ServiceAttachments.ToList()
-                }).ToList();
+                    Guid? filterId = null;
+                    if (Guid.TryParse(serviceFilterModel.IdOrUserName, out var id))
+                    {
+                        filterId = id;
+                    }
+                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                        filter: s =>
+                            !s.IsDeleted &&
+                            !s.IsOffer &&
+                            (string.IsNullOrEmpty(serviceFilterModel.IdOrUserName) || (filterId.HasValue && s.CreatedById == filterId.Value)
+                            || s.CreatedBy.Username.Contains(serviceFilterModel.IdOrUserName)) &&
+                            (!serviceFilterModel.ItemId.HasValue || s.ItemId == serviceFilterModel.ItemId) &&
+                            (!serviceFilterModel.CategoryId.HasValue || s.Item.SubCategory.CategoryId == serviceFilterModel.CategoryId) &&
+                            (!serviceFilterModel.SubCategoryId.HasValue || s.Item.SubCategoryId == serviceFilterModel.SubCategoryId) &&
+                            (!serviceFilterModel.MinPrice.HasValue || s.Packages.Any(p => p.Price >= serviceFilterModel.MinPrice)) &&
+                            (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Any(p => p.Price <= serviceFilterModel.MaxPrice)) &&
+                            (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
+                            (!serviceFilterModel.MaxRate.HasValue || s.Rate <= serviceFilterModel.MaxRate) &&
+                            (!serviceFilterModel.MinDate.HasValue || s.Packages.Any(p => p.DeliveryTime >= serviceFilterModel.MinDate.Value)) &&
+                            (!serviceFilterModel.MaxDate.HasValue || s.Packages.Any(p => p.DeliveryTime <= serviceFilterModel.MaxDate.Value)),
+                        order: s =>
+                        {
+                            switch (serviceFilterModel.Order.ToLower())
+                            {
+                                case "creating":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.CreationDate)
+                                        : s.OrderBy(s => s.CreationDate);
+                                case "bestSelling":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Packages.Sum(p => p.Orders.Count))
+                                        : s.OrderBy(s => s.Packages.Sum(p => p.Orders.Count));
+                                default:
+                                    return serviceFilterModel.OrderByDescending
+                                       ? s.OrderByDescending(s => s.CreationDate)
+                                       : s.OrderBy(s => s.CreationDate);
+                            }
+                        },
+                        include: s => s.Include(p => p.Packages)
+                                       .ThenInclude(p => p.Orders)
+                                       .Include(a => a.ServiceAttachments)
+                                       .Include(i => i.Item)
+                                       .ThenInclude(i => i.SubCategory)
+                                       .ThenInclude(su => su.Category)
+                    );
 
-                var paginatedResult = new Pagination<ServiceModel>(
-                    serviceModels,
-                    serviceFilterModel.PageIndex,
-                    serviceFilterModel.PageSize,
-                    services.TotalCount
-                );
+                    var serviceModels = services.Data.Select(s => new ServiceModel
+                    {
+                        Id = s.Id,
+                        Name = s.Name!,
+                        Description = s.Description!,
+                        ServiceAttachments = s.ServiceAttachments.ToList(),
+                        Rate = s.Rate,
+                        FeedbackCount = s.FeedbackCount,
+                        Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0
+                    }).ToList();
 
-                return new ResponseModel
-                {
-                    Message = "Get all services successfully",
-                    Data = paginatedResult
-                };
+                    var paginatedResult = new Pagination<ServiceModel>(
+                        serviceModels,
+                        serviceFilterModel.PageIndex,
+                        serviceFilterModel.PageSize,
+                        services.TotalCount
+                    );
+
+                    return new ResponseModel
+                    {
+                        Message = "Get all services successfully",
+                        Data = paginatedResult
+                    };
+                });
+
+                return responseModel;
             }
         }
+
 
         private float[] ComputeAverageEmbedding(List<float[]> embeddings)
         {

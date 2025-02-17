@@ -11,6 +11,9 @@ namespace Chillde.Repositories.Models.ServiceModels
         public bool? IsOffer { get; set; }
         public ServiceStatus Status { get; set; }
         public List<ServiceAttachment>? ServiceAttachments { get; set; }
+        public double? Rate { get; set; }
+        public int? FeedbackCount { get; set; }
+        public decimal? Price { get; set; }
     }
  
 }

@@ -22,11 +22,7 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceWishlistService.GetByIdAsync(id);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
+                var result = await _serviceWishlistService.GetByIdAsync(id);  
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -46,10 +42,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceWishlistService.UpdateAsync(id, newServiceId);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -69,10 +61,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceWishlistService.DeleteAsync(id);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
