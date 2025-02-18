@@ -2,7 +2,6 @@
 using OpenAI.GPT3.Interfaces;
 using Microsoft.Extensions.Options;
 using Chillde.Repositories.Common;
-using Chillde.Services.Models.SuggestModels;
 using Microsoft.AspNetCore.Http;
 using System.Net.Http.Json;
 using Chillde.Services.Interfaces;
@@ -26,11 +25,11 @@ namespace Chillde.Services.Services
             _configuration = configuration;
         }
 
-        public async Task<ResponseModel> GetRecommendationsAsync()
+        public async Task<ResponseModel> GetEventAsync()
         {
             var fineTunedModel = _modelConfigurationOptions.FineTunedModelId;
             var defaultModel = _modelConfigurationOptions.DefaultModel;
-            var eventPrompt = "What are the upcoming events in Vietnam within the next 1.5 months? Give one to two event nearly (just give the name of event only)";
+            var eventPrompt = "What is the upcoming events in Vietnam within the next 1.5 months? Give one event nearliest (just give the name of event only)";
 
             var eventResponse = await _openAiService.Completions.CreateCompletion(
                 new CompletionCreateRequest

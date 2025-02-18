@@ -9,9 +9,18 @@ namespace Chillde.Services.Models.ServiceModels
 {
     public class ServiceFilterModel : FilterParameter
     {
-        //public string? Description { get; set; } = string.Empty;
         public bool IsSuggestion { get; set; } = false;
         public bool IsAccountSuggestion { get; set; } = false;
         public bool IsEvent { get; set; } = false;
+        public string? IdOrUserName { get; set; }
+        public Guid? ItemId { get; set; }
+        public Guid? CategoryId { get; set; }
+        public Guid? SubCategoryId { get; set; }
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public double? MinRate { get; set; }
+        public double? MaxRate { get; set; }
+        public DateTime? MinDate { get; set; }
+        public DateTime? MaxDate { get; set; }
     }
 }

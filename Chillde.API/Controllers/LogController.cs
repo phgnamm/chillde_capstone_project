@@ -25,7 +25,7 @@ namespace Chillde.API.Controllers
             {
                 _logger.LogInformation("Received log: {@Log}", log);
                 await _rabbitMQService.SendMessageAsync("user_activity_queue", log);
-                return Ok(new { message = "Log received and sent to queue." });
+                return StatusCode(201, new { message = "Log received and sent to queue." });
             }
             catch (Exception ex)
             {

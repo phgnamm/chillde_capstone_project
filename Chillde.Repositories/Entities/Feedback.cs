@@ -4,6 +4,7 @@ public class Feedback : BaseEntity
 {
     public int? Rating { get; set; }
     public string? Description { get; set; }
+    public string? Response { get; set; }
 
     // Foreign key
     public Guid ServiceId { get; set; }

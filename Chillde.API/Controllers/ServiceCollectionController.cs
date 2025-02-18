@@ -48,10 +48,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceCollectionService.UpdateAsync(id, serviceCollectionUpdateModel);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -73,10 +69,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceCollectionService.GetAllAsync(filterModel);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -96,10 +88,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceCollectionService.GetByIdAsync(id);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -119,10 +107,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceCollectionService.DeleteAsync(id);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -136,16 +120,12 @@ namespace Chillde.API.Controllers
         }
 
         [Authorize]
-        [HttpPost("{serviceCollectionId}/service-wishlist")]
+        [HttpPost("{serviceCollectionId}/service-wishlists")]
         public async Task<IActionResult> AddRange(Guid serviceCollectionId, [FromBody] List<Guid> serviceIds)
         {
             try
             {
                 var result = await _serviceWishlistService.AddRangeAsync(serviceCollectionId, serviceIds);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -159,16 +139,12 @@ namespace Chillde.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("{serviceCollectionId}/service-wishlist")]
+        [HttpGet("{serviceCollectionId}/service-wishlists")]
         public async Task<IActionResult> GetAll(Guid serviceCollectionId, [FromQuery] ServiceWishlistFilterModel filterModel)
         {
             try
             {
                 var result = await _serviceWishlistService.GetAllAsync(serviceCollectionId, filterModel);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

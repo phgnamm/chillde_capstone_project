@@ -31,14 +31,6 @@ namespace Chillde.API.Controllers
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
                 var result = await _offerService.GetByIdAsync(id, sourceLanguageCode, targetLanguageCode);
-                if (result.Code != StatusCodes.Status200OK)
-                {
-                    return StatusCode(StatusCodes.Status404NotFound, new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = result.Message
-                    });
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -63,10 +55,6 @@ namespace Chillde.API.Controllers
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
                 var result = await _offerService.UpdateAsync(id, model, sourceLanguageCode, targetLanguageCode);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -86,10 +74,6 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _offerService.DeleteAsync(id);
-                if (result.Code == StatusCodes.Status404NotFound)
-                {
-                    return NotFound(result);
-                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
