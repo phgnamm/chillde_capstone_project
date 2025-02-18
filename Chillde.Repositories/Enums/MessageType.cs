@@ -1,10 +1,12 @@
 ﻿namespace Chillde.Repositories.Enums;
 
-public enum MessageType
+public enum MediaType
 {
     Text,
     Image,
     Video,
     Audio,
-    File
+    File,
+    MuiltibleChoice,
+    Number,
 }

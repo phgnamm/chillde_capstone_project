@@ -1,10 +1,6 @@
 ﻿using Chillde.Repositories.Enums;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Chillde.Services.Models.RequestModels
 {
@@ -15,10 +11,9 @@ namespace Chillde.Services.Models.RequestModels
         public required Decimal MinBudget { get; set; }
         public required Decimal MaxBudget { get; set; }
         public int Timeline { get; set; }
-        public IFormFile? AttachmentUrl { get; set; }
-        public string? AttachmentAlt { get; set; }
         public required Guid ItemId { get; set; }
         public required Guid AccountId { get; set; }
+        public ICollection<AttachmentModel> Attachments { get; set; } = new List<AttachmentModel>();
         public ICollection<RequestDetailAddModel> RequestDetailAddModels { get; set; } = new List<RequestDetailAddModel>();
 
     }
@@ -26,5 +21,11 @@ namespace Chillde.Services.Models.RequestModels
     {
         public required string Description { get; set; }
         public required Guid AttributeId { get; set; }
+    }
+
+    public class AttachmentModel
+    {
+        public IFormFile? AttachmentUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
     }
 }
