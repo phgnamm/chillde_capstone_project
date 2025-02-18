@@ -8,7 +8,7 @@ public class MessageModel : BaseEntity
 {
     public string? Content { get; set; }
     public string? AttachmentUrl { get; set; }
-    public MessageType MessageType { get; set; }
+    public MediaType MessageType { get; set; }
     public bool IsPinned { get; set; }
     public bool IsModified { get; set; }
 

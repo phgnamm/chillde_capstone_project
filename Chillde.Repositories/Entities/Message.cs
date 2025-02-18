@@ -6,7 +6,7 @@ public class Message : BaseEntity
 {
     public string Content { get; set; } = null!;
     public string? AttachmentUrl { get; set; }
-    public MessageType MessageType { get; set; } = MessageType.Text;
+    public MediaType MessageType { get; set; } = MediaType.Text;
     public bool IsPinned { get; set; } = false;
 
     // Foreign key

@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using Chillde.Repositories.Enums;
+using System.Text.Json.Serialization;
 
 namespace Chillde.Repositories.Entities;
 
@@ -9,6 +10,8 @@ public class PackageFeature : BaseEntity
     public bool? IsExtra { get; set; }
     public decimal? AdditionalCost { get; set; }
     public int? AdditionalDay { get; set; }
+    public bool? IsQuantity { get; set; }
+    public MediaType? QuestionType { get; set; }
 
     // Foreign key
     public Guid PackageId { get; set; }

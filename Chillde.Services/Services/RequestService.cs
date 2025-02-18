@@ -102,13 +102,30 @@ namespace Chillde.Services.Services
                     });
                 }
 
-                if (requestAddModel.AttachmentUrl != null)
+                if (requestAddModel.Attachments != null && requestAddModel.Attachments.Any())
                 {
-                    newRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-                        requestAddModel.AttachmentUrl,
-                        newRequest.Id.ToString(),
-                        newRequest.Id.ToString());
+                    var uploadTasks = requestAddModel.Attachments
+                        .Where(a => a.AttachmentUrl != null)
+                        .Select(async attachment => new RequestAttachment
+                        {
+                            Id = Guid.NewGuid(),
+                            RequestId = newRequest.Id,
+                            AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
+                                attachment.AttachmentUrl!,
+                                newRequest.Id.ToString(),
+                                Guid.NewGuid().ToString()),
+                            AttachmentAlt = attachment.AttachmentAlt
+                        })
+                        .ToList();
+
+                    var uploadedAttachments = await Task.WhenAll(uploadTasks);
+
+                    foreach (var attachment in uploadedAttachments)
+                    {
+                        newRequest.RequestAttachments.Add(attachment);
+                    }
                 }
+
                 await _unitOfWork.RequestRepository.AddAsync(newRequest);
 
                 var translations = new List<Translation>();
@@ -316,7 +333,12 @@ namespace Chillde.Services.Services
                             MinBudget = request.MinBudget ?? 0,
                             MaxBudget = request.MaxBudget ?? 0,
                             Timeline = request.Timeline ?? 0,
-                            AttachmentUrl = request.AttachmentUrl!,
+                            Attachments = request.RequestAttachments
+                            .Select(att => new AttachmentGetModel
+                            {
+                                AttachmentUrl = att.AttachmentUrl,
+                                AttachmentAlt = att.AttachmentAlt
+                            }).ToList(),
                             Status = request.Status,
                             ItemId = request.ItemId,
                             ItemName = _localizer[request.Item.Name!.ToString()],
@@ -332,7 +354,7 @@ namespace Chillde.Services.Services
                         },
                         "RequestDetails",
                         translationFields,
-                        nestedRelationships: new[] { "Attribute" },
+                        nestedRelationships: new[] { "Attribute", "RequestAttachments" },
                         "Description"
                     );
 
@@ -368,7 +390,12 @@ namespace Chillde.Services.Services
                     MinBudget = existingRequest.MinBudget ?? 0,
                     MaxBudget = existingRequest.MaxBudget ?? 0,
                     Timeline = existingRequest.Timeline ?? 0,
-                    AttachmentUrl = existingRequest.AttachmentUrl ?? "Unknown",
+                    Attachments = existingRequest.RequestAttachments
+                    .Select(att => new AttachmentGetModel
+                    {
+                        AttachmentUrl = att.AttachmentUrl,
+                        AttachmentAlt = att.AttachmentAlt ?? "No description"
+                    }).ToList(),
                     Status = existingRequest.Status,
                     ItemId = existingRequest.ItemId,
                     ItemName = existingRequest.Item?.Name ?? "Unknown",
@@ -510,12 +537,41 @@ namespace Chillde.Services.Services
                     changesMade = true;
                 }
 
-                if (requestUpdateModel.AttachmentUrl != null)
+                if (requestUpdateModel.Attachments != null && requestUpdateModel.Attachments.Any())
                 {
-                    existingRequest.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(requestUpdateModel.AttachmentUrl, existingRequest.Id.ToString());
+                    var uploadTasks = new List<Task<RequestAttachment>>();
+                    foreach (var attachment in requestUpdateModel.Attachments)
+                    {
+                        if (attachment.AttachmentUrl != null)
+                        {
+                            uploadTasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    var attachmentUrl = await _cloudinaryHelper.UploadImageAsync(
+                                        attachment.AttachmentUrl,
+                                        existingRequest.Id.ToString(),
+                                        Guid.NewGuid().ToString()
+                                    );
+
+                                    return new RequestAttachment
+                                    {
+                                        Id = Guid.NewGuid(),
+                                        RequestId = existingRequest.Id,
+                                        AttachmentUrl = attachmentUrl,
+                                        AttachmentAlt = attachment.AttachmentAlt
+                                    };
+                                })
+                            );
+                        }
+                    }
+                    var uploadedAttachments = await Task.WhenAll(uploadTasks);
+                    foreach (var attachment in uploadedAttachments)
+                    {
+                        existingRequest.RequestAttachments.Add(attachment);
+                    }
+
                     changesMade = true;
                 }
-
                 if (!changesMade)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
