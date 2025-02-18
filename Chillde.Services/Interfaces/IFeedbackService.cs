@@ -12,5 +12,7 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> Update(Guid id, FeedbackUpdateModel feedbackUpdateModel);
         Task<ResponseModel> GetById(Guid id);
+        Task<ResponseModel> RespondToFeedback(Guid feedbackId, string responseText);
+
     }
 }

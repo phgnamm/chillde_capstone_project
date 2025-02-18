@@ -26,10 +26,11 @@ namespace Chillde.Services.Services
 
 
 
+
         public async Task<ResponseModel> GetById(Guid id)
         {
-            var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id) .Include(_ => _.FeedbackAttachments));
-          
+            var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id).Include(_ => _.FeedbackAttachments));
+
             var feedbackModels = new FeedbackModel
             {
                 Id = feedbacks.Id,
@@ -39,6 +40,7 @@ namespace Chillde.Services.Services
                 Description = feedbacks.Description,
                 CreationDate = feedbacks.CreationDate,
                 Rating = feedbacks.Rating,
+                Response = feedbacks.Response,
                 FeedbackImageModels = feedbacks.FeedbackAttachments.Select(_ => new FeedbackImageModel
                 {
                     ImageUrl = _.AttachmentUrl ?? ""
@@ -100,6 +102,7 @@ namespace Chillde.Services.Services
             }
             existingFeedback.Rating = feedbackUpdateModel.Rating ?? existingFeedback.Rating;
             existingFeedback.Description = feedbackUpdateModel.Description ?? existingFeedback.Description;
+            existingFeedback.Response = existingFeedback.Response ?? feedbackUpdateModel.Response;
             existingFeedback.ModificationDate = DateTime.UtcNow;
 
             _unitOfWork.FeedbackRepository.Update(existingFeedback);
@@ -115,6 +118,34 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status409Conflict,
                     Message = "Failed to update feedback."
+                };
+        }
+        public async Task<ResponseModel> RespondToFeedback(Guid feedbackId, string responseText)
+        {
+            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(feedbackId);
+            if (existingFeedback == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Feedback not found."
+                };
+            }
+
+            existingFeedback.Response = responseText;
+            _unitOfWork.FeedbackRepository.Update(existingFeedback);
+            var result = await _unitOfWork.SaveChangeAsync();
+
+            return result > 0
+                ? new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Response added successfully."
+                }
+                : new ResponseModel
+                {
+                    Code = StatusCodes.Status409Conflict,
+                    Message = "Failed to add response."
                 };
         }
 

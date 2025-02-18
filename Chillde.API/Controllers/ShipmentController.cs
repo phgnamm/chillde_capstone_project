@@ -36,7 +36,41 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpPost("switch-to-return-status")]
+        public async Task<IActionResult> AddServiceAsync([FromQuery] string orderCode)
+        {
+            try
+            {
+                var result = await _shipmentService.SwitchToReturnStatusAsync(orderCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpGet]
+        public async Task<IActionResult> Search([FromQuery] string orderCode)
+        {
+            try
+            {
+                var result = await _shipmentService.GetShipmentDetailAsync(orderCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
 
-        
+
     }
 }
