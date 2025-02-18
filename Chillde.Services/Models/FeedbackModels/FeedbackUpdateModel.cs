@@ -11,6 +11,7 @@ namespace Chillde.Services.Models.FeedbackModels
     {
         public int? Rating { get; set; }
         public string? Description { get; set; }
+        public string ? Response { get; set; }
        /* public List<FeedbackImageUpdateModel>? FeedbackImageUpdateModels { get; set; } = new List<FeedbackImageUpdateModel>();*/
     }
 
