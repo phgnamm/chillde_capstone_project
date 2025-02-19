@@ -6,5 +6,7 @@ namespace Chillde.Services.Interfaces
     public interface IPackageFeatureService
     {
         Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id);
+
+        Task<ResponseModel> DeletePackageFeatureAsync(Guid packageFeatureId);
     }
 }

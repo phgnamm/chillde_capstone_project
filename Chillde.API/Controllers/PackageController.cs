@@ -83,26 +83,6 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
-        //[Authorize("Artist, Admin")]
-        [HttpDelete("{packageId}/package-features/{packageFeatureId}")]
-        public async Task<IActionResult> DeletePackageFeature(Guid packageId, Guid packageFeatureId)
-        {
-            try
-            {
-                var result = await _packageService.DeletePackageFeatureAsync(packageId, packageFeatureId);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-
         //        [Authorize]
         [HttpGet("{packageId}/features")]
         public async Task<IActionResult> GetAllFeatures([FromQuery] FeatureFilterModel model, Guid packageId)

@@ -1,6 +1,7 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -23,6 +24,25 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _packageFeatureService.UpdateAsync(model, id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artist, Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePackageFeature(Guid id)
+        {
+            try
+            {
+                var result = await _packageFeatureService.DeletePackageFeatureAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
