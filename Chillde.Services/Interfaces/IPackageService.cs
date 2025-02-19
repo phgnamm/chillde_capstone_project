@@ -9,7 +9,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> DeleteAsync(Guid id);
         Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, Guid packageId, string sourceLanguageCode, string targetLanguageCode);
-        Task<ResponseModel> DeletePackageFeatureAsync(Guid packageId, Guid packageFeatureId);
         Task<ResponseModel> GetAllFeatureAsync(FeatureFilterModel model, Guid packageId, string sourceLanguageCode, string targetLanguage);
     }
 }

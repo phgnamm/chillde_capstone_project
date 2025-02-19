@@ -377,12 +377,15 @@ namespace Chillde.Services.Services
 
                 var anyOrder = _unitOfWork.OrderRepository.HasAnyOrder(id);
 
-                if (anyOrder == null)
+                if (anyOrder.Result == false)
                 {
                     _unitOfWork.ServiceRepository.HardRemove(service);
                 }
-
-                _unitOfWork.ServiceRepository.SoftRemove(service);
+                else
+                {
+                    _unitOfWork.ServiceRepository.SoftRemove(service);
+                }
+                
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
