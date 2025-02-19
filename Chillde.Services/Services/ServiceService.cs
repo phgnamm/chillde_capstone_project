@@ -853,8 +853,8 @@ namespace Chillde.Services.Services
                     }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: s =>
-                            !s.IsDeleted &&
-                            !s.IsOffer &&
+                            s.IsDeleted == false &&
+                            s.IsOffer == false &&
                             (string.IsNullOrEmpty(serviceFilterModel.IdOrUserName) || (filterId.HasValue && s.CreatedById == filterId.Value)
                             || s.CreatedBy.Username.Contains(serviceFilterModel.IdOrUserName)) &&
                             (!serviceFilterModel.ItemId.HasValue || s.ItemId == serviceFilterModel.ItemId) &&

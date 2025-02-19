@@ -9,7 +9,6 @@ public class Request : BaseEntity
     public decimal? MinBudget { get; set; }
     public decimal? MaxBudget { get; set; }
     public int? Timeline { get; set; }
-    public string? AttachmentUrl { get; set; }
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
     // Foreign key
@@ -20,4 +19,5 @@ public class Request : BaseEntity
     public Item Item { get; set; } = null!;
     public virtual ICollection<RequestDetail> RequestDetails { get; set; } = new List<RequestDetail>();
     public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
+    public virtual ICollection<RequestAttachment> RequestAttachments { get; set; } = new List<RequestAttachment>();
 }

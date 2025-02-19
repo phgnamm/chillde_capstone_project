@@ -140,7 +140,7 @@ public class AppDbContext : DbContext
         });
         modelBuilder.Entity<SystemConfig>(entity =>
         {
-            entity.HasKey(sc => new { sc.EntityType, sc.EntityId, sc.FieldName });
+            entity.HasKey(sc => new { sc.EntityType, sc.FieldName });
         });
 
         #endregion
@@ -189,6 +189,7 @@ public class AppDbContext : DbContext
     public DbSet<WalletHistory> WalletHistory { get; set; }
     public DbSet<SystemConfig> SystemConfigs { get; set; }
     public DbSet<UserActivityLog> UserActivityLogs { get; set; }
+    public DbSet<RequestAttachment> RequestAttachments  { get; set; }
 
     #endregion
 }
