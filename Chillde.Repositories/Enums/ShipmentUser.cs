@@ -2,7 +2,7 @@
 {
     public enum ShipmentUser
     {
-        Artist,
+        Artisan,
         Customer
     }
 }

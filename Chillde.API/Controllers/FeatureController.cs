@@ -17,7 +17,7 @@ namespace Chillde.API.Controllers
             _featureService = featureService;
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] FeatureUpdateModel featureUpdateModel, Guid id)
         {

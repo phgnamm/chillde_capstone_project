@@ -30,7 +30,7 @@ namespace Chillde.API.Controllers
 
         }
         [Authorize]
-        [HttpGet("artists")]
+        [HttpGet("artisans")]
         public async Task<IActionResult> GetAll([FromQuery] OrderFilterModel orderFilterModel)
         {
             try
@@ -52,7 +52,7 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("artists")]
+        [HttpPut("artisans")]
         public async Task<IActionResult> UpdateStatus(Guid orderId, [FromBody] OrderStatus orderStatus)
         {
             try
@@ -147,7 +147,7 @@ namespace Chillde.API.Controllers
             });
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPost("{orderId}/shipments")]
         public async Task<IActionResult> AddShipmentAsync([FromBody] ShipmentAddModel model, Guid orderId)
         {
@@ -165,7 +165,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPost("{orderId}/shipments/{shipmentCode}")]
         public async Task<IActionResult> CancelShipmentAsync(Guid orderId, string shipmentCode)
         {

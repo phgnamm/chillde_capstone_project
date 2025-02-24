@@ -17,7 +17,7 @@ public class Account : BaseEntity
     public string? PhoneNumber { get; set; }
     public string? Image { get; set; }
 
-    // Artist information
+    // Artisan information
     public string? StoreAddress { get; set; }
     public string? Banner { get; set; }
     public double? SuccessDeliveryRate { get; set; }
