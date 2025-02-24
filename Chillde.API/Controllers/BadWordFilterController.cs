@@ -20,7 +20,7 @@ namespace Chillde.API.Controllers
             _badWordFilterService = badWordFilterService;
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPost]
         public async Task<IActionResult> FilterBadWordAsync([FromBody] BadWordFilterModel serviceAddModel)
         {
