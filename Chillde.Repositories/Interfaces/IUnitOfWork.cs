@@ -20,7 +20,6 @@ public interface IUnitOfWork
     IRefreshTokenRepository RefreshTokenRepository { get; }
     IRoleRepository RoleRepository { get; }
     IRequestRepository RequestRepository { get; }
-    IRequestDetailRepository RequestDetailRepository { get; }
     IServiceRepository ServiceRepository { get; }
     IFeedbackRepository FeedbackRepository { get; }
     IOrderRepository OrderRepository { get; }
@@ -36,9 +35,6 @@ public interface IUnitOfWork
     IFAQRepository FAQRepository { get; }
     ISubCategoryRepository SubCategoryRepository { get; }
     IItemRepository ItemRepository { get; }
-    IItemAttributeRepository ItemAttributeRepository { get; }
-    IAttributeRepository AttributeRepository { get; }
-    IAttributeValueRepository AttributeValueRepository { get; }
     IShippingAddressRepository ShippingAddressRepository { get; }
     IFeatureRepository FeatureRepository { get; }
     IPackageFeatureRepository PackageFeatureRepository { get; }

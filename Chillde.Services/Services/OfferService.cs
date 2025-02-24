@@ -38,6 +38,11 @@ namespace Chillde.Services.Services
                 var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
+                        (!filterParameter.ItemId.HasValue || offer.Items.FirstOrDefault()!.Id == filterParameter.ItemId) &&
+                        (!filterParameter.MinPrice.HasValue || offer.Service.Packages.Any(p => p.Price >= filterParameter.MinPrice)) &&
+                        (!filterParameter.MaxPrice.HasValue || offer.Service.Packages.Any(p => p.Price <= filterParameter.MaxPrice)) &&
+                        (!filterParameter.MinDeliveryTime.HasValue || offer.Service.Packages.Any(p => p.DeliveryTime >= filterParameter.MinDeliveryTime)) &&
+                        (!filterParameter.MaxDeliveryTime.HasValue || offer.Service.Packages.Any(p => p.DeliveryTime <= filterParameter.MaxDeliveryTime)) &&
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (offer.RequestId == requestId) &&
@@ -320,6 +325,15 @@ namespace Chillde.Services.Services
                 if (existingOffer.Status != model.Status && model.Status != null)
                 {
                     existingOffer.Status = (OfferStatus)model.Status;
+                    if (model.Status == OfferStatus.Approved)
+                    {
+                        var existedOffers = await _unitOfWork.OfferRepository.GetAllAsync(offer => offer.RequestId == existingOffer.RequestId && offer.Status != OfferStatus.Approved, order:null,include:null,1,1000);
+                        foreach (var offer in existedOffers.Data)
+                        {
+                            offer.Status = OfferStatus.Rejected;
+                            _unitOfWork.OfferRepository.Update(offer);
+                        }
+                    }  
                     _unitOfWork.OfferRepository.Update(existingOffer);
                 }
                 var changes = await _unitOfWork.SaveChangeAsync();

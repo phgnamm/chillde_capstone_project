@@ -7,6 +7,8 @@ public enum MediaType
     Video,
     Audio,
     File,
-    MuiltibleChoice,
     Number,
+    Select,
+    CheckBox, // multible choice
+    Switch, // yes or no
 }

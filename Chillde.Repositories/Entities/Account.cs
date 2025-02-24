@@ -52,5 +52,6 @@ public class Account : BaseEntity
     public virtual ICollection<Message> Message { get; set; } = new List<Message>();
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public virtual ICollection<SearchHistory> SearchHistories { get; set; } = new List<SearchHistory>();
 
 }

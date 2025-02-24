@@ -7,7 +7,13 @@ public class OrderTracking : BaseEntity
     public string? Name { get; set; }
     public string? Description { get; set; }
     public bool? IsAccepted { get; set; }
+
+    #region new fields
+    public OrderStage Stage { get; set; }
     public OrderTrackingType Type { get; set; }
+    public int ExtendedDays { get; set; }
+    #endregion
+
 
     // Foreign key
     public Guid OrderId { get; set; }

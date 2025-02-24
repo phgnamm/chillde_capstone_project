@@ -24,7 +24,7 @@ namespace Chillde.Repositories.Models.RequestModels
     public class RequestDetailGetByIdModel
     {
         public Guid Id { get; set; }
-        public string? Description { get; set; }
+        public string? Name { get; set; }
         public Guid ItemAttributeId { get; set; }
         public string ItemAttributeName { get; set; }
     }

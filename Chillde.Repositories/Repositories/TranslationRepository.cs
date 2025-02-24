@@ -158,11 +158,11 @@ namespace Chillde.Repositories.Repositories
                                         }
                                     }
                                 }
-                                var requestDetail = detail as RequestDetail;
+                                var requestDetail = detail as RequestAttribute;
                                 return new RequestDetailGetByIdModel
                                 {
                                     Id = requestDetail!.Id,
-                                    Description = requestDetail.Description,                                   
+                                    Name = requestDetail.Name,                                   
                                 };
                             }).ToList();
 

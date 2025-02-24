@@ -7,20 +7,11 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
-using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using StackExchange.Redis;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using Chillde.Repositories.Models.RequestModels;
 using Chillde.Services.Common;
 using Chillde.Repositories.Models.OrderModels;
 
@@ -182,7 +173,7 @@ namespace Chillde.Services.Services
         }
         private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId, decimal totalPrice)
         {
-            var requiredFeatures = package.PackageFeatures.Where(_ => _.IsInformationRequired == true).ToList();
+            var requiredFeatures = package.PackageFeatures.Where(_ => _.IsExtra == true).ToList();
 
             foreach (var feature in requiredFeatures)
             {
@@ -207,7 +198,7 @@ namespace Chillde.Services.Services
                 PackagePrice = package.Price,
                 Quantity = orderAddModel.Quantity,
                 PackageId = orderAddModel.PackageId,
-                OrderInformations = orderAddModel?.OrderInformationAddModels?.Select(_ => new OrderInformation
+                OrderInformations = orderAddModel.OrderInformationAddModels!.Select(_ => new OrderInformation
                 {
                     Description = _.Description,
                     PackageFeatureId = _.PackageFeatureId
@@ -216,7 +207,7 @@ namespace Chillde.Services.Services
         }
         private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder, decimal totalPrice)
         {
-            var featureIds = orderAddModel.OrderInformationAddModels.Select(_ => _.PackageFeatureId).ToList();
+            var featureIds = orderAddModel.OrderInformationAddModels!.Select(_ => _.PackageFeatureId).ToList();
             var extraFeatureCost = await _unitOfWork.PackageFeatureRepository.SumPriceOfExtraFeatures(featureIds);
 
             if (extraFeatureCost > 0)
@@ -298,7 +289,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (order.Status == OrderStatus.Success)
+            if (order.Status == OrderStatus.Accepted)
             {
                 return new ResponseModel
                 {
@@ -307,7 +298,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            order.Status = OrderStatus.Success;
+            order.Status = OrderStatus.Accepted;
             foreach (var payment in order.Payments)
             {
                 payment.PaymentStatus = PaymentStatus.Success;

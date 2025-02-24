@@ -125,8 +125,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("9117fe29-9fec-4cf5-8f52-37d1efec7b22"),
-            Question = "Thiết kế theo yêu cầu",
-            IsInformationRequired = false,
+            Name = "Thiết kế theo yêu cầu",
             IsExtra = false,
             AdditionalCost = null,
             AdditionalDay = null,
@@ -136,8 +135,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("fbfd784f-bfe3-49ed-99b5-19c46c19b6f1"),
-            Question = "Khắc tên hoặc ký tự đặc biệt (5 ký tự miễn phí)",
-            IsInformationRequired = false,
+            Name = "Khắc tên hoặc ký tự đặc biệt (5 ký tự miễn phí)",
             IsExtra = false,
             AdditionalCost = null,
             AdditionalDay = null,
@@ -147,8 +145,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("4871b8c7-af47-4bb6-8fad-226fb5e84d2e"),
-            Question = "Sơn màu lên sản phẩm (2 màu tùy chọn)",
-            IsInformationRequired = false,
+            Name = "Sơn màu lên sản phẩm (2 màu tùy chọn)",
             IsExtra = false,
             AdditionalCost = null,
             AdditionalDay = null,
@@ -158,8 +155,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("a03772d4-9c79-406c-8b1a-6c586df22b15"),
-            Question = "Đính đá zirconia nhỏ (tối đa 5 viên miễn phí)",
-            IsInformationRequired = false,
+            Name = "Đính đá zirconia nhỏ (tối đa 5 viên miễn phí)",
             IsExtra = false,
             AdditionalCost = null,
             AdditionalDay = null,
@@ -169,8 +165,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("6c8d8723-d2b1-48fd-8fea-46d3b70782e1"),
-            Question = "Khắc thêm ký tự đặc biệt",
-            IsInformationRequired = false,
+            Name = "Khắc thêm ký tự đặc biệt",
             IsExtra = true,
             AdditionalCost = 5000,
             AdditionalDay = null,
@@ -180,8 +175,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("7b218041-fe35-4c61-a6c0-83d887bbb67e"),
-            Question = "Khắc thêm ký tự đặc biệt được thiết kế riêng",
-            IsInformationRequired = false,
+            Name = "Khắc thêm ký tự đặc biệt được thiết kế riêng",
             IsExtra = true,
             AdditionalCost = 10000,
             AdditionalDay = null,

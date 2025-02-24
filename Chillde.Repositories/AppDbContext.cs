@@ -72,11 +72,6 @@ public class AppDbContext : DbContext
             entity.HasIndex(item => item.Code).IsUnique();
         });
 
-        modelBuilder.Entity<Entities.Attribute>(entity =>
-        {
-            entity.Property(itemAttribute => itemAttribute.Name).HasMaxLength(100);
-        });
-
         modelBuilder.Entity<OrderTracking>(entity =>
         {
             entity.Property(orderTracking => orderTracking.Name).HasMaxLength(100);
@@ -158,9 +153,9 @@ public class AppDbContext : DbContext
     public DbSet<Feedback> Feedbacks { get; set; }
     public DbSet<FeedbackAttachment> FeedbackAttachments { get; set; }
     public DbSet<Item> Items { get; set; }
-    public DbSet<ItemAttribute> ItemAttributes { get; set; }
-    public DbSet<Entities.Attribute> Attributes { get; set; }
-    public DbSet<AttributeValue> AttributeValue { get; set; }
+    public DbSet<RequestAttribute> RequestAttributes { get; set; }
+    public DbSet<RequestAttributeAttachment> RequestAttributeAttachments { get; set; }
+    public DbSet<RequestAttributeValue> RequestAttributeValues { get; set; }
     public DbSet<Language> Languages { get; set; }
     public DbSet<Message> Messages { get; set; }
     public DbSet<MessageRecipient> MessageRecipients { get; set; }
@@ -175,7 +170,6 @@ public class AppDbContext : DbContext
     public DbSet<PackageFeature> PackageFeatures { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<Request> Requests { get; set; }
-    public DbSet<RequestDetail> RequestDetail { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceCollection> ServiceCollection { get; set; }

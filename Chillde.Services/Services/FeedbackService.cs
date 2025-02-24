@@ -33,7 +33,7 @@ namespace Chillde.Services.Services
 
             var feedbackModels = new FeedbackModel
             {
-                Id = feedbacks.Id,
+                Id = feedbacks!.Id,
                 CreatedById = feedbacks.CreatedById,
                 ServiceId = feedbacks.ServiceId,
                 AuthorName = feedbacks.CreatedBy.FirstName + " " + feedbacks.CreatedBy.LastName,

@@ -9,7 +9,6 @@ namespace Chillde.Services.Models.ServiceModels
 {
     public class ServiceFilterModel : FilterParameter
     {
-        public bool IsSuggestion { get; set; } = false;
         public bool IsAccountSuggestion { get; set; } = false;
         public bool IsEvent { get; set; } = false;
         public string? IdOrUserName { get; set; }

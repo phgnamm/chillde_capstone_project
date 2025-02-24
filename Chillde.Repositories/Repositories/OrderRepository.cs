@@ -16,7 +16,7 @@ namespace Chillde.Repositories.Repositories
                         .Include(_ => _.Package)
                         .AnyAsync(_ => _.Package.ServiceId == serviceId &&
                         _.CreatedBy.Id == accountId &&
-                        _.Status == Enums.OrderStatus.Shipped);
+                        _.Status == Enums.OrderStatus.Accepted);
             return hasCompletedOrder;
         }
 

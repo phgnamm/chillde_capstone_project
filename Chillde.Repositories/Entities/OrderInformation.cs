@@ -3,8 +3,12 @@
 public class OrderInformation : BaseEntity
 {
     public string? Description {  get; set; }
+
+    #region new fields
     public int? Quantity { get; set; }
     public decimal? Price { get; set; }
+    #endregion
+
     // Foreign key
     public Guid PackageFeatureId { get; set; }
     public Guid OrderId { get; set; }

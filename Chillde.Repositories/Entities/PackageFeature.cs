@@ -5,13 +5,15 @@ namespace Chillde.Repositories.Entities;
 
 public class PackageFeature : BaseEntity
 {
-    public string? Question { get; set; }
-    public bool? IsInformationRequired { get; set; }
-    public bool? IsExtra { get; set; }
+    public string? Name { get; set; }
+
+    #region new fields
     public decimal? AdditionalCost { get; set; }
     public int? AdditionalDay { get; set; }
-    public bool? IsQuantity { get; set; }
-    public MediaType? QuestionType { get; set; }
+    public bool? IsExtra { get; set; }
+    public bool? IsChecked { get; set; }
+    public int MaxQuantity { get; set; }
+    #endregion
 
     // Foreign key
     public Guid PackageId { get; set; }
