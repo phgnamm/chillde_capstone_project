@@ -35,7 +35,8 @@ public class UnitOfWork : IUnitOfWork
         IServiceWishlistRepository serviceWishlistRepository,
         IShipmentRepository shipmentRepository,
         IPaymentRepository paymentRepository,
-        IUserActivityLogRepository userActivityLogRepository
+        IUserActivityLogRepository userActivityLogRepository,
+        ISearchHistoryRepository searchHistoryRepository
         )
     {
         Context = context;
@@ -71,6 +72,7 @@ public class UnitOfWork : IUnitOfWork
         ShipmentRepository = shipmentRepository;
         PaymentRepository = paymentRepository;
         UserActivityLogRepository = userActivityLogRepository;
+        SearchHistoryRepository = searchHistoryRepository;
     }
 
     public AppDbContext Context { get; }
@@ -107,6 +109,7 @@ public class UnitOfWork : IUnitOfWork
     public IPaymentRepository PaymentRepository { get; }
     public IUserActivityLogRepository UserActivityLogRepository { get; }
 
+    public ISearchHistoryRepository SearchHistoryRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

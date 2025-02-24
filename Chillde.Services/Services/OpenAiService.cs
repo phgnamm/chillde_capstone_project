@@ -7,6 +7,8 @@ using System.Net.Http.Json;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.Text;
 
 namespace Chillde.Services.Services
 {
@@ -86,6 +88,70 @@ namespace Chillde.Services.Services
             var responseData = await response.Content.ReadFromJsonAsync<OpenAiEmbeddingResponse>();
             return responseData?.Data.FirstOrDefault()?.Embedding ?? throw new Exception("No embedding data returned.");
         }
+
+        public async Task<ResponseModel> GetStructuredDataAsync(List<string> attributes)
+        {
+            string prompt = GeneratePrompt(attributes);
+
+            var requestBody = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+                new { role = "system", content = "You are an AI that converts a list of attributes into a structured model with type and options." },
+                new { role = "user", content = prompt }
+            },
+                max_tokens = 300,
+                temperature = 0.3
+            };
+            var apiKey = _configuration["OpenAI:ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+                throw new Exception("API key is missing.");
+
+            using var _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+            string jsonBody = JsonSerializer.Serialize(requestBody);
+            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            using JsonDocument doc = JsonDocument.Parse(responseString);
+            string jsonResponse = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+
+            var result = JsonSerializer.Deserialize<List<ModelResponse>>(jsonResponse);
+            return new ResponseModel { Data = result };
+        }
+
+        private string GeneratePrompt(List<string> prompt)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Based on the given item category and description, generate structured JSON defining relevant attributes for handmade products.");
+            sb.AppendLine("Category: " + prompt[0]);
+            sb.AppendLine("Description: " + prompt[1]);
+            sb.AppendLine();
+            sb.AppendLine("The output should be a list of attributes, where each attribute has:");
+            sb.AppendLine("- `name` (string): The attribute name.");
+            sb.AppendLine("- `type` (string): Choose one of:");
+            sb.AppendLine("  - 'text': Free-text input (e.g., product description).");
+            sb.AppendLine("  - 'number': Numerical values (e.g., price, weight).");
+            sb.AppendLine("  - 'dropdown': Predefined choices (e.g., material, color).");
+            sb.AppendLine("  - 'boolean': Yes/No options (e.g., 'Is customizable?').");
+            sb.AppendLine("  - 'image': Product images.");
+            sb.AppendLine("  - 'file': Uploadable files (e.g., design files, templates).");
+            sb.AppendLine("  - 'date': Date-related attributes.");
+            sb.AppendLine("  - 'multiselect': Multiple selections (e.g., suitable occasions).");
+            sb.AppendLine("- `options` (list of strings, only for 'dropdown' and 'multiselect').");
+            sb.AppendLine("Ensure that:");
+            sb.AppendLine("- The attributes are relevant to the handmade category.");
+            sb.AppendLine("- 'options' include common values for that category.");
+            sb.AppendLine("- The response is valid JSON in a list format.");
+
+            return sb.ToString();
+        }
+
         public class OpenAiEmbeddingResponse
         {
             public List<EmbeddingData> Data { get; set; } = new List<EmbeddingData>();
@@ -95,5 +161,12 @@ namespace Chillde.Services.Services
         {
             public float[] Embedding { get; set; } = Array.Empty<float>();
         }
+        public class ModelResponse
+        {
+            public string Name { get; set; }
+            public string Type { get; set; }
+            public List<string> Options { get; set; }
+        }
+
     }
 }

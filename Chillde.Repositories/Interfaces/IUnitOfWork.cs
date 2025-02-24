@@ -23,6 +23,7 @@ public interface IUnitOfWork
     IServiceRepository ServiceRepository { get; }
     IFeedbackRepository FeedbackRepository { get; }
     IOrderRepository OrderRepository { get; }
+    ISearchHistoryRepository SearchHistoryRepository { get; }
     IPackageRepository PackageRepository { get; }
     IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
     IWalletRepository WalletRepository { get; }

@@ -13,6 +13,7 @@ public class Service : BaseEntity
 
     // Foreign key
     public Guid ItemId { get; set; }
+    public List<string> Keywords { get; set; } = new List<string>();
     public float[] EmbeddingVector { get; set; } = Array.Empty<float>();
 
     // Relationship

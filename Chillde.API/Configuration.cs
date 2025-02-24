@@ -111,7 +111,7 @@ public static class Configuration
         });
 
         //WorkerService
-        services.AddHostedService<WorkerService>();
+        //services.AddHostedService<WorkerService>();
 
 
         services.Configure<RequestLocalizationOptions>(options =>
@@ -324,6 +324,10 @@ public static class Configuration
 
         //UserActivityLog
         services.AddScoped<IUserActivityLogRepository, UserActivityLogRepository>();
+
+        //SearchHistory
+        services.AddScoped<IElasticsearchService, ElasticsearchService>();
+        services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
 
         #endregion
 

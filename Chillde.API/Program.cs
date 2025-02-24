@@ -5,10 +5,12 @@ using Chillde.API.Middlewares;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Services.Hubs;
+using Elasticsearch.Net;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
+using Nest;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 builder.Services.AddSignalR(options => { options.MaximumReceiveMessageSize = null; });
+var elasticsearchUrl = builder.Configuration["Elasticsearch:Url"] ?? "https://localhost:9200";
+var username = builder.Configuration["Elasticsearch:Username"] ?? "elastic";
+var password = builder.Configuration["Elasticsearch:Password"] ?? "l4*-7pKHsSIH0LgjIy=9";
+// ?? Register `ElasticClient` in DI Container
+var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
+    .BasicAuthentication(username, password) // ? Add Authentication
+    .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // ? Ignore SSL errors if needed
+    .DefaultIndex("services");
+var client = new ElasticClient(settings);
+builder.Services.AddSingleton<IElasticClient>(client);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

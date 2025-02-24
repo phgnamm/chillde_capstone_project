@@ -4,7 +4,10 @@ public enum ItemAttributeType
 {
     Int,
     String,
-    Decimal,
+    Number,
     Boolean,
-    DateTime
+    DateTime,
+    Dropdown,
+    File,
+    Multiselect
 }

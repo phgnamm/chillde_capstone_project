@@ -18,6 +18,9 @@ using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Services.Helpers;
 using Chillde.Services.Utils;
+using Nest;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Chillde.Repositories.Models.RequestModels;
 
 namespace Chillde.Services.Services
 {
@@ -31,10 +34,13 @@ namespace Chillde.Services.Services
         private readonly IServiceAttachmentService _serviceAttachmentService;
         private readonly ITranslationService _translationService;
         private readonly IRedisHelper _redisHelper;
+        private readonly KeywordGenerator _keywordGenerator;
+        private readonly IElasticClient _client;
+            
 
-
-        public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
+        public ServiceService(IElasticClient client, IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
         {
+            _client = client;
             _openAiService = openAiService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -43,6 +49,8 @@ namespace Chillde.Services.Services
             _serviceAttachmentService = serviceAttachmentService;
             _translationService = translationService;
             _redisHelper = redisHelper;
+            _keywordGenerator = new KeywordGenerator();
+
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
@@ -252,7 +260,6 @@ namespace Chillde.Services.Services
                         Message = "Unauthorized."
                     };
                 }
-
                 var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
                 var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
                 if (item == null)
@@ -275,7 +282,25 @@ namespace Chillde.Services.Services
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
+                var keywords = _keywordGenerator.GenerateKeywords(service.Name);
+                var suggest = new { input = keywords.ToArray(), weight = 1 };
+                var serviceData = new
+                {
+                    id = service.Id,
+                    keyword = keywords,
+                    suggest
+                };
+                var embeddingData = new
+                {
+                    id = service.Id,
+                    embeddingVector = service.EmbeddingVector
+                };
 
+                var indexTasks = new List<Task>
+                {
+                    _client.IndexAsync(serviceData, i => i.Index("products")),
+                    _client.IndexAsync(embeddingData, i => i.Index("product_embeddings"))
+                };
                 var newServiceAttachment = new List<ServiceAttachment>();
                 var attachmentModel = serviceAddModel.ServiceAttachments;
                 if (serviceAddModel.ServiceAttachments != null)
@@ -707,52 +732,88 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {
+            if (string.IsNullOrWhiteSpace(serviceFilterModel.Search))
+            {
+                return new ResponseModel { Message = "Search term is required.", Data = null };
+            }
+            int pageIndex = serviceFilterModel.PageIndex;
+            int pageSize = serviceFilterModel.PageSize;
+            var result = new Pagination<ServiceModel>(null, pageIndex, pageSize, 0);
+            var currentUserId = _claimService.GetCurrentUserId;
 
-            serviceFilterModel.Search = $"Find handmade services similar to: {serviceFilterModel.Search}";
+            if (currentUserId.HasValue)
+            {
+                await SaveSearchHistoryAsync(serviceFilterModel.Search, currentUserId.Value);
+            }
+
+            var keywordSearchResponse = await _client.SearchAsync<Service>(s => s
+                .Index("products")
+                .Query(q => q
+                    .MultiMatch(m => m
+                        .Fields(f => f.Field(p => p.Name).Field(p => p.Description))
+                        .Query(serviceFilterModel.Search)
+                        .Fuzziness(Fuzziness.Auto) 
+                    )
+                )
+            );
+
+            if (keywordSearchResponse.Documents.Any())
+            {
+                var keywordResults = keywordSearchResponse.Documents
+                    .Select(_ => new ServiceModel
+                    {
+                        Id = _.Id,
+                        Name = _.Name!,
+                        Description = _.Description!
+                    })
+                    .Skip((pageIndex - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+                result = new Pagination<ServiceModel>(keywordResults, pageIndex, pageSize, keywordSearchResponse.Documents.Count);
+                return new ResponseModel
+                {
+                    Message = "Search results found by keyword",
+                    Data = result
+                };
+            }
+
             var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
-            var services = await _unitOfWork.ServiceRepository.GetAllAsync();
-            var threshold = 0.80;
-            var keywordThreshold = 0.2;
-            var tasks = services.Data
-                                .Where(_ => _.EmbeddingVector != null && _.EmbeddingVector.Length > 0)
-                                .Select(_ => Task.Run(() =>
-                                {
-                                    var serviceEmbedding = _.EmbeddingVector;
-                                    var similarity = CosineSimilarity(inputEmbedding, serviceEmbedding);
-                                    var keywordScore = (similarity < 0.5 &&
-                                                        (_.Name!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase) ||
-                                                         _.Description!.Contains(serviceFilterModel.Search, StringComparison.OrdinalIgnoreCase)))
-                                                        ? keywordThreshold : 0;
 
-                                    return new ServiceModel
-                                    {
-                                        Id = _.Id,
-                                        Name = _.Name!,
-                                        Description = _.Description!,
-                                        Similarity = similarity + keywordScore
-                                    };
-                                })).ToList();
+            var embeddingSearchResponse = await _client.SearchAsync<Service>(s => s
+                .Index("product_embeddings")
+                .Query(q => q
+                    .ScriptScore(ss => ss
+                        .Query(qq => qq.MatchAll())
+                        .Script(script => script
+                            .Source("cosineSimilarity(params.query_vector, 'embedding') + 1.0")
+                            .Params(p => p.Add("query_vector", inputEmbedding))
+                        )
+                    )
+                )
+            );
 
-            var results = (await Task.WhenAll(tasks))
-                          .Where(_ => _.Similarity >= threshold)
-                          .OrderByDescending(_ => _.Similarity)
-                          .ToList();
-
-            var result = new Pagination<ServiceModel>(
-                results.Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
-                       .Take(serviceFilterModel.PageSize)
-                       .ToList(),
-                serviceFilterModel.PageIndex,
-                serviceFilterModel.PageSize, results.Count);
-
+            var embeddingResults = embeddingSearchResponse.Documents
+                .Select(_ => new ServiceModel
+                {
+                    Id = _.Id,
+                    Name = _.Name!,
+                    Description = _.Description!,
+                    Similarity = 1.0 
+                })
+                .Where(_ => _.Similarity >= 0.8)
+                .OrderByDescending(_ => _.Similarity)
+                .Skip((pageIndex - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+             result = new Pagination<ServiceModel>(embeddingResults, pageIndex, pageSize, embeddingResults.Count);
             return new ResponseModel
             {
                 Message = "Get all services successfully",
                 Data = result
             };
-
-
         }
+
+
 
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
@@ -1020,6 +1081,31 @@ namespace Chillde.Services.Services
                 return 0;
 
             return dotProduct / (magnitudeA * magnitudeB);
+        }
+        private async Task SaveSearchHistoryAsync(string searchText, Guid userId)
+        {
+            var searchHistories = await _unitOfWork.SearchHistoryRepository
+                .GetAllAsync(filter: _ => _.CreatedById == userId);
+
+            var existingSearchHistory = searchHistories.Data
+                .FirstOrDefault(_ => _.SearchText.Equals(searchText, StringComparison.OrdinalIgnoreCase));
+
+            if (existingSearchHistory == null)
+            {
+                await _unitOfWork.SearchHistoryRepository.AddAsync(new SearchHistory
+                {
+                    SearchText = searchText,
+                    CreatedById = userId
+                });
+            }
+            else
+            {
+                existingSearchHistory.ModifiedById = userId;
+                existingSearchHistory.CreationDate = DateTime.Now;
+                _unitOfWork.SearchHistoryRepository.Update(existingSearchHistory);
+            }
+
+            await _unitOfWork.SaveChangeAsync();
         }
 
     }
