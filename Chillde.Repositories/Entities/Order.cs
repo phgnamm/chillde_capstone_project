@@ -4,6 +4,7 @@ namespace Chillde.Repositories.Entities;
 
 public class Order : BaseEntity
 {
+    public Guid Code { get; set; }
     public string? Phone { get; set; }
     public string Address { get; set; }
     public string ToWard { get; set; }
@@ -13,7 +14,13 @@ public class Order : BaseEntity
     public decimal? PackagePrice { get; set; }
     public int? Quantity { get; set; }
     public string? ShipmentCode { get; set; }
+
+    #region new fields
+    public DateTime? DeliveryTime { get; set; }
+    public int? CurrentSketchRevision { get; set; }
+    public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    #endregion
 
     // Foreign key
     public Guid PackageId { get; set; }

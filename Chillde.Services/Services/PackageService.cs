@@ -182,7 +182,7 @@ namespace Chillde.Services.Services
                 for (int i = 0; i < featureAddModel.PackageFeatures.Count; i++)
                 {
                     var packageFeature = featureAddModel.PackageFeatures[i];
-                    fieldsToTranslate.Add($"PackageFeature_{i}_Question", packageFeature.Question);
+                    fieldsToTranslate.Add($"PackageFeature_{i}_Name", packageFeature.Name);
                 }
 
                 var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
@@ -213,11 +213,10 @@ namespace Chillde.Services.Services
                 for (int i = 0; i < featureAddModel.PackageFeatures.Count; i++)
                 {
                     var packageFeature = featureAddModel.PackageFeatures[i];
-                    string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Question"];
+                    string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
                     var newPackageFeature = new PackageFeature
                     {
-                        Question = sourceLanguageCode == "en" ? packageFeature.Question : translatedQuestion,
-                        IsInformationRequired = packageFeature.IsInformationRequired,
+                        Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
                         IsExtra = packageFeature.IsExtra,
                         AdditionalCost = packageFeature.AdditionalCost,
                         AdditionalDay = packageFeature.AdditionalDay,
@@ -255,15 +254,15 @@ namespace Chillde.Services.Services
 
                 foreach (var packageFeature in feature.PackageFeatures.Select((value, index) => new { value, index }))
                 {
-                    if (!string.IsNullOrEmpty(packageFeature.value.Question))
+                    if (!string.IsNullOrEmpty(packageFeature.value.Name))
                     {
                         translations.Add(new Translation
                         {
                             Id = Guid.NewGuid(),
                             EntityType = "PackageFeature",
                             EntityId = packageFeatureList[packageFeature.index].Id,
-                            FieldName = "Question",
-                            TranslationText = packageFeature.value.Question,
+                            FieldName = "Name",
+                            TranslationText = packageFeature.value.Name,
                             LanguageId = languageId.Value
                         });
                     }
@@ -355,8 +354,7 @@ namespace Chillde.Services.Services
                             PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeature
                             {
                                 Id = pf.Id,
-                                Question = pf.Question,
-                                IsInformationRequired = pf.IsInformationRequired,
+                                Name = pf.Name,
                                 IsExtra = pf.IsExtra,
                                 AdditionalCost = pf.AdditionalCost,
                                 AdditionalDay = pf.AdditionalDay

@@ -223,92 +223,6 @@ namespace Chillde.Repositories.Migrations
                     b.ToTable("AccountRoles");
                 });
 
-            modelBuilder.Entity("Chillde.Repositories.Entities.Attribute", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("CreatedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Attributes");
-                });
-
-            modelBuilder.Entity("Chillde.Repositories.Entities.AttributeValue", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("AttributeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("CreatedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("IntOrder")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttributeId");
-
-                    b.ToTable("AttributeValue");
-                });
-
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -462,6 +376,12 @@ namespace Chillde.Repositories.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsInformationRequired")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsQuantity")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -471,6 +391,12 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("Name")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Question")
+                        .HasColumnType("text");
+
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -622,48 +548,6 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("SubCategoryId");
 
                     b.ToTable("Items");
-                });
-
-            modelBuilder.Entity("Chillde.Repositories.Entities.ItemAttribute", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AttributeId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("CreatedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<Guid>("ItemId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AttributeId");
-
-                    b.HasIndex("ItemId");
-
-                    b.ToTable("ItemAttributes");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Language", b =>
@@ -870,16 +754,25 @@ namespace Chillde.Repositories.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<Guid>("Code")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("CurrentSketchRevision")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("DeletedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeliveryTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
@@ -909,6 +802,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<Guid?>("ShipmentId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -1054,6 +950,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("ExtendedDays")
+                        .HasColumnType("integer");
+
                     b.Property<bool?>("IsAccepted")
                         .HasColumnType("boolean");
 
@@ -1072,6 +971,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -1149,9 +1051,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("DeliveryRevision")
                         .HasColumnType("integer");
 
-                    b.Property<decimal?>("DeliveryRevisionPrice")
-                        .HasColumnType("numeric");
-
                     b.Property<DateTime?>("DeliveryTime")
                         .HasColumnType("timestamp with time zone");
 
@@ -1179,9 +1078,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int?>("SketchRevision")
                         .HasColumnType("integer");
-
-                    b.Property<decimal?>("SketchRevisionPrice")
-                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -1217,17 +1113,17 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("FeatureId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool?>("IsChecked")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<bool?>("IsExtra")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("IsInformationRequired")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("IsQuantity")
-                        .HasColumnType("boolean");
+                    b.Property<int>("MaxQuantity")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("timestamp with time zone");
@@ -1235,14 +1131,11 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PackageId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Question")
+                    b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<int?>("QuestionType")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -1446,13 +1339,10 @@ namespace Chillde.Repositories.Migrations
                     b.ToTable("RequestAttachments");
                 });
 
-            modelBuilder.Entity("Chillde.Repositories.Entities.RequestDetail", b =>
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttribute", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("AttributeId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("CreatedById")
@@ -1467,8 +1357,55 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<Guid>("RequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestId");
+
+                    b.ToTable("RequestAttributes");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttributeAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AttachmentAlt")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1479,16 +1416,57 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("RequestId")
+                    b.Property<Guid>("RequestAttributeId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AttributeId");
+                    b.HasIndex("RequestAttributeId");
 
-                    b.HasIndex("RequestId");
+                    b.ToTable("RequestAttributeAttachments");
+                });
 
-                    b.ToTable("RequestDetail");
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttributeValue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("IntOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RequestAttributeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestAttributeId");
+
+                    b.ToTable("RequestAttributeValues");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Role", b =>
@@ -1533,6 +1511,43 @@ namespace Chillde.Repositories.Migrations
                         .IsUnique();
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.SearchHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SearchText")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("SearchHistory");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Service", b =>
@@ -2189,15 +2204,6 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("Chillde.Repositories.Entities.AttributeValue", b =>
-                {
-                    b.HasOne("Chillde.Repositories.Entities.Attribute", "Attribute")
-                        .WithMany("AttributeValues")
-                        .HasForeignKey("AttributeId");
-
-                    b.Navigation("Attribute");
-                });
-
             modelBuilder.Entity("Chillde.Repositories.Entities.FAQ", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
@@ -2252,25 +2258,6 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired();
 
                     b.Navigation("SubCategory");
-                });
-
-            modelBuilder.Entity("Chillde.Repositories.Entities.ItemAttribute", b =>
-                {
-                    b.HasOne("Chillde.Repositories.Entities.Attribute", "Attribute")
-                        .WithMany("ItemAttributes")
-                        .HasForeignKey("AttributeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Chillde.Repositories.Entities.Item", "Item")
-                        .WithMany("ItemAttributes")
-                        .HasForeignKey("ItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Attribute");
-
-                    b.Navigation("Item");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
@@ -2509,23 +2496,44 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("Request");
                 });
 
-            modelBuilder.Entity("Chillde.Repositories.Entities.RequestDetail", b =>
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttribute", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Attribute", "Attribute")
-                        .WithMany()
-                        .HasForeignKey("AttributeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Chillde.Repositories.Entities.Request", "Request")
-                        .WithMany("RequestDetails")
+                        .WithMany("RequestAttributes")
                         .HasForeignKey("RequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Attribute");
-
                     b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttributeAttachment", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.RequestAttribute", "RequestAttribute")
+                        .WithMany("RequestAttributeAttachments")
+                        .HasForeignKey("RequestAttributeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RequestAttribute");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttributeValue", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.RequestAttribute", "RequestAttribute")
+                        .WithMany("RequestAttributeValues")
+                        .HasForeignKey("RequestAttributeId");
+
+                    b.Navigation("RequestAttribute");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.SearchHistory", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
+                        .WithMany("SearchHistories")
+                        .HasForeignKey("CreatedById");
+
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Service", b =>
@@ -2650,6 +2658,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("Requests");
 
+                    b.Navigation("SearchHistories");
+
                     b.Navigation("ServiceCollections");
 
                     b.Navigation("Services");
@@ -2660,13 +2670,6 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.AccountConversation", b =>
                 {
                     b.Navigation("MessageRecipients");
-                });
-
-            modelBuilder.Entity("Chillde.Repositories.Entities.Attribute", b =>
-                {
-                    b.Navigation("AttributeValues");
-
-                    b.Navigation("ItemAttributes");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
@@ -2691,8 +2694,6 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Item", b =>
                 {
-                    b.Navigation("ItemAttributes");
-
                     b.Navigation("Services");
                 });
 
@@ -2748,7 +2749,14 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("RequestAttachments");
 
-                    b.Navigation("RequestDetails");
+                    b.Navigation("RequestAttributes");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttribute", b =>
+                {
+                    b.Navigation("RequestAttributeAttachments");
+
+                    b.Navigation("RequestAttributeValues");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Role", b =>

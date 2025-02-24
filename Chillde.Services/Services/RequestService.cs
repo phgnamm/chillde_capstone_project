@@ -64,7 +64,7 @@ namespace Chillde.Services.Services
 
                 foreach (var detail in requestAddModel.RequestDetailAddModels)
                 {
-                    fieldsToTranslate.Add($"RequestDetail_{detail.AttributeId}_Description", detail.Description);
+                    fieldsToTranslate.Add($"RequestDetail_{detail.RequestAttributeId}_Description", detail.Description);
                 }
 
                 var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
@@ -86,20 +86,20 @@ namespace Chillde.Services.Services
                     MinBudget = requestAddModel.MinBudget,
                     MaxBudget = requestAddModel.MaxBudget,
                     Timeline = requestAddModel.Timeline,
-                    RequestDetails = new List<RequestDetail>()
+                    //RequestDetails = new List<RequestDetail>()
                 };
 
                 foreach (var detail in requestAddModel.RequestDetailAddModels)
                 {
-                    string translatedDetailDescription = translationResponse.TranslatedFields[$"RequestDetail_{detail.AttributeId}_Description"];
+                    string translatedDetailDescription = translationResponse.TranslatedFields[$"RequestDetail_{detail.RequestAttributeId}_Description"];
 
-                    newRequest.RequestDetails.Add(new RequestDetail
-                    {
-                        Id = Guid.NewGuid(),
-                        AttributeId = detail.AttributeId,
-                        Description = sourceLanguageCode == "en" ? detail.Description : translatedDetailDescription,
-                        CreatedById = currentUserId
-                    });
+                    //newRequest.RequestDetails.Add(new RequestDetail
+                    //{
+                    //    Id = Guid.NewGuid(),
+                    //    RequestAttributeId = detail.RequestAttributeId,
+                    //    Description = sourceLanguageCode == "en" ? detail.Description : translatedDetailDescription,
+                    //    CreatedById = currentUserId
+                    //});
                 }
 
                 if (requestAddModel.Attachments != null && requestAddModel.Attachments.Any())
@@ -162,7 +162,7 @@ namespace Chillde.Services.Services
                         LanguageId = languageId.Value
                     });
                 }
-                var requestDetailsList = newRequest.RequestDetails.ToList();
+                var requestDetailsList = newRequest.RequestAttributes.ToList();
 
                 foreach (var detail in requestAddModel.RequestDetailAddModels.Select((value, index) => new { value, index }))
                 {
@@ -307,8 +307,8 @@ namespace Chillde.Services.Services
                 var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
                 Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
                 Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
-                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails)
-                                                                                             .ThenInclude(_ => _.Attribute)
+                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestAttributes)
+                                                                                             .ThenInclude(_ => _.RequestAttributeAttachments)
                                                                                              .Include(_ => _.Item));
                 if (existingRequest == null)
                 {
@@ -344,12 +344,10 @@ namespace Chillde.Services.Services
                             ItemName = _localizer[request.Item.Name!.ToString()],
                             ItemCode = request.Item?.Code!,
                             ItemImageUrl = request.Item?.ImageUrl!,
-                            RequestDetailGetByIdModels = request.RequestDetails.Select(detail => new RequestDetailGetByIdModel
+                            RequestDetailGetByIdModels = request.RequestAttributes.Select(detail => new RequestDetailGetByIdModel
                             {
                                 Id = detail.Id,
-                                Description = detail.Description,
-                                ItemAttributeId = detail.AttributeId,
-                                ItemAttributeName = detail.Attribute?.Name!
+                                Name = detail.Name,
                             }).ToList()
                         },
                         "RequestDetails",
@@ -366,9 +364,7 @@ namespace Chillde.Services.Services
                                 .Select(detail => new RequestDetailGetByIdModel
                                 {
                                     Id = detail.Id,
-                                    Description = detail.Description,
-                                    ItemAttributeId = existingRequest.RequestDetails.FirstOrDefault()!.Attribute.Id,
-                                    ItemAttributeName = _localizer[existingRequest.RequestDetails.FirstOrDefault()!.Attribute.Name.ToString()]
+                                    Name = detail.Name,
                                 }).ToList();
                             return translation;
                         }).ToList();
@@ -401,12 +397,10 @@ namespace Chillde.Services.Services
                     ItemName = existingRequest.Item?.Name ?? "Unknown",
                     ItemCode = existingRequest.Item?.Code ?? "Unknown",
                     ItemImageUrl = existingRequest.Item?.ImageUrl ?? "Unknown",
-                    RequestDetailGetByIdModels = existingRequest.RequestDetails.Select(_ => new RequestDetailGetByIdModel
+                    RequestDetailGetByIdModels = existingRequest.RequestAttributes.Select(_ => new RequestDetailGetByIdModel
                     {
                         Id = _.Id,
-                        Description = _.Description,
-                        ItemAttributeId = _.AttributeId,
-                        ItemAttributeName = _.Attribute?.Name ?? "Unknown"
+                        Name = _.Name,
                     }).ToList()
                 };
 
@@ -442,7 +436,7 @@ namespace Chillde.Services.Services
 
             try
             {
-                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestDetails));
+                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestAttributes));
                 if (existingRequest == null)
                 {
                     return new ResponseModel
@@ -494,12 +488,12 @@ namespace Chillde.Services.Services
                         languageId
                     );
 
-                    var existingDetail = existingRequest.RequestDetails.FirstOrDefault(rd => rd.Id == detailModel.Id);
+                    var existingDetail = existingRequest.RequestAttributes.FirstOrDefault(rd => rd.Id == detailModel.Id);
                     if (existingDetail == null)
                     {
                         continue;
                     }
-                    if (!string.Equals(detailModel.Description, existingDetail.Description, StringComparison.OrdinalIgnoreCase) &&
+                    if (!string.Equals(detailModel.Description, existingDetail.Name, StringComparison.OrdinalIgnoreCase) &&
                         (translationRequestDescription != null && !string.Equals(detailModel.Description, translationRequestDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
                     {
                         var translationResponse = await _translationService.TranslateAsync(detailModel.Description!, sourceLanguageCode, targetLanguageCode);
@@ -507,7 +501,7 @@ namespace Chillde.Services.Services
                         {
                             throw new Exception($"Failed to translate Description for RequestDetail ID: {detailModel.Id}");
                         }
-                        existingDetail.Description = targetLanguageCode != "en" ? detailModel.Description : translationResponse.Message;
+                        existingDetail.Name = targetLanguageCode != "en" ? detailModel.Description : translationResponse.Message;
 
                         if (translationRequestDescription != null)
                         {
@@ -515,11 +509,6 @@ namespace Chillde.Services.Services
                             _unitOfWork.TranslationRepository.Update(translationRequestDescription);
                         }
 
-                        changesMade = true;
-                    }
-                    if (existingDetail.AttributeId != detailModel.AttributeId)
-                    {
-                        existingDetail.AttributeId = detailModel.AttributeId;
                         changesMade = true;
                     }
                 }

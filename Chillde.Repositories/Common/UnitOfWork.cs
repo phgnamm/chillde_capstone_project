@@ -12,7 +12,6 @@ public class UnitOfWork : IUnitOfWork
         IMessageRepository messageRepository, IMessageRecipientRepository messageRecipientRepository,
         IRefreshTokenRepository refreshTokenRepository,
         IRoleRepository roleRepository,
-        IRequestDetailRepository requestDetailRepository,
         IRequestRepository requestRepository,
         IServiceRepository serviceRepository,
         IFeedbackRepository feedbackRepository,
@@ -29,9 +28,6 @@ public class UnitOfWork : IUnitOfWork
         IItemRepository itemRepository,
         IOfferRepository offerRepository,
         IFAQRepository faqRepository,
-        IAttributeRepository attributeRepository,
-        IAttributeValueRepository attributeValueRepository,
-        IItemAttributeRepository itemAttributeRepository,
         IShippingAddressRepository shippingAddressRepository,
         IFeatureRepository featureRepository,
         IPackageFeatureRepository packageFeatureRepository,
@@ -51,7 +47,6 @@ public class UnitOfWork : IUnitOfWork
         MessageRecipientRepository = messageRecipientRepository;
         RefreshTokenRepository = refreshTokenRepository;
         RoleRepository = roleRepository;
-        RequestDetailRepository = requestDetailRepository;
         RequestRepository = requestRepository;
         ServiceRepository = serviceRepository;
         FeedbackRepository = feedbackRepository;
@@ -68,9 +63,6 @@ public class UnitOfWork : IUnitOfWork
         SubCategoryRepository = subCategoryRepository;
         ItemRepository = itemRepository;
         OfferRepository = offerRepository;
-        AttributeRepository = attributeRepository;
-        AttributeValueRepository = attributeValueRepository;
-        ItemAttributeRepository = itemAttributeRepository;
         ShippingAddressRepository = shippingAddressRepository;
         FeatureRepository = featureRepository;
         PackageFeatureRepository = packageFeatureRepository;
@@ -91,7 +83,6 @@ public class UnitOfWork : IUnitOfWork
     public IRefreshTokenRepository RefreshTokenRepository { get; }
     public IRoleRepository RoleRepository { get; }
     public IRequestRepository RequestRepository { get; }
-    public IRequestDetailRepository RequestDetailRepository { get; }
     public IServiceRepository ServiceRepository { get; }
     public IFeedbackRepository FeedbackRepository { get; }
     public IOrderRepository OrderRepository { get; }
@@ -108,9 +99,6 @@ public class UnitOfWork : IUnitOfWork
     public ISubCategoryRepository SubCategoryRepository { get; }
     public IItemRepository ItemRepository { get; }
     public IShippingAddressRepository ShippingAddressRepository { get; }
-    public IItemAttributeRepository ItemAttributeRepository { get; }
-    public IAttributeRepository AttributeRepository {get;}
-    public IAttributeValueRepository AttributeValueRepository {get;}
     public IServiceCollectionRepository ServiceCollectionRepository { get; }
     public IServiceWishlistRepository ServiceWishlistRepository { get; }
     public IFeatureRepository FeatureRepository { get; }

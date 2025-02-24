@@ -32,6 +32,7 @@ namespace Chillde.Services.Services
         private readonly ITranslationService _translationService;
         private readonly IRedisHelper _redisHelper;
 
+
         public ServiceService(IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
         {
             _openAiService = openAiService;
@@ -109,7 +110,13 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.FeedbackAttachmentRepository.AddRangeAsync(feedbackAttachments);
             }
-
+            var service = await _unitOfWork.ServiceRepository.GetAsync(feedbackAddModel.ServiceId);
+            if (service != null)
+            {
+                service.Rate = CaculateRating((double)service.Rate!, (int)service.FeedbackCount!, (double)feedback.Rating);
+                service.FeedbackCount++;
+                _unitOfWork.ServiceRepository.Update(service);
+            }
             await _unitOfWork.SaveChangeAsync();
 
             return new ResponseModel
@@ -775,11 +782,11 @@ namespace Chillde.Services.Services
             };
         }
 
-        public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel)
+        public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
 
-            if (serviceFilterModel.IsSuggestion && currentUserId.HasValue)
+            if (currentUserId.HasValue && serviceFilterModel.IsAccountSuggestion)
             {
                 var cacheKey = "suggested_services";
                 var cacheDuration = TimeSpan.FromMinutes(15);
@@ -819,7 +826,55 @@ namespace Chillde.Services.Services
                             ServiceAttachments = s.ServiceAttachments.ToList(),
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
-                            Price = s.Packages.OrderBy(p => p.Price).Select(p => p.Price).FirstOrDefault()
+                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0
+                        })
+                        .OrderByDescending(s => s.Similarity)
+                        .ToList();
+
+                    var paginatedResult = new Pagination<ServiceModel>(
+                        results,
+                        serviceFilterModel.PageIndex,
+                        serviceFilterModel.PageSize,
+                        results.Count
+                    );
+
+                    return new ResponseModel
+                    {
+                        Message = "Get services based on user activity log successfully",
+                        Data = paginatedResult
+                    };
+                }, cacheDuration);
+
+                return responseModel;
+            }
+            else if (serviceFilterModel.IsEvent)
+            {
+                var eventDetails = await _openAiService.GetEventAsync(sourceLanguageCode, targetLanguageCode);
+                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetails.Message });
+                var cacheKey = "suggested_event_services";
+                var cacheDuration = TimeSpan.FromDays(1);
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                        filter: _ => _.IsDeleted == false && _.IsOffer == false,
+                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                        pageIndex: serviceFilterModel.PageIndex,
+                        pageSize: 1000
+                     );
+
+                    var threshold = 0.75;
+                    var results = services.Data
+                        .Where(s => s.EmbeddingVector != null && CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
+                        .Select(s => new ServiceModel
+                        {
+                            Id = s.Id,
+                            Name = s.Name!,
+                            Description = s.Description!,
+                            Similarity = CosineSimilarity(eventEmbedding, s.EmbeddingVector),
+                            ServiceAttachments = s.ServiceAttachments.ToList(),
+                            Rate = s.Rate,
+                            FeedbackCount = s.FeedbackCount,
+                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0
                         })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
@@ -946,6 +1001,11 @@ namespace Chillde.Services.Services
         }
 
 
+        private static double CaculateRating(double currentRating, int currentCount, double newRating)
+        {
+            var result = (currentRating * currentCount + newRating) / (currentCount + 1);
+            return Math.Round(result, 1);
+        }
 
         private static double CosineSimilarity(float[] vectorA, float[] vectorB)
         {

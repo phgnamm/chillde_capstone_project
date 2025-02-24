@@ -1,5 +1,4 @@
 ﻿using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.AttributeModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ItemModels;
@@ -21,24 +20,24 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
         }
 
-        public async Task<ResponseModel> GetAllAttributesById(Guid itemId)
-        {
-            var attributeLists = await _unitOfWork.ItemAttributeRepository.GetAllAsync(
-                filter: _ => _.ItemId == itemId && _.IsDeleted == false,
-                include: _ => _.Include(_ => _.Attribute)
-                );
-            var attributeModels = attributeLists.Data.Select(_ => new AttributeModel 
-            {
-                Id = _.Attribute.Id,
-                Name = _.Attribute.Name,
-                Type = _.Attribute.Type,
-            }).ToList();
-            return new ResponseModel
-            {
-                Data = attributeModels,
-                Message = "Attributes retrieved successfully"
-            };
-        }
+        //public async Task<ResponseModel> GetAllAttributesById(Guid itemId)
+        //{
+        //    var attributeLists = await _unitOfWork.ItemAttributeRepository.GetAllAsync(
+        //        filter: _ => _.ItemId == itemId && _.IsDeleted == false,
+        //        include: _ => _.Include(_ => _.Attribute)
+        //        );
+        //    var attributeModels = attributeLists.Data.Select(_ => new AttributeModel 
+        //    {
+        //        Id = _.Attribute.Id,
+        //        Name = _.Attribute.Name,
+        //        Type = _.Attribute.Type,
+        //    }).ToList();
+        //    return new ResponseModel
+        //    {
+        //        Data = attributeModels,
+        //        Message = "Attributes retrieved successfully"
+        //    };
+        //}
 
         public async Task<ResponseModel> GetById(Guid itemId)
         {

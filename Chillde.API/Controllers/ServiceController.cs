@@ -295,7 +295,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceService.GetAllWithSuggestion(serviceFilterModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _serviceService.GetAllWithSuggestion(serviceFilterModel, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

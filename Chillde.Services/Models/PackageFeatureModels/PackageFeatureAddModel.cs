@@ -5,7 +5,7 @@ namespace Chillde.Services.Models.PackageFeatureModels
     public class PackageFeatureAddModel
     {
         [Required]
-        public string Question { get; set; }
+        public string Name { get; set; }
         [Required]
         public bool IsInformationRequired { get; set; }
         [Required]

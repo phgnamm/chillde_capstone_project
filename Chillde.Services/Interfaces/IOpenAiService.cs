@@ -6,6 +6,6 @@ namespace Chillde.Services.Interfaces
     public interface IOpenAiService
     {
         Task<float[]> GetEmbeddingAsync(List<string> texts);
-        Task<ResponseModel> GetEventAsync();
+        Task<ResponseModel> GetEventAsync(string sourceLanguage, string targerLanguage);
     }
 }

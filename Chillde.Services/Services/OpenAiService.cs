@@ -25,16 +25,19 @@ namespace Chillde.Services.Services
             _configuration = configuration;
         }
 
-        public async Task<ResponseModel> GetEventAsync()
+        public async Task<ResponseModel> GetEventAsync(string sourceLanguage, string targerLanguage)
         {
             var fineTunedModel = _modelConfigurationOptions.FineTunedModelId;
             var defaultModel = _modelConfigurationOptions.DefaultModel;
-            var eventPrompt = "What is the upcoming events in Vietnam within the next 1.5 months? Give one event nearliest (just give the name of event only)";
+            var eventPromptEn = "What is the upcoming events in Vietnam within the next 1.5 months? Give one event nearliest (just give the name of event only)";
+            var eventPromptVi = "Trong vòng 1,5 tháng tới, có sự kiện gì ở Việt Nam? Hãy cho biết một sự kiện gần nhất (chỉ cần cho tên sự kiện)";
+
+            var prompt = targerLanguage == "en" ? eventPromptEn : eventPromptVi;
 
             var eventResponse = await _openAiService.Completions.CreateCompletion(
                 new CompletionCreateRequest
                 {
-                    Prompt = eventPrompt,
+                    Prompt = prompt,
                     Model = defaultModel,
                     MaxTokens = 100
                 });

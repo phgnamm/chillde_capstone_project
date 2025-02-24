@@ -20,7 +20,7 @@ namespace Chillde.Services.Models.RequestModels
     public class RequestDetailAddModel
     {
         public required string Description { get; set; }
-        public required Guid AttributeId { get; set; }
+        public required Guid RequestAttributeId { get; set; }
     }
 
     public class AttachmentModel
