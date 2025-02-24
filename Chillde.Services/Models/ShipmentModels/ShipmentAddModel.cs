@@ -20,12 +20,13 @@ namespace Chillde.Services.Models.ShipmentModels
         public required string FromProvince { get; set; }
         [Required]
         public int Weight { get; set; }
+        public int? Length { get; set; }
+        public int? Width { get; set; }
+        public int? Height { get; set; }
         [Required]
-        public int Length { get; set; }
-        [Required]
-        public int Width { get; set; }
-        [Required]
-        public int Height { get; set; }
+        public int InsuranceValue { get; set; } = 0; //Use to declare parcel value. GHN will base on this value for compensation if any unexpected things happen (lost, broken...).
+                                                     //Maximum 5.000.000
+                                                     //Default value: 0
         [Required]
         public ShipmentUser PaymentTypeId { get; set; } //Choose who pay shipping fee (0.Artisan, 1.Customer)
         [Required]
@@ -38,7 +39,7 @@ namespace Chillde.Services.Models.ShipmentModels
         public int ItemPrice { get; set; }
         [Required]
         public int ItemWeight { get; set; }
-        public string? Note { get; set; }
+        public string? Note { get; set; } //Client note for shipper.
         //public Guid OrderId { get; set; }
     }
 }

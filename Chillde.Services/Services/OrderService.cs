@@ -410,7 +410,7 @@ namespace Chillde.Services.Services
                     height = model.Height,
                     //pick_station_id = (int?)null,
                     //deliver_station_id = (int?)null,
-                    insurance_value = 0,
+                    insurance_value = model.InsuranceValue,
                     //service_id = (int?)null,
                     service_type_id = 2,
                     //coupon = (string?)null,

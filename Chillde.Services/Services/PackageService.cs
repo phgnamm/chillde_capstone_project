@@ -134,12 +134,15 @@ namespace Chillde.Services.Services
                     include: null
                 );
 
-                if (orders == null)
+                if (orders.TotalCount == 0)
                 {
                     _unitOfWork.PackageRepository.HardRemove(package);
                 }
-
-                _unitOfWork.PackageRepository.SoftRemove(package);
+                else
+                {
+                    _unitOfWork.PackageRepository.SoftRemove(package);
+                }
+                    
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
@@ -387,64 +390,6 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status500InternalServerError,
                     Message = $"An error occurred while retrieving features: {ex.Message}"
-                };
-            }
-        }
-
-
-        public async Task<ResponseModel> DeletePackageFeatureAsync(Guid packageId, Guid packageFeatureId)
-        {
-            try
-            {
-                var package = await _unitOfWork.PackageRepository.GetAsync(packageId);
-                if (package == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Package not found."
-                    };
-                }
-
-                var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(packageFeatureId);
-                if (packageFeature == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Package feature not found."
-                    };
-                }
-
-                Expression<Func<Repositories.Entities.Order, bool>> filter = order =>
-                         order.PackageId == packageId &&
-                         order.IsDeleted == false;
-
-                var orders = await _unitOfWork.OrderRepository.GetAllAsync(
-                    filter: filter,
-                    include: null
-                );
-
-                if (orders == null)
-                {
-                    _unitOfWork.PackageFeatureRepository.HardRemove(packageFeature);
-                }
-
-                _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully delete."
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
                 };
             }
         }
