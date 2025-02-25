@@ -135,6 +135,7 @@ public class AppDbContext : DbContext
         });
         modelBuilder.Entity<SystemConfig>(entity =>
         {
+            entity.Ignore(e => e.Id);
             entity.HasKey(sc => new { sc.EntityType, sc.FieldName });
         });
 
