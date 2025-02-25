@@ -15,7 +15,7 @@ public static class InitialSeeding
     {
         new() { Name = Enums.Role.Admin.ToString() },
         new() { Name = Enums.Role.Customer.ToString() },
-        new() { Name = Enums.Role.Artist.ToString() }
+        new() { Name = Enums.Role.Artisan.ToString() }
     };
 
     private static readonly List<Wallet> Wallets = new()

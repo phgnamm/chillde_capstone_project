@@ -17,7 +17,7 @@ namespace Chillde.API.Controllers
             _packageFeatureService = packageFeatureService;
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] PackageFeatureUpdateModel model, Guid id)
         {
@@ -36,7 +36,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist, Admin")]
+        //[Authorize("Artisan, Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePackageFeature(Guid id)
         {

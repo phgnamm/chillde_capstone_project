@@ -134,7 +134,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPost]
         public async Task<IActionResult> AddServiceAsync([FromForm] ServiceAddModel serviceAddModel)
         {
@@ -153,7 +153,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist, Admin")]
+        //[Authorize("Artisan, Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] ServiceUpdateModel serviceUpdateModel, Guid id)
         {
@@ -172,7 +172,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist, Admin")]
+        //[Authorize("Artisan, Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -229,7 +229,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPost("{serviceId}/packages")]
         public async Task<IActionResult> AddPackageAsync([FromBody] PackageAddModel packageAddModel, Guid serviceId)
         {
@@ -251,7 +251,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPost("{serviceId}/faqs")]
         public async Task<IActionResult> AddFAQAsync([FromBody] FAQAddAndUpdateModel faqAddModel, Guid serviceId)
         {

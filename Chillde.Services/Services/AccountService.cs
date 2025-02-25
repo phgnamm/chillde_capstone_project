@@ -906,14 +906,14 @@ public class AccountService : IAccountService
 
         _unitOfWork.AccountRepository.Update(account);
         var currentRoles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(id);
-        if (currentRoles.All(role => role.Name != Role.Artist.ToString()))
+        if (currentRoles.All(role => role.Name != Role.Artisan.ToString()))
         {
-            var roleArtist = await _unitOfWork.RoleRepository.FindByNameAsync(Role.Artist.ToString());
+            var roleArtisan = await _unitOfWork.RoleRepository.FindByNameAsync(Role.Artisan.ToString());
             await _unitOfWork.AccountRoleRepository.AddAsync(
                 new AccountRole
                 {
                     Account = account,
-                    Role = roleArtist!
+                    Role = roleArtisan!
                 }
             );
         }
