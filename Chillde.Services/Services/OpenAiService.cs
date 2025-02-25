@@ -9,6 +9,9 @@ using Chillde.Services.Models.ResponseModels;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 using System.Text;
+using Chillde.Repositories.Enums;
+using Microsoft.AspNetCore.SignalR.Protocol;
+using Newtonsoft.Json;
 
 namespace Chillde.Services.Services
 {
@@ -91,6 +94,9 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetStructuredDataAsync(List<string> attributes)
         {
+            if (attributes == null || attributes.Count < 2)
+                throw new ArgumentException("Attributes list must contain at least a category and a description.");
+
             string prompt = GeneratePrompt(attributes);
 
             var requestBody = new
@@ -101,55 +107,103 @@ namespace Chillde.Services.Services
                 new { role = "system", content = "You are an AI that converts a list of attributes into a structured model with type and options." },
                 new { role = "user", content = prompt }
             },
-                max_tokens = 300,
+                max_tokens = 500,
                 temperature = 0.3
             };
-            var apiKey = _configuration["OpenAI:ApiKey"];
+
+            string apiKey = _configuration["OpenAI:ApiKey"];
             if (string.IsNullOrEmpty(apiKey))
                 throw new Exception("API key is missing.");
 
-            using var _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
-            string jsonBody = JsonSerializer.Serialize(requestBody);
+            string jsonBody = System.Text.Json.JsonSerializer.Serialize(requestBody);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            var response = await httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
             response.EnsureSuccessStatusCode();
 
             var responseString = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("API Response: " + responseString);
+
             using JsonDocument doc = JsonDocument.Parse(responseString);
             string jsonResponse = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
 
-            var result = JsonSerializer.Deserialize<List<ModelResponse>>(jsonResponse);
-            return new ResponseModel { Data = result };
+            if (string.IsNullOrWhiteSpace(jsonResponse))
+                throw new Exception("API response is empty.");
+
+            try
+            {
+                using JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+                if (jsonDoc.RootElement.ValueKind != JsonValueKind.Array)
+                    throw new Exception("Invalid JSON format: Expected list of attributes.");
+            }
+            catch (System.Text.Json.JsonException ex)
+            {
+                throw new Exception($"Error parsing JSON: {ex.Message}\nResponse: {jsonResponse}");
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true, 
+                ReadCommentHandling = JsonCommentHandling.Skip, 
+                AllowTrailingCommas = true
+            };
+
+            List<ModelResponseRaw> rawResult = System.Text.Json.JsonSerializer.Deserialize<List<ModelResponseRaw>>(jsonResponse, options);
+
+            if (rawResult == null || rawResult.Count == 0)
+                throw new Exception("Response data is null or empty.");
+
+            var result = rawResult.ConvertAll(item => new ModelResponse
+            {
+                Name = item?.Name ?? "Unknown",
+                Type = item?.Type != null ? ParseMediaType(item.Type) : MediaType.Text,
+                Options = item?.Options ?? new List<string>()
+            });
+
+            return new ResponseModel { Data = rawResult };
         }
 
         private string GeneratePrompt(List<string> prompt)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Based on the given item category and description, generate structured JSON defining relevant attributes for handmade products.");
-            sb.AppendLine("Category: " + prompt[0]);
-            sb.AppendLine("Description: " + prompt[1]);
+            sb.AppendLine("Given an item category and description, analyze the provided information and generate a structured JSON output listing all possible and reasonable attributes for handmade products.");
+            sb.AppendLine($"Category: {prompt[0]}");
+            sb.AppendLine($"Description: {prompt[1]}");
             sb.AppendLine();
-            sb.AppendLine("The output should be a list of attributes, where each attribute has:");
-            sb.AppendLine("- `name` (string): The attribute name.");
-            sb.AppendLine("- `type` (string): Choose one of:");
-            sb.AppendLine("  - 'text': Free-text input (e.g., product description).");
-            sb.AppendLine("  - 'number': Numerical values (e.g., price, weight).");
-            sb.AppendLine("  - 'dropdown': Predefined choices (e.g., material, color).");
-            sb.AppendLine("  - 'boolean': Yes/No options (e.g., 'Is customizable?').");
-            sb.AppendLine("  - 'image': Product images.");
-            sb.AppendLine("  - 'file': Uploadable files (e.g., design files, templates).");
-            sb.AppendLine("  - 'date': Date-related attributes.");
-            sb.AppendLine("  - 'multiselect': Multiple selections (e.g., suitable occasions).");
-            sb.AppendLine("- `options` (list of strings, only for 'dropdown' and 'multiselect').");
-            sb.AppendLine("Ensure that:");
-            sb.AppendLine("- The attributes are relevant to the handmade category.");
-            sb.AppendLine("- 'options' include common values for that category.");
-            sb.AppendLine("- The response is valid JSON in a list format.");
+            sb.AppendLine("For each attribute, provide:");
+            sb.AppendLine("- name (string): The attribute name.");
+            sb.AppendLine("- type (integer), where:");
+            sb.AppendLine("  - 0: Text (e.g., product description).");
+            sb.AppendLine("  - 1: Number (e.g., price, weight).");
+            sb.AppendLine("  - 2: Select (e.g., material, color).");
+            sb.AppendLine("  - 3: Switch (Yes/No, e.g., 'Is customizable?').");
+            sb.AppendLine("  - 4: Image (e.g., product photos).");
+            sb.AppendLine("  - 5: File (e.g., design files, templates).");
+            sb.AppendLine("  - 6: Checkbox (Multiple selections, e.g., suitable occasions).");
+            sb.AppendLine("- options (list of strings, required for types 2 and 6, containing common or relevant values).");
+            sb.AppendLine();
+            sb.AppendLine("Ensure that the listed attributes are contextually relevant to handmade products, considering both general and specific aspects of the given category and description. The output should be a well-structured JSON array.");
 
             return sb.ToString();
+        }
+
+
+        private MediaType ParseMediaType(int type)
+        {
+            return type switch
+            {
+                0 => MediaType.Text,
+                1 => MediaType.Number,
+                2 => MediaType.Select,
+                3 => MediaType.Switch,
+                4 => MediaType.Image,
+                5 => MediaType.File,
+                6 => MediaType.CheckBox,
+                _ => throw new ArgumentException($"Unknown media type: {type}")
+            };
         }
 
         public class OpenAiEmbeddingResponse
@@ -160,11 +214,19 @@ namespace Chillde.Services.Services
         public class EmbeddingData
         {
             public float[] Embedding { get; set; } = Array.Empty<float>();
+        }       
+        public class ModelResponseRaw
+        {
+            public string Name { get; set; }
+            public int Type { get; set; } 
+            public List<string> Options { get; set; }
         }
+
+
         public class ModelResponse
         {
             public string Name { get; set; }
-            public string Type { get; set; }
+            public MediaType Type { get; set; }
             public List<string> Options { get; set; }
         }
 

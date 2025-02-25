@@ -14,11 +14,15 @@ namespace Chillde.API.Controllers
     {
         private readonly IRequestService _requestService;
         private readonly IOfferService _offerService;
-        public RequestController(IRequestService requestService, IOfferService offerService)
+        private readonly IOpenAiService _openAiService;
+
+        public RequestController(IRequestService requestService, IOfferService offerService, IOpenAiService openAiService)
         {
             _requestService = requestService;
             _offerService = offerService;
+            _openAiService = openAiService;
         }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] RequestFilterModel requestFilterModel)
@@ -121,6 +125,28 @@ namespace Chillde.API.Controllers
                         Code = StatusCodes.Status500InternalServerError,
                         Message = result.Message
                     });
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpPost("ai-generate-forms")]
+        public async Task<IActionResult> AiGenerateForm(List<string> attributes)
+        {
+            try
+            {
+               
+                var result = await _openAiService.GetStructuredDataAsync(attributes);
+                if (result.Status)
+                {
+                    return Ok(result);
                 }
                 return StatusCode(result.Code, result);
             }
