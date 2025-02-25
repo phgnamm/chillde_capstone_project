@@ -325,6 +325,10 @@ public static class Configuration
         //UserActivityLog
         services.AddScoped<IUserActivityLogRepository, UserActivityLogRepository>();
 
+        //SystemConfig
+        services.AddScoped<ISystemConfigRepository, SystemConfigRepository>();
+        services.AddScoped<ISystemConfigService, SystemConfigService>();
+
         #endregion
 
         return services;
