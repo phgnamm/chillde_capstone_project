@@ -6,7 +6,8 @@ namespace Chillde.Repositories.Common;
 public class UnitOfWork : IUnitOfWork
 {
     private IDbContextTransaction _transaction;
-    public UnitOfWork(AppDbContext context, IAccountRepository accountRepository,
+    public UnitOfWork(AppDbContext context, 
+        IAccountRepository accountRepository,
         IAccountConversationRepository accountConversationRepository,
         IAccountRoleRepository accountRoleRepository, IConversationRepository conversationRepository,
         IMessageRepository messageRepository, IMessageRecipientRepository messageRecipientRepository,
@@ -35,7 +36,8 @@ public class UnitOfWork : IUnitOfWork
         IServiceWishlistRepository serviceWishlistRepository,
         IShipmentRepository shipmentRepository,
         IPaymentRepository paymentRepository,
-        IUserActivityLogRepository userActivityLogRepository
+        IUserActivityLogRepository userActivityLogRepository,
+        ISystemConfigRepository systemConfigRepository
         )
     {
         Context = context;
@@ -71,6 +73,7 @@ public class UnitOfWork : IUnitOfWork
         ShipmentRepository = shipmentRepository;
         PaymentRepository = paymentRepository;
         UserActivityLogRepository = userActivityLogRepository;
+        SystemConfigRepository = systemConfigRepository;
     }
 
     public AppDbContext Context { get; }
@@ -106,6 +109,7 @@ public class UnitOfWork : IUnitOfWork
     public IShipmentRepository ShipmentRepository { get; }
     public IPaymentRepository PaymentRepository { get; }
     public IUserActivityLogRepository UserActivityLogRepository { get; }
+    public ISystemConfigRepository SystemConfigRepository { get; }
 
 
     public async Task<int> SaveChangeAsync()
