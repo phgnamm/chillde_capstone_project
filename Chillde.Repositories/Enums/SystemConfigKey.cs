@@ -19,7 +19,9 @@ namespace Chillde.Repositories.Enums
         MessageMaxPageSize,
         MessageMinPageSize,
         DefaultAbsoluteExpiration,
-        DefaultSlidingExpiration
+        DefaultSlidingExpiration,
+        MaximumPackageOfOneService,
+        MaximumFeatureOfOnePackage
     }
 
 }

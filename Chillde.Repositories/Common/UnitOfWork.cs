@@ -6,7 +6,8 @@ namespace Chillde.Repositories.Common;
 public class UnitOfWork : IUnitOfWork
 {
     private IDbContextTransaction _transaction;
-    public UnitOfWork(AppDbContext context, IAccountRepository accountRepository,
+    public UnitOfWork(AppDbContext context, 
+        IAccountRepository accountRepository,
         IAccountConversationRepository accountConversationRepository,
         IAccountRoleRepository accountRoleRepository, IConversationRepository conversationRepository,
         IMessageRepository messageRepository, IMessageRecipientRepository messageRecipientRepository,

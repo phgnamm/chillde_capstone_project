@@ -2,8 +2,10 @@
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeatureModels;
+using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -62,16 +64,16 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artisan")]
-        [HttpPost("{packageId}/features")]
-        public async Task<IActionResult> AddFeatureAsync([FromBody] FeatureAddModel featureAddModel, Guid packageId)
+        //        [Authorize]
+        [HttpGet("{packageId}/features")]
+        public async Task<IActionResult> GetAllFeatures([FromQuery] FeatureFilterModel model, Guid packageId)
         {
             try
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _packageService.AddFeatureAsync(featureAddModel, packageId, sourceLanguageCode, targetLanguageCode);
+                var result = await _packageService.GetAllFeatureAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -83,16 +85,17 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //        [Authorize]
-        [HttpGet("{packageId}/features")]
-        public async Task<IActionResult> GetAllFeatures([FromQuery] FeatureFilterModel model, Guid packageId)
+
+        //[Authorize("Artisan")]
+        [HttpPost("{packageId}/package-features")]
+        public async Task<IActionResult> AddPackageFeatureAsync(Guid packageId, [FromBody] PackageFeatureAddModel model)
         {
             try
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _packageService.GetAllFeatureAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
+                var result = await _packageService.AddPackageFeatureAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
