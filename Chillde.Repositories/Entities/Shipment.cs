@@ -13,7 +13,7 @@ public class Shipment : BaseEntity
     public int? Height { get; set; }
     public int? Width { get; set; }
     public int? Length { get; set; }
-    public decimal? Weight { get; set; }
+    public decimal? Weight { get; set; }    
     public ShipmentStatus Status { get; set; }
 
     // Foreign key

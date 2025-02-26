@@ -1,18 +1,28 @@
-﻿namespace Chillde.Services.Models.ShipmentModels;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Chillde.Services.Models.ShipmentModels;
 
 public class ShippingFeeRequestModel
 {
-    public int FromDistrictId { get; set; } 
-    public string? FromWardCode { get; set; }
-    public int ToDistrictId { get; set; }
-    public string? ToWardCode { get; set; }
-    public int ServiceId { get; set; }
-    public int? ServiceTypeId { get; set; }
-    public int Weight { get; set; } 
-    public int? Length { get; set; } 
-    public int? Width { get; set; } 
-    public int? Height { get; set; } 
-    public decimal? InsuranceValue { get; set; } 
-    public decimal? CodFailedAmount { get; set; } 
-    public string? Coupon { get; set; } 
+    public string? Address { get; set; }   //Địa chỉ ngắn gọn để lấy nhận hàng hóa. Ví dụ: nhà số 5, tổ 3, ngách 11, ngõ 4  
+    [Required(ErrorMessage = "Province is required.")]
+    public required string Province { get; set; }         
+
+    [Required(ErrorMessage = "District is required.")]
+    public required string District { get; set; }        
+
+    [Required(ErrorMessage = "Pick Province is required.")]
+    public required string PickProvince { get; set; }     
+
+    [Required(ErrorMessage = "Pick District is required.")]
+    public required string PickDistrict { get; set; }     
+
+    [Required(ErrorMessage = "Weight is required.")]
+    [Range(1, int.MaxValue, ErrorMessage = "Weight must be greater than 0.")]
+    public int Weight { get; set; }              
+    [Range(0, int.MaxValue, ErrorMessage = "Value must be 0 or greater.")]
+    public int Value { get; set; }   // Integer - Giá trị thực của đơn hàng áp dụng để tính phí bảo hiểm, đơn vị sử dụng VNĐ   
+    [Required(ErrorMessage = "Delivery option is required.")]
+    public required string DeliverOption { get; set; }    
 }
+

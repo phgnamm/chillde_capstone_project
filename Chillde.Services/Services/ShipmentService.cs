@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Configuration;
+using Chillde.Repositories.Entities;
 
 namespace Chillde.Services.Services
 {
@@ -21,79 +22,51 @@ namespace Chillde.Services.Services
         public ShipmentService(IConfiguration configuration, IUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory)
 
         {
-            _shopId = configuration["GhnSettings:ShopId"];
             _unitOfWork = unitOfWork;
-            _httpClient = httpClientFactory.CreateClient("GhnClient");
+            _httpClient = httpClientFactory.CreateClient("GhtkClient");
 
         }
 
-        
 
-        public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel? requestModel)
+
+        public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
-            if (requestModel == null || requestModel.Weight <= 0 || string.IsNullOrEmpty(requestModel.ToWardCode))
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid shipping fee request",
-                    Data = null
-                };
-            }
+            var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
+                      $"address={Uri.EscapeDataString(requestModel.Address)}&" +
+                      $"province={Uri.EscapeDataString(requestModel.Province)}&" +
+                      $"district={Uri.EscapeDataString(requestModel.District)}&" +
+                      $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
+                      $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
+                      $"weight={requestModel.Weight}&" +
+                      $"value={requestModel.Value}&" +
+                      $"deliver_option={requestModel.DeliverOption}";
 
-            var requestPayload = new
-            {
-                from_district_id = requestModel.FromDistrictId,
-                from_ward_code = requestModel.FromWardCode,
-                service_id = requestModel.ServiceId,
-                service_type_id = requestModel.ServiceTypeId,
-                to_district_id = requestModel.ToDistrictId,
-                to_ward_code = requestModel.ToWardCode,
-                height = requestModel.Height > 0 ? requestModel.Height : null,
-                length = requestModel.Length > 0 ? requestModel.Length : null,
-                width = requestModel.Width > 0 ? requestModel.Width : null,
-                weight = requestModel.Weight,
-                insurance_value = requestModel.InsuranceValue > 0 ? (int?)requestModel.InsuranceValue : null,
-                cod_failed_amount = requestModel.CodFailedAmount > 0 ? (int?)requestModel.CodFailedAmount : null,
-                coupon = requestModel.Coupon
-            };
-
-            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8,
-                "application/json");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             try
             {
-                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                var response = await _httpClient.PostAsync("v2/shipping-order/fee", content);
+                var response = await _httpClient.SendAsync(requestMessage);
+                response.EnsureSuccessStatusCode();
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new ResponseModel
-                    {
-                        Code = (int)response.StatusCode,
-                        Message = "Failed to calculate shipping fee",
-                        Data = null
-                    };
-                }
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
 
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
-                var feeData = jsonObject?["data"]?.ToObject<ShippingFeeResponseModel>();
+                var shipmentData = jsonObject?["fee"]?.ToObject<ShippingFeeResponseModel>();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
-                    Message = "Shipping fee calculated successfully",
-                    Data = feeData
+                    Message = "Success",
+                    Data = shipmentData
                 };
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = "An error occurred while calculating shipping fee",
-                    Data = ex.Message
+                    Message = ex.Message,
+                    Data = null
                 };
             }
         }
