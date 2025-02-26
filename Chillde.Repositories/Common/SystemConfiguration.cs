@@ -17,7 +17,9 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.MessageMaxPageSize, "MessageMaxPageSize" },
             { SystemConfigKey.MessageMinPageSize, "MessageMinPageSize" },
             { SystemConfigKey.DefaultAbsoluteExpiration, "DefaultAbsoluteExpirationInMinutes" },
-            { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" }
+            { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" },
+            { SystemConfigKey.MaximumPackageOfOneService, "MaximumPackageOfOneService" },
+            { SystemConfigKey.MaximumFeatureOfOnePackage, "MaximumFeatureOfOnePackage" }
         };
     }
 }

@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.PackageFeatureModels;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Services.Models.PackageFeatureModels;
 using System.ComponentModel.DataAnnotations;
 
 namespace Chillde.Services.Models.FeatureModels
@@ -7,7 +8,12 @@ namespace Chillde.Services.Models.FeatureModels
     {
         [Required]
         public string Name { get; set; }
+        public string? Question { get; set; }
         [Required]
-        public List<PackageFeatureAddModel> PackageFeatures { get; set; }   
+        public MediaType QuestionType { get; set; }
+        [Required]
+        public bool IsInformationRequired { get; set; }
+        [Required]
+        public bool IsQuantity { get; set; }
     }
 }

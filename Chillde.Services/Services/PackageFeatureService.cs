@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
@@ -13,11 +16,13 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ITranslationService _translationService;
 
-        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService)
         {
-            _unitOfWork = unitOfWork; 
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _translationService = translationService;
         }
 
         public async Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id)
@@ -86,7 +91,7 @@ namespace Chillde.Services.Services
                 {
                     _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);
                 }
-                    
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel

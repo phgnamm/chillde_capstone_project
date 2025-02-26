@@ -74,7 +74,9 @@ public static class InitialSeeding
         new() { EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("\"10\"") },
         new() { EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("\"100\"") },
         new() { EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes", Value = JsonDocument.Parse("\"60\"") },
-        new() { EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes", Value = JsonDocument.Parse("\"30\"") }
+        new() { EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes", Value = JsonDocument.Parse("\"30\"") },
+        new() { EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3") },
+        new() { EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15") }
     };
 
     private static readonly List<Item> Items = new()

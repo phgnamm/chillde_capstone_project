@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
+using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
-using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -161,133 +162,6 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, Guid packageId, string sourceLanguageCode, string targetLanguageCode)
-        {
-            try
-            {
-                var package = await _unitOfWork.PackageRepository.GetAsync(packageId);
-                if (package == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Package not found."
-                    };
-                }
-                await _unitOfWork.BeginTransactionAsync();
-                var fieldsToTranslate = new Dictionary<string, string>
-                {
-                    { "Name", featureAddModel.Name }
-                    };
-                for (int i = 0; i < featureAddModel.PackageFeatures.Count; i++)
-                {
-                    var packageFeature = featureAddModel.PackageFeatures[i];
-                    fieldsToTranslate.Add($"PackageFeature_{i}_Name", packageFeature.Name);
-                }
-
-                var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
-                if (translationResponse.Code != StatusCodes.Status200OK)
-                {
-                    throw new Exception("Failed to translate fields.");
-                }
-
-                string translatedName = translationResponse.TranslatedFields["Name"];
-                //var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(packageId).Result.Count();
-                //if (numberOfExistedPackage > 3)
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status422UnprocessableEntity,
-                //        Message = "Number of packages cannot exceed 3."
-                //    };
-                //}
-
-                var feature = new Feature
-                {
-                    Name = sourceLanguageCode == "en" ? featureAddModel.Name : translatedName,
-                };
-
-                await _unitOfWork.FeatureRepository.AddAsync(feature);
-
-                var packageFeatures = new List<PackageFeature>();
-                for (int i = 0; i < featureAddModel.PackageFeatures.Count; i++)
-                {
-                    var packageFeature = featureAddModel.PackageFeatures[i];
-                    string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
-                    var newPackageFeature = new PackageFeature
-                    {
-                        Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
-                        IsExtra = packageFeature.IsExtra,
-                        AdditionalCost = packageFeature.AdditionalCost,
-                        AdditionalDay = packageFeature.AdditionalDay,
-                        FeatureId = feature.Id,
-                        PackageId = packageId
-                    };
-                    packageFeatures.Add(newPackageFeature);
-                }
-                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
-
-                var translations = new List<Translation>();
-                Guid? languageId = null;
-                if (sourceLanguageCode != "en")
-                {
-                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
-                }
-                else
-                {
-                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
-                }
-                if (!string.IsNullOrEmpty(featureAddModel.Name))
-                {
-                    translations.Add(new Translation
-                    {
-                        Id = Guid.NewGuid(),
-                        EntityType = "Feature",
-                        EntityId = feature.Id,
-                        FieldName = "Name",
-                        TranslationText = sourceLanguageCode != "en" ? featureAddModel.Name : translatedName,
-                        LanguageId = languageId.Value
-                    });
-                }
-
-                var packageFeatureList = feature.PackageFeatures.ToList();
-
-                foreach (var packageFeature in feature.PackageFeatures.Select((value, index) => new { value, index }))
-                {
-                    if (!string.IsNullOrEmpty(packageFeature.value.Name))
-                    {
-                        translations.Add(new Translation
-                        {
-                            Id = Guid.NewGuid(),
-                            EntityType = "PackageFeature",
-                            EntityId = packageFeatureList[packageFeature.index].Id,
-                            FieldName = "Name",
-                            TranslationText = packageFeature.value.Name,
-                            LanguageId = languageId.Value
-                        });
-                    }
-                }
-                await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
-                await _unitOfWork.SaveChangeAsync();
-                await _unitOfWork.CommitTransactionAsync();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status201Created,
-                    Message = "Successfully created."
-                };
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                };
-            }
-        }
-
         public async Task<ResponseModel> GetAllFeatureAsync(FeatureFilterModel model, Guid packageId, string sourceLanguageCode, string targetLanguage)
         {
             try
@@ -393,5 +267,140 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
+        public async Task<ResponseModel> AddPackageFeatureAsync(PackageFeatureAddModel packageFeatureAddModel, Guid packageId, string sourceLanguageCode, string targetLanguageCode)
+        {
+            try
+            {
+                var package = await _unitOfWork.PackageRepository.GetAsync(packageId);
+                if (package == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Package not found."
+                    };
+                }
+
+                var feature = await _unitOfWork.FeatureRepository.GetAsync(packageFeatureAddModel.FeatureId);
+                if (feature == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Feature not found."
+                    };
+                }
+
+                //await _unitOfWork.BeginTransactionAsync();
+                //var fieldsToTranslate = new Dictionary<string, string>
+                //{
+                //    { "Name", packageFeatureAddModel.Name }
+                //    };
+
+                //var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+                //if (translationResponse.Code != StatusCodes.Status200OK)
+                //{
+                //    throw new Exception("Failed to translate fields.");
+                //}
+
+                //string translatedName = translationResponse.TranslatedFields["Name"];
+
+                Expression<Func<PackageFeature, bool>> filter = _ =>
+                _.FeatureId == packageFeatureAddModel.FeatureId &&
+                   _.IsDeleted == false;
+
+                var numberOfExistedPackageFeature = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                    filter: filter,
+                    include: null
+                );
+
+                //var numberOfExistedPackageFeature = _unitOfWork.PackageRepository.GetAllPackageFromService(packageId).Result.Count();
+                var maxPackageFeature = _unitOfWork.SystemConfigRepository.GetByKeyAsync(SystemConfigKey.MaximumFeatureOfOnePackage).Result;
+                if (numberOfExistedPackageFeature.TotalCount > int.Parse(maxPackageFeature))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Number of package cannot exceed {maxPackageFeature}."
+                    };
+                }
+
+                var newPackageFeature = new PackageFeature
+                {
+                    //Name = sourceLanguageCode == "en" ? packageFeatureAddModel.Name : translatedName,
+                    Name = packageFeatureAddModel.Name,
+                    IsExtra = packageFeatureAddModel.IsExtra,
+                    AdditionalCost = packageFeatureAddModel.AdditionalCost,
+                    AdditionalDay = packageFeatureAddModel.AdditionalDay,
+                    MaxQuantity = packageFeatureAddModel.MaxQuantity,
+                    IsChecked = packageFeatureAddModel.IsChecked,
+                    FeatureId = feature.Id,
+                    PackageId = packageId
+                };
+
+                await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
+
+                //var translations = new List<Translation>();
+                //Guid? languageId = null;
+                //if (sourceLanguageCode != "en")
+                //{
+                //    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+                //}
+                //else
+                //{
+                //    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                //}
+                //if (!string.IsNullOrEmpty(packageFeatureAddModel.Name))
+                //{
+                //    translations.Add(new Translation
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        EntityType = "Feature",
+                //        EntityId = feature.Id,
+                //        FieldName = "Name",
+                //        TranslationText = sourceLanguageCode != "en" ? packageFeatureAddModel.Name : translatedName,
+                //        LanguageId = languageId.Value
+                //    });
+                //}
+
+                //var packageFeatureList = feature.PackageFeatures.ToList();
+
+                //foreach (var packageFeature in feature.PackageFeatures.Select((value, index) => new { value, index }))
+                //{
+                //    if (!string.IsNullOrEmpty(packageFeature.value.Name))
+                //    {
+                //        translations.Add(new Translation
+                //        {
+                //            Id = Guid.NewGuid(),
+                //            EntityType = "PackageFeature",
+                //            EntityId = packageFeatureList[packageFeature.index].Id,
+                //            FieldName = "Name",
+                //            TranslationText = packageFeature.value.Name,
+                //            LanguageId = languageId.Value
+                //        });
+                //    }
+                //}
+                //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
+                await _unitOfWork.SaveChangeAsync();
+                //await _unitOfWork.CommitTransactionAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Successfully created."
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
     }
 }
