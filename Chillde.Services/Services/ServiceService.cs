@@ -467,8 +467,8 @@ namespace Chillde.Services.Services
                 await _unitOfWork.BeginTransactionAsync();
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
-                var maximumPackage = _unitOfWork.SystemConfigRepository.GetByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
-                if (numberOfExistedPackage >= int.Parse(maximumPackage))
+                var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
+                if (numberOfExistedPackage >= int.Parse(maximumPackage!))
                 {
                     return new ResponseModel
                     {

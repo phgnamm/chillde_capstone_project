@@ -316,8 +316,8 @@ namespace Chillde.Services.Services
                 );
 
                 //var numberOfExistedPackageFeature = _unitOfWork.PackageRepository.GetAllPackageFromService(packageId).Result.Count();
-                var maxPackageFeature = _unitOfWork.SystemConfigRepository.GetByKeyAsync(SystemConfigKey.MaximumFeatureOfOnePackage).Result;
-                if (numberOfExistedPackageFeature.TotalCount > int.Parse(maxPackageFeature))
+                var maxPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumFeatureOfOnePackage).Result;
+                if (numberOfExistedPackageFeature.TotalCount > int.Parse(maxPackageFeature!))
                 {
                     return new ResponseModel
                     {
