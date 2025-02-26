@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Entities;
+﻿using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.SystemConfigModel;
@@ -135,6 +136,46 @@ namespace Chillde.Services.Services
             {
                 Code = StatusCodes.Status200OK,
                 Message = "Get All Configurations Successfully",
+                Data = result
+            };
+        }
+
+        public async Task<ResponseModel> Get(SystemConfigKey key)
+        {
+            var config = await _unitOfWork.SystemConfigRepository.GetByKeyAsync(key);
+
+            if (config == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Configuration does not exist",
+                    Data = null
+                };
+            }
+            string? value;
+            if (config.Value is JsonDocument jsonDoc)
+            {
+                value = jsonDoc.RootElement.ToString();
+            }
+            else
+            {
+                value = config.Value?.ToString()?.Trim('"');
+            }
+
+            var result = new SystemConfigModel
+            {
+                FieldName = config.FieldName!,
+                EntityType = config.EntityType.ToString(),
+                Value = value!,
+                CreationDate = config.CreationDate,
+                IsDeleted = config.IsDeleted
+            };
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Get Configuration Successfully",
                 Data = result
             };
         }

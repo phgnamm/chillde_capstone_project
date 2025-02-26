@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Models.SystemConfigModel;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.SystemConfigModel;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models;
 using Chillde.Services.Models.AccountModels;
@@ -62,6 +63,24 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _systemConfigService.GetAll(model);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("key")]
+        public async Task<IActionResult> Get([FromQuery] SystemConfigKey key)
+        {
+            try
+            {
+                var result = await _systemConfigService.Get(key);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
