@@ -1,4 +1,6 @@
 ﻿using Chillde.API.Helper;
+using Chillde.Repositories.Enums;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.RequestModels;
@@ -15,12 +17,14 @@ namespace Chillde.API.Controllers
         private readonly IRequestService _requestService;
         private readonly IOfferService _offerService;
         private readonly IOpenAiService _openAiService;
+        private readonly ICloudinaryHelper _cloudinaryHelper;
 
-        public RequestController(IRequestService requestService, IOfferService offerService, IOpenAiService openAiService)
+        public RequestController(IRequestService requestService, IOfferService offerService, IOpenAiService openAiService, ICloudinaryHelper cloudinaryHelper)
         {
             _requestService = requestService;
             _offerService = offerService;
             _openAiService = openAiService;
+            _cloudinaryHelper = cloudinaryHelper;
         }
 
         [Authorize]
@@ -65,6 +69,30 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize]
+        [HttpPost("test")]
+        public async Task<IActionResult> AddAsync([FromForm] RequestAddModel requestAddModel)
+        {
+            try
+            {
+
+                var result = await _requestService.AddAsync(requestAddModel);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] RequestUpdateModel requestUpdateModel)

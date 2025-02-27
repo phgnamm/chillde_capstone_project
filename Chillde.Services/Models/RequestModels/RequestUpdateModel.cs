@@ -16,7 +16,7 @@ namespace Chillde.Services.Models.RequestModels
         public int? Timeline { get; set; }
         public Guid ItemId { get; set; }
         public List<RequestDetailUpdateModel>? RequestDetailUpdateModels { get; set; }
-        public ICollection<AttachmentModel> Attachments { get; set; } = new List<AttachmentModel>();
+        //public ICollection<AttachmentModel> Attachments { get; set; } = new List<AttachmentModel>();
     }
 
     public class RequestDetailUpdateModel

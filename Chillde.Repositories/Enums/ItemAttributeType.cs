@@ -2,12 +2,13 @@
 
 public enum ItemAttributeType
 {
-    Int,
-    String,
+    Text,
     Number,
-    Boolean,
-    DateTime,
-    Dropdown,
+    Select,
+    Switch, // yes or no
+    Image,
     File,
-    Multiselect
+    CheckBox, // multible choice
+    Video,
+    Audio,
 }

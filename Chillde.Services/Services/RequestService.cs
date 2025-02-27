@@ -1,15 +1,23 @@
-﻿using Chillde.Repositories.Entities;
+﻿using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.SubcategoryModels;
 using Chillde.Services.Resources;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Nest;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Net.WebSockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Chillde.Services.Services
 {
@@ -35,164 +43,203 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode)
         {
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized"
-                };
-            }
-            if (requestAddModel.MinBudget > requestAddModel.MaxBudget)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "MinBudget must be less or equal to MaxBudget"
-                };
-            }
-            await _unitOfWork.BeginTransactionAsync();
+            //var currentUserId = _claimService.GetCurrentUserId;
+            //if (!currentUserId.HasValue)
+            //{
+            //    return new ResponseModel
+            //    {
+            //        Code = StatusCodes.Status401Unauthorized,
+            //        Message = "Unauthorized"
+            //    };
+            //}
+            //if (requestAddModel.MinBudget > requestAddModel.MaxBudget)
+            //{
+            //    return new ResponseModel
+            //    {
+            //        Code = StatusCodes.Status400BadRequest,
+            //        Message = "MinBudget must be less or equal to MaxBudget"
+            //    };
+            //}
+            //await _unitOfWork.BeginTransactionAsync();
 
+            //try
+            //{
+            //    var fieldsToTranslate = new Dictionary<string, string>
+            //        {
+            //            { "Name", requestAddModel.Name },
+            //            { "Description", requestAddModel.Description }
+            //        };
+
+            //    foreach (var detail in requestAddModel.RequestDetailAddModels)
+            //    {
+            //        fieldsToTranslate.Add($"RequestDetail_{detail.RequestAttributeId}_Description", detail.Description);
+            //    }
+
+            //    var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+            //    if (translationResponse.Code != StatusCodes.Status200OK)
+            //    {
+            //        throw new Exception("Failed to translate fields.");
+            //    }
+
+            //    string translatedName = translationResponse.TranslatedFields["Name"];
+            //    string translatedDescription = translationResponse.TranslatedFields["Description"];
+
+            //    var newRequest = new Request
+            //    {
+            //        Id = Guid.NewGuid(),
+            //        CreatedById = currentUserId,
+            //        ItemId = requestAddModel.ItemId,
+            //        Name = sourceLanguageCode == "en" ? requestAddModel.Name : translatedName,
+            //        Description = sourceLanguageCode == "en" ? requestAddModel.Description : translatedDescription,
+            //        MinBudget = requestAddModel.MinBudget,
+            //        MaxBudget = requestAddModel.MaxBudget,
+            //        Timeline = requestAddModel.Timeline,
+            //        //RequestDetails = new List<RequestDetail>()
+            //    };
+
+            //    foreach (var detail in requestAddModel.RequestDetailAddModels)
+            //    {
+            //        string translatedDetailDescription = translationResponse.TranslatedFields[$"RequestDetail_{detail.RequestAttributeId}_Description"];
+
+            //        //newRequest.RequestDetails.Add(new RequestDetail
+            //        //{
+            //        //    Id = Guid.NewGuid(),
+            //        //    RequestAttributeId = detail.RequestAttributeId,
+            //        //    Description = sourceLanguageCode == "en" ? detail.Description : translatedDetailDescription,
+            //        //    CreatedById = currentUserId
+            //        //});
+            //    }
+
+            //    if (requestAddModel.Attachments != null && requestAddModel.Attachments.Any())
+            //    {
+            //        var uploadTasks = requestAddModel.Attachments
+            //            .Where(a => a.AttachmentUrl != null)
+            //            .Select(async attachment => new RequestAttachment
+            //            {
+            //                Id = Guid.NewGuid(),
+            //                RequestId = newRequest.Id,
+            //                AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
+            //                    attachment.AttachmentUrl!,
+            //                    newRequest.Id.ToString(),
+            //                    Guid.NewGuid().ToString()),
+            //                AttachmentAlt = attachment.AttachmentAlt
+            //            })
+            //            .ToList();
+
+            //        var uploadedAttachments = await Task.WhenAll(uploadTasks);
+
+            //        foreach (var attachment in uploadedAttachments)
+            //        {
+            //            newRequest.RequestAttachments.Add(attachment);
+            //        }
+            //    }
+
+            //    await _unitOfWork.RequestRepository.AddAsync(newRequest);
+
+            //    var translations = new List<Translation>();
+            //    Guid? languageId = null;
+            //    if (sourceLanguageCode != "en")
+            //    {
+            //        languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+            //    }
+            //    else
+            //    {
+            //        languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+            //    }
+            //    if (!string.IsNullOrEmpty(requestAddModel.Name))
+            //    {
+            //        translations.Add(new Translation
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            EntityType = "Request",
+            //            EntityId = newRequest.Id,
+            //            FieldName = "Name",
+            //            TranslationText = sourceLanguageCode != "en" ? requestAddModel.Name : translatedName,
+            //            LanguageId = languageId.Value
+            //        });
+            //    }
+            //    if (!string.IsNullOrEmpty(requestAddModel.Description))
+            //    {
+            //        translations.Add(new Translation
+            //        {
+            //            Id = Guid.NewGuid(),
+            //            EntityType = "Request",
+            //            EntityId = newRequest.Id,
+            //            FieldName = "Description",
+            //            TranslationText = sourceLanguageCode != "en" ? requestAddModel.Description : translatedDescription,
+            //            LanguageId = languageId.Value
+            //        });
+            //    }
+            //    var requestDetailsList = newRequest.RequestAttributes.ToList();
+
+            //    foreach (var detail in requestAddModel.RequestDetailAddModels.Select((value, index) => new { value, index }))
+            //    {
+            //        if (!string.IsNullOrEmpty(detail.value.Description))
+            //        {
+            //            translations.Add(new Translation
+            //            {
+            //                Id = Guid.NewGuid(),
+            //                EntityType = "RequestDetail",
+            //                EntityId = requestDetailsList[detail.index].Id,
+            //                FieldName = "Description",
+            //                TranslationText = detail.value.Description,
+            //                LanguageId = languageId.Value
+            //            });
+            //        }
+            //    }
+
+            //    await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
+            //    await _unitOfWork.SaveChangeAsync();
+            //    await _unitOfWork.CommitTransactionAsync();
+
+            //    return new ResponseModel
+            //    {
+            //        Code = StatusCodes.Status201Created,
+            //        Message = "Request created successfully."
+            //    };
+            //}
+            //catch (Exception ex)
+            //{
+            //    await _unitOfWork.RollbackTransactionAsync();
+            //    return new ResponseModel
+            //    {
+            //        Code = StatusCodes.Status500InternalServerError,
+            //        Message = $"Internal server error: {ex.Message}"
+            //    };
+            //}
+            return null;
+        }
+
+        public async Task<ResponseModel> AddAsync(RequestAddModel requestAddModel)
+        {
             try
             {
-                var fieldsToTranslate = new Dictionary<string, string>
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
                     {
-                        { "Name", requestAddModel.Name },
-                        { "Description", requestAddModel.Description }
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
                     };
-
-                foreach (var detail in requestAddModel.RequestDetailAddModels)
-                {
-                    fieldsToTranslate.Add($"RequestDetail_{detail.RequestAttributeId}_Description", detail.Description);
                 }
 
-                var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
-                if (translationResponse.Code != StatusCodes.Status200OK)
+                if (requestAddModel.MaxBudget < requestAddModel.MinBudget)
                 {
-                    throw new Exception("Failed to translate fields.");
+                    return new ResponseModel { Message = "MaxBudget must be greater than or equal to MinBudget.", Code = StatusCodes.Status400BadRequest };
                 }
 
-                string translatedName = translationResponse.TranslatedFields["Name"];
-                string translatedDescription = translationResponse.TranslatedFields["Description"];
-
-                var newRequest = new Request
-                {
-                    Id = Guid.NewGuid(),
-                    CreatedById = currentUserId,
-                    ItemId = requestAddModel.ItemId,
-                    Name = sourceLanguageCode == "en" ? requestAddModel.Name : translatedName,
-                    Description = sourceLanguageCode == "en" ? requestAddModel.Description : translatedDescription,
-                    MinBudget = requestAddModel.MinBudget,
-                    MaxBudget = requestAddModel.MaxBudget,
-                    Timeline = requestAddModel.Timeline,
-                    //RequestDetails = new List<RequestDetail>()
-                };
-
-                foreach (var detail in requestAddModel.RequestDetailAddModels)
-                {
-                    string translatedDetailDescription = translationResponse.TranslatedFields[$"RequestDetail_{detail.RequestAttributeId}_Description"];
-
-                    //newRequest.RequestDetails.Add(new RequestDetail
-                    //{
-                    //    Id = Guid.NewGuid(),
-                    //    RequestAttributeId = detail.RequestAttributeId,
-                    //    Description = sourceLanguageCode == "en" ? detail.Description : translatedDetailDescription,
-                    //    CreatedById = currentUserId
-                    //});
-                }
-
-                if (requestAddModel.Attachments != null && requestAddModel.Attachments.Any())
-                {
-                    var uploadTasks = requestAddModel.Attachments
-                        .Where(a => a.AttachmentUrl != null)
-                        .Select(async attachment => new RequestAttachment
-                        {
-                            Id = Guid.NewGuid(),
-                            RequestId = newRequest.Id,
-                            AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-                                attachment.AttachmentUrl!,
-                                newRequest.Id.ToString(),
-                                Guid.NewGuid().ToString()),
-                            AttachmentAlt = attachment.AttachmentAlt
-                        })
-                        .ToList();
-
-                    var uploadedAttachments = await Task.WhenAll(uploadTasks);
-
-                    foreach (var attachment in uploadedAttachments)
-                    {
-                        newRequest.RequestAttachments.Add(attachment);
-                    }
-                }
+                var newRequest = CreateNewRequest(requestAddModel, currentUserId.Value);
 
                 await _unitOfWork.RequestRepository.AddAsync(newRequest);
+                await ProcessAttachments((List<RequestAttachmentAddModel>)requestAddModel.RequestAttachmentAddModels, (List<RequestAttachment>)newRequest.RequestAttachments);
+                await ProcessAttributes((List<RequestAttributeAddModel>)requestAddModel.RequestAttributeAddModels, (List<RequestAttribute>)newRequest.RequestAttributes);
+                var result = await _unitOfWork.SaveChangeAsync();
 
-                var translations = new List<Translation>();
-                Guid? languageId = null;
-                if (sourceLanguageCode != "en")
-                {
-                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
-                }
-                else
-                {
-                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
-                }
-                if (!string.IsNullOrEmpty(requestAddModel.Name))
-                {
-                    translations.Add(new Translation
-                    {
-                        Id = Guid.NewGuid(),
-                        EntityType = "Request",
-                        EntityId = newRequest.Id,
-                        FieldName = "Name",
-                        TranslationText = sourceLanguageCode != "en" ? requestAddModel.Name : translatedName,
-                        LanguageId = languageId.Value
-                    });
-                }
-                if (!string.IsNullOrEmpty(requestAddModel.Description))
-                {
-                    translations.Add(new Translation
-                    {
-                        Id = Guid.NewGuid(),
-                        EntityType = "Request",
-                        EntityId = newRequest.Id,
-                        FieldName = "Description",
-                        TranslationText = sourceLanguageCode != "en" ? requestAddModel.Description : translatedDescription,
-                        LanguageId = languageId.Value
-                    });
-                }
-                var requestDetailsList = newRequest.RequestAttributes.ToList();
-
-                foreach (var detail in requestAddModel.RequestDetailAddModels.Select((value, index) => new { value, index }))
-                {
-                    if (!string.IsNullOrEmpty(detail.value.Description))
-                    {
-                        translations.Add(new Translation
-                        {
-                            Id = Guid.NewGuid(),
-                            EntityType = "RequestDetail",
-                            EntityId = requestDetailsList[detail.index].Id,
-                            FieldName = "Description",
-                            TranslationText = detail.value.Description,
-                            LanguageId = languageId.Value
-                        });
-                    }
-                }
-
-                await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
-                await _unitOfWork.SaveChangeAsync();
-                await _unitOfWork.CommitTransactionAsync();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status201Created,
-                    Message = "Request created successfully."
-                };
+                return result > 0 ? new ResponseModel { Message = "Create request successfully" } : new ResponseModel { Message = "Create request unsuccessfully", Code = StatusCodes.Status400BadRequest };
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
@@ -200,6 +247,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
 
         public async Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguage)
         {
@@ -526,41 +574,41 @@ namespace Chillde.Services.Services
                     changesMade = true;
                 }
 
-                if (requestUpdateModel.Attachments != null && requestUpdateModel.Attachments.Any())
-                {
-                    var uploadTasks = new List<Task<RequestAttachment>>();
-                    foreach (var attachment in requestUpdateModel.Attachments)
-                    {
-                        if (attachment.AttachmentUrl != null)
-                        {
-                            uploadTasks.Add(
-                                Task.Run(async () =>
-                                {
-                                    var attachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-                                        attachment.AttachmentUrl,
-                                        existingRequest.Id.ToString(),
-                                        Guid.NewGuid().ToString()
-                                    );
+                //if (requestUpdateModel.Attachments != null && requestUpdateModel.Attachments.Any())
+                //{
+                //    var uploadTasks = new List<Task<RequestAttachment>>();
+                //    foreach (var attachment in requestUpdateModel.Attachments)
+                //    {
+                //        if (attachment.AttachmentUrl != null)
+                //        {
+                //            uploadTasks.Add(
+                //                Task.Run(async () =>
+                //                {
+                //                    var attachmentUrl = await _cloudinaryHelper.UploadImageAsync(
+                //                        attachment.AttachmentUrl,
+                //                        existingRequest.Id.ToString(),
+                //                        Guid.NewGuid().ToString()
+                //                    );
 
-                                    return new RequestAttachment
-                                    {
-                                        Id = Guid.NewGuid(),
-                                        RequestId = existingRequest.Id,
-                                        AttachmentUrl = attachmentUrl,
-                                        AttachmentAlt = attachment.AttachmentAlt
-                                    };
-                                })
-                            );
-                        }
-                    }
-                    var uploadedAttachments = await Task.WhenAll(uploadTasks);
-                    foreach (var attachment in uploadedAttachments)
-                    {
-                        existingRequest.RequestAttachments.Add(attachment);
-                    }
+                //                    return new RequestAttachment
+                //                    {
+                //                        Id = Guid.NewGuid(),
+                //                        RequestId = existingRequest.Id,
+                //                        AttachmentUrl = attachmentUrl,
+                //                        AttachmentAlt = attachment.AttachmentAlt
+                //                    };
+                //                })
+                //            );
+                //        }
+                //    }
+                //    var uploadedAttachments = await Task.WhenAll(uploadTasks);
+                //    foreach (var attachment in uploadedAttachments)
+                //    {
+                //        existingRequest.RequestAttachments.Add(attachment);
+                //    }
 
-                    changesMade = true;
-                }
+                //    changesMade = true;
+                //}
                 if (!changesMade)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
@@ -590,5 +638,119 @@ namespace Chillde.Services.Services
                 };
             }
         }
+        
+
+        private Request CreateNewRequest(RequestAddModel model, Guid userId)
+        {
+            return new Request
+            {
+                Name = model.Name,
+                Description = model.Description,
+                MinBudget = model.MinBudget,
+                MaxBudget = model.MaxBudget,
+                Timeline = model.Timeline,
+                ItemId = model.ItemId,
+                CreatedById = userId,
+                RequestAttributes = new List<RequestAttribute>(),
+                RequestAttachments = new List<RequestAttachment>()
+            };
+        }
+
+        private async Task ProcessAttachments(List<RequestAttachmentAddModel> attachmentModels, List<RequestAttachment> requestAttachments)
+        {
+            if (attachmentModels == null) return;
+
+            foreach (var attachment in attachmentModels.Where(_ => _.AttachmentUrl != null))
+            {
+                if (string.IsNullOrEmpty(attachment.AttachmentAlt))
+                {
+                    throw new Exception("AttachmentAlt is empty");
+                }
+
+                var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
+                    attachment.AttachmentUrl,
+                    publicId: Guid.NewGuid().ToString(),
+                    folderName: FolderAttachment.REQUEST
+                );
+
+                requestAttachments.Add(new RequestAttachment
+                {
+                    AttachmentUrl = uploadedUrl,
+                    AttachmentAlt = attachment.AttachmentAlt
+                });
+            }
+        }
+
+        private async Task ProcessAttributes(List<RequestAttributeAddModel> attributeModels, List<RequestAttribute> requestAttributes)
+        {
+            if (attributeModels == null) return;
+
+            foreach (var attribute in attributeModels)
+            {
+                var newAttribute = new RequestAttribute
+                {
+                    Name = attribute.Name,
+                    Type = attribute.Type,
+                    RequestAttributeValues = new List<RequestAttributeValue>(),
+                    RequestAttributeAttachments = new List<RequestAttributeAttachment>()
+                };
+
+                if (attribute.Type == ItemAttributeType.File)
+                {
+                    if (attribute.RequestAttributeAttachmentAddModels == null || !attribute.RequestAttributeAttachmentAddModels.Any())
+                    {
+                        throw new Exception("Each attribute must have at least one value");
+                    }
+                    await ProcessAttributeAttachments((List<RequestAttributeAttachmentAddModel>)attribute.RequestAttributeAttachmentAddModels, (List<RequestAttributeAttachment>)newAttribute.RequestAttributeAttachments);
+                }
+                else
+                {
+                    if (attribute.RequestAttributeValueAddModels == null || !attribute.RequestAttributeValueAddModels.Any())
+                    {
+                        throw new Exception("Each attribute must have at least one value");
+                    }
+                    ProcessAttributeValues((List<RequestAttributeValueAddModel>)attribute.RequestAttributeValueAddModels, (List<RequestAttributeValue>)newAttribute.RequestAttributeValues);
+                }
+
+                requestAttributes.Add(newAttribute);
+            }
+        }
+
+        private async Task ProcessAttributeAttachments(List<RequestAttributeAttachmentAddModel> attachmentModels, List<RequestAttributeAttachment> attributeAttachments)
+        {
+            foreach (var attachment in attachmentModels.Where(_ => _.AttachmentUrl != null))
+            {
+                if (string.IsNullOrEmpty(attachment.AttachmentAlt))
+                {
+                    throw new Exception("AttachmentAlt is empty");
+                }
+
+                var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
+                    attachment.AttachmentUrl,
+                    publicId: Guid.NewGuid().ToString(),
+                    folderName: FolderAttachment.REQUESTATTRIBUTE
+                );
+
+                attributeAttachments.Add(new RequestAttributeAttachment
+                {
+                    AttachmentUrl = uploadedUrl,
+                    AttachmentAlt = attachment.AttachmentAlt
+                });
+            }
+        }
+
+        private void ProcessAttributeValues(List<RequestAttributeValueAddModel> valueModels, List<RequestAttributeValue> attributeValues)
+        {
+            int intOrder = 0;
+            foreach (var valueModel in valueModels)
+            {
+                attributeValues.Add(new RequestAttributeValue
+                {
+                    Value = JsonConvert.SerializeObject(valueModel.Value),
+                    IntOrder = intOrder++
+                });
+            }
+        }
+
     }
 }
