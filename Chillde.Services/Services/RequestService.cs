@@ -348,126 +348,126 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> GetById(Guid id, string sourceLanguageCode, string targetLanguage)
-        {
-            try
-            {
-                var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
-                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
-                Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
-                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestAttributes)
-                                                                                             .ThenInclude(_ => _.RequestAttributeAttachments)
-                                                                                             .Include(_ => _.Item));
-                if (existingRequest == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Request not found."
-                    };
-                }
+        //public async Task<ResponseModel> GetById(Guid id, string sourceLanguageCode, string targetLanguage)
+        //{
+        //    try
+        //    {
+        //        var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+        //        Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+        //        Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+        //        var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestAttributes)
+        //                                                                                     .ThenInclude(_ => _.RequestAttributeAttachments)
+        //                                                                                     .Include(_ => _.Item));
+        //        if (existingRequest == null)
+        //        {
+        //            return new ResponseModel
+        //            {
+        //                Code = StatusCodes.Status404NotFound,
+        //                Message = "Request not found."
+        //            };
+        //        }
 
-                if (sourceLanguageCode.ToLower() != "en")
-                {
-                    var translationFields = new[] { "Name", "Description" };
-                    var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestGetByIdModel>(
-                        new List<Guid> { id },
-                        sourceLanguageCode,
-                        request => new RequestGetByIdModel
-                        {
-                            Id = request.Id,
-                            Name = request.Name!,
-                            Description = request.Description!,
-                            MinBudget = request.MinBudget ?? 0,
-                            MaxBudget = request.MaxBudget ?? 0,
-                            Timeline = request.Timeline ?? 0,
-                            Attachments = request.RequestAttachments
-                            .Select(att => new AttachmentGetModel
-                            {
-                                AttachmentUrl = att.AttachmentUrl,
-                                AttachmentAlt = att.AttachmentAlt
-                            }).ToList(),
-                            Status = request.Status,
-                            ItemId = request.ItemId,
-                            ItemName = _localizer[request.Item.Name!.ToString()],
-                            ItemCode = request.Item?.Code!,
-                            ItemImageUrl = request.Item?.ImageUrl!,
-                            RequestDetailGetByIdModels = request.RequestAttributes.Select(detail => new RequestDetailGetByIdModel
-                            {
-                                Id = detail.Id,
-                                Name = detail.Name,
-                            }).ToList()
-                        },
-                        "RequestDetails",
-                        translationFields,
-                        nestedRelationships: new[] { "Attribute", "RequestAttachments" },
-                        "Description"
-                    );
+        //        if (sourceLanguageCode.ToLower() != "en")
+        //        {
+        //            var translationFields = new[] { "Name", "Description" };
+        //            var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestGetByIdModel>(
+        //                new List<Guid> { id },
+        //                sourceLanguageCode,
+        //                request => new RequestGetByIdModel
+        //                {
+        //                    Id = request.Id,
+        //                    Name = request.Name!,
+        //                    Description = request.Description!,
+        //                    MinBudget = request.MinBudget ?? 0,
+        //                    MaxBudget = request.MaxBudget ?? 0,
+        //                    Timeline = request.Timeline ?? 0,
+        //                    Attachments = request.RequestAttachments
+        //                    .Select(att => new AttachmentGetModel
+        //                    {
+        //                        AttachmentUrl = att.AttachmentUrl,
+        //                        AttachmentAlt = att.AttachmentAlt
+        //                    }).ToList(),
+        //                    Status = request.Status,
+        //                    ItemId = request.ItemId,
+        //                    ItemName = _localizer[request.Item.Name!.ToString()],
+        //                    ItemCode = request.Item?.Code!,
+        //                    ItemImageUrl = request.Item?.ImageUrl!,
+        //                    RequestDetailGetByIdModels = request.RequestAttributes.Select(detail => new RequestDetailGetByIdModel
+        //                    {
+        //                        Id = detail.Id,
+        //                        Name = detail.Name,
+        //                    }).ToList()
+        //                },
+        //                "RequestDetails",
+        //                translationFields,
+        //                nestedRelationships: new[] { "Attribute", "RequestAttachments" },
+        //                "Description"
+        //            );
 
-                    if (translations != null)
-                    {
-                        var updatedTranslations = translations.Select(translation =>
-                        {
-                            translation.RequestDetailGetByIdModels = translation.RequestDetailGetByIdModels!
-                                .Select(detail => new RequestDetailGetByIdModel
-                                {
-                                    Id = detail.Id,
-                                    Name = detail.Name,
-                                }).ToList();
-                            return translation;
-                        }).ToList();
+        //            if (translations != null)
+        //            {
+        //                var updatedTranslations = translations.Select(translation =>
+        //                {
+        //                    translation.RequestDetailGetByIdModels = translation.RequestDetailGetByIdModels!
+        //                        .Select(detail => new RequestDetailGetByIdModel
+        //                        {
+        //                            Id = detail.Id,
+        //                            Name = detail.Name,
+        //                        }).ToList();
+        //                    return translation;
+        //                }).ToList();
 
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status200OK,
-                            Data = updatedTranslations,
-                            Message = "Get request detail successfully"
-                        };
-                    }
-                }
+        //                return new ResponseModel
+        //                {
+        //                    Code = StatusCodes.Status200OK,
+        //                    Data = updatedTranslations,
+        //                    Message = "Get request detail successfully"
+        //                };
+        //            }
+        //        }
 
-                var requestModel = new RequestGetByIdModel
-                {
-                    Id = existingRequest.Id,
-                    Name = existingRequest.Name ?? "Unknown",
-                    Description = existingRequest.Description ?? "Unknown",
-                    MinBudget = existingRequest.MinBudget ?? 0,
-                    MaxBudget = existingRequest.MaxBudget ?? 0,
-                    Timeline = existingRequest.Timeline ?? 0,
-                    Attachments = existingRequest.RequestAttachments
-                    .Select(att => new AttachmentGetModel
-                    {
-                        AttachmentUrl = att.AttachmentUrl,
-                        AttachmentAlt = att.AttachmentAlt ?? "No description"
-                    }).ToList(),
-                    Status = existingRequest.Status,
-                    ItemId = existingRequest.ItemId,
-                    ItemName = existingRequest.Item?.Name ?? "Unknown",
-                    ItemCode = existingRequest.Item?.Code ?? "Unknown",
-                    ItemImageUrl = existingRequest.Item?.ImageUrl ?? "Unknown",
-                    RequestDetailGetByIdModels = existingRequest.RequestAttributes.Select(_ => new RequestDetailGetByIdModel
-                    {
-                        Id = _.Id,
-                        Name = _.Name,
-                    }).ToList()
-                };
+        //        var requestModel = new RequestGetByIdModel
+        //        {
+        //            Id = existingRequest.Id,
+        //            Name = existingRequest.Name ?? "Unknown",
+        //            Description = existingRequest.Description ?? "Unknown",
+        //            MinBudget = existingRequest.MinBudget ?? 0,
+        //            MaxBudget = existingRequest.MaxBudget ?? 0,
+        //            Timeline = existingRequest.Timeline ?? 0,
+        //            Attachments = existingRequest.RequestAttachments
+        //            .Select(att => new AttachmentGetModel
+        //            {
+        //                AttachmentUrl = att.AttachmentUrl,
+        //                AttachmentAlt = att.AttachmentAlt ?? "No description"
+        //            }).ToList(),
+        //            Status = existingRequest.Status,
+        //            ItemId = existingRequest.ItemId,
+        //            ItemName = existingRequest.Item?.Name ?? "Unknown",
+        //            ItemCode = existingRequest.Item?.Code ?? "Unknown",
+        //            ItemImageUrl = existingRequest.Item?.ImageUrl ?? "Unknown",
+        //            RequestDetailGetByIdModels = existingRequest.RequestAttributes.Select(_ => new RequestDetailGetByIdModel
+        //            {
+        //                Id = _.Id,
+        //                Name = _.Name,
+        //            }).ToList()
+        //        };
 
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Data = requestModel,
-                    Message = "Get request detail success"
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = $"Internal server error: {ex.Message}"
-                };
-            }
-        }
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status200OK,
+        //            Data = requestModel,
+        //            Message = "Get request detail success"
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status500InternalServerError,
+        //            Message = $"Internal server error: {ex.Message}"
+        //        };
+        //    }
+        //}
 
         public async Task<ResponseModel> Update(Guid id, RequestUpdateModel requestUpdateModel, string sourceLanguageCode, string targetLanguageCode)
         {
@@ -752,5 +752,53 @@ namespace Chillde.Services.Services
             }
         }
 
+        public Task<ResponseModel> GetById(Guid id, string sourceLanguageCode, string targetLanguage)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ResponseModel> GetByIdAsync(Guid id)
+        {
+            var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.Item) .Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments) .Include(_ => _.RequestAttachments));
+            var requestModel = new RequestGetByIdModel
+            {
+                Id = request.Id,
+                Name = request.Name ?? "Unkown",
+                Description = request.Description ?? "Unkown",
+                MinBudget = (decimal)request.MinBudget,
+                MaxBudget = (decimal)request.MaxBudget,
+                Timeline = (int)request.Timeline,
+                Status = request.Status,
+                ItemId = request.ItemId,
+                ItemName = request.Item.Name,
+                ItemCode = request.Item.Code,
+                ItemImageUrl = request.Item.ImageUrl,
+                RequestAttachmentGetModels = request?.RequestAttachments?.Select(_ => new RequestAttachmentGetModel
+                {
+                    Id = _.Id,
+                    AttachmentAlt = _.AttachmentAlt,
+                    AttachmentUrl = _.AttachmentUrl,
+                }).ToList(),
+                RequestAttributeGetModels = request.RequestAttributes.Select(_ => new RequestAttributeGetModel
+                {
+                    Id = _.Id,
+                    Name = _.Name,
+                    Type = _.Type,
+                    RequestAttributeValueGetModels = _?.RequestAttributeValues?.Select(_ => new RequestAttributeValueGetModel
+                    {
+                        Id = _.Id,
+                        Value = (string)JsonConvert.DeserializeObject(_.Value),
+                    }).ToList(),
+                    RequestAttributeAttachmentGetModels = _?.RequestAttributeAttachments?.Select(_ => new RequestAttributeAttachmentGetModel
+                    {
+                        Id = _.Id,
+                        AttachmentAlt = _.AttachmentAlt,
+                        AttachmentUrl = _.AttachmentUrl
+                    }).ToList()
+                }).ToList()
+
+            };
+            return new ResponseModel { Data = requestModel };
+        }
     }
 }

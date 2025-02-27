@@ -17,19 +17,32 @@ namespace Chillde.Repositories.Models.RequestModels
         public string ItemName { get; set; }
         public string ItemCode { get; set; }
         public string ItemImageUrl { get; set; }
-        public ICollection<RequestDetailGetByIdModel> RequestDetailGetByIdModels { get; set; } = new List<RequestDetailGetByIdModel>();
-        public List<AttachmentGetModel>? Attachments { get; set; }
+        public List<RequestAttributeGetModel> RequestAttributeGetModels { get; set; } = new List<RequestAttributeGetModel>();
+        public List<RequestAttachmentGetModel>? RequestAttachmentGetModels { get; set; } = new List<RequestAttachmentGetModel>();
     }
-    public class RequestDetailGetByIdModel
+    public class RequestAttributeGetModel
     {
         public Guid Id { get; set; }
         public string? Name { get; set; }
-        public Guid ItemAttributeId { get; set; }
-        public string ItemAttributeName { get; set; }
-    }
+        public ItemAttributeType Type { get; set; }
+        public List<RequestAttributeValueGetModel>? RequestAttributeValueGetModels { get; set; } = new List<RequestAttributeValueGetModel>();
+        public List<RequestAttributeAttachmentGetModel>? RequestAttributeAttachmentGetModels { get; set; } = new List<RequestAttributeAttachmentGetModel>();
 
-    public class AttachmentGetModel
+    }
+    public class RequestAttributeValueGetModel
     {
+        public Guid Id { get; set; }
+        public string? Value { get; set; }
+    }
+    public class RequestAttributeAttachmentGetModel
+    {
+        public Guid Id { get; set; }
+        public string? AttachmentUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
+    }
+    public class RequestAttachmentGetModel
+    {
+        public Guid Id { get; set; }
         public string? AttachmentUrl { get; set; }
         public string? AttachmentAlt { get; set; }
     }

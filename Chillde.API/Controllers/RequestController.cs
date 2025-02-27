@@ -114,16 +114,16 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
             {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _requestService.GetById(id, sourceLanguageCode, targetLanguageCode);
+                //var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                //var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                //var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _requestService.GetByIdAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
