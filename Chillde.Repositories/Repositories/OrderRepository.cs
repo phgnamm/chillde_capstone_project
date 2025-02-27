@@ -20,9 +20,15 @@ namespace Chillde.Repositories.Repositories
             return hasCompletedOrder;
         }
 
-        public async Task<bool> HasAnyOrder(Guid serviceId)
+        public async Task<bool> HasAnyOrderByService(Guid serviceId)
         {
             var hasCompletedOrder = _dbSet.Any(order => order.Package.ServiceId == serviceId);
+            return hasCompletedOrder;
+        }
+
+        public async Task<bool> HasAnyOrderByPackage(Guid packageId)
+        {
+            var hasCompletedOrder = _dbSet.Any(order => order.PackageId == packageId);
             return hasCompletedOrder;
         }
     }

@@ -9,6 +9,7 @@ using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -42,58 +43,73 @@ namespace Chillde.Services.Services
                         Message = "Package not found."
                     };
                 }
-                await _unitOfWork.BeginTransactionAsync();
-                var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode != "en" ? targetLanguageCode : sourceLanguageCode);
-                var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Package", id, "Name", languageId);
-                var translationDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync("Package", id, "Description", languageId);
-                bool changesMade = false;
-                if (!string.Equals(packageUpdateModel.Name, package.Name, StringComparison.OrdinalIgnoreCase) &&
-                  (translationName != null && !string.Equals(packageUpdateModel.Name, translationName.TranslationText, StringComparison.OrdinalIgnoreCase)))
+                //await _unitOfWork.BeginTransactionAsync();
+                //var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode != "en" ? targetLanguageCode : sourceLanguageCode);
+                //var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Package", id, "Name", languageId);
+                //var translationDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync("Package", id, "Description", languageId);
+                //bool changesMade = false;
+                //if (!string.Equals(packageUpdateModel.Name, package.Name, StringComparison.OrdinalIgnoreCase) &&
+                //  (translationName != null && !string.Equals(packageUpdateModel.Name, translationName.TranslationText, StringComparison.OrdinalIgnoreCase)))
+                //{
+                //    var translationResponse = await _translationService.TranslateAsync(packageUpdateModel.Name!, sourceLanguageCode, targetLanguageCode);
+                //    if (translationResponse.Code != StatusCodes.Status200OK)
+                //    {
+                //        throw new Exception("Failed to translate Name.");
+                //    }
+                //    translationName!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : packageUpdateModel.Name!;
+                //    package.Name = targetLanguageCode != "en" ? packageUpdateModel.Name : translationResponse.Message;
+                //    _unitOfWork.TranslationRepository.Update(translationName);
+                //    changesMade = true;
+                //}
+
+                //if (!string.Equals(packageUpdateModel.Description, package.Description, StringComparison.OrdinalIgnoreCase) &&
+                //  (translationDescription != null && !string.Equals(packageUpdateModel.Description, translationDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
+                //{
+                //    var translationResponse = await _translationService.TranslateAsync(packageUpdateModel.Description!, sourceLanguageCode, targetLanguageCode);
+                //    if (translationResponse.Code != StatusCodes.Status200OK)
+                //    {
+                //        throw new Exception("Failed to translate Description.");
+                //    }
+
+                //    translationDescription!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : packageUpdateModel.Description!;
+                //    package.Description = targetLanguageCode != "en" ? packageUpdateModel.Description : translationResponse.Message;
+                //    _unitOfWork.TranslationRepository.Update(translationDescription);
+                //    changesMade = true;
+                //}
+
+                //if (packageUpdateModel.Price != package.Price)
+                //{
+                //    package.Price = packageUpdateModel.Price;
+                //    changesMade = true;
+                //}
+
+                //if (!changesMade)
+                //{
+                //    await _unitOfWork.RollbackTransactionAsync();
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status204NoContent,
+                //        Message = "No changes detected."
+                //    };
+                //}
+
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(id);
+
+                if (!anyOrder.Result)
                 {
-                    var translationResponse = await _translationService.TranslateAsync(packageUpdateModel.Name!, sourceLanguageCode, targetLanguageCode);
-                    if (translationResponse.Code != StatusCodes.Status200OK)
-                    {
-                        throw new Exception("Failed to translate Name.");
-                    }
-                    translationName!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : packageUpdateModel.Name!;
-                    package.Name = targetLanguageCode != "en" ? packageUpdateModel.Name : translationResponse.Message;
-                    _unitOfWork.TranslationRepository.Update(translationName);
-                    changesMade = true;
+                    _mapper.Map(packageUpdateModel, package);
+                    _unitOfWork.PackageRepository.Update(package);
+                }
+                else
+                {
+                    _unitOfWork.PackageRepository.SoftRemove(package);
+                    Package newPackage = _mapper.Map<Package>(packageUpdateModel);
+                    newPackage.ServiceId = package.ServiceId;
+                    await _unitOfWork.PackageRepository.AddAsync(newPackage);
                 }
 
-                if (!string.Equals(packageUpdateModel.Description, package.Description, StringComparison.OrdinalIgnoreCase) &&
-                  (translationDescription != null && !string.Equals(packageUpdateModel.Description, translationDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
-                {
-                    var translationResponse = await _translationService.TranslateAsync(packageUpdateModel.Description!, sourceLanguageCode, targetLanguageCode);
-                    if (translationResponse.Code != StatusCodes.Status200OK)
-                    {
-                        throw new Exception("Failed to translate Description.");
-                    }
-
-                    translationDescription!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : packageUpdateModel.Description!;
-                    package.Description = targetLanguageCode != "en" ? packageUpdateModel.Description : translationResponse.Message;
-                    _unitOfWork.TranslationRepository.Update(translationDescription);
-                    changesMade = true;
-                }
-
-                if (packageUpdateModel.Price != package.Price)
-                {
-                    package.Price = packageUpdateModel.Price;
-                    changesMade = true;
-                }
-
-                if (!changesMade)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status204NoContent,
-                        Message = "No changes detected."
-                    };
-                }
-                _unitOfWork.PackageRepository.Update(package);
                 await _unitOfWork.SaveChangeAsync();
-                await _unitOfWork.CommitTransactionAsync();
+                //await _unitOfWork.CommitTransactionAsync();
 
                 return new ResponseModel
                 {
@@ -126,16 +142,9 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                Expression<Func<Repositories.Entities.Order, bool>> filter = order =>
-                         order.PackageId == id &&
-                         order.IsDeleted == false;
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(id);
 
-                var orders = await _unitOfWork.OrderRepository.GetAllAsync(
-                    filter: filter,
-                    include: null
-                );
-
-                if (orders.TotalCount == 0)
+                if (!anyOrder.Result)
                 {
                     _unitOfWork.PackageRepository.HardRemove(package);
                 }

@@ -6,5 +6,6 @@ namespace Chillde.Repositories.Interfaces
 {
     public interface IFeatureRepository : IGenericRepository<Feature>
     {
+        Task<bool> HasAnyOrderByFeature(Guid featureId);
     }
 }

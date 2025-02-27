@@ -7,7 +7,15 @@ namespace Chillde.Services.Models.PackageModels
         [Required(ErrorMessage = "Package's price must be between 1 and 10,000 USD.")]
         [Range(1, 10000, ErrorMessage = "Package's price must be between 1 and 10,000 USD.")]
         public decimal Price { get; set; }
-        public string? Name { get; set; }
-        public string? Description { get; set; }
+        [Required]
+        public string Name { get; set; }
+        [Required]
+        public string Description { get; set; }
+        [Required]
+        public DateTime DeliveryTime { get; set; }
+        [Required]
+        public int SketchRevision { get; set; }
+        [Required]
+        public int DeliveryRevision { get; set; }
     }
 }
