@@ -1,7 +1,10 @@
-﻿using Chillde.Repositories.Entities;
+﻿using AutoMapper;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
+using Chillde.Services.Models.PackageFeatureModels;
+using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 
@@ -11,11 +14,13 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITranslationService _translationService;
+        private readonly IMapper _mapper;
 
-        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService)
+        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, string sourceLanguageCode, string targetLanguageCode)
@@ -151,7 +156,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                feature.Name = featureUpdateModel.Name;
+                _mapper.Map(featureUpdateModel, feature);
 
                 _unitOfWork.FeatureRepository.Update(feature);
                 await _unitOfWork.SaveChangeAsync();

@@ -48,6 +48,14 @@ namespace Chillde.API.Controllers
         {
             try
             {
+                if(!ModelState.IsValid)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid model."
+                    });
+                }
                 var result = await _featureService.UpdateAsync(featureUpdateModel, id);
                 return StatusCode(result.Code, result);
             }

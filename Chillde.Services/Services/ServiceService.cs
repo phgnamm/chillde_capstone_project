@@ -348,9 +348,32 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                service.Status = serviceUpdateModel.Status;
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
 
-                _unitOfWork.ServiceRepository.Update(service);
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
+
+                if (!anyOrder.Result)
+                {
+                    _mapper.Map(serviceUpdateModel, service);
+                    _unitOfWork.ServiceRepository.Update(service);
+                }
+                else
+                {
+                    _unitOfWork.ServiceRepository.SoftRemove(service);
+                    Service newService = _mapper.Map<Service>(serviceUpdateModel);
+                    newService.CreatedById = currentUserId;
+                    newService.ItemId = service.ItemId;
+                    await _unitOfWork.ServiceRepository.AddAsync(newService);                    
+                }
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
@@ -383,7 +406,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrder(id);
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
 
                 if (anyOrder.Result == false)
                 {
