@@ -156,7 +156,19 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                _mapper.Map(featureUpdateModel, feature);
+                var anyOrder = _unitOfWork.FeatureRepository.HasAnyOrderByFeature(id);
+
+                if (!anyOrder.Result)
+                {
+                    _mapper.Map(featureUpdateModel, feature);
+                    _unitOfWork.FeatureRepository.Update(feature);
+                }
+                else
+                {
+                    _unitOfWork.FeatureRepository.SoftRemove(feature);
+                    Feature newFeature = _mapper.Map<Feature>(featureUpdateModel);
+                    await _unitOfWork.FeatureRepository.AddAsync(newFeature);
+                }
 
                 _unitOfWork.FeatureRepository.Update(feature);
                 await _unitOfWork.SaveChangeAsync();
