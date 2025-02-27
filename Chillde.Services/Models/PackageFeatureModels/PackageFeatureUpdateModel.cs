@@ -5,14 +5,11 @@ namespace Chillde.Services.Models.PackageFeatureModels
     public class PackageFeatureUpdateModel
     {
         [Required]
-        public string Question { get; set; }
-        [Required]
-        public bool IsInformationRequired { get; set; }
-        [Required]
-        public bool IsExtra { get; set; }
-        [Required]
-        public decimal AdditionalCost { get; set; }
-        [Required]
-        public int AdditionalDay { get; set; }
+        public string Name { get; set; }
+        public decimal? AdditionalCost { get; set; }
+        public int? AdditionalDay { get; set; }
+        public bool? IsExtra { get; set; }
+        public bool? IsChecked { get; set; }
+        public int MaxQuantity { get; set; }
     }
 }
