@@ -37,8 +37,7 @@ public class UnitOfWork : IUnitOfWork
         IShipmentRepository shipmentRepository,
         IPaymentRepository paymentRepository,
         IUserActivityLogRepository userActivityLogRepository,
-        ISystemConfigRepository systemConfigRepository
-        IUserActivityLogRepository userActivityLogRepository,
+        ISystemConfigRepository systemConfigRepository,
         ISearchHistoryRepository searchHistoryRepository
         )
     {

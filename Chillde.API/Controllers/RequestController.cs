@@ -93,16 +93,20 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] RequestUpdateModel requestUpdateModel)
         {
             try
             {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _requestService.Update(id, requestUpdateModel, sourceLanguageCode, targetLanguageCode);
+                //var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                //var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                //var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _requestService.UpdateRequestAsync(id, requestUpdateModel);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

@@ -18,7 +18,7 @@ namespace Chillde.Services.Utils
                 if (File.Exists("StopWords.txt"))
                     _stopwords = new HashSet<string>(File.ReadAllLines("StopWords.txt"));
                 else
-                    _stopwords = new HashSet<string>(); // Tránh lỗi file không tồn tại
+                    _stopwords = new HashSet<string>();
             }
             catch (Exception ex)
             {

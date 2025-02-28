@@ -4,6 +4,7 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
@@ -16,6 +17,7 @@ using Nest;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Net.Mail;
 using System.Net.WebSockets;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -32,7 +34,9 @@ namespace Chillde.Services.Services
         public RequestService(IUnitOfWork unitOfWork, IClaimService claimService,
             ICloudinaryHelper cloudinaryHelper,
             ITranslationService translationService,
-            IStringLocalizer<OfferLanguage> localizer)
+            IStringLocalizer<OfferLanguage> localizer
+
+            )
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
@@ -247,7 +251,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
 
         public async Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguage)
         {
@@ -638,8 +641,8 @@ namespace Chillde.Services.Services
         //        };
         //    }
         //}
-        
 
+        #region create request
         private Request CreateNewRequest(RequestAddModel model, Guid userId)
         {
             return new Request
@@ -666,13 +669,7 @@ namespace Chillde.Services.Services
                 {
                     throw new Exception("AttachmentAlt is empty");
                 }
-
-                var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
-                    attachment.AttachmentUrl,
-                    publicId: Guid.NewGuid().ToString(),
-                    folderName: FolderAttachment.REQUEST
-                );
-
+                var uploadedUrl = await UploadFile(attachment.AttachmentUrl, FolderAttachment.REQUEST);
                 requestAttachments.Add(new RequestAttachment
                 {
                     AttachmentUrl = uploadedUrl,
@@ -725,11 +722,8 @@ namespace Chillde.Services.Services
                     throw new Exception("AttachmentAlt is empty");
                 }
 
-                var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
-                    attachment.AttachmentUrl,
-                    publicId: Guid.NewGuid().ToString(),
-                    folderName: FolderAttachment.REQUESTATTRIBUTE
-                );
+     
+                var uploadedUrl = await UploadFile(attachment.AttachmentUrl, FolderAttachment.REQUESTATTRIBUTE);
 
                 attributeAttachments.Add(new RequestAttributeAttachment
                 {
@@ -751,15 +745,12 @@ namespace Chillde.Services.Services
                 });
             }
         }
+        #endregion
 
-        public Task<ResponseModel> GetById(Guid id, string sourceLanguageCode, string targetLanguage)
-        {
-            throw new NotImplementedException();
-        }
-
+        #region get request detail
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
-            var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.Item) .Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments) .Include(_ => _.RequestAttachments));
+            var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.Item).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
             var requestModel = new RequestGetByIdModel
             {
                 Id = request.Id,
@@ -800,118 +791,204 @@ namespace Chillde.Services.Services
             };
             return new ResponseModel { Data = requestModel };
         }
+        #endregion
 
+        #region update request
         public async Task<ResponseModel> UpdateRequestAsync(Guid requestId, RequestUpdateModel requestUpdateModel)
         {
-            var request = await _unitOfWork.RequestRepository.GetAsync(requestId);
-            if (request == null)
+            try
             {
-                return new ResponseModel { Code = StatusCodes.Status404NotFound, Message = "Request not found." };
+                var request = await _unitOfWork.RequestRepository.GetAsync(requestId,
+                    include: _ => _.Include(_ => _.Item)
+                                   .Include(_ => _.RequestAttributes)
+                                   .ThenInclude(_ => _.RequestAttributeValues)
+                                   .Include(_ => _.RequestAttributes)
+                                   .ThenInclude(_ => _.RequestAttributeAttachments)
+                                   .Include(_ => _.RequestAttachments));
+
+                if (request == null)
+                {
+                    return new ResponseModel { Message = "Request not found.", Code = StatusCodes.Status404NotFound };
+                }
+
+                request.MinBudget = requestUpdateModel.MinBudget ?? request.MinBudget;
+                request.MaxBudget = requestUpdateModel.MaxBudget ?? request.MaxBudget;
+                request.Timeline = requestUpdateModel.Timeline ?? request.Timeline;
+
+                if (requestUpdateModel.RequestAttributes != null)
+                {
+                    await UpdateRequestAttributes(request, (List<RequestAttributeUpdateModel>)requestUpdateModel.RequestAttributes);
+                }
+
+                if (requestUpdateModel.RequestAttachments != null)
+                {
+                    await UpdateRequestAttachments(request, (List<RequestAttachmentUpdateModel>)requestUpdateModel.RequestAttachments);
+                }
+
+                await _unitOfWork.SaveChangeAsync();
+                return new ResponseModel { Message = "Request updated successfully." };
             }
-
-            request.MinBudget = requestUpdateModel.MinBudget;
-            request.MaxBudget = requestUpdateModel.MaxBudget;
-            request.Timeline = requestUpdateModel.Timeline;
-
-            // Update existing attributes
-            foreach (var attributeModel in requestUpdateModel.RequestAttributes)
+            catch (Exception ex)
             {
-                var existingAttribute = request.RequestAttributes.FirstOrDefault(a => a.Id == attributeModel.Id);
+                return new ResponseModel { Message = $"An error occurred: {ex.Message}", Code = StatusCodes.Status500InternalServerError };
+            }
+        }
+        private async Task UpdateRequestAttributes(Request request, List<RequestAttributeUpdateModel> attributes)
+        {
+            foreach (var attributeModel in attributes)
+            {
+                var existingAttribute = request.RequestAttributes.FirstOrDefault(_ => _.Id == attributeModel.Id);
+
                 if (existingAttribute != null)
                 {
-                    // Update attribute values
-                    foreach (var valueModel in attributeModel.RequestAttributeValueAddModels)
-                    {
-                        var existingValue = existingAttribute.RequestAttributeValues.FirstOrDefault(v => v.Id == valueModel.Id);
-                        if (existingValue != null)
-                        {
-                            existingValue.Value = valueModel.Value;
-                        }
-                        else
-                        {
-                            existingAttribute.RequestAttributeValues.Add(new RequestAttributeValue
-                            {
-                                Value = valueModel.Value,
-                                IntOrder = existingAttribute.RequestAttributeValues.Count
-                            });
-                        }
-                    }
-
-                    // Update attribute attachments
-                    foreach (var attachmentModel in attributeModel.RequestAttributeAttachmentAddModels)
-                    {
-                        var existingAttachment = existingAttribute.RequestAttributeAttachments.FirstOrDefault(v => v.Id == attachmentModel.Id);
-                        if (existingAttachment != null)
-                        {
-                            existingAttachment.AttachmentUrl = attachmentModel.AttachmentUrl;
-                            existingAttachment.AttachmentAlt = attachmentModel.AttachmentAlt;
-                        }
-                        else
-                        {
-                            existingAttribute.RequestAttributeAttachments.Add(new RequestAttributeAttachment
-                            {
-                                AttachmentUrl = attachmentModel.AttachmentUrl,
-                                AttachmentAlt = attachmentModel.AttachmentAlt
-                            });
-                        }
-                    }
+                    await UpdateExistingAttribute(existingAttribute, attributeModel);
                 }
-                else if (attributeModel.Type == ItemAttributeType.File)
+                else if (!string.IsNullOrEmpty(attributeModel.Name))
                 {
-                    // Add new attribute if type is 5 (File)
                     var newAttribute = new RequestAttribute
                     {
                         Name = attributeModel.Name,
-                        Type = attributeModel.Type,
-                        RequestId = requestId,
+                        Type = (ItemAttributeType)attributeModel.Type,
+                        RequestId = request.Id,
                         RequestAttributeValues = new List<RequestAttributeValue>(),
                         RequestAttributeAttachments = new List<RequestAttributeAttachment>()
                     };
 
-                    foreach (var valueModel in attributeModel.RequestAttributeValueAddModels)
+                    if (newAttribute.Type != ItemAttributeType.File)
                     {
-                        newAttribute.RequestAttributeValues.Add(new RequestAttributeValue
-                        {
-                            Value = valueModel.Value,
-                            IntOrder = newAttribute.RequestAttributeValues.Count
-                        });
+                        AddAttributeValues(newAttribute, (List<RequestAttributeValueUpdateModel>)attributeModel.RequestAttributeValueAddModels);
                     }
-
-                    foreach (var attachmentModel in attributeModel.RequestAttributeAttachmentAddModels)
+                    else
                     {
-                        newAttribute.RequestAttributeAttachments.Add(new RequestAttributeAttachment
-                        {
-                            AttachmentUrl = attachmentModel.AttachmentUrl,
-                            AttachmentAlt = attachmentModel.AttachmentAlt
-                        });
+                        await AddAttributeAttachments(newAttribute, (List<RequestAttributeAttachmentUpdateModel>)attributeModel.RequestAttributeAttachmentAddModels);
                     }
 
                     request.RequestAttributes.Add(newAttribute);
                 }
             }
-
-            // Update request attachments
-            foreach (var attachmentModel in requestUpdateModel.RequestAttachments)
+        }
+        private async Task UpdateExistingAttribute(RequestAttribute existingAttribute, RequestAttributeUpdateModel attributeModel)
+        {
+            if (existingAttribute.Type != ItemAttributeType.File && attributeModel.RequestAttributeValueAddModels != null)
             {
-                var existingAttachment = request.RequestAttachments.FirstOrDefault(a => a.Id == attachmentModel.Id);
+                AddAttributeValues(existingAttribute, (List<RequestAttributeValueUpdateModel>)attributeModel.RequestAttributeValueAddModels);
+            }
+            else if (existingAttribute.Type == ItemAttributeType.File && attributeModel.RequestAttributeAttachmentAddModels != null)
+            {
+                await AddOrUpdateAttributeAttachments(existingAttribute, (List<RequestAttributeAttachmentUpdateModel>)attributeModel.RequestAttributeAttachmentAddModels);
+            }
+        }
+        private void AddAttributeValues(RequestAttribute attribute, List<RequestAttributeValueUpdateModel> values)
+        {
+            foreach (var valueModel in values)
+            {
+                if (!string.IsNullOrEmpty(valueModel.Value))
+                {
+                    var existingValue = attribute.RequestAttributeValues.FirstOrDefault(_ => _.Id == valueModel.Id);
+
+                    if (existingValue != null)
+                    {
+                        existingValue.Value = valueModel.Value;
+                    }
+                    else
+                    {
+                        attribute.RequestAttributeValues.Add(new RequestAttributeValue
+                        {
+                            Value = valueModel.Value,
+                            IntOrder = attribute.RequestAttributeValues.Any() ? attribute.RequestAttributeValues.Max(_ => _.IntOrder) + 1 : 1
+                        });
+                    }
+                }
+            }
+        }
+        private async Task AddOrUpdateAttributeAttachments(RequestAttribute attribute, List<RequestAttributeAttachmentUpdateModel> attachments)
+        {
+            foreach (var attachmentModel in attachments)
+            {
+                var existingAttachment = attribute.RequestAttributeAttachments.FirstOrDefault(_ => _.Id == attachmentModel.Id);
+
                 if (existingAttachment != null)
                 {
-                    existingAttachment.AttachmentUrl = attachmentModel.AttachmentUrl;
-                    existingAttachment.AttachmentAlt = attachmentModel.AttachmentAlt;
+                    existingAttachment.AttachmentUrl = attachmentModel.AttachmentUrl != null
+                        ? await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.REQUESTATTRIBUTE)
+                        : existingAttachment.AttachmentUrl;
+
+                    existingAttachment.AttachmentAlt = attachmentModel.AttachmentAlt ?? existingAttachment.AttachmentAlt;
                 }
                 else
                 {
-                    request.RequestAttachments.Add(new RequestAttachment
-                    {
-                        AttachmentUrl = attachmentModel.AttachmentUrl,
-                        AttachmentAlt = attachmentModel.AttachmentAlt,
-                        RequestId = requestId
-                    });
+                    await AddAttributeAttachments(attribute, new List<RequestAttributeAttachmentUpdateModel> { attachmentModel });
                 }
             }
-
-            await _unitOfWork.SaveChangeAsync();
-            return new ResponseModel { Success = true, Message = "Request updated successfully." };
         }
+        private async Task AddAttributeAttachments(RequestAttribute attribute, List<RequestAttributeAttachmentUpdateModel> attachments)
+        {
+            foreach (var attachmentModel in attachments)
+            {
+                if (string.IsNullOrEmpty(attachmentModel.AttachmentAlt))
+                {
+                    throw new ArgumentException("AttachmentAlt is required");
+                }
+
+                attribute.RequestAttributeAttachments.Add(new RequestAttributeAttachment
+                {
+                    AttachmentUrl = attachmentModel.AttachmentUrl != null ? await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.REQUESTATTRIBUTE) : null,
+                    AttachmentAlt = attachmentModel.AttachmentAlt
+                });
+            }
+        }
+        private async Task UpdateRequestAttachments(Request request, List<RequestAttachmentUpdateModel> attachments)
+        {
+            foreach (var attachmentModel in attachments)
+            {
+                var existingAttachment = request.RequestAttachments.FirstOrDefault(_ => _.Id == attachmentModel.Id);
+
+                if (existingAttachment != null)
+                {
+                    existingAttachment.AttachmentUrl = attachmentModel.AttachmentUrl != null
+                        ? await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.REQUEST)
+                        : existingAttachment.AttachmentUrl;
+
+                    existingAttachment.AttachmentAlt = attachmentModel.AttachmentAlt ?? existingAttachment.AttachmentAlt;
+                }
+                else
+                {
+                    await AddNewRequestAttachments(request, new List<RequestAttachmentUpdateModel> { attachmentModel });
+                }
+            }
+        }
+        private async Task AddNewRequestAttachments(Request request, List<RequestAttachmentUpdateModel> attachments)
+        {
+            foreach (var attachmentModel in attachments)
+            {
+                if (string.IsNullOrEmpty(attachmentModel.AttachmentAlt))
+                {
+                    throw new ArgumentException("AttachmentAlt is required");
+                }
+
+                request.RequestAttachments.Add(new RequestAttachment
+                {
+                    AttachmentUrl = attachmentModel.AttachmentUrl != null ? await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.REQUEST) : null,
+                    AttachmentAlt = attachmentModel.AttachmentAlt
+                });
+            }
+        }
+        #endregion
+        private async Task<string> UploadFile(IFormFile fileUrl, string folderName)
+        {
+            if (fileUrl == null)
+            {
+                throw new ArgumentException("File URL cannot be null or empty.");
+            }
+
+            return await _cloudinaryHelper.UploadImageAsync(
+                fileUrl,
+                publicId: Guid.NewGuid().ToString(),
+                folderName: folderName
+            );
+        }
+
+
+
     }
 }
