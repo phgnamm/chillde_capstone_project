@@ -158,6 +158,11 @@ public static class Configuration
             client.BaseAddress = new Uri(configuration["GhnSettings:BaseUrl"]!);
             client.DefaultRequestHeaders.Add("Token", configuration["GhnSettings:Token"]);
         });
+        // GHTKClient
+        services.AddHttpClient("GhtkClient", client =>
+        {
+            client.DefaultRequestHeaders.Add("Token", configuration["GhtkSettings:Token"]);
+        });
         #endregion
 
         #region Middleware
@@ -324,6 +329,10 @@ public static class Configuration
 
         //UserActivityLog
         services.AddScoped<IUserActivityLogRepository, UserActivityLogRepository>();
+
+        //SystemConfig
+        services.AddScoped<ISystemConfigRepository, SystemConfigRepository>();
+        services.AddScoped<ISystemConfigService, SystemConfigService>();
 
         //SearchHistory
         services.AddScoped<IElasticsearchService, ElasticsearchService>();

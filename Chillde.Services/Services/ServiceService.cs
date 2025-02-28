@@ -21,6 +21,7 @@ using Chillde.Services.Utils;
 using Nest;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Enums;
 
 namespace Chillde.Services.Services
 {
@@ -277,7 +278,7 @@ namespace Chillde.Services.Services
                     Description = serviceAddModel.Description,
                     IsOffer = serviceAddModel.IsOffer,
                     ItemId = serviceAddModel.ItemId,
-                    Status = Repositories.Enums.ServiceStatus.Active,
+                    Status = ServiceStatus.Inactive,
                     EmbeddingVector = embeddingVector
                 };
 
@@ -372,9 +373,32 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                service.Status = serviceUpdateModel.Status;
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
 
-                _unitOfWork.ServiceRepository.Update(service);
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
+
+                if (!anyOrder.Result)
+                {
+                    _mapper.Map(serviceUpdateModel, service);
+                    _unitOfWork.ServiceRepository.Update(service);
+                }
+                else
+                {
+                    _unitOfWork.ServiceRepository.SoftRemove(service);
+                    Service newService = _mapper.Map<Service>(serviceUpdateModel);
+                    newService.CreatedById = currentUserId;
+                    newService.ItemId = service.ItemId;
+                    await _unitOfWork.ServiceRepository.AddAsync(newService);                    
+                }
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
@@ -407,7 +431,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrder(id);
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
 
                 if (anyOrder.Result == false)
                 {
@@ -489,72 +513,79 @@ namespace Chillde.Services.Services
                     };
                 }
                 await _unitOfWork.BeginTransactionAsync();
+
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
-                if (numberOfExistedPackage >= 3)
+                var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
+                if (numberOfExistedPackage >= int.Parse(maximumPackage!))
                 {
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status422UnprocessableEntity,
-                        Message = "Number of packages cannot exceed 3."
+                        Message = $"Number of packages cannot exceed {maximumPackage}."
                     };
                 }
-                var fieldsToTranslate = new Dictionary<string, string>
-                {
-                    { "Name", packageAddModel.Name },
-                    { "Description", packageAddModel.Description }
-                };
-                var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
-                if (translationResponse.Code != StatusCodes.Status200OK)
-                {
-                    throw new Exception("Failed to translate fields.");
-                }
-                string translatedName = translationResponse.TranslatedFields["Name"];
-                string translatedDescription = translationResponse.TranslatedFields["Description"];
+                //var fieldsToTranslate = new Dictionary<string, string>
+                //{
+                //    { "Name", packageAddModel.Name },
+                //    { "Description", packageAddModel.Description }
+                //};
+                //var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+                ////if (translationResponse.Code != StatusCodes.Status200OK)
+                ////{
+                ////    throw new Exception("Failed to translate fields.");
+                ////}
+                //string translatedName = translationResponse.TranslatedFields["Name"];
+                //string translatedDescription = translationResponse.TranslatedFields["Description"];
 
                 var package = new Package
                 {
-                    Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
-                    Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
+                    //Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
+                    //Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
+                    Name = (++numberOfExistedPackage).ToString(),
+                    Description = packageAddModel.Description,
                     Price = packageAddModel.Price,
                     ServiceId = serviceId,
+                    DeliveryTime = packageAddModel.DeliveryTime,
+                    SketchRevision = packageAddModel.SketchRevision,
+                    DeliveryRevision = packageAddModel.DeliveryRevision
                 };
 
                 await _unitOfWork.PackageRepository.AddAsync(package);
-                var translations = new List<Translation>();
-                Guid? languageId = null;
-                if (sourceLanguageCode != "en")
-                {
-                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
-                }
-                else
-                {
-                    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
-                }
-                if (!string.IsNullOrEmpty(packageAddModel.Name))
-                {
-                    translations.Add(new Translation
-                    {
-                        Id = Guid.NewGuid(),
-                        EntityType = "Request",
-                        EntityId = package.Id,
-                        FieldName = "Name",
-                        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Name : translatedName,
-                        LanguageId = languageId.Value
-                    });
-                }
-                if (!string.IsNullOrEmpty(packageAddModel.Description))
-                {
-                    translations.Add(new Translation
-                    {
-                        Id = Guid.NewGuid(),
-                        EntityType = "Request",
-                        EntityId = package.Id,
-                        FieldName = "Description",
-                        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Description : translatedDescription,
-                        LanguageId = languageId.Value
-                    });
-                }
-                await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
+                //var translations = new List<Translation>();
+                //Guid? languageId = null;
+                //if (sourceLanguageCode != "en")
+                //{
+                //    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+                //}
+                //else
+                //{
+                //    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                //}
+                //if (!string.IsNullOrEmpty(packageAddModel.Name))
+                //{
+                //    translations.Add(new Translation
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        EntityType = "Request",
+                //        EntityId = package.Id,
+                //        FieldName = "Name",
+                //        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Name : translatedName,
+                //        LanguageId = languageId.Value
+                //    });
+                //}
+                //if (!string.IsNullOrEmpty(packageAddModel.Description))
+                //{
+                //    translations.Add(new Translation
+                //    {
+                //        Id = Guid.NewGuid(),
+                //        EntityType = "Request",
+                //        EntityId = package.Id,
+                //        FieldName = "Description",
+                //        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Description : translatedDescription,
+                //        LanguageId = languageId.Value
+                //    });
+                //}
+                //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
@@ -660,6 +691,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
         public async Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId)
         {
             try
@@ -728,7 +760,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
 
         public async Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel)
         {

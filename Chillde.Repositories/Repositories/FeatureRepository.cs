@@ -13,5 +13,16 @@ namespace Chillde.Repositories.Repositories
         public FeatureRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
+
+        public async Task<bool> HasAnyOrderByFeature(Guid featureId)
+        {
+            var hasCompletedOrder = _dbSet
+                .Where(f => f.Id == featureId)
+                .SelectMany(f => f.PackageFeatures)
+                .Select(_ => _.Package)
+                .Select(pf => pf.Orders)
+                .Any();
+            return hasCompletedOrder;
+        }
     }
 }

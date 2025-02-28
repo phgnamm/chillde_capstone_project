@@ -86,8 +86,6 @@ public class AppDbContext : DbContext
             entity.Property(serviceCollection => serviceCollection.CreatedById).IsRequired();
         });
 
-        modelBuilder.Entity<Shipment>(entity => { entity.Property(shipment => shipment.Code).HasMaxLength(50); });
-
         modelBuilder.Entity<ShippingAddress>(entity =>
         {
             entity.Property(shippingAddress => shippingAddress.FullName).HasMaxLength(50);
@@ -114,7 +112,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
         modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
         modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
-        modelBuilder.Entity<SystemConfig>(entity =>{ entity.Property(e => e.Value).HasColumnType("jsonb"); });
+        modelBuilder.Entity<SystemConfig>(entity => { entity.Property(e => e.Value).HasColumnType("jsonb"); });
 
 
         #endregion
@@ -122,9 +120,9 @@ public class AppDbContext : DbContext
         #region Relationship Configuration
 
         modelBuilder.Entity<Shipment>()
-            .HasOne(a => a.Order)
-            .WithOne(w => w.Shipment)
-            .HasForeignKey<Order>(w => w.ShipmentId);
+                .HasOne(a => a.Order)
+                .WithMany(w => w.Shipments)
+                .HasForeignKey(a => a.OrderId);
         modelBuilder.Entity<Translation>(entity =>
         {
             entity.HasKey(t => new { t.EntityType, t.EntityId, t.FieldName, t.LanguageId });
@@ -135,6 +133,7 @@ public class AppDbContext : DbContext
         });
         modelBuilder.Entity<SystemConfig>(entity =>
         {
+            entity.Ignore(e => e.Id);
             entity.HasKey(sc => new { sc.EntityType, sc.FieldName });
         });
 
@@ -183,7 +182,8 @@ public class AppDbContext : DbContext
     public DbSet<WalletHistory> WalletHistory { get; set; }
     public DbSet<SystemConfig> SystemConfigs { get; set; }
     public DbSet<UserActivityLog> UserActivityLogs { get; set; }
-    public DbSet<RequestAttachment> RequestAttachments  { get; set; }
+    public DbSet<RequestAttachment> RequestAttachments { get; set; }
+    public DbSet<ProductShipment> ProductShipment { get; set; }
 
     #endregion
 }

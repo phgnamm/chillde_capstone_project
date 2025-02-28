@@ -1,203 +1,164 @@
-﻿using Chillde.Repositories.Interfaces;
+﻿using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
-using System.Text;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Configuration;
-
+using System.Text.Json.Nodes;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
     {
-        private readonly string? _shopId;
         private readonly HttpClient _httpClient;
-        private readonly IUnitOfWork _unitOfWork;
 
 
-        public ShipmentService(IConfiguration configuration, IUnitOfWork unitOfWork, IHttpClientFactory httpClientFactory)
-
+        public ShipmentService(IHttpClientFactory httpClientFactory)
         {
-            _shopId = configuration["GhnSettings:ShopId"];
-            _unitOfWork = unitOfWork;
-            _httpClient = httpClientFactory.CreateClient("GhnClient");
+            _httpClient = httpClientFactory.CreateClient("GhtkClient");
 
         }
 
-        
-
-        public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel? requestModel)
+        public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
-            if (requestModel == null || requestModel.Weight <= 0 || string.IsNullOrEmpty(requestModel.ToWardCode))
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid shipping fee request",
-                    Data = null
-                };
-            }
+            var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
+                      $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
+                      $"province={Uri.EscapeDataString(requestModel.Province)}&" +
+                      $"district={Uri.EscapeDataString(requestModel.District)}&" +
+                      $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
+                      $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
+                      $"weight={requestModel.Weight}&" +
+                      $"value={requestModel.Value}&" +
+                      $"deliver_option={requestModel.DeliverOption}";
 
-            var requestPayload = new
-            {
-                from_district_id = requestModel.FromDistrictId,
-                from_ward_code = requestModel.FromWardCode,
-                service_id = requestModel.ServiceId,
-                service_type_id = requestModel.ServiceTypeId,
-                to_district_id = requestModel.ToDistrictId,
-                to_ward_code = requestModel.ToWardCode,
-                height = requestModel.Height > 0 ? requestModel.Height : null,
-                length = requestModel.Length > 0 ? requestModel.Length : null,
-                width = requestModel.Width > 0 ? requestModel.Width : null,
-                weight = requestModel.Weight,
-                insurance_value = requestModel.InsuranceValue > 0 ? (int?)requestModel.InsuranceValue : null,
-                cod_failed_amount = requestModel.CodFailedAmount > 0 ? (int?)requestModel.CodFailedAmount : null,
-                coupon = requestModel.Coupon
-            };
-
-            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8,
-                "application/json");
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             try
             {
-                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                var response = await _httpClient.PostAsync("v2/shipping-order/fee", content);
+                var response = await _httpClient.SendAsync(requestMessage);
+                response.EnsureSuccessStatusCode();
 
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new ResponseModel
-                    {
-                        Code = (int)response.StatusCode,
-                        Message = "Failed to calculate shipping fee",
-                        Data = null
-                    };
-                }
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
 
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
-                var feeData = jsonObject?["data"]?.ToObject<ShippingFeeResponseModel>();
+                var shipmentData = jsonObject?["fee"]?.ToObject<ShippingFeeResponseModel>();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
-                    Message = "Shipping fee calculated successfully",
-                    Data = feeData
-                };
-            }
-            catch (Exception ex)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = "An error occurred while calculating shipping fee",
-                    Data = ex.Message
-                };
-            }
-        }
-        public async Task<ResponseModel> GetShipmentDetailAsync(string orderCode)
-        {
-            if (string.IsNullOrEmpty(orderCode))
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Order code is required",
-                    Data = null
-                };
-            }
-
-            var requestPayload = new { order_code = orderCode };
-            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8, "application/json");
-
-            try
-            {
-                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                var response = await _httpClient.PostAsync("v2/shipping-order/detail", content);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    return new ResponseModel
-                    {
-                        Code = (int)response.StatusCode,
-                        Message = "Failed to retrieve shipment details",
-                        Data = null
-                    };
-                }
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
-                var shipmentData = jsonObject?["data"]?.ToObject<ShipmentDetailResponseModel>();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Shipment details retrieved successfully",
+                    Message = "Success",
                     Data = shipmentData
                 };
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = "An error occurred while retrieving shipment details",
-                    Data = ex.Message
+                    Message = ex.Message,
+                    Data = null
                 };
             }
         }
 
-        public async Task<ResponseModel> SwitchToReturnStatusAsync(string orderCode)
+        public async Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder)
         {
-            if (string.IsNullOrEmpty(orderCode))
+            var url = $"https://services.giaohangtietkiem.vn/services/shipment/cancel/{trackingOrder}";
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            try
+            {
+                var response = await _httpClient.SendAsync(requestMessage);
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+                var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
+
+                if (cancelResponse != null) return cancelResponse;
+            }
+            catch (HttpRequestException ex)
+            {
+                return new CancelShipmentResponseModel
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    LogId = null
+                };
+            }
+
+            return null!;
+        }
+
+        public async Task<ResponseModel> GetOrderStatusAsync(string trackingOrder)
+        {
+            if (string.IsNullOrEmpty(trackingOrder))
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "Order code is required",
+                    Message = "Tracking order is required.",
                     Data = null
                 };
             }
 
-            var requestPayload = new { order_codes = new[] { orderCode } };
-            var content = new StringContent(JsonConvert.SerializeObject(requestPayload), Encoding.UTF8, "application/json");
+            var url = $"https://services.giaohangtietkiem.vn/services/shipment/v2/{trackingOrder}";
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             try
             {
-                _httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                var response = await _httpClient.PostAsync("/v2/switch-status/return", content);
+                var response = await _httpClient.SendAsync(requestMessage);
+                response.EnsureSuccessStatusCode(); 
 
-                if (!response.IsSuccessStatusCode)
+                var content = await response.Content.ReadAsStringAsync();
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+
+                if (jsonObject?["success"]?.Value<bool>() == true)
+                {
+                    var orderStatusResponse = jsonObject["order"]?.ToObject<OrderStatusResponseModel>();
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Success",
+                        Data = orderStatusResponse
+                    };
+                }
+                else
                 {
                     return new ResponseModel
                     {
-                        Code = (int)response.StatusCode,
-                        Message = "Failed to switch status to return",
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = jsonObject?["message"]?.ToString() ?? "Unknown error",
                         Data = null
                     };
                 }
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
-                var switchStatusData = jsonObject?["data"]?.ToObject<List<SwitchStatusResponseModel>>();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Status switched to return successfully",
-                    Data = switchStatusData
-                };
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = "An error occurred while switching status to return",
-                    Data = ex.Message
+                    Message = ex.Message,
+                    Data = null
                 };
+            }
+        }
+
+        public async Task<byte[]> GetShippingLabelAsync(string trackingOrder)
+        {
+            string url = $"https://services.giaohangtietkiem.vn/services/services/label/{trackingOrder}";
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            var response = await _httpClient.SendAsync(requestMessage);
+            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+            else
+            {
+                throw new Exception($"Lỗi khi in nhãn đơn hàng: {await response.Content.ReadAsStringAsync()}");
             }
         }
     }

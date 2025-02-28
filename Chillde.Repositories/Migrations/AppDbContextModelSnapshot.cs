@@ -801,9 +801,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("ShipmentCode")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ShipmentId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("Stage")
                         .HasColumnType("integer");
 
@@ -829,9 +826,6 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("PackageId");
-
-                    b.HasIndex("ShipmentId")
-                        .IsUnique();
 
                     b.ToTable("Orders");
                 });
@@ -1191,6 +1185,57 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.ProductShipment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ShipmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Weight")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ShipmentId");
+
+                    b.ToTable("ProductShipment");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
@@ -1749,9 +1794,8 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Code")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                    b.Property<string>("Area")
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
@@ -1765,20 +1809,23 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("FromDistrictId")
-                        .HasColumnType("integer");
+                    b.Property<string>("EstimatedDeliverTime")
+                        .HasColumnType("text");
 
-                    b.Property<int?>("FromWardCode")
-                        .HasColumnType("integer");
+                    b.Property<string>("EstimatedPickTime")
+                        .HasColumnType("text");
 
-                    b.Property<int?>("Height")
-                        .HasColumnType("integer");
+                    b.Property<decimal>("Fee")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("InsuranceFee")
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("Length")
-                        .HasColumnType("integer");
+                    b.Property<string>("Label")
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("timestamp with time zone");
@@ -1789,25 +1836,18 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal?>("ShippingFee")
-                        .HasColumnType("numeric");
+                    b.Property<string>("PartnerId")
+                        .HasColumnType("text");
 
-                    b.Property<int>("Status")
+                    b.Property<int>("StatusId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ToDistrictId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ToWardCode")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal?>("Weight")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("Width")
-                        .HasColumnType("integer");
+                    b.Property<string>("TrackingId")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Shipment");
                 });
@@ -1957,9 +1997,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2351,15 +2388,9 @@ namespace Chillde.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Chillde.Repositories.Entities.Shipment", "Shipment")
-                        .WithOne("Order")
-                        .HasForeignKey("Chillde.Repositories.Entities.Order", "ShipmentId");
-
                     b.Navigation("CreatedBy");
 
                     b.Navigation("Package");
-
-                    b.Navigation("Shipment");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderInformation", b =>
@@ -2459,6 +2490,17 @@ namespace Chillde.Repositories.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.ProductShipment", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Shipment", "Shipment")
+                        .WithMany("Payments")
+                        .HasForeignKey("ShipmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Shipment");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
@@ -2602,6 +2644,17 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("ServiceCollection");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Shipment", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Order", "Order")
+                        .WithMany("Shipments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.ShippingAddress", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
@@ -2725,6 +2778,8 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("OrderTrackings");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("Shipments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderInformation", b =>
@@ -2792,8 +2847,7 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Shipment", b =>
                 {
-                    b.Navigation("Order")
-                        .IsRequired();
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.SubCategory", b =>

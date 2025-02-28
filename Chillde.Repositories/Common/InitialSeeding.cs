@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace Chillde.Repositories.Common;
 
@@ -9,11 +10,12 @@ namespace Chillde.Repositories.Common;
 /// </summary>
 public static class InitialSeeding
 {
+
     private static readonly List<Entities.Role> Roles = new()
     {
         new() { Name = Enums.Role.Admin.ToString() },
         new() { Name = Enums.Role.Customer.ToString() },
-        new() { Name = Enums.Role.Artist.ToString() }
+        new() { Name = Enums.Role.Artisan.ToString() }
     };
 
     private static readonly List<Wallet> Wallets = new()
@@ -57,6 +59,24 @@ public static class InitialSeeding
             new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
             new() { Id = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"), Code = "SC08", Name = "Earrings", CategoryId = Categories[2].Id},
             new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
+    };
+
+    private static readonly List<SystemConfig> systemConfigs = new()
+    {
+        new() { EntityType = ConfigType.Security, FieldName = "AccessTokenValidityInMinutes", Value = JsonDocument.Parse("\"5\"") },
+        new() { EntityType = ConfigType.Security, FieldName = "RefreshTokenValidityInDays", Value = JsonDocument.Parse("\"7\"") },
+        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeValidityInMinutes", Value = JsonDocument.Parse("\"15\"") },
+        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("\"6\"") },
+        new() { EntityType = ConfigType.Security, FieldName = "ResetPasswordTokenValidityInMinutes", Value = JsonDocument.Parse("\"15\"") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("\"10\"") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("\"50\"") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("\"20\"") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("\"10\"") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("\"100\"") },
+        new() { EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes", Value = JsonDocument.Parse("\"60\"") },
+        new() { EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes", Value = JsonDocument.Parse("\"30\"") },
+        new() { EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3") },
+        new() { EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15") }
     };
 
     private static readonly List<Item> Items = new()
@@ -283,6 +303,14 @@ public static class InitialSeeding
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
 
+        foreach (var config in systemConfigs)
+        {
+            if (!context.SystemConfigs.Any(c => c.EntityType == config.EntityType && c.FieldName == config.FieldName))
+            {
+                config.CreationDate = DateTime.UtcNow;
+                context.SystemConfigs.Add(config);
+            }
+        }
         // Seed Roles
         foreach (var role in Roles)
         {

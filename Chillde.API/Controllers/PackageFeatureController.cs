@@ -1,6 +1,7 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@ namespace Chillde.API.Controllers
             _packageFeatureService = packageFeatureService;
         }
 
-        //[Authorize("Artist")]
+        //[Authorize("Artisan")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] PackageFeatureUpdateModel model, Guid id)
         {
@@ -36,7 +37,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artist, Admin")]
+        //[Authorize("Artisan, Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePackageFeature(Guid id)
         {

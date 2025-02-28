@@ -1,9 +1,13 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 using System.Linq.Expressions;
 
@@ -13,11 +17,13 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ITranslationService _translationService;
 
-        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService)
         {
-            _unitOfWork = unitOfWork; 
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _translationService = translationService;
         }
 
         public async Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id)
@@ -34,9 +40,22 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                _mapper.Map(packageFeatureUpdateModel, packageFeature);
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId);
 
-                _unitOfWork.PackageFeatureRepository.Update(packageFeature);
+                if (!anyOrder.Result)
+                {
+                    _mapper.Map(packageFeatureUpdateModel, packageFeature);
+                    _unitOfWork.PackageFeatureRepository.Update(packageFeature);
+                }
+                else
+                {
+                    _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);
+                    PackageFeature newPackageFeature = _mapper.Map<PackageFeature>(packageFeatureUpdateModel);
+                    newPackageFeature.PackageId = packageFeature.PackageId;
+                    newPackageFeature.FeatureId = packageFeature.FeatureId;
+                    await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
+                }
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
@@ -69,16 +88,9 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                Expression<Func<Repositories.Entities.Order, bool>> filter = order =>
-                         order.PackageId == packageFeature.PackageId &&
-                         order.IsDeleted == false;
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId);
 
-                var orders = await _unitOfWork.OrderRepository.GetAllAsync(
-                    filter: filter,
-                    include: null
-                );
-
-                if (orders.TotalCount == 0)
+                if (!anyOrder.Result)
                 {
                     _unitOfWork.PackageFeatureRepository.HardRemove(packageFeature);
                 }
@@ -86,7 +98,7 @@ namespace Chillde.Services.Services
                 {
                     _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);
                 }
-                    
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel

@@ -1,8 +1,6 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.ShipmentModels;
-using Chillde.Services.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -20,7 +18,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize]
         [HttpPost("calculate-fee")]
-        public async Task<IActionResult>CalculateFee([FromBody] ShippingFeeRequestModel shippingFeeRequestModel)
+        public async Task<IActionResult> CalculateFee([FromBody] ShippingFeeRequestModel shippingFeeRequestModel)
         {
             try
             {
@@ -36,13 +34,21 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpPost("switch-to-return-status")]
-        public async Task<IActionResult> AddServiceAsync([FromQuery] string orderCode)
+        //[Authorize]
+        [HttpGet("cancel/{trackingCode}")]
+        public async Task<IActionResult> CancelShipmentAsync(string trackingCode)
         {
             try
             {
-                var result = await _shipmentService.SwitchToReturnStatusAsync(orderCode);
-                return StatusCode(result.Code, result);
+                var result = await _shipmentService.CancelShipmentAsync(trackingCode);
+                if (result.Success)
+                {
+                    return Ok(result);
+                }
+                else
+                {
+                    return BadRequest(result.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -53,24 +59,38 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpGet]
-        public async Task<IActionResult> Search([FromQuery] string orderCode)
+        //[Authorize]
+        [HttpGet("print-label/{trackingOrder}")]
+        public async Task<IActionResult> PrintShippingLabel(string trackingOrder)
         {
             try
             {
-                var result = await _shipmentService.GetShipmentDetailAsync(orderCode);
-                return StatusCode(result.Code, result);
+                var pdfBytes = await _shipmentService.GetShippingLabelAsync(trackingOrder);
+                return new FileContentResult(pdfBytes, "application/pdf")
+                {
+                    FileDownloadName = $"shipping-label-{trackingOrder}.pdf",
+                    EnableRangeProcessing = true 
+                };
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
+                return BadRequest(ex.Message);
             }
         }
-
+        //[Authorize]
+        [HttpGet("status/{trackingOrder}")]
+        public async Task<IActionResult> GetOrderStatus(string trackingOrder)
+        {
+            try
+            {
+                var response = await _shipmentService.GetOrderStatusAsync(trackingOrder);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
     }
 }
