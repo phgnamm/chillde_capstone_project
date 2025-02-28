@@ -983,7 +983,6 @@ namespace Chillde.Services.Services
 
             return await _cloudinaryHelper.UploadImageAsync(
                 fileUrl,
-                publicId: Guid.NewGuid().ToString(),
                 folderName: folderName
             );
         }
