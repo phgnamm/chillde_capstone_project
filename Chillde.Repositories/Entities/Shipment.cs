@@ -4,21 +4,19 @@ namespace Chillde.Repositories.Entities;
 
 public class Shipment : BaseEntity
 {
-    public string? Code { get; set; }
-    public int? FromDistrictId { get; set; }
-    public int? FromWardCode { get; set; }
-    public int? ToDistrictId { get; set; }
-    public int? ToWardCode { get; set; }
-    public decimal? ShippingFee { get; set; }
-    public int? Height { get; set; }
-    public int? Width { get; set; }
-    public int? Length { get; set; }
-    public decimal? Weight { get; set; }    
-    public ShipmentStatus Status { get; set; }
-
+    public string? TrackingId { get; set; }
+    public ShipmentStatus StatusId { get; set; }
+    public string? PartnerId { get; set; }
+    public string? Label { get; set; }
+    public string? Area { get; set; }
+    public decimal Fee { get; set; }
+    public decimal InsuranceFee { get; set; }
+    public string? EstimatedPickTime { get; set; }
+    public string? EstimatedDeliverTime { get; set; }
     // Foreign key
     public Guid OrderId { get; set; }
 
     // Relationship
     public Order Order { get; set; } = null!;
+    public virtual ICollection<ProductShipment> Payments { get; set; } = new List<ProductShipment>();
 }
