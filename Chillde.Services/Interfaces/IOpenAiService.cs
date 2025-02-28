@@ -8,5 +8,7 @@ namespace Chillde.Services.Interfaces
         Task<float[]> GetEmbeddingAsync(List<string> texts);
         Task<ResponseModel> GetEventAsync(string sourceLanguage, string targerLanguage);
         Task<ResponseModel> GetStructuredDataAsync(List<string> attributes);
+        //Task<ResponseModel> GetEventAsync(string sourceLanguage, string targerLanguage);
+        ResponseModel GetEvent(string sourceLanguageCode);
     }
 }

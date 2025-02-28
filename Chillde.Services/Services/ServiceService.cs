@@ -941,7 +941,7 @@ namespace Chillde.Services.Services
             }
             else if (serviceFilterModel.IsEvent)
             {
-                var eventDetails = await _openAiService.GetEventAsync(sourceLanguageCode, targetLanguageCode);
+                var eventDetails = _openAiService.GetEvent(sourceLanguageCode);
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetails.Message });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
