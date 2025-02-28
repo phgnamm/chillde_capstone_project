@@ -209,7 +209,7 @@ namespace Chillde.Services.Services
                     newOffer.Message = targetLanguageCode == "en" ? translatedMessage : model.Message;
                 }
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
-
+                var laguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode == "en" ? sourceLanguageCode : targetLanguageCode);
                 if (!string.IsNullOrEmpty(translatedMessage))
                 {
                     var translation = new Translation
@@ -219,9 +219,7 @@ namespace Chillde.Services.Services
                         EntityId = newOffer.Id,
                         FieldName = "Message",
                         TranslationText = targetLanguageCode == "en" ? model.Message : translatedMessage,
-                        LanguageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(
-                            targetLanguageCode == "en" ? sourceLanguageCode : targetLanguageCode
-                        )
+                        LanguageId = laguageId
                     };
                     await _unitOfWork.TranslationRepository.AddAsync(translation);
                 }
@@ -231,8 +229,7 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Offer created successfully.",
-                    Data = newOffer
+                    Message = "Offer created successfully."
                 };
             }
             catch (Exception ex)
