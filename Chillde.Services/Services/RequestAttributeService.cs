@@ -15,6 +15,35 @@ namespace Chillde.Services.Services
             _unitOfWork = unitOfWork;
         }
 
+        public async Task<ResponseModel> RemoveAttribute(Guid id)
+        {
+            var attribute = await _unitOfWork.RequestAttributeRepository.GetAsync(id,
+                _ => _.Include(_ => _.RequestAttributeValues)
+                      .Include(_ => _.RequestAttributeAttachments));
+
+            if (attribute == null)
+            {
+                return new ResponseModel { Message = "Attribute not found.", Code = StatusCodes.Status404NotFound };
+            }
+
+            if (attribute.RequestAttributeValues.Any())
+            {
+                _unitOfWork.RequestAttributeValueRepository.HardRemoveRange(attribute.RequestAttributeValues.ToList());
+            }
+
+            if (attribute.RequestAttributeAttachments.Any())
+            {
+                _unitOfWork.RequestAttributeAttachmentRepository.HardRemoveRange(attribute.RequestAttributeAttachments.ToList());
+            }
+
+            _unitOfWork.RequestAttributeRepository.HardRemove(attribute);
+
+            var result = await _unitOfWork.SaveChangeAsync();
+
+            return result > 0
+                ? new ResponseModel { Message = "Delete attribute successfully" }
+                : new ResponseModel { Message = "Delete attribute unsuccessfully", Code = StatusCodes.Status400BadRequest };
+        }
         public async Task<ResponseModel> RemoveAttributeValue(Guid id)
         {
             var findInAttributeValue = await _unitOfWork.RequestAttributeValueRepository
@@ -53,7 +82,6 @@ namespace Chillde.Services.Services
                 ? new ResponseModel { Message = "Delete value successfully" }
                 : new ResponseModel { Message = "Delete value unsuccessfully", Code = StatusCodes.Status400BadRequest };
         }
-
 
 
     }

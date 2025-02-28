@@ -987,11 +987,6 @@ namespace Chillde.Services.Services
             );
         }
 
-        #region Remove Attribute 
-        public Task<ResponseModel> RemoveAttribute(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
+       
     }
 }

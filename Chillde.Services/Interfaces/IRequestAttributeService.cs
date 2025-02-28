@@ -10,6 +10,7 @@ namespace Chillde.Services.Interfaces
     public interface IRequestAttributeService
     {
         Task<ResponseModel> RemoveAttributeValue(Guid id);
+        Task<ResponseModel> RemoveAttribute(Guid id);
 
     }
 }

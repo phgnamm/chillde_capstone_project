@@ -229,6 +229,7 @@ public static class Configuration
 
         // RequestAttribute
         services.AddScoped<IRequestAttributeRepository, RequestAttributeRepository>();
+        services.AddScoped<IRequestAttributeService, RequestAttributeService>();
 
         // RequestAttributeValue
         services.AddScoped<IRequestAttributeValueRepository, RequestAttributeValueRepository>();

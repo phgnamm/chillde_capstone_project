@@ -191,6 +191,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+    
 
         [HttpGet("{requestId}/offers")]
         public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter, Guid requestId)
