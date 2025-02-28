@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace Chillde.Repositories.Entities
 {
     public class RequestAttributeValue : BaseEntity
     {
-        public string? Value {  get; set; }
+        public string Value {  get; set; }
         public int IntOrder { get; set; }
 
         // Foreign key

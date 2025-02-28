@@ -1,7 +1,9 @@
 ﻿using System.Net;
 using System.Text;
+using Chillde.Services.Utils;
+using Encoder = Chillde.Services.Utils.Encoder;
 
-namespace Chillde.Services.Utils
+namespace Chillde.Services.Helpers
 {
     internal class PaymentHelper
     {

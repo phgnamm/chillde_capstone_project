@@ -200,19 +200,21 @@ namespace Chillde.Services.Services
                 PackageId = orderAddModel.PackageId,
                 OrderInformations = orderAddModel.OrderInformationAddModels!.Select(_ => new OrderInformation
                 {
-                    Description = _.Description,
+                    Quantity = _.Quantity ?? null,
+                    Price = _.Price ?? null,
+                    Description = _.Description ?? null,
                     PackageFeatureId = _.PackageFeatureId
                 }).ToList()
             };
         }
         private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder, decimal totalPrice)
         {
-            var featureIds = orderAddModel.OrderInformationAddModels!.Select(_ => _.PackageFeatureId).ToList();
-            var extraFeatureCost = await _unitOfWork.PackageFeatureRepository.SumPriceOfExtraFeatures(featureIds);
+            var extraFeatureCost = orderAddModel.OrderInformationAddModels!.Sum(_ => _.Quantity * _.Price);
+            //var extraFeatureCost = await _unitOfWork.PackageFeatureRepository.SumPriceOfExtraFeatures(featureIds);
 
             if (extraFeatureCost > 0)
             {
-                totalPrice += extraFeatureCost;
+                totalPrice += (decimal)extraFeatureCost;
                 newOrder.TotalPrice = totalPrice;
             }
         }

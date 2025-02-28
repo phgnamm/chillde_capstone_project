@@ -14,6 +14,10 @@ public class UnitOfWork : IUnitOfWork
         IRefreshTokenRepository refreshTokenRepository,
         IRoleRepository roleRepository,
         IRequestRepository requestRepository,
+        IRequestAttachmentRepository requestAttachmentRepository,
+        IRequestAttributeAttachmentRepository requestAttributeAttachmentRepository,
+        IRequestAttributeValueRepository requestAttributeValueRepository,
+        IRequestAttributeRepository requestAttributeRepository,
         IServiceRepository serviceRepository,
         IFeedbackRepository feedbackRepository,
         IOrderRepository orderRepository,
@@ -37,7 +41,8 @@ public class UnitOfWork : IUnitOfWork
         IShipmentRepository shipmentRepository,
         IPaymentRepository paymentRepository,
         IUserActivityLogRepository userActivityLogRepository,
-        ISystemConfigRepository systemConfigRepository
+        ISystemConfigRepository systemConfigRepository,
+        ISearchHistoryRepository searchHistoryRepository
         )
     {
         Context = context;
@@ -50,6 +55,10 @@ public class UnitOfWork : IUnitOfWork
         RefreshTokenRepository = refreshTokenRepository;
         RoleRepository = roleRepository;
         RequestRepository = requestRepository;
+        RequestAttachmentRepository = requestAttachmentRepository;
+        RequestAttributeAttachmentRepository = requestAttributeAttachmentRepository;
+        RequestAttributeValueRepository = requestAttributeValueRepository;
+        RequestAttributeRepository = requestAttributeRepository;
         ServiceRepository = serviceRepository;
         FeedbackRepository = feedbackRepository;
         OrderRepository = orderRepository;
@@ -73,6 +82,7 @@ public class UnitOfWork : IUnitOfWork
         ShipmentRepository = shipmentRepository;
         PaymentRepository = paymentRepository;
         UserActivityLogRepository = userActivityLogRepository;
+        SearchHistoryRepository = searchHistoryRepository;
         SystemConfigRepository = systemConfigRepository;
     }
 
@@ -111,6 +121,15 @@ public class UnitOfWork : IUnitOfWork
     public IUserActivityLogRepository UserActivityLogRepository { get; }
     public ISystemConfigRepository SystemConfigRepository { get; }
 
+    public ISearchHistoryRepository SearchHistoryRepository { get; }
+
+    public IRequestAttachmentRepository RequestAttachmentRepository { get; }
+
+    public IRequestAttributeAttachmentRepository RequestAttributeAttachmentRepository{ get; }
+
+    public IRequestAttributeValueRepository RequestAttributeValueRepository { get; }
+
+    public IRequestAttributeRepository RequestAttributeRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

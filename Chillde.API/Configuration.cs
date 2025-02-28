@@ -111,7 +111,7 @@ public static class Configuration
         });
 
         //WorkerService
-        services.AddHostedService<WorkerService>();
+        //services.AddHostedService<WorkerService>();
 
 
         services.Configure<RequestLocalizationOptions>(options =>
@@ -224,6 +224,19 @@ public static class Configuration
         services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IRequestService, RequestService>();
 
+        // RequestAttachment
+        services.AddScoped<IRequestAttachmentRepository, RequestAttachmentRepository>();
+
+        // RequestAttribute
+        services.AddScoped<IRequestAttributeRepository, RequestAttributeRepository>();
+        services.AddScoped<IRequestAttributeService, RequestAttributeService>();
+
+        // RequestAttributeValue
+        services.AddScoped<IRequestAttributeValueRepository, RequestAttributeValueRepository>();
+
+        // RequestAttributeAttachment
+        services.AddScoped<IRequestAttributeAttachmentRepository, RequestAttributeAttachmentRepository>();
+
         //Order
         services.AddScoped<IOrderRepository, OrderRepository>();
 
@@ -333,6 +346,10 @@ public static class Configuration
         //SystemConfig
         services.AddScoped<ISystemConfigRepository, SystemConfigRepository>();
         services.AddScoped<ISystemConfigService, SystemConfigService>();
+
+        //SearchHistory
+        services.AddScoped<IElasticsearchService, ElasticsearchService>();
+        services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
 
         #endregion
 

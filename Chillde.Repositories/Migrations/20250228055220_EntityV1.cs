@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 
@@ -118,43 +119,12 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Shipment",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    FromDistrictId = table.Column<int>(type: "integer", nullable: true),
-                    FromWardCode = table.Column<int>(type: "integer", nullable: true),
-                    ToDistrictId = table.Column<int>(type: "integer", nullable: true),
-                    ToWardCode = table.Column<int>(type: "integer", nullable: true),
-                    ShippingFee = table.Column<decimal>(type: "numeric", nullable: true),
-                    Height = table.Column<int>(type: "integer", nullable: true),
-                    Width = table.Column<int>(type: "integer", nullable: true),
-                    Length = table.Column<int>(type: "integer", nullable: true),
-                    Weight = table.Column<decimal>(type: "numeric", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Shipment", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SystemConfigs",
                 columns: table => new
                 {
                     EntityType = table.Column<int>(type: "integer", nullable: false),
                     FieldName = table.Column<string>(type: "text", nullable: false),
                     Value = table.Column<JsonDocument>(type: "jsonb", nullable: false),
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -741,6 +711,7 @@ namespace Chillde.Repositories.Migrations
                     FeedbackCount = table.Column<int>(type: "integer", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Keywords = table.Column<List<string>>(type: "text[]", nullable: false),
                     EmbeddingVector = table.Column<float[]>(type: "real[]", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
@@ -983,7 +954,7 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true),
+                    Value = table.Column<string>(type: "text", nullable: false),
                     IntOrder = table.Column<int>(type: "integer", nullable: false),
                     RequestAttributeId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -1024,7 +995,6 @@ namespace Chillde.Repositories.Migrations
                     Stage = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     PackageId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ShipmentId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -1048,11 +1018,6 @@ namespace Chillde.Repositories.Migrations
                         principalTable: "Packages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Orders_Shipment_ShipmentId",
-                        column: x => x.ShipmentId,
-                        principalTable: "Shipment",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1159,6 +1124,40 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Shipment",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TrackingId = table.Column<string>(type: "text", nullable: true),
+                    StatusId = table.Column<int>(type: "integer", nullable: false),
+                    PartnerId = table.Column<string>(type: "text", nullable: true),
+                    Label = table.Column<string>(type: "text", nullable: true),
+                    Area = table.Column<string>(type: "text", nullable: true),
+                    Fee = table.Column<decimal>(type: "numeric", nullable: false),
+                    InsuranceFee = table.Column<decimal>(type: "numeric", nullable: false),
+                    EstimatedPickTime = table.Column<string>(type: "text", nullable: true),
+                    EstimatedDeliverTime = table.Column<string>(type: "text", nullable: true),
+                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Shipment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Shipment_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderInformation",
                 columns: table => new
                 {
@@ -1216,6 +1215,35 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_OrderTrackingAttachments_OrderTrackings_OrderTrackingId",
                         column: x => x.OrderTrackingId,
                         principalTable: "OrderTrackings",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductShipment",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Weight = table.Column<decimal>(type: "numeric", nullable: false),
+                    Quantity = table.Column<int>(type: "integer", nullable: false),
+                    ProductCode = table.Column<string>(type: "text", nullable: false),
+                    ShipmentId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductShipment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductShipment_Shipment_ShipmentId",
+                        column: x => x.ShipmentId,
+                        principalTable: "Shipment",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1392,12 +1420,6 @@ namespace Chillde.Repositories.Migrations
                 column: "PackageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_ShipmentId",
-                table: "Orders",
-                column: "ShipmentId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_OrderTrackingAttachments_OrderTrackingId",
                 table: "OrderTrackingAttachments",
                 column: "OrderTrackingId");
@@ -1431,6 +1453,11 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_Payments_OrderId",
                 table: "Payments",
                 column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductShipment_ShipmentId",
+                table: "ProductShipment",
+                column: "ShipmentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_AccountId",
@@ -1507,6 +1534,11 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_ServiceWishlists_ServiceId",
                 table: "ServiceWishlists",
                 column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipment_OrderId",
+                table: "Shipment",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ShippingAddresses_CreatedById",
@@ -1611,6 +1643,9 @@ namespace Chillde.Repositories.Migrations
                 name: "Payments");
 
             migrationBuilder.DropTable(
+                name: "ProductShipment");
+
+            migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
@@ -1665,6 +1700,9 @@ namespace Chillde.Repositories.Migrations
                 name: "OrderTrackings");
 
             migrationBuilder.DropTable(
+                name: "Shipment");
+
+            migrationBuilder.DropTable(
                 name: "RequestAttributes");
 
             migrationBuilder.DropTable(
@@ -1687,9 +1725,6 @@ namespace Chillde.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "Packages");
-
-            migrationBuilder.DropTable(
-                name: "Shipment");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

@@ -61,6 +61,8 @@ namespace Chillde.Services.Models.OrderModels
     {
         [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
         public string? Description { get; set; }
+        public int? Quantity { get; set; }
+        public decimal? Price { get; set; }
 
         [Required]
         public Guid PackageFeatureId { get; set; }
