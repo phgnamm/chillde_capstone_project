@@ -469,175 +469,175 @@ namespace Chillde.Services.Services
         //    }
         //}
 
-        public async Task<ResponseModel> Update(Guid id, RequestUpdateModel requestUpdateModel, string sourceLanguageCode, string targetLanguageCode)
-        {
-            if (requestUpdateModel == null || id == Guid.Empty)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid input."
-                };
-            }
+        //public async Task<ResponseModel> Update(Guid id, RequestUpdateModel requestUpdateModel, string sourceLanguageCode, string targetLanguageCode)
+        //{
+        //    if (requestUpdateModel == null || id == Guid.Empty)
+        //    {
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status400BadRequest,
+        //            Message = "Invalid input."
+        //        };
+        //    }
 
-            await _unitOfWork.BeginTransactionAsync();
+        //    await _unitOfWork.BeginTransactionAsync();
 
-            try
-            {
-                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestAttributes));
-                if (existingRequest == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Request not found."
-                    };
-                }
-                var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode != "en" ? targetLanguageCode : sourceLanguageCode);
-                var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Name", languageId);
-                var translationDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Description", languageId);
-                bool changesMade = false;
+        //    try
+        //    {
+        //        var existingRequest = await _unitOfWork.RequestRepository.GetAsync(id, _ => _.Include(_ => _.RequestAttributes));
+        //        if (existingRequest == null)
+        //        {
+        //            return new ResponseModel
+        //            {
+        //                Code = StatusCodes.Status404NotFound,
+        //                Message = "Request not found."
+        //            };
+        //        }
+        //        var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode != "en" ? targetLanguageCode : sourceLanguageCode);
+        //        var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Name", languageId);
+        //        var translationDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync("Request", id, "Description", languageId);
+        //        bool changesMade = false;
 
-                if (!string.Equals(requestUpdateModel.Name, existingRequest.Name, StringComparison.OrdinalIgnoreCase) &&
-                   (translationName != null && !string.Equals(requestUpdateModel.Name, translationName.TranslationText, StringComparison.OrdinalIgnoreCase)))
-                {
-                    var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Name!, sourceLanguageCode, targetLanguageCode);
-                    if (translationResponse.Code != StatusCodes.Status200OK)
-                    {
-                        throw new Exception("Failed to translate Name.");
-                    }
-                    translationName!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : requestUpdateModel.Name!;
-                    existingRequest.Name = targetLanguageCode != "en" ? requestUpdateModel.Name : translationResponse.Message;
-                    _unitOfWork.TranslationRepository.Update(translationName);
-                    changesMade = true;
-                }
+        //        if (!string.Equals(requestUpdateModel.Name, existingRequest.Name, StringComparison.OrdinalIgnoreCase) &&
+        //           (translationName != null && !string.Equals(requestUpdateModel.Name, translationName.TranslationText, StringComparison.OrdinalIgnoreCase)))
+        //        {
+        //            var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Name!, sourceLanguageCode, targetLanguageCode);
+        //            if (translationResponse.Code != StatusCodes.Status200OK)
+        //            {
+        //                throw new Exception("Failed to translate Name.");
+        //            }
+        //            translationName!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : requestUpdateModel.Name!;
+        //            existingRequest.Name = targetLanguageCode != "en" ? requestUpdateModel.Name : translationResponse.Message;
+        //            _unitOfWork.TranslationRepository.Update(translationName);
+        //            changesMade = true;
+        //        }
 
-                if (!string.Equals(requestUpdateModel.Description, existingRequest.Description, StringComparison.OrdinalIgnoreCase) &&
-                   (translationDescription != null && !string.Equals(requestUpdateModel.Description, translationDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
-                {
-                    var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Description!, sourceLanguageCode, targetLanguageCode);
-                    if (translationResponse.Code != StatusCodes.Status200OK)
-                    {
-                        throw new Exception("Failed to translate Description.");
-                    }
+        //        if (!string.Equals(requestUpdateModel.Description, existingRequest.Description, StringComparison.OrdinalIgnoreCase) &&
+        //           (translationDescription != null && !string.Equals(requestUpdateModel.Description, translationDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
+        //        {
+        //            var translationResponse = await _translationService.TranslateAsync(requestUpdateModel.Description!, sourceLanguageCode, targetLanguageCode);
+        //            if (translationResponse.Code != StatusCodes.Status200OK)
+        //            {
+        //                throw new Exception("Failed to translate Description.");
+        //            }
 
-                    translationDescription!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : requestUpdateModel.Description!;
-                    existingRequest.Description = targetLanguageCode != "en" ? requestUpdateModel.Description : translationResponse.Message;
-                    _unitOfWork.TranslationRepository.Update(translationDescription);
-                    changesMade = true;
-                }
+        //            translationDescription!.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : requestUpdateModel.Description!;
+        //            existingRequest.Description = targetLanguageCode != "en" ? requestUpdateModel.Description : translationResponse.Message;
+        //            _unitOfWork.TranslationRepository.Update(translationDescription);
+        //            changesMade = true;
+        //        }
 
-                foreach (var detailModel in requestUpdateModel.RequestDetailUpdateModels!)
-                {
-                    var translationRequestDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync(
-                        "RequestDetail",
-                        detailModel.Id,
-                        "Description",
-                        languageId
-                    );
+        //        foreach (var detailModel in requestUpdateModel.RequestDetailUpdateModels!)
+        //        {
+        //            var translationRequestDescription = await _unitOfWork.TranslationRepository.GetTranslationAsync(
+        //                "RequestDetail",
+        //                detailModel.Id,
+        //                "Description",
+        //                languageId
+        //            );
 
-                    var existingDetail = existingRequest.RequestAttributes.FirstOrDefault(rd => rd.Id == detailModel.Id);
-                    if (existingDetail == null)
-                    {
-                        continue;
-                    }
-                    if (!string.Equals(detailModel.Description, existingDetail.Name, StringComparison.OrdinalIgnoreCase) &&
-                        (translationRequestDescription != null && !string.Equals(detailModel.Description, translationRequestDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        var translationResponse = await _translationService.TranslateAsync(detailModel.Description!, sourceLanguageCode, targetLanguageCode);
-                        if (translationResponse.Code != StatusCodes.Status200OK)
-                        {
-                            throw new Exception($"Failed to translate Description for RequestDetail ID: {detailModel.Id}");
-                        }
-                        existingDetail.Name = targetLanguageCode != "en" ? detailModel.Description : translationResponse.Message;
+        //            var existingDetail = existingRequest.RequestAttributes.FirstOrDefault(rd => rd.Id == detailModel.Id);
+        //            if (existingDetail == null)
+        //            {
+        //                continue;
+        //            }
+        //            if (!string.Equals(detailModel.Description, existingDetail.Name, StringComparison.OrdinalIgnoreCase) &&
+        //                (translationRequestDescription != null && !string.Equals(detailModel.Description, translationRequestDescription.TranslationText, StringComparison.OrdinalIgnoreCase)))
+        //            {
+        //                var translationResponse = await _translationService.TranslateAsync(detailModel.Description!, sourceLanguageCode, targetLanguageCode);
+        //                if (translationResponse.Code != StatusCodes.Status200OK)
+        //                {
+        //                    throw new Exception($"Failed to translate Description for RequestDetail ID: {detailModel.Id}");
+        //                }
+        //                existingDetail.Name = targetLanguageCode != "en" ? detailModel.Description : translationResponse.Message;
 
-                        if (translationRequestDescription != null)
-                        {
-                            translationRequestDescription.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : detailModel.Description!;
-                            _unitOfWork.TranslationRepository.Update(translationRequestDescription);
-                        }
+        //                if (translationRequestDescription != null)
+        //                {
+        //                    translationRequestDescription.TranslationText = targetLanguageCode != "en" ? translationResponse.Message : detailModel.Description!;
+        //                    _unitOfWork.TranslationRepository.Update(translationRequestDescription);
+        //                }
 
-                        changesMade = true;
-                    }
-                }
+        //                changesMade = true;
+        //            }
+        //        }
 
 
-                if (requestUpdateModel.MinBudget.HasValue && existingRequest.MinBudget != requestUpdateModel.MinBudget.Value)
-                {
-                    existingRequest.MinBudget = requestUpdateModel.MinBudget.Value;
-                    changesMade = true;
-                }
+        //        if (requestUpdateModel.MinBudget.HasValue && existingRequest.MinBudget != requestUpdateModel.MinBudget.Value)
+        //        {
+        //            existingRequest.MinBudget = requestUpdateModel.MinBudget.Value;
+        //            changesMade = true;
+        //        }
 
-                if (requestUpdateModel.MaxBudget.HasValue && existingRequest.MaxBudget != requestUpdateModel.MaxBudget.Value)
-                {
-                    existingRequest.MaxBudget = requestUpdateModel.MaxBudget.Value;
-                    changesMade = true;
-                }
+        //        if (requestUpdateModel.MaxBudget.HasValue && existingRequest.MaxBudget != requestUpdateModel.MaxBudget.Value)
+        //        {
+        //            existingRequest.MaxBudget = requestUpdateModel.MaxBudget.Value;
+        //            changesMade = true;
+        //        }
 
-                //if (requestUpdateModel.Attachments != null && requestUpdateModel.Attachments.Any())
-                //{
-                //    var uploadTasks = new List<Task<RequestAttachment>>();
-                //    foreach (var attachment in requestUpdateModel.Attachments)
-                //    {
-                //        if (attachment.AttachmentUrl != null)
-                //        {
-                //            uploadTasks.Add(
-                //                Task.Run(async () =>
-                //                {
-                //                    var attachmentUrl = await _cloudinaryHelper.UploadImageAsync(
-                //                        attachment.AttachmentUrl,
-                //                        existingRequest.Id.ToString(),
-                //                        Guid.NewGuid().ToString()
-                //                    );
+        //        //if (requestUpdateModel.Attachments != null && requestUpdateModel.Attachments.Any())
+        //        //{
+        //        //    var uploadTasks = new List<Task<RequestAttachment>>();
+        //        //    foreach (var attachment in requestUpdateModel.Attachments)
+        //        //    {
+        //        //        if (attachment.AttachmentUrl != null)
+        //        //        {
+        //        //            uploadTasks.Add(
+        //        //                Task.Run(async () =>
+        //        //                {
+        //        //                    var attachmentUrl = await _cloudinaryHelper.UploadImageAsync(
+        //        //                        attachment.AttachmentUrl,
+        //        //                        existingRequest.Id.ToString(),
+        //        //                        Guid.NewGuid().ToString()
+        //        //                    );
 
-                //                    return new RequestAttachment
-                //                    {
-                //                        Id = Guid.NewGuid(),
-                //                        RequestId = existingRequest.Id,
-                //                        AttachmentUrl = attachmentUrl,
-                //                        AttachmentAlt = attachment.AttachmentAlt
-                //                    };
-                //                })
-                //            );
-                //        }
-                //    }
-                //    var uploadedAttachments = await Task.WhenAll(uploadTasks);
-                //    foreach (var attachment in uploadedAttachments)
-                //    {
-                //        existingRequest.RequestAttachments.Add(attachment);
-                //    }
+        //        //                    return new RequestAttachment
+        //        //                    {
+        //        //                        Id = Guid.NewGuid(),
+        //        //                        RequestId = existingRequest.Id,
+        //        //                        AttachmentUrl = attachmentUrl,
+        //        //                        AttachmentAlt = attachment.AttachmentAlt
+        //        //                    };
+        //        //                })
+        //        //            );
+        //        //        }
+        //        //    }
+        //        //    var uploadedAttachments = await Task.WhenAll(uploadTasks);
+        //        //    foreach (var attachment in uploadedAttachments)
+        //        //    {
+        //        //        existingRequest.RequestAttachments.Add(attachment);
+        //        //    }
 
-                //    changesMade = true;
-                //}
-                if (!changesMade)
-                {
-                    await _unitOfWork.RollbackTransactionAsync();
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status204NoContent,
-                        Message = "No changes detected."
-                    };
-                }
-                _unitOfWork.RequestRepository.Update(existingRequest);
-                await _unitOfWork.SaveChangeAsync();
-                await _unitOfWork.CommitTransactionAsync();
+        //        //    changesMade = true;
+        //        //}
+        //        if (!changesMade)
+        //        {
+        //            await _unitOfWork.RollbackTransactionAsync();
+        //            return new ResponseModel
+        //            {
+        //                Code = StatusCodes.Status204NoContent,
+        //                Message = "No changes detected."
+        //            };
+        //        }
+        //        _unitOfWork.RequestRepository.Update(existingRequest);
+        //        await _unitOfWork.SaveChangeAsync();
+        //        await _unitOfWork.CommitTransactionAsync();
 
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Request updated successfully."
-                };
-            }
-            catch (Exception ex)
-            {
-                await _unitOfWork.RollbackTransactionAsync();
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = $"Error: {ex.Message}"
-                };
-            }
-        }
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status200OK,
+        //            Message = "Request updated successfully."
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await _unitOfWork.RollbackTransactionAsync();
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status500InternalServerError,
+        //            Message = $"Error: {ex.Message}"
+        //        };
+        //    }
+        //}
         
 
         private Request CreateNewRequest(RequestAddModel model, Guid userId)
@@ -799,6 +799,119 @@ namespace Chillde.Services.Services
 
             };
             return new ResponseModel { Data = requestModel };
+        }
+
+        public async Task<ResponseModel> UpdateRequestAsync(Guid requestId, RequestUpdateModel requestUpdateModel)
+        {
+            var request = await _unitOfWork.RequestRepository.GetAsync(requestId);
+            if (request == null)
+            {
+                return new ResponseModel { Code = StatusCodes.Status404NotFound, Message = "Request not found." };
+            }
+
+            request.MinBudget = requestUpdateModel.MinBudget;
+            request.MaxBudget = requestUpdateModel.MaxBudget;
+            request.Timeline = requestUpdateModel.Timeline;
+
+            // Update existing attributes
+            foreach (var attributeModel in requestUpdateModel.RequestAttributes)
+            {
+                var existingAttribute = request.RequestAttributes.FirstOrDefault(a => a.Id == attributeModel.Id);
+                if (existingAttribute != null)
+                {
+                    // Update attribute values
+                    foreach (var valueModel in attributeModel.RequestAttributeValueAddModels)
+                    {
+                        var existingValue = existingAttribute.RequestAttributeValues.FirstOrDefault(v => v.Id == valueModel.Id);
+                        if (existingValue != null)
+                        {
+                            existingValue.Value = valueModel.Value;
+                        }
+                        else
+                        {
+                            existingAttribute.RequestAttributeValues.Add(new RequestAttributeValue
+                            {
+                                Value = valueModel.Value,
+                                IntOrder = existingAttribute.RequestAttributeValues.Count
+                            });
+                        }
+                    }
+
+                    // Update attribute attachments
+                    foreach (var attachmentModel in attributeModel.RequestAttributeAttachmentAddModels)
+                    {
+                        var existingAttachment = existingAttribute.RequestAttributeAttachments.FirstOrDefault(v => v.Id == attachmentModel.Id);
+                        if (existingAttachment != null)
+                        {
+                            existingAttachment.AttachmentUrl = attachmentModel.AttachmentUrl;
+                            existingAttachment.AttachmentAlt = attachmentModel.AttachmentAlt;
+                        }
+                        else
+                        {
+                            existingAttribute.RequestAttributeAttachments.Add(new RequestAttributeAttachment
+                            {
+                                AttachmentUrl = attachmentModel.AttachmentUrl,
+                                AttachmentAlt = attachmentModel.AttachmentAlt
+                            });
+                        }
+                    }
+                }
+                else if (attributeModel.Type == ItemAttributeType.File)
+                {
+                    // Add new attribute if type is 5 (File)
+                    var newAttribute = new RequestAttribute
+                    {
+                        Name = attributeModel.Name,
+                        Type = attributeModel.Type,
+                        RequestId = requestId,
+                        RequestAttributeValues = new List<RequestAttributeValue>(),
+                        RequestAttributeAttachments = new List<RequestAttributeAttachment>()
+                    };
+
+                    foreach (var valueModel in attributeModel.RequestAttributeValueAddModels)
+                    {
+                        newAttribute.RequestAttributeValues.Add(new RequestAttributeValue
+                        {
+                            Value = valueModel.Value,
+                            IntOrder = newAttribute.RequestAttributeValues.Count
+                        });
+                    }
+
+                    foreach (var attachmentModel in attributeModel.RequestAttributeAttachmentAddModels)
+                    {
+                        newAttribute.RequestAttributeAttachments.Add(new RequestAttributeAttachment
+                        {
+                            AttachmentUrl = attachmentModel.AttachmentUrl,
+                            AttachmentAlt = attachmentModel.AttachmentAlt
+                        });
+                    }
+
+                    request.RequestAttributes.Add(newAttribute);
+                }
+            }
+
+            // Update request attachments
+            foreach (var attachmentModel in requestUpdateModel.RequestAttachments)
+            {
+                var existingAttachment = request.RequestAttachments.FirstOrDefault(a => a.Id == attachmentModel.Id);
+                if (existingAttachment != null)
+                {
+                    existingAttachment.AttachmentUrl = attachmentModel.AttachmentUrl;
+                    existingAttachment.AttachmentAlt = attachmentModel.AttachmentAlt;
+                }
+                else
+                {
+                    request.RequestAttachments.Add(new RequestAttachment
+                    {
+                        AttachmentUrl = attachmentModel.AttachmentUrl,
+                        AttachmentAlt = attachmentModel.AttachmentAlt,
+                        RequestId = requestId
+                    });
+                }
+            }
+
+            await _unitOfWork.SaveChangeAsync();
+            return new ResponseModel { Success = true, Message = "Request updated successfully." };
         }
     }
 }

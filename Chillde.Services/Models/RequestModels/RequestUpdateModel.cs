@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Chillde.Repositories.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,20 +11,56 @@ namespace Chillde.Services.Models.RequestModels
 {
     public class RequestUpdateModel
     {
-        public string? Name { get; set; }
-        public string? Description { get; set; }
-        public decimal? MinBudget { get; set; }
-        public decimal? MaxBudget { get; set; }
-        public int? Timeline { get; set; }
-        public Guid ItemId { get; set; }
-        public List<RequestDetailUpdateModel>? RequestDetailUpdateModels { get; set; }
-        //public ICollection<AttachmentModel> Attachments { get; set; } = new List<AttachmentModel>();
+        [Required]
+        public required decimal MinBudget { get; set; }
+
+        [Required]
+        public required decimal MaxBudget { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int Timeline { get; set; }
+
+        public ICollection<RequestAttributeUpdateModel> RequestAttributes { get; set; } = new List<RequestAttributeUpdateModel>();
+        public ICollection<RequestAttachmentUpdateModel>? RequestAttachments { get; set; } = new List<RequestAttachmentUpdateModel>();
     }
 
-    public class RequestDetailUpdateModel
+    public class RequestAttributeUpdateModel
     {
-        public Guid Id { get; set; }
-        public string? Description { get; set; }
-        public Guid AttributeId { get; set; }
+        public Guid? Id { get; set; } // Null nếu thêm mới Attribute
+
+        [Required]
+        public required ItemAttributeType Type { get; set; }
+
+        public ICollection<RequestAttributeValueUpdateModel> RequestAttributeValueAddModels { get; set; } = new List<RequestAttributeValueUpdateModel>();
+        public ICollection<RequestAttributeAttachmentUpdateModel>? RequestAttributeAttachmentAddModels { get; set; } = new List<RequestAttributeAttachmentUpdateModel>();
     }
+
+    public class RequestAttributeValueUpdateModel
+    {
+        public Guid? Id { get; set; } // Null nếu thêm mới Value
+
+        [Required]
+        public required string Value { get; set; }
+    }
+
+    public class RequestAttributeAttachmentUpdateModel
+    {
+        public Guid? Id { get; set; } // Null nếu thêm mới Attachment
+
+        public string? AttachmentUrl { get; set; }
+
+        [MaxLength(500)]
+        public string? AttachmentAlt { get; set; }
+    }
+
+    public class RequestAttachmentUpdateModel
+    {
+        public Guid? Id { get; set; } // Null nếu thêm mới Attachment
+
+        public string? AttachmentUrl { get; set; }
+
+        [MaxLength(500)]
+        public string? AttachmentAlt { get; set; }
+    }
+
 }

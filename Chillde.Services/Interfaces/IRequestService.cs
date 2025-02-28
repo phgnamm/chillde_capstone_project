@@ -12,7 +12,7 @@ namespace Chillde.Services.Interfaces
     public interface IRequestService
     {
         //Task<ResponseModel> Add(RequestAddModel requestAddModel);
-        Task<ResponseModel> Update(Guid id, RequestUpdateModel requestUpdateModel, string sourceLanguageCode, string targetLanguageCode);
+        Task<ResponseModel> UpdateRequestAsync(Guid requestId, RequestUpdateModel requestUpdateModel);
         Task<ResponseModel> GetById(Guid id, string sourceLanguageCode, string targetLanguage);
         Task<ResponseModel> GetByIdAsync(Guid id);
         //Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel);
