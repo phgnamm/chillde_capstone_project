@@ -158,6 +158,11 @@ public static class Configuration
             client.BaseAddress = new Uri(configuration["GhnSettings:BaseUrl"]!);
             client.DefaultRequestHeaders.Add("Token", configuration["GhnSettings:Token"]);
         });
+        // GHTKClient
+        services.AddHttpClient("GhtkClient", client =>
+        {
+            client.DefaultRequestHeaders.Add("Token", configuration["GhtkSettings:Token"]);
+        });
         #endregion
 
         #region Middleware
