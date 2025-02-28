@@ -20,6 +20,10 @@ public interface IUnitOfWork
     IRefreshTokenRepository RefreshTokenRepository { get; }
     IRoleRepository RoleRepository { get; }
     IRequestRepository RequestRepository { get; }
+    IRequestAttachmentRepository RequestAttachmentRepository { get; }
+    IRequestAttributeAttachmentRepository RequestAttributeAttachmentRepository { get; }
+    IRequestAttributeValueRepository RequestAttributeValueRepository { get; }
+    IRequestAttributeRepository RequestAttributeRepository { get; }
     IServiceRepository ServiceRepository { get; }
     IFeedbackRepository FeedbackRepository { get; }
     IOrderRepository OrderRepository { get; }

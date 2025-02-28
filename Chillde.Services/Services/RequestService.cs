@@ -642,7 +642,7 @@ namespace Chillde.Services.Services
         //    }
         //}
 
-        #region create request
+        #region Create New Request
         private Request CreateNewRequest(RequestAddModel model, Guid userId)
         {
             return new Request
@@ -747,7 +747,7 @@ namespace Chillde.Services.Services
         }
         #endregion
 
-        #region get request detail
+        #region Get Request Detail
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
             var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.Item).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
@@ -793,7 +793,7 @@ namespace Chillde.Services.Services
         }
         #endregion
 
-        #region update request
+        #region Update Request
         public async Task<ResponseModel> UpdateRequestAsync(Guid requestId, RequestUpdateModel requestUpdateModel)
         {
             try
@@ -987,7 +987,11 @@ namespace Chillde.Services.Services
             );
         }
 
-
-
+        #region Remove Attribute 
+        public Task<ResponseModel> RemoveAttribute(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
     }
 }

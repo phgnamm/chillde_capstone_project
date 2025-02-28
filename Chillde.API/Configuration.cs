@@ -224,6 +224,18 @@ public static class Configuration
         services.AddScoped<IRequestRepository, RequestRepository>();
         services.AddScoped<IRequestService, RequestService>();
 
+        // RequestAttachment
+        services.AddScoped<IRequestAttachmentRepository, RequestAttachmentRepository>();
+
+        // RequestAttribute
+        services.AddScoped<IRequestAttributeRepository, RequestAttributeRepository>();
+
+        // RequestAttributeValue
+        services.AddScoped<IRequestAttributeValueRepository, RequestAttributeValueRepository>();
+
+        // RequestAttributeAttachment
+        services.AddScoped<IRequestAttributeAttachmentRepository, RequestAttributeAttachmentRepository>();
+
         //Order
         services.AddScoped<IOrderRepository, OrderRepository>();
 
