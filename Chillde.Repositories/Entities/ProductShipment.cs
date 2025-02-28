@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Entities
 {
-    public class ProductShipment
+    public class ProductShipment : BaseEntity
     {
         public string Name { get; set; } = string.Empty; // Tên sản phẩm
         public decimal Weight { get; set; } // Khối lượng
