@@ -161,6 +161,7 @@ public static class Configuration
         // GHTKClient
         services.AddHttpClient("GhtkClient", client =>
         {
+            //client.BaseAddress = new Uri(configuration["GhtkSettings:BaseUrl"]!);
             client.DefaultRequestHeaders.Add("Token", configuration["GhtkSettings:Token"]);
         });
         #endregion
