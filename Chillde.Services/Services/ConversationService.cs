@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ConversationModels;
@@ -162,10 +164,14 @@ public class ConversationService : IConversationService
                  conversation.AccountConversations.Any(accountConversation =>
                      accountConversation.Account.Email.ToLower()
                          .Contains(conversationFilterModel.Search.ToLower()))),
-            conversations => conversations.OrderByDescending(conversation =>
-                conversation.AccountConversations
-                    .First(accountConversation => accountConversation.AccountId == currentUserId).MessageRecipients
-                    .Max(messageRecipient => messageRecipient.Message.CreationDate)),
+            conversations =>
+                conversations.OrderBy(conversation =>
+                    conversation.AccountConversations
+                        .First(accountConversation => accountConversation.AccountId == currentUserId).MessageRecipients
+                        .First().IsRead).ThenByDescending(conversation =>
+                    conversation.AccountConversations
+                        .First(accountConversation => accountConversation.AccountId == currentUserId).MessageRecipients
+                        .Max(messageRecipient => messageRecipient.Message.CreationDate)),
             conversations => conversations.Include(conversation => conversation.AccountConversations)
                 .ThenInclude(accountConversation => accountConversation.Account)
                 .Include(conversation => conversation.AccountConversations).ThenInclude(accountConversation =>
@@ -209,7 +215,7 @@ public class ConversationService : IConversationService
                 Message = "Conversation not found"
             };
 
-        accountConversation.IsArchived = true;
+        accountConversation.IsArchived = !accountConversation.IsArchived;
         _unitOfWork.AccountConversationRepository.Update(accountConversation);
         if (await _unitOfWork.SaveChangeAsync() > 0)
             return new ResponseModel
@@ -297,7 +303,14 @@ public class ConversationService : IConversationService
         var message = _mapper.Map<Message>(messageAddModel);
         if (messageAddModel.Attachment != null)
         {
-            message.AttachmentUrl = await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment);
+            if (string.IsNullOrWhiteSpace(messageAddModel.Content))
+            {
+                message.MessageType = MediaType.Image;
+            }
+
+            message.AttachmentUrl =
+                await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment,
+                    folderName: FolderAttachment.MESSAGES);
         }
 
         var accountConversations = new List<AccountConversation>();
@@ -394,7 +407,7 @@ public class ConversationService : IConversationService
         );
         var messageModels = new List<MessageModel>();
         var unreadMessages = new List<MessageRecipient>();
-        messages.Data.Reverse();
+        // messages.Data.Reverse();
         foreach (var message in messages.Data)
         {
             var currentUserMessageRecipient =

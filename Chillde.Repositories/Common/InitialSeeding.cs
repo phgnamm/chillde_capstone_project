@@ -43,9 +43,9 @@ public static class InitialSeeding
 
     private static readonly List<Category> Categories = new()
     {
-        new() { Id = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"), Code = "C01", Name = "Accessories" },
-        new() { Id = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"), Code = "C02", Name = "Art & Collectibles" },
-        new() { Id = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"), Code = "C03", Name = "Jewelry" }
+        new() { Id = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"), Code = "C01", Name = "Accessories", ImageUrl = "https://images.unsplash.com/photo-1599108859517-0d6aed78ac87?q=80&w=2187&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"},
+        new() { Id = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"), Code = "C02", Name = "Art & Collectibles", ImageUrl = "https://images.unsplash.com/photo-1579762714453-51d9913984e2?q=80&w=2231&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"},
+        new() { Id = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"), Code = "C03", Name = "Jewelry", ImageUrl = "https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
     };
 
     private static readonly List<SubCategory> SubCategories = new()
@@ -100,7 +100,7 @@ public static class InitialSeeding
             IsOffer = true,
             Status = Enums.ServiceStatus.Active,
             ItemId = Items[6].Id,
-            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b")
+            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
         },
     };
 

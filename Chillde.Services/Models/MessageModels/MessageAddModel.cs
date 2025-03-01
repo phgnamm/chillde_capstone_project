@@ -6,6 +6,6 @@ namespace Chillde.Services.Models.MessageModels;
 public class MessageAddModel
 {
     // TODO: Upload files
-    public string Content { get; set; } = null!;
+    public string? Content { get; set; } = "";
     public IFormFile? Attachment { get; set; }
 }
