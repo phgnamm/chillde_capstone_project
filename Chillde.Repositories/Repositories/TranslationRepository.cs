@@ -159,7 +159,7 @@ namespace Chillde.Repositories.Repositories
                                     }
                                 }
                                 var requestDetail = detail as RequestAttribute;
-                                return new RequestDetailGetByIdModel
+                                return new RequestGetByIdModel
                                 {
                                     Id = requestDetail!.Id,
                                     Name = requestDetail.Name,                                   

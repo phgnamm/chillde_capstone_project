@@ -1,4 +1,6 @@
 ﻿using Chillde.API.Helper;
+using Chillde.Repositories.Enums;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.RequestModels;
@@ -14,11 +16,17 @@ namespace Chillde.API.Controllers
     {
         private readonly IRequestService _requestService;
         private readonly IOfferService _offerService;
-        public RequestController(IRequestService requestService, IOfferService offerService)
+        private readonly IOpenAiService _openAiService;
+        private readonly ICloudinaryHelper _cloudinaryHelper;
+
+        public RequestController(IRequestService requestService, IOfferService offerService, IOpenAiService openAiService, ICloudinaryHelper cloudinaryHelper)
         {
             _requestService = requestService;
             _offerService = offerService;
+            _openAiService = openAiService;
+            _cloudinaryHelper = cloudinaryHelper;
         }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] RequestFilterModel requestFilterModel)
@@ -62,15 +70,17 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromForm] RequestUpdateModel requestUpdateModel)
+        [HttpPost("test")]
+        public async Task<IActionResult> AddAsync([FromForm] RequestAddModel requestAddModel)
         {
             try
             {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _requestService.Update(id, requestUpdateModel, sourceLanguageCode, targetLanguageCode);
+
+                var result = await _requestService.AddAsync(requestAddModel);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -82,16 +92,42 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
+
+        //[Authorize]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromForm] RequestUpdateModel requestUpdateModel)
+        {
+            try
+            {
+                //var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                //var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                //var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _requestService.UpdateRequestAsync(id, requestUpdateModel);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        //[Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             try
             {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _requestService.GetById(id, sourceLanguageCode, targetLanguageCode);
+                //var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                //var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                //var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _requestService.GetByIdAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -133,6 +169,29 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpPost("ai-generate-forms")]
+        public async Task<IActionResult> AiGenerateForm(List<string> attributes)
+        {
+            try
+            {
+               
+                var result = await _openAiService.GetStructuredDataAsync(attributes);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+    
 
         [HttpGet("{requestId}/offers")]
         public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter, Guid requestId)

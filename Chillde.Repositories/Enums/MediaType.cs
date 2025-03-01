@@ -3,12 +3,12 @@
 public enum MediaType
 {
     Text,
-    Image,
-    Video,
-    Audio,
-    File,
     Number,
     Select,
-    CheckBox, // multible choice
     Switch, // yes or no
+    Image,
+    File,
+    CheckBox, // multible choice
+    Video,
+    Audio,
 }

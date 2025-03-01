@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Chillde.Services.Utils
+namespace Chillde.Services.Helpers
 {
     public class NetworkHelper
     {
