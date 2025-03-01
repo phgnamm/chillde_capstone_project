@@ -1,4 +1,7 @@
-﻿using Chillde.Repositories.Models.ServiceWishlistModels;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
@@ -7,18 +10,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Text;
 using System.Text.Json.Nodes;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
     {
         private readonly HttpClient _httpClient;
+        private readonly IUnitOfWork _unitOfWork;
 
-
-        public ShipmentService(IHttpClientFactory httpClientFactory)
+        public ShipmentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork)
         {
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
-
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
@@ -159,6 +163,55 @@ namespace Chillde.Services.Services
             else
             {
                 throw new Exception($"Lỗi khi in nhãn đơn hàng: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+
+        public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel)
+        {
+            var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
+            var jsonBody = JsonConvert.SerializeObject(shipmentCreateModel);
+            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
+            requestMessage.Content = content;
+            try
+            {
+                var response = await _httpClient.SendAsync(requestMessage);
+                response.EnsureSuccessStatusCode();
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var responseJsonObject = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
+
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+
+                if (jsonObject?["success"]?.Value<bool>() == true)
+                {
+                    var orderStatusResponse = jsonObject["order"]?.ToObject<ShipmentAddResponseModel>();
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Success",
+                        Data = orderStatusResponse
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = jsonObject?["message"]?.ToString() ?? "Unknown error",
+                        Data = null
+                    };
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message,
+                    Data = null
+                };
             }
         }
     }
