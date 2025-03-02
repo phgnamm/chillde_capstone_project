@@ -27,6 +27,9 @@ public class AppDbContext : DbContext
             entity.Property(account => account.PhoneNumber).HasMaxLength(15);
             entity.HasIndex(account => account.Username).IsUnique();
             entity.HasIndex(account => account.Email).IsUnique();
+            entity.Property(account => account.ReputationPoints)
+                .HasDefaultValue(12);
+
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -184,6 +187,7 @@ public class AppDbContext : DbContext
     public DbSet<UserActivityLog> UserActivityLogs { get; set; }
     public DbSet<RequestAttachment> RequestAttachments { get; set; }
     public DbSet<ProductShipment> ProductShipment { get; set; }
+    public DbSet<ReputationLog> ReputationLogs { get; set; }
 
     #endregion
 }

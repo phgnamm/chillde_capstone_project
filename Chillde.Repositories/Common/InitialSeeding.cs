@@ -214,10 +214,11 @@ public static class InitialSeeding
         },
     };
     private static readonly List<Order> Orders = new()
-{
-    new()
     {
+        new()
+        {
         Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
+        Code = "ORDCHD125FG8G1",
         Phone = "0912345678",
         Address = "123 Fake Street, City, Country",
         ToWard = "20308",
@@ -262,6 +263,7 @@ public static class InitialSeeding
     {
         Id = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
         Phone = "0987654321",
+        Code = "ORDCHD126FG8G2",
         Address = "456 Another Street, City, Country",
         ToWard = "20308",
         ToDistrict = 1444,

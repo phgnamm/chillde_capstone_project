@@ -28,6 +28,9 @@ public class Account : BaseEntity
     public bool PhoneNumberConfirmed { get; set; } = false;
     public AccountStatus Status { get; set; } = AccountStatus.PendingVerification;
 
+    // Reputation Point 
+    public int ReputationPoints { get; set; } = 100;
+
     // System
     public string? VerificationCode { get; set; }
     public DateTime? VerificationCodeExpiryTime { get; set; }
@@ -53,5 +56,6 @@ public class Account : BaseEntity
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     public virtual ICollection<SearchHistory> SearchHistories { get; set; } = new List<SearchHistory>();
+    public virtual ICollection<ReputationLog> Reputations { get; set; } = new List<ReputationLog>();
 
 }
