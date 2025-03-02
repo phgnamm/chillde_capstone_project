@@ -33,7 +33,7 @@ namespace Chillde.Services.Services
             ICloudinaryHelper cloudinaryHelper, 
             IVnpay vnpay, 
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory,
+            IHttpClientFactory httpClientFactory
             )
         {
             _unitOfWork = unitOfWork;
