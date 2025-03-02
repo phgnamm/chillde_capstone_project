@@ -12,5 +12,6 @@
         Faq,
         Offer,
         Order,
+        Reputation,
     }
 }

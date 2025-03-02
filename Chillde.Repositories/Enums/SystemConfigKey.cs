@@ -21,7 +21,18 @@ namespace Chillde.Repositories.Enums
         DefaultAbsoluteExpiration,
         DefaultSlidingExpiration,
         MaximumPackageOfOneService,
-        MaximumFeatureOfOnePackage
+        MaximumFeatureOfOnePackage,
+
+        //New values ​​related to order processing
+        MaxSystemCancelPerYear,
+        MaxSystemCancelBeforePenalty,
+        PenaltyPercentageAfterCancel,
+        OrderSuccessThreshold,
+        MaxOrderPerMonthBasedOnReputation,
+        MinReputationForVouchers,
+        MaxCustomerOrdersPerMonth,
+        ReputationIncreaseOnSuccess,
+        MinReputationToAvoidBan,
     }
 
 }

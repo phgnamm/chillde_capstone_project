@@ -36,7 +36,7 @@ namespace Chillde.API.Controllers
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _requestService.GetAll(requestFilterModel,sourceLanguageCode, targetLanguageCode);
+                var result = await _requestService.GetAll(requestFilterModel, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -49,7 +49,7 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
-        [HttpPost]
+        [HttpPost("singular")]
         public async Task<IActionResult> Add([FromForm] RequestAddModel requestAddModel)
         {
             try

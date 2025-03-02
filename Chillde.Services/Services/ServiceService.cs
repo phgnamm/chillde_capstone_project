@@ -980,8 +980,12 @@ namespace Chillde.Services.Services
 
                     return new ResponseModel
                     {
-                        Message = "Get services based on user activity log successfully",
-                        Data = paginatedResult
+                        Message = "Get services based on event successfully",
+                        Data = new
+                        {
+                            EventName = eventDetails,
+                            Services = paginatedResult
+                        }
                     };
                 }, cacheDuration);
 

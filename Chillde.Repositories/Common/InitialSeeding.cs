@@ -63,20 +63,30 @@ public static class InitialSeeding
 
     private static readonly List<SystemConfig> systemConfigs = new()
     {
-        new() { EntityType = ConfigType.Security, FieldName = "AccessTokenValidityInMinutes", Value = JsonDocument.Parse("\"5\"") },
-        new() { EntityType = ConfigType.Security, FieldName = "RefreshTokenValidityInDays", Value = JsonDocument.Parse("\"7\"") },
-        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeValidityInMinutes", Value = JsonDocument.Parse("\"15\"") },
-        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("\"6\"") },
-        new() { EntityType = ConfigType.Security, FieldName = "ResetPasswordTokenValidityInMinutes", Value = JsonDocument.Parse("\"15\"") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("\"10\"") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("\"50\"") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("\"20\"") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("\"10\"") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("\"100\"") },
-        new() { EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes", Value = JsonDocument.Parse("\"60\"") },
-        new() { EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes", Value = JsonDocument.Parse("\"30\"") },
+        new() { EntityType = ConfigType.Security, FieldName = "AccessTokenValidityInMinutes", Value = JsonDocument.Parse("5") },
+        new() { EntityType = ConfigType.Security, FieldName = "RefreshTokenValidityInDays", Value = JsonDocument.Parse("7") },
+        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeValidityInMinutes", Value = JsonDocument.Parse("15") },
+        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("6") },
+        new() { EntityType = ConfigType.Security, FieldName = "ResetPasswordTokenValidityInMinutes", Value = JsonDocument.Parse("15") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("10") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("50") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("20") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("10") },
+        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("100") },
+        new() { EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes", Value = JsonDocument.Parse("60") },
+        new() { EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes", Value = JsonDocument.Parse("30") },
         new() { EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3") },
-        new() { EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15") }
+        new() { EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15") },
+        new() { EntityType = ConfigType.Order, FieldName = "MaxSystemCancelPerYear", Value = JsonDocument.Parse("10") },
+        new() { EntityType = ConfigType.Order, FieldName = "MaxSystemCancelBeforePenalty", Value = JsonDocument.Parse("3") },
+        new() { EntityType = ConfigType.Order, FieldName = "PenaltyPercentageAfterCancel", Value = JsonDocument.Parse("20") },
+        new() { EntityType = ConfigType.Order, FieldName = "OrderSuccessThreshold", Value = JsonDocument.Parse("3") },
+        new() { EntityType = ConfigType.Reputation, FieldName = "MaxOrderPerMonthBasedOnReputation", Value = JsonDocument.Parse("6") },
+        new() { EntityType = ConfigType.Reputation, FieldName = "MinReputationForVouchers", Value = JsonDocument.Parse("6") },
+        new() { EntityType = ConfigType.Order, FieldName = "MaxCustomerOrdersPerMonth", Value = JsonDocument.Parse("3") },
+        new() { EntityType = ConfigType.Reputation, FieldName = "ReputationIncreaseOnSuccess", Value = JsonDocument.Parse("2") },
+        new() { EntityType = ConfigType.Reputation, FieldName = "MinReputationToAvoidBan", Value = JsonDocument.Parse("3") },
+
     };
 
     private static readonly List<Item> Items = new()
