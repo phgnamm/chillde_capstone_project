@@ -14,6 +14,9 @@ public class Order : BaseEntity
     public decimal? PackagePrice { get; set; }
     public int? Quantity { get; set; }
     public string? ShipmentCode { get; set; }
+    
+    //ly do huy
+    public CancleOrderReason CancleOrderReason { get; set; }
 
     #region new fields
     public DateTime? DeliveryTime { get; set; }
