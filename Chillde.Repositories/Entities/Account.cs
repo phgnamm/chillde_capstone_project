@@ -29,7 +29,7 @@ public class Account : BaseEntity
     public AccountStatus Status { get; set; } = AccountStatus.PendingVerification;
 
     // Reputation Point 
-    public int ReputationPoints { get; set; } = 12;
+    public int ReputationPoints { get; set; } = 100;
 
     // System
     public string? VerificationCode { get; set; }

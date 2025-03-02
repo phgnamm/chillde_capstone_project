@@ -4,7 +4,7 @@ namespace Chillde.Repositories.Entities;
 
 public class Order : BaseEntity
 {
-    public Guid Code { get; set; }
+    public required string Code { get; set; }
     public string? Phone { get; set; }
     public string Address { get; set; }
     public string ToWard { get; set; }

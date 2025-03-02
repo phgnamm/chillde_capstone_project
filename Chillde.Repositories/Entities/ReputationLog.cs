@@ -10,7 +10,6 @@ namespace Chillde.Repositories.Entities
     {
         public int PointChange { get; set; } // Số điểm thay đổi (+ hoặc -)
         public string Reason { get; set; } = null!; // Lý do thay đổi
-
         public Guid AccountId { get; set; }
         // Relationship
         public virtual Account Account { get; set; } = null!;

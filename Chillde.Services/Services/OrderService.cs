@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using System.Text;
 using Chillde.Services.Common;
 using Chillde.Repositories.Models.OrderModels;
+using Chillde.Services.Helpers;
 
 namespace Chillde.Services.Services
 {
@@ -25,7 +26,6 @@ namespace Chillde.Services.Services
         private readonly IVnpay _vnpay;
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
-
         private readonly string? _shopId;
         private readonly string? _token;
 
@@ -33,7 +33,8 @@ namespace Chillde.Services.Services
             ICloudinaryHelper cloudinaryHelper, 
             IVnpay vnpay, 
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory
+            )
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
@@ -192,6 +193,7 @@ namespace Chillde.Services.Services
             return new Repositories.Entities.Order
             {
                 CreatedById = userId,
+                Code = GenerateCodeHelper.GenerateOrderCode(),
                 Phone = orderAddModel.Phone,
                 Address = orderAddModel.Address,
                 TotalPrice = totalPrice * orderAddModel.Quantity,
