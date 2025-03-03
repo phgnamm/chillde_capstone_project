@@ -28,7 +28,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(account => account.Username).IsUnique();
             entity.HasIndex(account => account.Email).IsUnique();
             entity.Property(account => account.ReputationPoints)
-                .HasDefaultValue(100);
+                .HasDefaultValue(12);
 
         });
 

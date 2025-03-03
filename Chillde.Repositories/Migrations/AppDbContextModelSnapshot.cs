@@ -33,6 +33,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("Banner")
                         .HasColumnType("text");
 
+                    b.Property<int>("ConsecutiveSuccesses")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -95,7 +98,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int>("ReputationPoints")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(12);
+                        .HasDefaultValue(100);
 
                     b.Property<string>("ResetPasswordToken")
                         .HasColumnType("text");
@@ -112,6 +115,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<double?>("SuccessDeliveryRate")
                         .HasColumnType("double precision");
 
+                    b.Property<int>("TotalAutoCancels")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -125,6 +131,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<Guid>("WalletId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("YearlyAutoCancels")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -227,6 +236,50 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AccountRoles");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.CancellationReason", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("RoleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("CancellationReasons");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
@@ -2296,6 +2349,15 @@ namespace Chillde.Repositories.Migrations
                         .IsRequired();
 
                     b.Navigation("Account");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.CancellationReason", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId");
 
                     b.Navigation("Role");
                 });
