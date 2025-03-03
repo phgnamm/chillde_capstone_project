@@ -28,7 +28,7 @@ public class AppDbContext : DbContext
             entity.HasIndex(account => account.Username).IsUnique();
             entity.HasIndex(account => account.Email).IsUnique();
             entity.Property(account => account.ReputationPoints)
-                .HasDefaultValue(12);
+                .HasDefaultValue(100);
 
         });
 
@@ -188,6 +188,7 @@ public class AppDbContext : DbContext
     public DbSet<RequestAttachment> RequestAttachments { get; set; }
     public DbSet<ProductShipment> ProductShipment { get; set; }
     public DbSet<ReputationLog> ReputationLogs { get; set; }
+    public DbSet<CancellationReason> CancellationReasons { get; set; }
 
     #endregion
 }
