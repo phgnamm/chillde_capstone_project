@@ -1015,8 +1015,11 @@ namespace Chillde.Services.Services
                         Message = "Get services based on event successfully",
                         Data = new
                         {
-                            EventName = eventDetails,
-                            Services = paginatedResult
+                            EventName = eventDetails.Message,
+                            Services = paginatedResult.Data,
+                            paginatedResult.CurrentPage,
+                            paginatedResult.PageSize,
+                            paginatedResult.TotalPages
                         }
                     };
                 }, cacheDuration);
