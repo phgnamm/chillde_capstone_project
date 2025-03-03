@@ -26,46 +26,11 @@ namespace Chillde.Services.Services
             _configuration = configuration;
         }
 
-        //public async Task<ResponseModel> GetEventAsync(string sourceLanguage, string targetLanguage)
-        //{
-        //    var defaultModel = _modelConfigurationOptions.DefaultModel;
-
-        //    var currentDate = DateTime.Now.ToString("dd/MM/yyyy");
-        //    var eventPromptEn = $"From {currentDate}, return ONLY the nearest holiday or major event in Vietnam within the next 1.5 months. DO NOT mention any other events. Only return the name of the nearest event. Example: Women's Day, Tet Holiday.";
-        //    var eventPromptVi = $"Từ ngày {currentDate}, chỉ trả về ngày lễ hoặc sự kiện gần nhất ở Việt Nam trong vòng 1,5 tháng tới. KHÔNG liệt kê sự kiện khác. Chỉ trả về tên sự kiện gần nhất. Ví dụ: Ngày Phụ nữ Việt Nam, Tết Nguyên Đán.";
-        //    var prompt = sourceLanguage == "vi" ? eventPromptVi : eventPromptEn;
-
-        //    var eventResponse = await _openAiService.ChatCompletion.CreateCompletion(
-        //        new ChatCompletionCreateRequest
-        //        {
-        //            Model = defaultModel,
-        //            Messages = new List<ChatMessage>
-        //            {
-        //                ChatMessage.FromSystem("You are an AI that provides the nearest upcoming event in Vietnam, prioritizing the closest one."),
-        //                ChatMessage.FromUser(prompt)
-        //            },
-        //            MaxTokens = 20,
-        //            Temperature = 0.1f
-        //        });
-
-        //    string? eventInfo = eventResponse?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
-
-        //    if (string.IsNullOrEmpty(eventInfo))
-        //    {
-        //        eventInfo = "No upcoming events found.";
-        //    }
-
-        //    return new ResponseModel
-        //    {
-        //        Code = StatusCodes.Status200OK,
-        //        Message = "Get Configuration Successfully",
-        //        Data = eventInfo
-        //    };
-        //}
-
         public ResponseModel GetEvent(string sourLanguageCode)
         {
             var currentDate = DateTime.Now;
+            int gracePeriodDays = 3;
+            int maxDaysThreshold = 45;
             var eventList = new List<EventModel>
                 {
                     new EventModel { NameVi = "Tết Dương lịch", NameEn = "New Year's Day", Date = "01-01", IsLunar = false },
@@ -92,36 +57,53 @@ namespace Chillde.Services.Services
                 };
 
             var upcomingEvents = eventList
-                .Select(e =>
+                    .Select(e =>
+                    {
+                        DateTime eventDate;
+                        if (e.IsLunar)
+                        {
+                            var dateParts = e.Date!.Split('-');
+                            int lunarDay = int.Parse(dateParts[0]);
+                            int lunarMonth = int.Parse(dateParts[1]);
+                            int lunarYear = currentDate.Year;
+                            var chineseCalendar = new ChineseLunisolarCalendar();
+                            eventDate = chineseCalendar.ToDateTime(lunarYear, lunarMonth, lunarDay, 0, 0, 0, 0);
+                        }
+                        else
+                        {
+                            eventDate = DateTime.ParseExact(e.Date!, "dd-MM", CultureInfo.InvariantCulture);
+                            eventDate = new DateTime(currentDate.Year, eventDate.Month, eventDate.Day);
+                        }
+                        return new { Event = sourLanguageCode == "vi" ? e.NameVi : e.NameEn, Date = eventDate };
+                    })
+                    .OrderBy(e => e.Date)
+                    .ToList();
+
+            var nearestEvent = upcomingEvents.FirstOrDefault(e => e.Date >= currentDate);
+            var pastRecentEvent = upcomingEvents.LastOrDefault(e => e.Date < currentDate);
+            if (pastRecentEvent != null && (currentDate - pastRecentEvent.Date).TotalDays <= gracePeriodDays)
+            {
+                return new ResponseModel
                 {
-                    DateTime eventDate;
-                    if (e.IsLunar)
-                    {
-                        var dateParts = e.Date!.Split('-');
-                        int lunarDay = int.Parse(dateParts[0]);
-                        int lunarMonth = int.Parse(dateParts[1]);
-                        int lunarYear = currentDate.Year;
-                        var chineseCalendar = new ChineseLunisolarCalendar();
-                        eventDate = chineseCalendar.ToDateTime(lunarYear, lunarMonth, lunarDay, 0, 0, 0, 0);
-                    }
-                    else
-                    {
-                        eventDate = DateTime.ParseExact(e.Date!, "dd-MM", CultureInfo.InvariantCulture);
-                        eventDate = new DateTime(currentDate.Year, eventDate.Month, eventDate.Day);
-                    }
-                    return new { Event = sourLanguageCode == "vi" ? e.NameVi : e.NameEn, Date = eventDate };
-                })
-                .Where(e => e.Date >= currentDate)
-                .OrderBy(e => e.Date)
-                .ToList();
-
-            string nearestEvent = upcomingEvents.Any() ? upcomingEvents.First().Event! : (sourLanguageCode == "vi" ? "Không có sự kiện nào sắp diễn ra." : "No upcoming events.");
-
+                    Code = StatusCodes.Status200OK,
+                    Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
+                    Data = pastRecentEvent.Event
+                };
+            }
+            if (nearestEvent != null && (nearestEvent.Date - currentDate).TotalDays > maxDaysThreshold)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = sourLanguageCode == "vi" ? "Tạm thời không có sự kiện nào sắp diễn ra." : "No upcoming events.",
+                    Data = null
+                };
+            }
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
                 Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                Data = nearestEvent
+                Data = nearestEvent?.Event ?? (sourLanguageCode == "vi" ? "Không có sự kiện nào sắp diễn ra." : "No upcoming events.")
             };
         }
 
@@ -176,7 +158,7 @@ namespace Chillde.Services.Services
                 temperature = 0.3
             };
 
-            string apiKey = _configuration["OpenAI:ApiKey"];
+            string apiKey = _configuration["OpenAI:ApiKey"]!;
             if (string.IsNullOrEmpty(apiKey))
                 throw new Exception("API key is missing.");
 
@@ -193,7 +175,7 @@ namespace Chillde.Services.Services
             Console.WriteLine("API Response: " + responseString);
 
             using JsonDocument doc = JsonDocument.Parse(responseString);
-            string jsonResponse = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+            string jsonResponse = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString()!;
 
             if (string.IsNullOrWhiteSpace(jsonResponse))
                 throw new Exception("API response is empty.");
@@ -216,7 +198,7 @@ namespace Chillde.Services.Services
                 AllowTrailingCommas = true
             };
 
-            List<ModelResponseRaw> rawResult = System.Text.Json.JsonSerializer.Deserialize<List<ModelResponseRaw>>(jsonResponse, options);
+            List<ModelResponseRaw> rawResult = System.Text.Json.JsonSerializer.Deserialize<List<ModelResponseRaw>>(jsonResponse, options)!;
 
             if (rawResult == null || rawResult.Count == 0)
                 throw new Exception("Response data is null or empty.");
@@ -282,17 +264,17 @@ namespace Chillde.Services.Services
         }       
         public class ModelResponseRaw
         {
-            public string Name { get; set; }
+            public string? Name { get; set; }
             public int Type { get; set; } 
-            public List<string> Options { get; set; }
+            public List<string>? Options { get; set; }
         }
 
 
         public class ModelResponse
         {
-            public string Name { get; set; }
+            public string? Name { get; set; }
             public MediaType Type { get; set; }
-            public List<string> Options { get; set; }
+            public List<string>? Options { get; set; }
         }
 
     }

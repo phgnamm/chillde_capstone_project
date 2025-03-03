@@ -37,7 +37,7 @@ namespace Chillde.Services.Services
         private readonly IRedisHelper _redisHelper;
         private readonly KeywordGenerator _keywordGenerator;
         private readonly IElasticClient _client;
-            
+
 
         public ServiceService(IElasticClient client, IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
         {
@@ -396,7 +396,7 @@ namespace Chillde.Services.Services
                     Service newService = _mapper.Map<Service>(serviceUpdateModel);
                     newService.CreatedById = currentUserId;
                     newService.ItemId = service.ItemId;
-                    await _unitOfWork.ServiceRepository.AddAsync(newService);                    
+                    await _unitOfWork.ServiceRepository.AddAsync(newService);
                 }
 
                 await _unitOfWork.SaveChangeAsync();
@@ -441,7 +441,7 @@ namespace Chillde.Services.Services
                 {
                     _unitOfWork.ServiceRepository.SoftRemove(service);
                 }
-                
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
@@ -769,7 +769,7 @@ namespace Chillde.Services.Services
             }
             int pageIndex = serviceFilterModel.PageIndex;
             int pageSize = serviceFilterModel.PageSize;
-            var result = new Pagination<ServiceModel>(null, pageIndex, pageSize, 0);
+            var result = new Pagination<ServiceModel>(null!, pageIndex, pageSize, 0);
             var currentUserId = _claimService.GetCurrentUserId;
 
             if (currentUserId.HasValue)
@@ -783,7 +783,7 @@ namespace Chillde.Services.Services
                     .MultiMatch(m => m
                         .Fields(f => f.Field(p => p.Name).Field(p => p.Description))
                         .Query(serviceFilterModel.Search)
-                        .Fuzziness(Fuzziness.Auto) 
+                        .Fuzziness(Fuzziness.Auto)
                     )
                 )
             );
@@ -829,14 +829,14 @@ namespace Chillde.Services.Services
                     Id = _.Id,
                     Name = _.Name!,
                     Description = _.Description!,
-                    Similarity = 1.0 
+                    Similarity = 1.0
                 })
                 .Where(_ => _.Similarity >= 0.8)
                 .OrderByDescending(_ => _.Similarity)
                 .Skip((pageIndex - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-             result = new Pagination<ServiceModel>(embeddingResults, pageIndex, pageSize, embeddingResults.Count);
+            result = new Pagination<ServiceModel>(embeddingResults, pageIndex, pageSize, embeddingResults.Count);
             return new ResponseModel
             {
                 Message = "Get all services successfully",
@@ -894,11 +894,24 @@ namespace Chillde.Services.Services
 
                     if (!recentLogs.Data.Any())
                     {
-                        return new ResponseModel { Message = "No recent activity found for recommendations.", Data = null };
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "No recent activity found for recommendations.",
+                            Data = null
+                        };
                     }
 
                     var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
-
+                    if (averageEmbedding == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Message = "No embedding data available for recommendations.",
+                            Code = StatusCodes.Status400BadRequest,
+                            Data = null
+                        };
+                    }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false && _.IsOffer == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
@@ -906,7 +919,7 @@ namespace Chillde.Services.Services
                         pageSize: 1000
                      );
 
-                    var threshold = 0.75;
+                    var threshold = 0.8;
                     var results = services.Data
                         .Where(s => s.EmbeddingVector != null && CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
@@ -922,7 +935,15 @@ namespace Chillde.Services.Services
                         })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
-
+                    if (!results.Any())
+                    {
+                        return new ResponseModel
+                        {
+                            Message = "No similar services found.",
+                            Code = StatusCodes.Status404NotFound,
+                            Data = null
+                        };
+                    }
                     var paginatedResult = new Pagination<ServiceModel>(
                         results,
                         serviceFilterModel.PageIndex,
@@ -932,6 +953,7 @@ namespace Chillde.Services.Services
 
                     return new ResponseModel
                     {
+                        Code = StatusCodes.Status200OK,
                         Message = "Get services based on user activity log successfully",
                         Data = paginatedResult
                     };
@@ -954,7 +976,7 @@ namespace Chillde.Services.Services
                         pageSize: 1000
                      );
 
-                    var threshold = 0.75;
+                    var threshold = 0.8;
                     var results = services.Data
                         .Where(s => s.EmbeddingVector != null && CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
@@ -971,6 +993,15 @@ namespace Chillde.Services.Services
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
 
+                    if (!results.Any())
+                    {
+                        return new ResponseModel
+                        {
+                            Message = "No matching services found for the event.",
+                            Code = StatusCodes.Status404NotFound,
+                            Data = null
+                        };
+                    }
                     var paginatedResult = new Pagination<ServiceModel>(
                         results,
                         serviceFilterModel.PageIndex,
@@ -980,6 +1011,7 @@ namespace Chillde.Services.Services
 
                     return new ResponseModel
                     {
+                        Code = StatusCodes.Status200OK,
                         Message = "Get services based on event successfully",
                         Data = new
                         {
@@ -1067,7 +1099,6 @@ namespace Chillde.Services.Services
                         Data = paginatedResult
                     };
                 });
-
                 return responseModel;
             }
         }
@@ -1123,7 +1154,7 @@ namespace Chillde.Services.Services
                 .GetAllAsync(filter: _ => _.CreatedById == userId);
 
             var existingSearchHistory = searchHistories.Data
-                .FirstOrDefault(_ => _.SearchText.Equals(searchText, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(_ => _.SearchText!.Equals(searchText, StringComparison.OrdinalIgnoreCase));
 
             if (existingSearchHistory == null)
             {
