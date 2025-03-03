@@ -30,6 +30,9 @@ public class Account : BaseEntity
 
     // Reputation Point 
     public int ReputationPoints { get; set; } = 100;
+    public int YearlyAutoCancels { get; set; }  // Số lần hủy tự động trong năm
+    public int TotalAutoCancels { get; set; }  // Tổng số lần hủy tự động
+    public int ConsecutiveSuccesses { get; set; } // Số đơn hàng thành công s
     // System
     public string? VerificationCode { get; set; }
     public DateTime? VerificationCodeExpiryTime { get; set; }
