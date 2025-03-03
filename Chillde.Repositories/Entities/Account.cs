@@ -30,6 +30,9 @@ public class Account : BaseEntity
 
     // Reputation Point 
     public int ReputationPoints { get; set; } = 100;
+    public int NumberOfSystemCancelOrdersOfTheYear { get; set; } = 0; // Số lần hủy tự động trong năm
+    public int NumberOfSystemCancelOrders { get; set; } = 0; // Số lần hủy tự động tổng cộng
+    public int NumberOfSystemSuccessOrders { get; set; } = 0; // Số đơn hàng thành công liên tiếp
 
     // System
     public string? VerificationCode { get; set; }
