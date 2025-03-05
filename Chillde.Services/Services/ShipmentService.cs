@@ -168,20 +168,78 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel)
         {
+            
+
+            // Create an object with all attributes from ShipmentCreateModel
+            var requestBody = new
+            {
+                products = shipmentCreateModel.Products.Select(p => new
+                {
+                    name = p.Name,
+                    weight = p.Weight,
+                    quantity = p.Quantity,
+                    product_code = p.ProductCode
+                }).ToList(),
+                order = new
+                {
+                    pick_name = shipmentCreateModel.PickName,
+                    pick_address = shipmentCreateModel.PickAddress,
+                    pick_province = shipmentCreateModel.PickProvince,
+                    pick_district = shipmentCreateModel.PickDistrict,
+                    pick_ward = shipmentCreateModel.PickWard,
+                    pick_tel = shipmentCreateModel.PickTel,
+                    name = shipmentCreateModel.Name,
+                    address = shipmentCreateModel.Address,
+                    province = shipmentCreateModel.Province,
+                    district = shipmentCreateModel.District,
+                    ward = shipmentCreateModel.Ward,
+                    tel = shipmentCreateModel.Tel,
+                    hamlet = shipmentCreateModel.Hamlet,
+                    email = shipmentCreateModel.Email,
+                    //return_name = shipmentCreateModel.ReturnName,
+                    //return_address = shipmentCreateModel.ReturnAddress,
+                    //return_province = shipmentCreateModel.ReturnProvince,
+                    //return_district = shipmentCreateModel.ReturnDistrict,
+                    //return_tel = shipmentCreateModel.ReturnTel,
+                    //return_email = shipmentCreateModel.ReturnEmail,
+                    is_freeship = shipmentCreateModel.IsFreeShip,
+                    pick_date = shipmentCreateModel.PickDate,
+                    deliver_date = shipmentCreateModel.DeliverDate,
+                    pick_money = shipmentCreateModel.PickMoney,
+                    note = shipmentCreateModel.Note,
+                    value = shipmentCreateModel.Value,
+                    transport = shipmentCreateModel.Transport,
+                    pick_option = shipmentCreateModel.PickOption,
+                    deliver_option = shipmentCreateModel.DeliverOption,
+                    tags = shipmentCreateModel.Tags
+                }
+            };
+
             var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
-            var jsonBody = JsonConvert.SerializeObject(shipmentCreateModel);
+
+            var jsonBody = JsonConvert.SerializeObject(requestBody);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             requestMessage.Content = content;
+
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
+                //response.EnsureSuccessStatusCode();
 
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var responseJsonObject = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
+               
 
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = $"Error: {response.ReasonPhrase}. API Response: {responseContent}",
+                        Data = null
+                    };
+                }
                 var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
 
                 if (jsonObject?["success"]?.Value<bool>() == true)
@@ -214,5 +272,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
     }
 }
