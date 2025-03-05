@@ -1,37 +1,38 @@
 ﻿using Newtonsoft.Json;
-using System.Globalization;
-using System.Text.Json.Serialization;
 
 namespace Chillde.Services.Models.ShipmentModels
 {
     public class ShipmentCreateModel
     {
         #region Artisan's information
+        [JsonProperty("order.id")]
+        public string? Id { get; set; } // Thêm trường Id từ JSON
+
         [JsonProperty("order.pick_name")]
-        public required string PickName { get; set; } // Tên người gửi
+        public required string PickName { get; set; }
 
         [JsonProperty("order.pick_address")]
-        public required string PickAddress { get; set; } // Địa chỉ lấy hàng
+        public required string PickAddress { get; set; }
 
         [JsonProperty("order.pick_province")]
-        public required string PickProvince { get; set; } // Tỉnh lấy hàng
+        public required string PickProvince { get; set; }
 
         [JsonProperty("order.pick_district")]
-        public required string PickDistrict { get; set; } // Quận lấy hàng
+        public required string PickDistrict { get; set; }
 
         [JsonProperty("order.pick_ward")]
-        public required string PickWard { get; set; } // Phường lấy hàng
+        public required string PickWard { get; set; }
 
         [JsonProperty("order.pick_tel")]
-        public required string PickTel { get; set; } // SĐT người gửi
+        public required string PickTel { get; set; }
         #endregion
 
         #region Customer's information
         [JsonProperty("order.name")]
-        public required string Name { get; set; } // Tên người nhận
+        public required string Name { get; set; }
 
         [JsonProperty("order.address")]
-        public required string Address { get; set; } // Địa chỉ người nhận
+        public required string Address { get; set; }
 
         [JsonProperty("order.province")]
         public required string Province { get; set; }
@@ -46,80 +47,58 @@ namespace Chillde.Services.Models.ShipmentModels
         public required string Tel { get; set; }
 
         [JsonProperty("order.hamlet")]
-        public required string Hamlet { get; set; } //Tên thôn/ấp/xóm/tổ/... của người nhận hàng hóa.
-                                                    //Nếu không có, vui lòng điền "Khác"
+        public required string Hamlet { get; set; }
+
         [JsonProperty("order.email")]
-        public required string Email { get; set; }
-        #endregion
-
-        #region Return information
-        //[JsonProperty("order.return_name")]
-        //public required string ReturnName { get; set; } // Tên người nhận trả hàng
-
-        //[JsonProperty("order.return_address")]
-        //public required string ReturnAddress { get; set; } // Địa chỉ trả hàng
-
-        //[JsonProperty("order.return_province")]
-        //public required string ReturnProvince { get; set; } // Tỉnh trả hàng
-
-        //[JsonProperty("order.return_district")]
-        //public required string ReturnDistrict { get; set; } // Quận trả hàng
-
-        //[JsonProperty("order.return_tel")]
-        //public required string ReturnTel { get; set; } // Số điện thoại người nhận hàng hóa
-
-        //[JsonProperty("order.return_email")]
-        //public required string ReturnEmail { get; set; } // Email người nhận hàng hóa
+        public string? Email { get; set; } // Không bắt buộc vì JSON không có
         #endregion
 
         [JsonProperty("order.is_freeship")]
-        public int IsFreeShip { get; set; } // Có miễn phí ship không
+        public int IsFreeShip { get; set; }
 
         [JsonProperty("order.pick_date")]
-        public string? PickDate { get; set; } // Ngày lấy hàng
+        public string? PickDate { get; set; }
 
         [JsonProperty("order.deliver_date")]
-        public string? DeliverDate { get; set; } // Ngày giao hàng
+        public string? DeliverDate { get; set; }
 
         [JsonProperty("order.pick_money")]
-        public int PickMoney { get; set; } // Tiền thu hộ (COD)
+        public int PickMoney { get; set; }
 
         [JsonProperty("order.note")]
-        public required string Note { get; set; } // Ghi chú
+        public required string Note { get; set; }
 
         [JsonProperty("order.value")]
-        public required int Value { get; set; } // Giá trị đơn hàng dùng để bồi thường
+        public required int Value { get; set; }
 
         [JsonProperty("order.transport")]
-        public required string Transport { get; set; } // Loại vận chuyển (fly, road)
+        public required string Transport { get; set; }
 
         [JsonProperty("order.pick_option")]
-        public required string PickOption { get; set; } // Tùy chọn lấy hàng (cod,...)
+        public required string PickOption { get; set; }
 
         [JsonProperty("order.deliver_option")]
-        public string? DeliverOption { get; set; } // Tùy chọn giao hàng
+        public string? DeliverOption { get; set; }
 
         [JsonProperty("order.tags")]
-        public string[]? Tags { get; set; } // Gắn nhãn cho đơn hàng,
-                                            // xem các nhãn hỗ trợ tại đây:
-                                            // https://docs.giaohangtietkiem.vn/docs/submit-order/submit-order-express
+        public string[]? Tags { get; set; }
 
         [JsonProperty("products")]
-        public required List<Product> Products { get; set; } // Danh sách sản phẩm
+        public required List<Product> Products { get; set; }
     }
 
     public class Product
     {
         [JsonProperty("name")]
-        public required string Name { get; set; } // Tên sản phẩm
+        public required string Name { get; set; }
 
         [JsonProperty("weight")]
-        public required decimal Weight { get; set; } // Khối lượng (kg)
+        public required decimal Weight { get; set; }
 
         [JsonProperty("quantity")]
-        public int? Quantity { get; set; } // Số lượng
+        public int? Quantity { get; set; }
 
         [JsonProperty("product_code")]
-        public string? ProductCode { get; set; } // Mã sản phẩm
+        public string? ProductCode { get; set; } // Có thể là int trong JSON, nhưng để string cho linh hoạt
     }
 }
