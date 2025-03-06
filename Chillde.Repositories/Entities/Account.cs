@@ -29,8 +29,7 @@ public class Account : BaseEntity
     public AccountStatus Status { get; set; } = AccountStatus.PendingVerification;
 
     // Reputation Point 
-    public int ReputationPoints { get; set; } = 100;
-    public int YearlyAutoCancels { get; set; }  // Số lần hủy tự động trong năm
+    public int YMonthlyAutoCancels { get; set; }  // Số lần hủy tự động trong tháng
     public int TotalAutoCancels { get; set; }  // Tổng số lần hủy tự động
     public int ConsecutiveSuccesses { get; set; } // Số đơn hàng thành công s
     // System
@@ -58,6 +57,5 @@ public class Account : BaseEntity
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     public virtual ICollection<SearchHistory> SearchHistories { get; set; } = new List<SearchHistory>();
-    public virtual ICollection<ReputationLog> Reputations { get; set; } = new List<ReputationLog>();
 
 }

@@ -10,6 +10,5 @@ namespace Chillde.Repositories.Entities
     {
         public string Name { get; set; } = null!; 
         public int Value { get; set; }
-        public Role? Role { get; set; } 
     }
 }
