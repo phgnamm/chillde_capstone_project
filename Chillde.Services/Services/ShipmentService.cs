@@ -168,20 +168,23 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel)
         {
-            
-
-            // Create an object with all attributes from ShipmentCreateModel
-            var requestBody = new
+            if (shipmentCreateModel == null || !shipmentCreateModel.Products.Any())
             {
-                products = shipmentCreateModel.Products.Select(p => new
+                return new ResponseModel
                 {
-                    name = p.Name,
-                    weight = p.Weight,
-                    quantity = p.Quantity,
-                    product_code = p.ProductCode
-                }).ToList(),
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid shipment data",
+                    Data = null
+                };
+            }
+
+            var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
+            var jsonBody = JsonConvert.SerializeObject(new
+            {
+                products = shipmentCreateModel.Products,
                 order = new
                 {
+                    id = shipmentCreateModel.Id,
                     pick_name = shipmentCreateModel.PickName,
                     pick_address = shipmentCreateModel.PickAddress,
                     pick_province = shipmentCreateModel.PickProvince,
@@ -195,7 +198,7 @@ namespace Chillde.Services.Services
                     ward = shipmentCreateModel.Ward,
                     tel = shipmentCreateModel.Tel,
                     hamlet = shipmentCreateModel.Hamlet,
-                    email = shipmentCreateModel.Email,
+                    email = shipmentCreateModel.Email ?? "phuongnam@gmail.com",
                     //return_name = shipmentCreateModel.ReturnName,
                     //return_address = shipmentCreateModel.ReturnAddress,
                     //return_province = shipmentCreateModel.ReturnProvince,
@@ -213,24 +216,18 @@ namespace Chillde.Services.Services
                     deliver_option = shipmentCreateModel.DeliverOption,
                     tags = shipmentCreateModel.Tags
                 }
-            };
+            }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-            var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
-
-            var jsonBody = JsonConvert.SerializeObject(requestBody);
             var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
-            requestMessage.Content = content;
-
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = content
+            };
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                //response.EnsureSuccessStatusCode();
+                var responseContent = await response.Content.ReadAsStringAsync();
 
-               
-
-                    var responseContent = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
                 {
                     return new ResponseModel
@@ -240,19 +237,9 @@ namespace Chillde.Services.Services
                         Data = null
                     };
                 }
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
 
-                if (jsonObject?["success"]?.Value<bool>() == true)
-                {
-                    var orderStatusResponse = jsonObject["order"]?.ToObject<ShipmentAddResponseModel>();
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Success",
-                        Data = orderStatusResponse
-                    };
-                }
-                else
+                var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+                if (jsonObject?["success"]?.Value<bool>() != true)
                 {
                     return new ResponseModel
                     {
@@ -261,13 +248,21 @@ namespace Chillde.Services.Services
                         Data = null
                     };
                 }
+
+                var orderStatusResponse = jsonObject["order"]?.ToObject<ShipmentAddResponseModel>();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Success",
+                    Data = orderStatusResponse
+                };
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message,
+                    Message = $"Error: {ex.Message}",
                     Data = null
                 };
             }
