@@ -1,4 +1,4 @@
-﻿/*using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -161,4 +161,3 @@ namespace Chillde.Services.Services
         }
     }
 }
-*/

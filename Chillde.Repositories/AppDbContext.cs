@@ -27,9 +27,6 @@ public class AppDbContext : DbContext
             entity.Property(account => account.PhoneNumber).HasMaxLength(15);
             entity.HasIndex(account => account.Username).IsUnique();
             entity.HasIndex(account => account.Email).IsUnique();
-            entity.Property(account => account.ReputationPoints)
-                .HasDefaultValue(100);
-
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -116,8 +113,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
         modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
         modelBuilder.Entity<SystemConfig>(entity => { entity.Property(e => e.Value).HasColumnType("jsonb"); });
+        modelBuilder.Entity<AccountRole>(entity => { entity.Property(e => e.TotalReputation).HasDefaultValue(100); });
 
-
+            
         #endregion
 
         #region Relationship Configuration
@@ -134,12 +132,6 @@ public class AppDbContext : DbContext
                   .WithMany(l => l.Translations)
                   .HasForeignKey(t => t.LanguageId);
         });
-        modelBuilder.Entity<SystemConfig>(entity =>
-        {
-            entity.Ignore(e => e.Id);
-            entity.HasKey(sc => new { sc.EntityType, sc.FieldName });
-        });
-
         #endregion
     }
 

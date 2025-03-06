@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chillde.Repositories.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +11,10 @@ namespace Chillde.Repositories.Entities
     {
         public int PointChange { get; set; } // Số điểm thay đổi (+ hoặc -)
         public string Reason { get; set; } = null!; // Lý do thay đổi
-        public Guid AccountId { get; set; }
+
+        //Foreign key
+        public Guid AccountRoleId { get; set; }
         // Relationship
-        public virtual Account Account { get; set; } = null!;
+        public virtual AccountRole AccountRole { get; set; } = null!;
     }
 }
