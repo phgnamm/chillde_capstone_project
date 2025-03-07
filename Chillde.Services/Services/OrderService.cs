@@ -90,7 +90,8 @@ namespace Chillde.Services.Services
                 WalletId = wallet.Id,
                 Amount = totalPrice,
                 Type = WalletHistoryType.TransferOut,
-                Status = WalletHistoryStatus.Completed
+                Status = WalletHistoryStatus.Completed,
+                CreatedById = currentUserId.Value
             };
             wallet.WalletHistories.Add(walletHistory);
 
@@ -99,7 +100,9 @@ namespace Chillde.Services.Services
             {
                 PaymentType = PaymentType.Balance,
                 Amount = totalPrice,
-                PaymentStatus = PaymentStatus.Success
+                PaymentStatus = PaymentStatus.Success,
+                CreatedById = currentUserId.Value
+
             });
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -147,7 +150,7 @@ namespace Chillde.Services.Services
             if ((bool)orderAddModel.WithBalance)
             {
                 var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
-                var response = await ProcessWalletPayment(wallet, totalPrice, newOrder);
+                var response = await ProcessWalletPayment(wallet, totalPrice, newOrder, currentUserId.Value);
                 if (response != null) return response;
                 remainingAmount = (decimal)response.Data;
             }
@@ -158,6 +161,8 @@ namespace Chillde.Services.Services
                     PaymentType = PaymentType.VnPay,
                     Amount = totalPrice,
                     PaymentStatus = PaymentStatus.Pending,
+                    CreatedById = currentUserId.Value
+
                 });
             }
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
@@ -220,7 +225,7 @@ namespace Chillde.Services.Services
                 newOrder.TotalPrice = totalPrice;
             }
         }
-        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, decimal totalPrice, Repositories.Entities.Order order)
+        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, decimal totalPrice, Repositories.Entities.Order order, Guid accountId)
         {
             var balance = wallet.Balance;
 
@@ -250,14 +255,19 @@ namespace Chillde.Services.Services
             {
                 PaymentType = PaymentType.Balance,
                 Amount = balance,
-                PaymentStatus = PaymentStatus.Pending
+                PaymentStatus = PaymentStatus.Pending,
+                CreatedById = accountId
+
             });
 
             order.Payments.Add(new Payment
             {
                 PaymentType = PaymentType.VnPay,
                 Amount = (decimal)remainingAmount,
-                PaymentStatus = PaymentStatus.Pending
+                PaymentStatus = PaymentStatus.Pending,
+                CreatedById = accountId
+
+
             });
             return new ResponseModel { Data = remainingAmount };
         }
@@ -326,7 +336,8 @@ namespace Chillde.Services.Services
                     WalletId = wallet.Id,
                     Amount = balancePayment.Amount,
                     Type = WalletHistoryType.TransferOut,
-                    Status = WalletHistoryStatus.Completed
+                    Status = WalletHistoryStatus.Completed,
+                    CreatedById = order.CreatedById,
                 };
 
                 wallet.WalletHistories.Add(walletHistory);
