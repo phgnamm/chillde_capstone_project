@@ -894,7 +894,7 @@ namespace Chillde.Services.Services
                     {
                         attribute.RequestAttributeValues.Add(new RequestAttributeValue
                         {
-                            Value = valueModel.Value,
+                            Value = JsonConvert.SerializeObject(valueModel.Value),
                             IntOrder = attribute.RequestAttributeValues.Any() ? attribute.RequestAttributeValues.Max(_ => _.IntOrder) + 1 : 1
                         });
                     }
