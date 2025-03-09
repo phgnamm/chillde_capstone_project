@@ -11,7 +11,7 @@ public class Order : BaseEntity
     public int ToDistrict { get; set; }
     public string ToProvince { get; set; }
     public decimal? TotalPrice { get; set; }
-    public decimal? PackagePrice { get; set; }
+    public decimal? PackagePrice { get; set; } // cân nhắc bỏ
     public int? Quantity { get; set; }
     public string? ShipmentCode { get; set; }
     
@@ -24,6 +24,12 @@ public class Order : BaseEntity
     public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     #endregion
+    // Voucher
+    public decimal? TotalValue { get; set; }
+    public decimal? FinalValue { get; set; }
+    public decimal? AdminCommission { get; set; } // check neu nghe nhan co voucher trong khoang thoi gian nay thi su dung
+    public decimal? ArtistRevenue { get; set; } // doanh thu cua nghe nhan sau khi tru hoa hong cua admin
+    public decimal? VoucherCost { get; set; } // tong voucher ma khach hang apply vao    
 
     // Foreign key
     public Guid PackageId { get; set; }
@@ -32,6 +38,7 @@ public class Order : BaseEntity
     public Package Package { get; set; } = null!;
     public Account CreatedBy { get; set; } = null!;
     public virtual ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
+    public virtual ICollection<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();
     public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
     public virtual ICollection<OrderInformation> OrderInformations { get; set; } = new List<OrderInformation>();
     public virtual ICollection<OrderTracking> OrderTrackings { get; set; } = new List<OrderTracking>();
