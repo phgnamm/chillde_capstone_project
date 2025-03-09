@@ -14,6 +14,26 @@ namespace Chillde.Repositories.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "CancellationReasons",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<int>(type: "integer", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CancellationReasons", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
@@ -122,8 +142,9 @@ namespace Chillde.Repositories.Migrations
                 name: "SystemConfigs",
                 columns: table => new
                 {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     EntityType = table.Column<int>(type: "integer", nullable: false),
-                    FieldName = table.Column<string>(type: "text", nullable: false),
+                    FieldName = table.Column<string>(type: "text", nullable: true),
                     Value = table.Column<JsonDocument>(type: "jsonb", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
@@ -135,7 +156,7 @@ namespace Chillde.Repositories.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SystemConfigs", x => new { x.EntityType, x.FieldName });
+                    table.PrimaryKey("PK_SystemConfigs", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -258,6 +279,9 @@ namespace Chillde.Repositories.Migrations
                     EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
+                    YMonthlyAutoCancels = table.Column<int>(type: "integer", nullable: false),
+                    TotalAutoCancels = table.Column<int>(type: "integer", nullable: false),
+                    ConsecutiveSuccesses = table.Column<int>(type: "integer", nullable: false),
                     VerificationCode = table.Column<string>(type: "text", nullable: true),
                     VerificationCodeExpiryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     ResetPasswordToken = table.Column<string>(type: "text", nullable: true),
@@ -348,6 +372,8 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TotalReputation = table.Column<int>(type: "integer", nullable: false, defaultValue: 100),
+                    Status = table.Column<int>(type: "integer", nullable: false),
                     AccountId = table.Column<Guid>(type: "uuid", nullable: false),
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -518,6 +544,74 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_ShippingAddresses_Accounts_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Vouchers",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ReceiverId = table.Column<Guid>(type: "uuid", nullable: true),
+                    VoucherType = table.Column<int>(type: "integer", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
+                    MinOrderRequired = table.Column<int>(type: "integer", nullable: true),
+                    MinReputation = table.Column<int>(type: "integer", nullable: true),
+                    DiscountValue = table.Column<decimal>(type: "numeric", nullable: false),
+                    MinOrderValue = table.Column<decimal>(type: "numeric", nullable: true),
+                    MaxDiscountValue = table.Column<decimal>(type: "numeric", nullable: true),
+                    TotalQuantity = table.Column<int>(type: "integer", nullable: true),
+                    RemainingQuantity = table.Column<int>(type: "integer", nullable: true),
+                    ExpiredTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Vouchers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Vouchers_Accounts_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Vouchers_Accounts_ReceiverId",
+                        column: x => x.ReceiverId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReputationLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    PointChange = table.Column<int>(type: "integer", nullable: false),
+                    Reason = table.Column<string>(type: "text", nullable: false),
+                    AccountRoleId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReputationLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReputationLogs_AccountRoles_AccountRoleId",
+                        column: x => x.AccountRoleId,
+                        principalTable: "AccountRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -980,7 +1074,7 @@ namespace Chillde.Repositories.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Code = table.Column<Guid>(type: "uuid", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
                     Phone = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: true),
                     Address = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     ToWard = table.Column<string>(type: "text", nullable: false),
@@ -990,10 +1084,16 @@ namespace Chillde.Repositories.Migrations
                     PackagePrice = table.Column<decimal>(type: "numeric", nullable: true),
                     Quantity = table.Column<int>(type: "integer", nullable: true),
                     ShipmentCode = table.Column<string>(type: "text", nullable: true),
+                    CancleOrderReason = table.Column<int>(type: "integer", nullable: false),
                     DeliveryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CurrentSketchRevision = table.Column<int>(type: "integer", nullable: true),
                     Stage = table.Column<int>(type: "integer", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
+                    TotalValue = table.Column<decimal>(type: "numeric", nullable: true),
+                    FinalValue = table.Column<decimal>(type: "numeric", nullable: true),
+                    AdminCommission = table.Column<decimal>(type: "numeric", nullable: true),
+                    ArtistRevenue = table.Column<decimal>(type: "numeric", nullable: true),
+                    VoucherCost = table.Column<decimal>(type: "numeric", nullable: true),
                     PackageId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
@@ -1153,6 +1253,47 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_Shipment_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "VoucherUsageLogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    VoucherId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
+                    DiscountValue = table.Column<decimal>(type: "numeric", nullable: false),
+                    DiscountValueOrigin = table.Column<decimal>(type: "numeric", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VoucherUsageLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VoucherUsageLogs_Accounts_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VoucherUsageLogs_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_VoucherUsageLogs_Vouchers_VoucherId",
+                        column: x => x.VoucherId,
+                        principalTable: "Vouchers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1465,6 +1606,11 @@ namespace Chillde.Repositories.Migrations
                 column: "AccountId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ReputationLogs_AccountRoleId",
+                table: "ReputationLogs",
+                column: "AccountRoleId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RequestAttachments_RequestId",
                 table: "RequestAttachments",
                 column: "RequestId");
@@ -1562,6 +1708,31 @@ namespace Chillde.Repositories.Migrations
                 column: "LanguageId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Vouchers_CreatedById",
+                table: "Vouchers",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vouchers_ReceiverId",
+                table: "Vouchers",
+                column: "ReceiverId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VoucherUsageLogs_CustomerId",
+                table: "VoucherUsageLogs",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VoucherUsageLogs_OrderId",
+                table: "VoucherUsageLogs",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VoucherUsageLogs_VoucherId",
+                table: "VoucherUsageLogs",
+                column: "VoucherId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WalletHistory_WalletId",
                 table: "WalletHistory",
                 column: "WalletId");
@@ -1622,7 +1793,7 @@ namespace Chillde.Repositories.Migrations
                 table: "Items");
 
             migrationBuilder.DropTable(
-                name: "AccountRoles");
+                name: "CancellationReasons");
 
             migrationBuilder.DropTable(
                 name: "FAQs");
@@ -1647,6 +1818,9 @@ namespace Chillde.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "ReputationLogs");
 
             migrationBuilder.DropTable(
                 name: "RequestAttachments");
@@ -1679,10 +1853,10 @@ namespace Chillde.Repositories.Migrations
                 name: "UserActivityLogs");
 
             migrationBuilder.DropTable(
-                name: "WalletHistory");
+                name: "VoucherUsageLogs");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "WalletHistory");
 
             migrationBuilder.DropTable(
                 name: "Feedbacks");
@@ -1703,6 +1877,9 @@ namespace Chillde.Repositories.Migrations
                 name: "Shipment");
 
             migrationBuilder.DropTable(
+                name: "AccountRoles");
+
+            migrationBuilder.DropTable(
                 name: "RequestAttributes");
 
             migrationBuilder.DropTable(
@@ -1712,6 +1889,9 @@ namespace Chillde.Repositories.Migrations
                 name: "Languages");
 
             migrationBuilder.DropTable(
+                name: "Vouchers");
+
+            migrationBuilder.DropTable(
                 name: "Conversations");
 
             migrationBuilder.DropTable(
@@ -1719,6 +1899,9 @@ namespace Chillde.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "Orders");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "Features");

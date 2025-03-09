@@ -132,6 +132,17 @@ public class AppDbContext : DbContext
                   .WithMany(l => l.Translations)
                   .HasForeignKey(t => t.LanguageId);
         });
+        modelBuilder.Entity<Voucher>()
+            .HasOne(v => v.Creator) 
+            .WithMany(a => a.CreatedVouchers) 
+            .HasForeignKey(v => v.CreatedById) 
+            .OnDelete(DeleteBehavior.Cascade); 
+
+        modelBuilder.Entity<Voucher>()
+            .HasOne(v => v.Receiver) 
+            .WithMany(a => a.ReceivedVouchers) 
+            .HasForeignKey(v => v.ReceiverId) 
+            .OnDelete(DeleteBehavior.SetNull);
         #endregion
     }
 
@@ -181,6 +192,8 @@ public class AppDbContext : DbContext
     public DbSet<ProductShipment> ProductShipment { get; set; }
     public DbSet<ReputationLog> ReputationLogs { get; set; }
     public DbSet<CancellationReason> CancellationReasons { get; set; }
+    public DbSet<Voucher> Vouchers { get; set; }
+    public DbSet<VoucherUsageLog> VoucherUsageLogs { get; set; }
 
     #endregion
 }
