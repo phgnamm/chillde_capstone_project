@@ -5,8 +5,8 @@ namespace Chillde.Services.Models.ShipmentModels
     public class ShipmentCreateModel
     {
         #region Artisan's information
-        [JsonProperty("order.id")]
-        public string? Id { get; set; } // Thêm trường Id từ JSON
+        //[JsonProperty("order.id")]
+        //public string? Id { get; set; } // Thêm trường Id từ JSON
 
         [JsonProperty("order.pick_name")]
         public required string PickName { get; set; }

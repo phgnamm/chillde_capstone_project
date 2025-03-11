@@ -1,10 +1,10 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 
 namespace Chillde.Repositories.Interfaces;
 
 public interface IShipmentRepository : IGenericRepository<Shipment>
 {
-
-
+    Task<bool> HasAvalaibleShipment(Guid orderId, OrderStage stage);
 
 }

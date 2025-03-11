@@ -9,14 +9,16 @@ namespace Chillde.Repositories.Models.ShipmentModels
         public string? Code { get; set; }
         [JsonProperty("message")]
         public string? Message { get; set; }
-        
+        [JsonProperty("success")]
+        public string? Success { get; set; }
+
     }
     public class ShipmentAddResponseModel : ShipmentResponseModel
     {
-        [JsonProperty("success")]
-        public string? Success { get; set; }
+        [JsonProperty("error_code")]
+        public string? ErrorCode { get; set; }
         [JsonProperty("order")]
-        public string? Order { get; set; }
+        public OrderInfo? Order { get; set; }
     }
 
     public class ShipmentData

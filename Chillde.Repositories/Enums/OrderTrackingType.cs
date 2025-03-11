@@ -8,5 +8,4 @@ public enum OrderTrackingType
     Cancellation, //(một trong 2 bên yêu cầu hủy order)
     Shipping, //(yêu cầu shipping)
     DeadlineExpand, //(yêu cầu expand dl)
-
 }

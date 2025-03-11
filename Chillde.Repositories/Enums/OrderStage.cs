@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Chillde.Repositories.Enums
+﻿namespace Chillde.Repositories.Enums
 {
     public enum OrderStage
     {
@@ -17,5 +11,6 @@ namespace Chillde.Repositories.Enums
         Canceled,
         Shipping,
         Completed,
+        Return
     }
 }
