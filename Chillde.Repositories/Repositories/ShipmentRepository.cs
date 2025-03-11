@@ -11,9 +11,9 @@ public class ShipmentRepository : GenericRepository<Shipment>, IShipmentReposito
     {
     }
 
-    public async Task<bool> HasAvalaibleShipment(Guid orderId, OrderStage stage)
+    public async Task<bool> HasAvalaibleShipment(Guid orderId, string partnerId)
     {
-        var hasAvailableShipment = _dbSet.Any(_ => _.OrderId == orderId && _.Order.Stage == stage);
+        var hasAvailableShipment = _dbSet.Any(_ => _.OrderId == orderId && (_.PartnerId == partnerId));
         return hasAvailableShipment;
     }
 }

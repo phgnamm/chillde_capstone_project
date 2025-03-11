@@ -369,6 +369,7 @@ namespace Chillde.Services.Services
                 };
             }
 
+
             if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.Return)
             {
                 return new ResponseModel
@@ -378,7 +379,9 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, order.Stage);
+            string partnerId = $"{order.Code}_{order.Stage.GetStringValue()}";
+
+            var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerId);
 
             if (availableShipment)
             {
@@ -399,15 +402,13 @@ namespace Chillde.Services.Services
                 };
             }
 
-            string shipmentCode = $"{order.Code}_{order.Stage.GetStringValue}";
-
             var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
             var jsonBody = JsonConvert.SerializeObject(new
             {
                 products = shipmentCreateModel.Products,
                 order = new
                 {
-                    id = shipmentCode,
+                    id = partnerId,
                     pick_name = shipmentCreateModel.PickName,
                     pick_address = shipmentCreateModel.PickAddress,
                     pick_province = shipmentCreateModel.PickProvince,
