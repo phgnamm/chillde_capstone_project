@@ -15,6 +15,7 @@ using System.Text;
 using Chillde.Services.Common;
 using Chillde.Repositories.Models.OrderModels;
 using Chillde.Services.Helpers;
+using Elasticsearch.Net;
 
 namespace Chillde.Services.Services
 {
@@ -40,9 +41,7 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _vnpay = vnpay;
-            _httpClient = httpClientFactory.CreateClient("GhnClient");
-            _shopId = configuration["GhnSettings:ShopId"];
-            _token = configuration["GhnSettings:Token"];
+            _httpClient = httpClientFactory.CreateClient("GhtkClient");
         }
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
@@ -358,131 +357,162 @@ namespace Chillde.Services.Services
                 Message = "Failed to update order status and wallet."
             };
         }
-        public async Task<ResponseModel> CreateShipmentAsync(ShipmentAddModel model, Guid orderId)
+        public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+            if (order == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Order not found."
+                };
+            }
+
+
+            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.Return)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status422UnprocessableEntity,
+                    Message = "Shipment can only be initiated at the delivery and return stage."
+                };
+            }
+
+            string partnerId = $"{order.Code}_{order.Stage.GetStringValue()}";
+
+            var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerId);
+
+            if (availableShipment)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status422UnprocessableEntity,
+                    Message = $"{order.Stage.GetStringValue()} stage already had shipment."
+                };
+            }
+
+            if (shipmentCreateModel == null || !shipmentCreateModel.Products.Any())
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid shipment data",
+                    Data = null
+                };
+            }
+
+            var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
+            var jsonBody = JsonConvert.SerializeObject(new
+            {
+                products = shipmentCreateModel.Products,
+                order = new
+                {
+                    id = partnerId,
+                    pick_name = shipmentCreateModel.PickName,
+                    pick_address = shipmentCreateModel.PickAddress,
+                    pick_province = shipmentCreateModel.PickProvince,
+                    pick_district = shipmentCreateModel.PickDistrict,
+                    pick_ward = shipmentCreateModel.PickWard,
+                    pick_tel = shipmentCreateModel.PickTel,
+                    name = shipmentCreateModel.Name,
+                    address = shipmentCreateModel.Address,
+                    province = shipmentCreateModel.Province,
+                    district = shipmentCreateModel.District,
+                    ward = shipmentCreateModel.Ward,
+                    tel = shipmentCreateModel.Tel,
+                    hamlet = shipmentCreateModel.Hamlet,
+                    email = shipmentCreateModel.Email,
+                    //return_name = shipmentCreateModel.ReturnName,
+                    //return_address = shipmentCreateModel.ReturnAddress,
+                    //return_province = shipmentCreateModel.ReturnProvince,
+                    //return_district = shipmentCreateModel.ReturnDistrict,
+                    //return_tel = shipmentCreateModel.ReturnTel,
+                    //return_email = shipmentCreateModel.ReturnEmail,
+                    is_freeship = shipmentCreateModel.IsFreeShip,
+                    pick_date = shipmentCreateModel.PickDate,
+                    deliver_date = shipmentCreateModel.DeliverDate,
+                    pick_money = shipmentCreateModel.PickMoney,
+                    note = shipmentCreateModel.Note,
+                    value = shipmentCreateModel.Value,
+                    transport = shipmentCreateModel.Transport,
+                    pick_option = shipmentCreateModel.PickOption,
+                    deliver_option = shipmentCreateModel.DeliverOption,
+                    tags = shipmentCreateModel.Tags
+                }
+            }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+            var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            var requestMessage = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, url)
+            {
+                Content = content
+            };
             try
             {
-                //var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
-                //if (order == null)
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status404NotFound,
-                //        Message = "Order not found."
-                //    };
-                //}
+                var response = await _httpClient.SendAsync(requestMessage);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var parsedJson = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
 
-                //if (order.ShipmentCode != null)
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status406NotAcceptable,
-                //        Message = "Đơn hàng đã có đơn vận chuyển"
-                //    };
-                //}
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = parsedJson.Success,
+                        Data = parsedJson
+                    };
+                }
 
-                //var customer = await _unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById);
-                //if (customer == null)
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status404NotFound,
-                //        Message = "Customer not found."
-                //    };
-                //}
+                Shipment shipment = new()
+                {
+                    OrderId = order.Id,
+                    TrackingId = parsedJson!.Order!.TrackingId.ToString(),
+                    StatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
+                    PartnerId = parsedJson!.Order!.PartnerId,
+                    Label = parsedJson.Order.Label,
+                    Area = parsedJson.Order.Area,
+                    Fee = parsedJson.Order.Fee != null ? decimal.Parse(parsedJson.Order.Fee) : 0,
+                    InsuranceFee = parsedJson.Order.InsuranceFee != null ? decimal.Parse(parsedJson.Order.InsuranceFee) : 0,
+                    EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
+                    EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
+                };
 
-                //_httpClient.DefaultRequestHeaders.Clear();
-                ////_httpClient.DefaultRequestHeaders.Add("Content-Type", "application/json");
-                ////_httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                ////_httpClient.DefaultRequestHeaders.Add("Token", _token);
-
-                //var payload = new
-                //{
-                //    payment_type_id = 2,
-                //    note = model.Note,
-                //    required_note = model.RequiredNote.ToString(),
-                //    from_name = model.FromName,
-                //    from_phone = model.FromPhone,
-                //    from_address = model.FromAddress,
-                //    from_ward_name = model.FromWard,
-                //    from_district_name = model.FromDistrict,
-                //    from_province_name = model.FromProvince,
-                //    //return_phone = (string?)null,
-                //    //return_address = (string?)null,
-                //    //return_district_id = (string?)null,
-                //    //return_ward_code = "",
-                //    //client_order_code = "",
-                //    to_name = customer.FirstName + " " + customer.LastName,
-                //    to_phone = order.Phone,
-                //    to_address = order.Address,
-                //    to_ward_code = order.ToWard,
-                //    to_district_id = order.ToDistrict,
-                //    //cod_amount = (int?)null,
-                //    //content = (string?)null,
-                //    weight = model.Weight,
-                //    length = model.Length,
-                //    width = model.Width,
-                //    height = model.Height,
-                //    //pick_station_id = (int?)null,
-                //    //deliver_station_id = (int?)null,
-                //    insurance_value = model.InsuranceValue,
-                //    //service_id = (int?)null,
-                //    service_type_id = 2,
-                //    //coupon = (string?)null,
-                //    //pick_shift = (int[]?)null,
-                //    items = new[]
-                //{
-                //        new
-                //        {
-                //            name = model.ItemName,
-                //            //code = (string?)null,
-                //            quantity = model.ItemQuantity,
-                //            price = model.ItemPrice,
-                //            //length = (int?)null,
-                //            //width = (int?)null,
-                //            //height = (int?)null,
-                //            weight = model.ItemWeight,
-                //            //category = new { level1 = "Áo" }
-                //        }
-                //    }
-                //};
-
-                ////var jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
-                ////var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-                ////var response = await _httpClient.PostAsync(_url, content);
-
-                ////var responseContent = await response.Content.ReadAsStringAsync();
-                ////var result = JsonConvert.DeserializeObject<ShipmentResponseModel>(responseContent);
-
-                //var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-
-                //_httpClient.DefaultRequestHeaders.Add("ShopId", _shopId);
-                //_httpClient.DefaultRequestHeaders.Add("Token", _token);
-                //var response = await _httpClient.PostAsync("v2/shipping-order/create", content);
-
-                //var responseContent = await response.Content.ReadAsStringAsync();
-                //var result = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
-
-                //if (result.Code == StatusCodes.Status200OK.ToString())
-                //{
-                //    order.ShipmentCode = result.Data.OrderCode;
-                //}
-
-                //_unitOfWork.OrderRepository.Update(order);
-                //await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.ShipmentRepository.AddAsync(shipment);
+                await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status200OK
+                    Code = StatusCodes.Status201Created,
+                    Message = "Success",
+                    Data = shipment
                 };
+
+                //var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
+                //if (jsonObject?["success"]?.Value<bool>() != true)
+                //{
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status400BadRequest,
+                //        Message = jsonObject?["message"]?.ToString() ?? "Unknown error",
+                //        Data = null
+                //    };
+                //}
+
+                //var orderStatusResponse = jsonObject["order"]?.ToObject<ShipmentAddResponseModel>();
+                //return new ResponseModel
+                //{
+                //    Code = StatusCodes.Status200OK,
+                //    Message = "Success",
+                //    Data = orderStatusResponse
+                //};
             }
             catch (Exception ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
+                    Message = $"Error: {ex.Message}",
+                    Data = null
                 };
             }
         }
