@@ -11,5 +11,6 @@ namespace Chillde.Services.Interfaces
     public interface IVoucherService
     {
         Task<ResponseModel> Add(VoucherAddModel voucherAddModel);
+        Task<ResponseModel> Update(Guid id, VoucherUpdateModel voucherUpdateModel);
     }
 }

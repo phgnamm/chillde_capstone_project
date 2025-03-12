@@ -18,5 +18,12 @@ namespace Chillde.Services.Helpers
                 .Select(s => s[_random.Next(s.Length)]).ToArray());
             return prefix + randomPart;
         }
+        public static string GenerateVoucherCode()
+        {
+            const string prefix = "VCCHD";
+            var randomPart = new string(Enumerable.Repeat(Characters, 8)
+                .Select(s => s[_random.Next(s.Length)]).ToArray());
+            return prefix + randomPart;
+        }
     }
 }

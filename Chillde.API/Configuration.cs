@@ -346,6 +346,7 @@ public static class Configuration
 
         //Voucher
         services.AddScoped<IVoucherRepository, VoucherRepository>();
+        services.AddScoped<IVoucherService, VoucherService>();
 
         //VoucherUsageLog
         services.AddScoped<IVoucherUsageLogRepository, VoucherUsageLogRepository>();
