@@ -5,5 +5,5 @@ public class Wallet : BaseEntity
     public decimal Balance { get; set; }
 
     // Relationship
-    public virtual ICollection<WalletHistory> WalletHistories { get; set; } = new List<WalletHistory>();
+    public virtual ICollection<Transaction> WalletHistories { get; set; } = new List<Transaction>();
 }

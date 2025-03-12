@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Repositories.Enums;
 
-public enum WalletHistoryType
+public enum TransactionType
 {
     Deposit = 0, // Money was deposited into the wallet
     Withdrawal = 1, // Money was withdrawn from the wallet

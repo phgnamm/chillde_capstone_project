@@ -13,6 +13,10 @@ public class Feature : BaseEntity
     public bool IsQuantity { get; set; }
     #endregion
 
+    // Foreign key
+    public Guid? OfferId { get; set; }
+    
     // Relationship
+    public Offer? Offer { get; set; }
     public virtual ICollection<PackageFeature> PackageFeatures { get; set; } = new List<PackageFeature>();
 }
