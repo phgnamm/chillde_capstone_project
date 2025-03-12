@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250312133208_EntityV3")]
-    partial class EntityV3
+    [Migration("20250312135848_EntityV5")]
+    partial class EntityV5
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1350,9 +1350,6 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -1385,7 +1382,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("CreatedById");
 
                     b.ToTable("RefreshTokens");
                 });
@@ -2394,7 +2391,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -2762,13 +2759,11 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
+                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
                         .WithMany("RefreshTokens")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CreatedById");
 
-                    b.Navigation("Account");
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ReputationLog", b =>

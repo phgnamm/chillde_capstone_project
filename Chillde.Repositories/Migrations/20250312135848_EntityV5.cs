@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Chillde.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class EntityV3 : Migration
+    public partial class EntityV5 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
