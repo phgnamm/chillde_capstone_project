@@ -21,6 +21,7 @@
 		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
 		<PackageReference Include="RabbitMQ.Client" Version="6.4.0" />
+		<PackageReference Include="Slugify.Core" Version="4.0.1" />
 	</ItemGroup>
 
 </Project>

@@ -57,8 +57,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Category>(entity =>
         {
             entity.Property(category => category.Name).HasMaxLength(100);
-            entity.Property(category => category.Code).HasMaxLength(25);
-            entity.HasIndex(category => category.Code).IsUnique();
         });
 
         modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
@@ -149,6 +147,14 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(f => f.ArtisanId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.HasOne(c => c.Parent)
+                  .WithMany(c => c.Children)
+                  .HasForeignKey(c => c.ParentId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
 
         #endregion
     }

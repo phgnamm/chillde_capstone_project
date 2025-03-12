@@ -1,10 +1,23 @@
-﻿namespace Chillde.Repositories.Entities;
+﻿using Microsoft.IdentityModel.Logging;
+using Slugify;
+
+namespace Chillde.Repositories.Entities;
 
 public class Category : BaseEntity
 {
-    public string? Code { get; set; }
-    public string? Name { get; set; }
-    public string? Slug { get; set; }
+    private static readonly SlugHelper _slugHelper = new();
+    private string? _name;
+    public string? Name
+    {
+        get => _name;
+        set
+        {
+            _name = value;
+            Slug = value != null ? _slugHelper.GenerateSlug(value) : null;
+        }
+    }
+
+    public string? Slug { get; private set; }
     public string? AttachmentAlt { get; set; }
     public string? AttachmentUrl { get; set; }
 
@@ -13,4 +26,5 @@ public class Category : BaseEntity
     
     // Relationship
     public Category? Parent { get; set; }
+    public virtual ICollection<Category> Children { get; set; } = new List<Category>();
 }
