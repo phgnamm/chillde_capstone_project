@@ -1,4 +1,4 @@
-﻿using Chillde.API.Helper;
+﻿using Chillde.API.Helpers;
 using Chillde.Repositories.Enums;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
@@ -141,7 +141,7 @@ namespace Chillde.API.Controllers
         }
 
         [HttpPost("{requestId}/offers")]
-        public async Task<IActionResult> Add([FromBody] OfferAddModel model, Guid requestId)
+        public async Task<IActionResult> Add([FromForm] OfferAddModel model, Guid requestId)
         {
             try
             {
