@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250312132517_EntityV4")]
+    partial class EntityV4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -768,7 +771,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ServiceId")
+                    b.Property<Guid>("ServiceId")
                         .HasColumnType("uuid");
 
                     b.Property<int?>("SketchRevision")
@@ -2466,7 +2469,7 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Offer", null)
-                        .WithMany("Categories")
+                        .WithMany("Items")
                         .HasForeignKey("OfferId");
 
                     b.HasOne("Chillde.Repositories.Entities.Category", "Parent")
@@ -2605,7 +2608,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
                         .WithMany("Offers")
-                        .HasForeignKey("ServiceId");
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CreatedBy");
 
@@ -3075,7 +3080,7 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
-                    b.Navigation("Categories");
+                    b.Navigation("Items");
 
                     b.Navigation("OfferAttachments");
                 });
