@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TransactionStatus = Chillde.Repositories.Models.VnPayModels.TransactionStatus;
 
 namespace Chillde.Services.Services
 {

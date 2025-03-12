@@ -11,9 +11,11 @@ public class Message : BaseEntity
 
     // Foreign key
     public Guid? ParentMessageId { get; set; }
+    public Guid? OfferId { get; set; }
 
     // Relationship
     public Account CreatedBy { get; set; } = null!;
     public Message? ParentMessage { get; set; }
+    public Offer Offer { get; set; } = null!;
     public virtual ICollection<MessageRecipient> MessageRecipients { get; set; } = new List<MessageRecipient>();
 }

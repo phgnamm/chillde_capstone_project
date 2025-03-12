@@ -74,7 +74,7 @@ namespace Chillde.Services.Services
             {
                 Name = categoryAddModel.Name,
                 Code = code,
-                ImageUrl = imageUrl
+                AttachmentUrl = imageUrl
             };
 
             await _unitOfWork.CategoryRepository.AddAsync(newCategory);
@@ -142,7 +142,7 @@ namespace Chillde.Services.Services
                 {
                     Name = categoryModel.Name,
                     Code = code,
-                    ImageUrl = imageUrl
+                    AttachmentUrl = imageUrl
                 });
             }
 
@@ -159,63 +159,63 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddRangeModel subCategoryAddRangeModel)
         {
-            var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
-            if (categoryExists == null || categoryExists.IsDeleted)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Category not found."
-                };
-            }
-
-            var newSubCategories = new List<SubCategoryModel>();
-
-            if (subCategoryAddRangeModel.ImageUrls != null &&
-                subCategoryAddRangeModel.ImageUrls.Count != subCategoryAddRangeModel.SubCategoryAddRequestModels.Count)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "The number of images must match the number of subcategories."
-                };
-            }
-            var subCategoriesToAdd = new List<SubCategory>();
-            for (int i = 0; i < subCategoryAddRangeModel.SubCategoryAddRequestModels.Count; i++)
-            {
-                var requestModel = subCategoryAddRangeModel.SubCategoryAddRequestModels[i];
-                string? imageUrl = null;
-
-                if (subCategoryAddRangeModel.ImageUrls != null && subCategoryAddRangeModel.ImageUrls.ElementAtOrDefault(i) != null)
-                {
-                    imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                        subCategoryAddRangeModel.ImageUrls[i],
-                        "subcategories",
-                        Guid.NewGuid().ToString()
-                    );
-                }
-
-                var subCategory = new SubCategory
-                {
-                    Id = Guid.NewGuid(),
-                    Name = requestModel.Name,
-                    Code = string.IsNullOrEmpty(requestModel.Code)
-                        ? GenerateSlug(requestModel.Name)
-                        : GenerateSlug(requestModel.Code),
-                    ImageUrl = imageUrl,
-                    CategoryId = categoryId
-                };
-                subCategoriesToAdd.Add(subCategory);
-                newSubCategories.Add(_mapper.Map<SubCategoryModel>(subCategory));
-            }
-            await _unitOfWork.SubCategoryRepository.AddRangeAsync(subCategoriesToAdd);
-            await _unitOfWork.SaveChangeAsync();
+            // var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
+            // if (categoryExists == null || categoryExists.IsDeleted)
+            // {
+            //     return new ResponseModel
+            //     {
+            //         Code = StatusCodes.Status404NotFound,
+            //         Message = "Category not found."
+            //     };
+            // }
+            //
+            // var newSubCategories = new List<SubCategoryModel>();
+            //
+            // if (subCategoryAddRangeModel.ImageUrls != null &&
+            //     subCategoryAddRangeModel.ImageUrls.Count != subCategoryAddRangeModel.SubCategoryAddRequestModels.Count)
+            // {
+            //     return new ResponseModel
+            //     {
+            //         Code = StatusCodes.Status400BadRequest,
+            //         Message = "The number of images must match the number of subcategories."
+            //     };
+            // }
+            // var subCategoriesToAdd = new List<SubCategory>();
+            // for (int i = 0; i < subCategoryAddRangeModel.SubCategoryAddRequestModels.Count; i++)
+            // {
+            //     var requestModel = subCategoryAddRangeModel.SubCategoryAddRequestModels[i];
+            //     string? imageUrl = null;
+            //
+            //     if (subCategoryAddRangeModel.ImageUrls != null && subCategoryAddRangeModel.ImageUrls.ElementAtOrDefault(i) != null)
+            //     {
+            //         imageUrl = await _cloudinaryHelper.UploadImageAsync(
+            //             subCategoryAddRangeModel.ImageUrls[i],
+            //             "subcategories",
+            //             Guid.NewGuid().ToString()
+            //         );
+            //     }
+            //
+            //     var subCategory = new SubCategory
+            //     {
+            //         Id = Guid.NewGuid(),
+            //         Name = requestModel.Name,
+            //         Code = string.IsNullOrEmpty(requestModel.Code)
+            //             ? GenerateSlug(requestModel.Name)
+            //             : GenerateSlug(requestModel.Code),
+            //         ImageUrl = imageUrl,
+            //         CategoryId = categoryId
+            //     };
+            //     subCategoriesToAdd.Add(subCategory);
+            //     newSubCategories.Add(_mapper.Map<SubCategoryModel>(subCategory));
+            // }
+            // await _unitOfWork.SubCategoryRepository.AddRangeAsync(subCategoriesToAdd);
+            // await _unitOfWork.SaveChangeAsync();
 
             return new ResponseModel
             {
                 Code = StatusCodes.Status201Created,
-                Message = "Subcategories added successfully.",
-                Data = newSubCategories
+                // Message = "Subcategories added successfully.",
+                // Data = newSubCategories
             };
         }
 
@@ -242,37 +242,37 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel)
         {
-            Expression<Func<Category, bool>> filter = category =>
-                    category.IsDeleted == categoryFilterModel.IsDeleted &&
-                    (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-                    category.Name!.Contains(categoryFilterModel.Search) ||
-                    category.Code!.Contains(categoryFilterModel.Search));
-
-            Func<IQueryable<Category>, IQueryable<Category>> include = categories =>
-                     categories.Include(c => c.SubCategories);
-
-            var categorys = await _unitOfWork.CategoryRepository.GetAllAsync(
-                            filter: filter,
-                            include: include,
-                            pageIndex: categoryFilterModel.PageIndex,
-            pageSize: categoryFilterModel.PageSize
-            );
-            /* var cateroryModels = categorys.Data.Select(_ => new CateroryModel
-             {
-                 Id = _.Id,
-                 Name = _.Name,
-                 Code = _.Code,      
-                 ImageUrl = _.ImageUrl,
-             }).ToList();*/
-            var cateroryModels = _mapper.Map<List<CategoryModel>>(categorys.Data);
-
-            var result = new Pagination<CategoryModel>(cateroryModels, categoryFilterModel.PageIndex,
-              categoryFilterModel.PageSize, categorys.TotalCount);
+            // Expression<Func<Category, bool>> filter = category =>
+            //         category.IsDeleted == categoryFilterModel.IsDeleted &&
+            //         (string.IsNullOrEmpty(categoryFilterModel.Search) ||
+            //         category.Name!.Contains(categoryFilterModel.Search) ||
+            //         category.Code!.Contains(categoryFilterModel.Search));
+            //
+            // Func<IQueryable<Category>, IQueryable<Category>> include = categories =>
+            //          categories.Include(c => c.SubCategories);
+            //
+            // var categorys = await _unitOfWork.CategoryRepository.GetAllAsync(
+            //                 filter: filter,
+            //                 include: include,
+            //                 pageIndex: categoryFilterModel.PageIndex,
+            // pageSize: categoryFilterModel.PageSize
+            // );
+            // /* var cateroryModels = categorys.Data.Select(_ => new CateroryModel
+            //  {
+            //      Id = _.Id,
+            //      Name = _.Name,
+            //      Code = _.Code,      
+            //      ImageUrl = _.ImageUrl,
+            //  }).ToList();*/
+            // var cateroryModels = _mapper.Map<List<CategoryModel>>(categorys.Data);
+            //
+            // var result = new Pagination<CategoryModel>(cateroryModels, categoryFilterModel.PageIndex,
+            //   categoryFilterModel.PageSize, categorys.TotalCount);
 
             return new ResponseModel
             {
                 Message = "Get all categorys successfully",
-                Data = result
+                //Data = result
             };
 
 
@@ -304,34 +304,34 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel)
         {
-            var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
-            if (categoryExists == null || categoryExists.IsDeleted)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Category not found."
-                };
-            }
-            Expression<Func<SubCategory, bool>> filter = subcategory =>
-                   subcategory.CategoryId == categoryId &&
-                   subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
-                   (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
-                   subcategory.Name!.Contains(subCategoryFilterModel.Search) ||
-                   subcategory.Code!.Contains(subCategoryFilterModel.Search));
-
-
-            var subcategories = await _unitOfWork.SubCategoryRepository.GetAllAsync(
-                filter: filter,
-                include: null
-            );
-
-            var subcategoriesModel = _mapper.Map<List<SubCategoryModel>>(subcategories.Data);
+            // var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
+            // if (categoryExists == null || categoryExists.IsDeleted)
+            // {
+            //     return new ResponseModel
+            //     {
+            //         Code = StatusCodes.Status404NotFound,
+            //         Message = "Category not found."
+            //     };
+            // }
+            // Expression<Func<SubCategory, bool>> filter = subcategory =>
+            //        subcategory.CategoryId == categoryId &&
+            //        subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
+            //        (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
+            //        subcategory.Name!.Contains(subCategoryFilterModel.Search) ||
+            //        subcategory.Code!.Contains(subCategoryFilterModel.Search));
+            //
+            //
+            // var subcategories = await _unitOfWork.SubCategoryRepository.GetAllAsync(
+            //     filter: filter,
+            //     include: null
+            // );
+            //
+            // var subcategoriesModel = _mapper.Map<List<SubCategoryModel>>(subcategories.Data);
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
                 Message = "Subcategories retrieved successfully.",
-                Data = subcategoriesModel
+                //Data = subcategoriesModel
             };
         }
 
@@ -369,7 +369,7 @@ namespace Chillde.Services.Services
                     "categories",
                     id.ToString()
                 );
-                category.ImageUrl = imageUrl;
+                category.AttachmentUrl = imageUrl;
             }
 
             category.Name = categoryUpdateModel.Name;

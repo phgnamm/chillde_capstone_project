@@ -5,13 +5,15 @@ namespace Chillde.Repositories.Entities;
 public class Transaction : BaseEntity
 {
     public decimal? Amount { get; set; }
-    public WalletHistoryType Type { get; set; }
+    public TransactionType Type { get; set; }
 
-    public WalletHistoryStatus Status { get; set; }
+    public TransactionStatus Status { get; set; }
 
     // Foreign key
     public Guid WalletId { get; set; }
+    public Guid OrderId { get; set; }
 
     // Relationship
     public Wallet Wallet { get; set; } = null!;
+    public Order Order { get; set; } = null!;
 }

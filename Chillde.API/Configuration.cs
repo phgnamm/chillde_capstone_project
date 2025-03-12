@@ -265,7 +265,7 @@ public static class Configuration
         services.AddScoped<IWalletService, WalletService>();
 
         //WalletHistory
-        services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IWalletHistoryService, WalletHistoryService>();
 
         //Translation
@@ -283,14 +283,6 @@ public static class Configuration
         //Caterory
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryServive, CategoryService>();
-
-        //Subcategory
-        services.AddScoped<ISubCategoryRepository, SubCategoryRepository>();
-        services.AddScoped<ISubCategoryService, SubCategoryService>();
-
-        //Item
-        services.AddScoped<IItemRepository, ItemRepository>();
-        services.AddScoped<IItemService, ItemService>();
 
         //FAQ
         services.AddScoped<IFAQRepository, FAQRepository>();

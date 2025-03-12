@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Repositories
 {
-    public class TransactionRepository : GenericRepository<WalletHistory>, ITransactionRepository
+    public class TransactionRepository : GenericRepository<Transaction>, ITransactionRepository
     {
         public TransactionRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
