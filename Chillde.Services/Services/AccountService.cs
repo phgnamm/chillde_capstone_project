@@ -77,7 +77,6 @@ public class AccountService : IAccountService
         account.Wallet = new Wallet
         {
             Balance = 0,
-            CreatedById = account.Id
         };
         await _unitOfWork.AccountRepository.AddAsync(account);
 
@@ -315,7 +314,7 @@ public class AccountService : IAccountService
 
         // Validate refresh token
         var account = await _unitOfWork.AccountRepository.GetAsync(accountId);
-        if (account == null || account.IsDeleted || refreshToken.AccountId != account.Id ||
+        if (account == null || account.IsDeleted || refreshToken.CreatedById != account.Id ||
             refreshToken.Token != accountRefreshTokenModel.RefreshToken ||
             refreshToken.Expires < DateTime.UtcNow)
             return new ResponseModel
@@ -343,7 +342,7 @@ public class AccountService : IAccountService
     {
         var refreshTokens =
             await _unitOfWork.RefreshTokenRepository.GetAllAsync(
-                refreshToken => refreshToken.Account.Email == accountEmailModel.Email);
+                refreshToken => refreshToken.CreatedBy.Email == accountEmailModel.Email);
         _unitOfWork.RefreshTokenRepository.HardRemoveRange(refreshTokens.Data);
         await _unitOfWork.SaveChangeAsync();
 
@@ -562,7 +561,16 @@ public class AccountService : IAccountService
                     accountSignUpModel.Roles.Select(r => r.ToString()).Distinct().Contains(role.Name)).ToList();
                 if (rolesOfAccount.Any())
                     foreach (var role in rolesOfAccount)
+                    {
                         account.AccountRoles.Add(new AccountRole { Account = account, Role = role });
+                        if (role.Name != Role.Admin.ToString())
+                        {
+                            account.Wallet = new Wallet
+                            {
+                                Balance = 0,
+                            };
+                        }
+                    }
             }
             else
             {
@@ -982,7 +990,7 @@ public class AccountService : IAccountService
                 DeviceId = deviceId,
                 Token = refreshTokenString,
                 Expires = expires,
-                Account = account
+                CreatedBy = account
             });
         }
 

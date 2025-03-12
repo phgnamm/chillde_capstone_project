@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
             entity.Property(account => account.Username).HasMaxLength(50);
             entity.Property(account => account.Email).HasMaxLength(256);
             entity.Property(account => account.PhoneNumber).HasMaxLength(15);
+            entity.Property(account => account.WalletId).IsRequired();
             entity.HasIndex(account => account.Username).IsUnique();
             entity.HasIndex(account => account.Email).IsUnique();
         });
@@ -54,12 +55,7 @@ public class AppDbContext : DbContext
             entity.Property(conversation => conversation.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Category>(entity =>
-        {
-            entity.Property(category => category.Name).HasMaxLength(100);
-            entity.Property(category => category.Code).HasMaxLength(25);
-            entity.HasIndex(category => category.Code).IsUnique();
-        });
+        modelBuilder.Entity<Category>(entity => { entity.Property(category => category.Name).HasMaxLength(100); });
 
         modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
 
@@ -93,7 +89,6 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Message>(entity => { entity.Property(message => message.CreatedById).IsRequired(); });
-        modelBuilder.Entity<Wallet>(entity => { entity.Property(wallet => wallet.CreatedById).IsRequired(); });
         modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
         modelBuilder.Entity<ShippingAddress>(entity =>
@@ -149,6 +144,14 @@ public class AppDbContext : DbContext
             .WithMany()
             .HasForeignKey(f => f.ArtisanId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.HasOne(c => c.Parent)
+                .WithMany(c => c.Children)
+                .HasForeignKey(c => c.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
 
         #endregion
     }

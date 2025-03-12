@@ -73,7 +73,6 @@ namespace Chillde.Services.Services
             var newCategory = new Category
             {
                 Name = categoryAddModel.Name,
-                Code = code,
                 AttachmentUrl = imageUrl
             };
 
@@ -141,7 +140,6 @@ namespace Chillde.Services.Services
                 newCategories.Add(new Category
                 {
                     Name = categoryModel.Name,
-                    Code = code,
                     AttachmentUrl = imageUrl
                 });
             }
@@ -373,9 +371,6 @@ namespace Chillde.Services.Services
             }
 
             category.Name = categoryUpdateModel.Name;
-            category.Code = string.IsNullOrEmpty(categoryUpdateModel.Code)
-                ? GenerateSlug(categoryUpdateModel.Name!)
-                : GenerateSlug(categoryUpdateModel.Code);
 
             _unitOfWork.CategoryRepository.Update(category);
             await _unitOfWork.SaveChangeAsync();

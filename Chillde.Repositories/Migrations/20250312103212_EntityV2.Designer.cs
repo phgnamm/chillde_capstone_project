@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250312103212_EntityV2")]
+    partial class EntityV2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1347,6 +1350,9 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -1379,7 +1385,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("AccountId");
 
                     b.ToTable("RefreshTokens");
                 });
@@ -2314,9 +2320,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("TotalQuantity")
                         .HasColumnType("integer");
 
-                    b.Property<int>("VoucherStatus")
-                        .HasColumnType("integer");
-
                     b.Property<int>("VoucherType")
                         .HasColumnType("integer");
 
@@ -2368,9 +2371,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("UsageStatus")
-                        .HasColumnType("integer");
-
                     b.Property<Guid>("VoucherId")
                         .HasColumnType("uuid");
 
@@ -2394,7 +2394,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid?>("CreatedById")
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -2764,11 +2764,13 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
+                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
                         .WithMany("RefreshTokens")
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ReputationLog", b =>

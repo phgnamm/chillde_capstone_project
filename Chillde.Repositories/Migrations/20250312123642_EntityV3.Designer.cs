@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250312123642_EntityV3")]
+    partial class EntityV3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2314,9 +2317,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("TotalQuantity")
                         .HasColumnType("integer");
 
-                    b.Property<int>("VoucherStatus")
-                        .HasColumnType("integer");
-
                     b.Property<int>("VoucherType")
                         .HasColumnType("integer");
 
@@ -2368,9 +2368,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("UsageStatus")
-                        .HasColumnType("integer");
-
                     b.Property<Guid>("VoucherId")
                         .HasColumnType("uuid");
 
@@ -2394,7 +2391,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid?>("CreatedById")
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
