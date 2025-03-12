@@ -47,6 +47,8 @@ public interface IUnitOfWork
     IPaymentRepository PaymentRepository { get; }
     IUserActivityLogRepository UserActivityLogRepository { get; }
     ISystemConfigRepository SystemConfigRepository { get; }
+    IVoucherRepository VoucherRepository { get; }
+    IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
 
     #endregion
 }

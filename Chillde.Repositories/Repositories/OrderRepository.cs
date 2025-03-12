@@ -31,5 +31,11 @@ namespace Chillde.Repositories.Repositories
             var hasCompletedOrder = _dbSet.Any(order => order.PackageId == packageId);
             return hasCompletedOrder;
         }
+
+        public async Task<int> NumberCompletedOrder(Guid accountId, Guid artistId)
+        {
+            var orders = _dbSet.Where(_ => _.CreatedById == accountId && _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Success).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
+            return orders;
+        }
     }
 }

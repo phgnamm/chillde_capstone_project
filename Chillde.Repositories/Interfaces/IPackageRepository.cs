@@ -11,6 +11,7 @@ namespace Chillde.Repositories.Interfaces
     {
         Task<List<Package>> GetAllPackageFromService(Guid serviceId);
         Task<Package> Get(Guid id);
+        Task<Guid> GetArtist(Guid packageId);
 
     }
 }
