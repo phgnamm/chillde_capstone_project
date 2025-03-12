@@ -2314,6 +2314,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("TotalQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<int>("VoucherStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("VoucherType")
                         .HasColumnType("integer");
 
@@ -2364,6 +2367,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("UsageStatus")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("VoucherId")
                         .HasColumnType("uuid");

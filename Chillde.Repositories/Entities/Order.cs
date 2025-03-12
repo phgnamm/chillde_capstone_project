@@ -14,7 +14,7 @@ public class Order : BaseEntity
     public decimal? PackagePrice { get; set; } // cân nhắc bỏ
     public int? Quantity { get; set; }
     public string? ShipmentCode { get; set; }
-    
+
     //ly do huy
     public CancleOrderReason CancleOrderReason { get; set; }
 

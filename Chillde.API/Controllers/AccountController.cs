@@ -71,7 +71,23 @@ public class AccountController : ControllerBase
             });
         }
     }
-
+    [HttpGet]
+    public async Task<IActionResult> GetVoucher([FromQuery] Guid userId, [FromQuery] Guid packageId)
+    {
+        try
+        {
+            var result = await _accountService.GetVoucher(userId, packageId);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromForm] AccountUpdateModel accountUpdateModel)
     {

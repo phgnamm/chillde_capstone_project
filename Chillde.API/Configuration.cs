@@ -344,6 +344,14 @@ public static class Configuration
         services.AddScoped<IElasticsearchService, ElasticsearchService>();
         services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
 
+        //Voucher
+        services.AddScoped<IVoucherRepository, VoucherRepository>();
+        services.AddScoped<IVoucherService, VoucherService>();
+
+        //VoucherUsageLog
+        services.AddScoped<IVoucherUsageLogRepository, VoucherUsageLogRepository>();
+
+
         #endregion
 
         return services;
