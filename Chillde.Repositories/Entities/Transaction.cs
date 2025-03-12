@@ -2,7 +2,7 @@
 
 namespace Chillde.Repositories.Entities;
 
-public class WalletHistory : BaseEntity
+public class Transaction : BaseEntity
 {
     public decimal? Amount { get; set; }
     public WalletHistoryType Type { get; set; }

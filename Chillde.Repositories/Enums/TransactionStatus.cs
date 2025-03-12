@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Repositories.Enums;
 
-public enum WalletHistoryStatus
+public enum TransactionStatus
 {
     Pending = 0, // Transaction is pending and has not been processed yet
     Completed = 1, // Transaction has been successfully completed
