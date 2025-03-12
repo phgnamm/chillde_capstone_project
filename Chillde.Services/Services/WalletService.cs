@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Services.Services
 {
@@ -33,11 +34,22 @@ namespace Chillde.Services.Services
                     Message = "Unauthorized."
                 };
             }
-            var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
+
+            // var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
+            var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value,
+                accounts => accounts.Include(account => account.Wallet));
+            if (account == null)
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Account not found"
+                };
+
             var walletModel = new WalletModel
             {
-                Balance = wallet?.Balance ?? 0.0m,
+                Balance = account.Wallet?.Balance ?? 0.0m,
             };
+
             return new ResponseModel
             {
                 Data = walletModel,

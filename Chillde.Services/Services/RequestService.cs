@@ -276,7 +276,7 @@ namespace Chillde.Services.Services
                                     : requests.OrderBy(request => request.CreationDate);
                         }
                     },
-                    include: requests => requests.Include(_ => _.Item),
+                    include: null,
                     pageIndex: filterParameter.PageIndex,
                     pageSize: filterParameter.PageSize
                 );
@@ -289,7 +289,6 @@ namespace Chillde.Services.Services
                         Id = _.Id,
                         Name = _.Name,
                         IsDeleted = _.IsDeleted,
-                        ItemName = _.Item?.Name,
                         CreationDate = _.CreationDate,
                         MaxBudget = _.MaxBudget,
                         MinBudget = _.MinBudget,
@@ -318,7 +317,6 @@ namespace Chillde.Services.Services
                             Id = request.Id,
                             Name = request.Name,
                             IsDeleted = request.IsDeleted,
-                            ItemName = request.Item?.Name,
                             CreationDate = request.CreationDate,
                             MaxBudget = request.MaxBudget,
                             MinBudget = request.MinBudget,
@@ -652,7 +650,6 @@ namespace Chillde.Services.Services
                 MinBudget = model.MinBudget,
                 MaxBudget = model.MaxBudget,
                 Timeline = model.Timeline,
-                ItemId = model.ItemId,
                 CreatedById = userId,
                 RequestAttributes = new List<RequestAttribute>(),
                 RequestAttachments = new List<RequestAttachment>()
@@ -750,7 +747,7 @@ namespace Chillde.Services.Services
         #region Get Request Detail
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
-            var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.Item).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
+            var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
             var requestModel = new RequestGetByIdModel
             {
                 Id = request.Id,
@@ -760,10 +757,6 @@ namespace Chillde.Services.Services
                 MaxBudget = (decimal)request.MaxBudget,
                 Timeline = (int)request.Timeline,
                 Status = request.Status,
-                ItemId = request.ItemId,
-                ItemName = request.Item.Name,
-                ItemCode = request.Item.Code,
-                ItemImageUrl = request.Item.ImageUrl,
                 RequestAttachmentGetModels = request?.RequestAttachments?.Select(_ => new RequestAttachmentGetModel
                 {
                     Id = _.Id,
@@ -799,8 +792,7 @@ namespace Chillde.Services.Services
             try
             {
                 var request = await _unitOfWork.RequestRepository.GetAsync(requestId,
-                    include: _ => _.Include(_ => _.Item)
-                                   .Include(_ => _.RequestAttributes)
+                    include: _ => _.Include(_ => _.RequestAttributes)
                                    .ThenInclude(_ => _.RequestAttributeValues)
                                    .Include(_ => _.RequestAttributes)
                                    .ThenInclude(_ => _.RequestAttributeAttachments)

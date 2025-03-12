@@ -6,9 +6,6 @@ public class RefreshToken : BaseEntity
     public Guid Token { get; set; }
     public DateTime Expires { get; set; }
 
-    // Foreign key
-    public Guid AccountId { get; set; }
-
     // Relationship
-    public Account Account { get; set; } = null!;
+    public Account CreatedBy { get; set; } = null!;
 }

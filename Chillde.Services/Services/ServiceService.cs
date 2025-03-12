@@ -16,11 +16,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.FeatureModels;
-using Chillde.Services.Helpers;
 using Chillde.Services.Utils;
 using Nest;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Enums;
 
 namespace Chillde.Services.Services
@@ -96,7 +93,7 @@ namespace Chillde.Services.Services
             };
 
             await _unitOfWork.FeedbackRepository.AddAsync(feedback);
-            if (feedbackAddModel.FeedbackAttachmentAddModels != null && feedbackAddModel.FeedbackAttachmentAddModels.Count > 0)
+            if (feedbackAddModel.FeedbackAttachmentAddModels.Count > 0)
             {
                 var feedbackAttachments = new List<FeedbackAttachment>();
 
@@ -262,22 +259,20 @@ namespace Chillde.Services.Services
                     };
                 }
                 var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
-                var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
-                if (item == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Item not found."
-                    };
-                }
+                // var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
+                // if (item == null)
+                // {
+                //     return new ResponseModel
+                //     {
+                //         Code = StatusCodes.Status404NotFound,
+                //         Message = "Item not found."
+                //     };
+                // }
 
                 var service = new Service
                 {
                     Name = serviceAddModel.Name,
                     Description = serviceAddModel.Description,
-                    IsOffer = serviceAddModel.IsOffer,
-                    ItemId = serviceAddModel.ItemId,
                     Status = ServiceStatus.Inactive,
                     EmbeddingVector = embeddingVector
                 };
@@ -395,7 +390,6 @@ namespace Chillde.Services.Services
                     _unitOfWork.ServiceRepository.SoftRemove(service);
                     Service newService = _mapper.Map<Service>(serviceUpdateModel);
                     newService.CreatedById = currentUserId;
-                    newService.ItemId = service.ItemId;
                     await _unitOfWork.ServiceRepository.AddAsync(newService);
                 }
 
@@ -541,13 +535,12 @@ namespace Chillde.Services.Services
                 {
                     //Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
                     //Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
-                    Name = (++numberOfExistedPackage).ToString(),
+                    //Name = (++numberOfExistedPackage).ToString(),
                     Description = packageAddModel.Description,
                     Price = packageAddModel.Price,
                     ServiceId = serviceId,
                     DeliveryTime = packageAddModel.DeliveryTime,
                     SketchRevision = packageAddModel.SketchRevision,
-                    DeliveryRevision = packageAddModel.DeliveryRevision
                 };
 
                 await _unitOfWork.PackageRepository.AddAsync(package);
@@ -709,8 +702,9 @@ namespace Chillde.Services.Services
                 Expression<Func<Package, bool>> filter = package =>
                      package.ServiceId == serviceId &&
                      package.IsDeleted == packageFilterModel.IsDeleted &&
-                     (string.IsNullOrEmpty(packageFilterModel.Search) ||
-                     package.Name!.Contains(packageFilterModel.Search));
+                     (string.IsNullOrEmpty(packageFilterModel.Search) //||
+                     //package.Name!.Contains(packageFilterModel.Search)
+                     );
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
                          packages.Include(c => c.PackageFeatures)
@@ -726,7 +720,6 @@ namespace Chillde.Services.Services
                 var packageModels = packages.Data.Select(package => new PackageModel
                 {
                     Id = package.Id,
-                    Name = package.Name,
                     Description = package.Description,
                     Price = package.Price,
                     ServiceId = package.ServiceId,
@@ -913,7 +906,7 @@ namespace Chillde.Services.Services
                         };
                     }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                        filter: _ => _.IsDeleted == false && _.IsOffer == false,
+                        filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
                         pageIndex: serviceFilterModel.PageIndex,
                         pageSize: 1000
@@ -970,7 +963,7 @@ namespace Chillde.Services.Services
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                        filter: _ => _.IsDeleted == false && _.IsOffer == false,
+                        filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
                         pageIndex: serviceFilterModel.PageIndex,
                         pageSize: 1000
@@ -1040,12 +1033,8 @@ namespace Chillde.Services.Services
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: s =>
                             s.IsDeleted == false &&
-                            s.IsOffer == false &&
                             (string.IsNullOrEmpty(serviceFilterModel.IdOrUserName) || (filterId.HasValue && s.CreatedById == filterId.Value)
                             || s.CreatedBy.Username.Contains(serviceFilterModel.IdOrUserName)) &&
-                            (!serviceFilterModel.ItemId.HasValue || s.ItemId == serviceFilterModel.ItemId) &&
-                            (!serviceFilterModel.CategoryId.HasValue || s.Item.SubCategory.CategoryId == serviceFilterModel.CategoryId) &&
-                            (!serviceFilterModel.SubCategoryId.HasValue || s.Item.SubCategoryId == serviceFilterModel.SubCategoryId) &&
                             (!serviceFilterModel.MinPrice.HasValue || s.Packages.Any(p => p.Price >= serviceFilterModel.MinPrice)) &&
                             (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Any(p => p.Price <= serviceFilterModel.MaxPrice)) &&
                             (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
@@ -1073,9 +1062,7 @@ namespace Chillde.Services.Services
                         include: s => s.Include(p => p.Packages)
                                        .ThenInclude(p => p.Orders)
                                        .Include(a => a.ServiceAttachments)
-                                       .Include(i => i.Item)
-                                       .ThenInclude(i => i.SubCategory)
-                                       .ThenInclude(su => su.Category)
+                                       .Include(su => su.Category)
                     );
 
                     var serviceModels = services.Data.Select(s => new ServiceModel

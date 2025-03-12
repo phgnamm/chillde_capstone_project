@@ -6,19 +6,18 @@ public class Service : BaseEntity
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public bool IsOffer { get; set; }
     public double? Rate { get; set; }
     public int? FeedbackCount { get; set; }
     public ServiceStatus Status { get; set; }
 
     // Foreign key
-    public Guid ItemId { get; set; }
+    public Guid CategoryId { get; set; }
     public List<string> Keywords { get; set; } = new List<string>();
     public float[] EmbeddingVector { get; set; } = Array.Empty<float>();
 
     // Relationship
     public Account CreatedBy { get; set; } = null!;
-    public Item Item { get; set; } = null!;
+    public Category Category { get; set; } = null!;
     public virtual ICollection<FAQ> FAQs { get; set; } = new List<FAQ>();
     public virtual ICollection<ServiceWishlist> ServiceWishlists { get; set; } = new List<ServiceWishlist>();
     public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();

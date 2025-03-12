@@ -12,11 +12,11 @@ public class Request : BaseEntity
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
     // Foreign key
-    public Guid ItemId { get; set; }
+    public Guid CategoryId { get; set; }
 
     // Relationship
     public Account CreatedBy { get; set; } = null!;
-    public Item Item { get; set; } = null!;
+    public Category Category { get; set; } = null!;
     public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
     public virtual ICollection<RequestAttachment>? RequestAttachments { get; set; } = new List<RequestAttachment>();
     public virtual ICollection<RequestAttribute>? RequestAttributes { get; set; } = new List<RequestAttribute>();

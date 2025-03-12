@@ -23,14 +23,12 @@ public class UnitOfWork : IUnitOfWork
         IOrderRepository orderRepository,
         IPackageRepository packageRepository,
         IFeedbackAttachmentRepository feedbackAttachmnetRepository,
-        IWalletHistoryRepository walletHistoryRepository,
+        ITransactionRepository transactionRepository,
         IWalletRepository walletRepository,
         ITranslationRepository translationRepository,
         ILanguageRepository languageRepository,
         IServiceAttachmentRepository serviceAttachmentRepository,
         ICategoryRepository categoryRepository,
-        ISubCategoryRepository subCategoryRepository,
-        IItemRepository itemRepository,
         IOfferRepository offerRepository,
         IFAQRepository faqRepository,
         IShippingAddressRepository shippingAddressRepository,
@@ -64,15 +62,13 @@ public class UnitOfWork : IUnitOfWork
         OrderRepository = orderRepository;
         PackageRepository = packageRepository;
         FeedbackAttachmentRepository = feedbackAttachmnetRepository;
-        WalletHistoryRepository = walletHistoryRepository;
+        TransactionRepository = transactionRepository;
         WalletRepository = walletRepository;
         TranslationRepository = translationRepository;
         LanguageRepository = languageRepository;
         ServiceAttachmentRepository = serviceAttachmentRepository;
         CategoryRepository = categoryRepository;
         FAQRepository = faqRepository;
-        SubCategoryRepository = subCategoryRepository;
-        ItemRepository = itemRepository;
         OfferRepository = offerRepository;
         ShippingAddressRepository = shippingAddressRepository;
         FeatureRepository = featureRepository;
@@ -102,15 +98,13 @@ public class UnitOfWork : IUnitOfWork
     public IPackageRepository PackageRepository { get; }
     public IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
     public IWalletRepository WalletRepository { get; }
-    public IWalletHistoryRepository WalletHistoryRepository { get; }
+    public ITransactionRepository TransactionRepository { get; }
     public ITranslationRepository TranslationRepository { get; }
     public ILanguageRepository LanguageRepository { get; }
     public IOfferRepository OfferRepository { get; }
     public IServiceAttachmentRepository ServiceAttachmentRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
     public IFAQRepository FAQRepository { get; }
-    public ISubCategoryRepository SubCategoryRepository { get; }
-    public IItemRepository ItemRepository { get; }
     public IShippingAddressRepository ShippingAddressRepository { get; }
     public IServiceCollectionRepository ServiceCollectionRepository { get; }
     public IServiceWishlistRepository ServiceWishlistRepository { get; }
