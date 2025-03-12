@@ -150,7 +150,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize("Artisan")]
         [HttpPost("{orderId}/shipments")]
-        public async Task<IActionResult> AddShipmentAsync([FromBody] ShipmentAddModel model, Guid orderId)
+        public async Task<IActionResult> AddShipmentAsync([FromBody] ShipmentCreateModel model, Guid orderId)
         {
             try
             {

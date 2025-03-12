@@ -38,7 +38,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var walletHistory = await _unitOfWork.WalletHistoryRepository.GetAllAsync(
+            var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
                 filter: _ => _.IsDeleted == walletHistoryFilterModel.IsDeleted && _.CreatedById == currentUserId.Value,
                 include: walletHistory => walletHistory.Include(_ => _.Wallet),
                 pageIndex: walletHistoryFilterModel.PageIndex,

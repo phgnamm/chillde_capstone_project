@@ -11,9 +11,9 @@ namespace Chillde.Repositories.Models.WalletHistoryModels
     public class WalletHistoryModel : BaseEntity
     {
         public decimal? Amount { get; set; }
-        public WalletHistoryType Type { get; set; }
+        public TransactionType Type { get; set; }
 
-        public WalletHistoryStatus Status { get; set; }
+        public TransactionStatus Status { get; set; }
 
         public Guid WalletId { get; set; }
     }

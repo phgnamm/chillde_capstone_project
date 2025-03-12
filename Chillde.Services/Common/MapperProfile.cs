@@ -50,13 +50,6 @@ public class MapperProfile : Profile
         CreateMap<CategoryModel,Category>().ReverseMap();
         CreateMap<CategoryAddModel,CategoryAddRangeModel>().ReverseMap();
 
-        //Subcaterory
-        CreateMap<SubCategoryModel, SubCategory>().ReverseMap();
-        CreateMap<SubCategoryAddModel, SubCategoryAddRangeModel>().ReverseMap();
-
-        //Item
-        CreateMap<ItemModel, Item>().ReverseMap();
-
         //FAQ
         CreateMap<FAQModel, FAQ>().ReverseMap();
 

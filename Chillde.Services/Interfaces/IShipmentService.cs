@@ -11,7 +11,7 @@ namespace Chillde.Services.Interfaces
         Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder);
         Task<byte[]> GetShippingLabelAsync(string trackingOrder);
         Task<ResponseModel> GetOrderStatusAsync(string trackingOrder);
-        Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel);
+        //Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId);
 
     }
 }
