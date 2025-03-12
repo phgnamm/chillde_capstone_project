@@ -22,6 +22,7 @@ namespace Chillde.Repositories.Entities
         public int? TotalQuantity { get; set; } // số lượng voucher
         public int? RemainingQuantity { get; set; } // số lượng voucher còn lại
         public DateTime ExpiredTime { get; set; } // thời gian hết hạn
+        public VoucherStatus VoucherStatus { get; set; }
         public virtual ICollection<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();
 
     }
