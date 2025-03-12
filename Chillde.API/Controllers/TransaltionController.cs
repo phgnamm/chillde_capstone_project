@@ -4,7 +4,7 @@ using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.Repositories.Enums;
-using Chillde.API.Helper;
+using Chillde.API.Helpers;
 
 namespace Chillde.API.Controllers
 {

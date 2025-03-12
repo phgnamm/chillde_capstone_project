@@ -1,4 +1,4 @@
-﻿using Chillde.API.Helper;
+﻿using Chillde.API.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeatureModels;

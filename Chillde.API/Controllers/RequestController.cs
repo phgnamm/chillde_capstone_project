@@ -1,4 +1,4 @@
-﻿using Chillde.API.Helper;
+﻿using Chillde.API.Helpers;
 using Chillde.Repositories.Enums;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
