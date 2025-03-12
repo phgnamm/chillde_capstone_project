@@ -14,5 +14,6 @@ namespace Chillde.Repositories.Common
         public static string ACCOUNT = "ACCOUNTS";
         public static string COLLECTION = "COLLECTIONS";
         public static string MESSAGES = "MESSAGES";
+        public static string OFFER = "OFFER";
     }
 }

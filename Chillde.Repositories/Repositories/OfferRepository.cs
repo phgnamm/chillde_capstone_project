@@ -41,7 +41,7 @@ namespace Chillde.Repositories.Repositories
                     Status = joined.Offer.Status,
                     Message = string.IsNullOrEmpty(joined.Translation.TranslationText) ? joined.Offer.Message : joined.Translation.TranslationText,
                     RequestId = joined.Offer.RequestId,
-                    ServiceId = joined.Offer.ServiceId
+                    ServiceId = joined.Offer.ServiceId ?? Guid.Empty
                 })
                 .ToListAsync();
 
@@ -61,7 +61,7 @@ namespace Chillde.Repositories.Repositories
                             Status = offer.Status,
                             Message = translation != null ? translation.TranslationText : offer.Message,
                             RequestId = offer.RequestId,
-                            ServiceId = offer.ServiceId,
+                            ServiceId = offer.ServiceId ?? Guid.Empty,
                             CreatedById = offer.CreatedById,
                             CreationDate = offer.CreationDate
                         };
