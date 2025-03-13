@@ -71,12 +71,12 @@ public class AccountController : ControllerBase
             });
         }
     }
-    [HttpGet]
-    public async Task<IActionResult> GetVoucher([FromQuery] Guid userId, [FromQuery] Guid packageId)
+    [HttpGet("vouchers")]
+    public async Task<IActionResult> GetVoucher([FromQuery] Guid packageId)
     {
         try
         {
-            var result = await _accountService.GetVoucher(userId, packageId);
+            var result = await _accountService.GetVoucher(packageId);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)
