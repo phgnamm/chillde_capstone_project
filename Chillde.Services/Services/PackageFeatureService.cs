@@ -40,9 +40,9 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId);
+                var anyOrder = await _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId!.Value);
 
-                if (!anyOrder.Result)
+                if (!anyOrder)
                 {
                     _mapper.Map(packageFeatureUpdateModel, packageFeature);
                     _unitOfWork.PackageFeatureRepository.Update(packageFeature);
@@ -88,7 +88,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId);
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId!.Value);
 
                 if (!anyOrder.Result)
                 {
