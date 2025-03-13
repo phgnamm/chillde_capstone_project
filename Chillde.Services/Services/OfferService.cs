@@ -206,7 +206,12 @@ namespace Chillde.Services.Services
                     RequestId = requestId,
                     ServiceId = model.ServiceId,
                     CreatedById = currentUserId!.Value,
-                    Message = model.Message
+                    Message = model.Message,
+                    DeliveryTime = model.DeliveryTime,
+                    MinWeight = model.MinWeight,
+                    MaxWeight = model.MaxWeight,
+                    Price = model.Price,
+                    ResponseTime = model.ResponseTime,
                 };
                 if (model.OfferAttachmentAddModels != null)
                 {

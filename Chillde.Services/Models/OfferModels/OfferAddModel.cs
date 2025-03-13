@@ -12,6 +12,12 @@ namespace Chillde.Services.Models.OfferModels
         public Guid? ServiceId { get; set; }
         public List<OfferAttachmentAddModel>? OfferAttachmentAddModels { get; set; } = new List<OfferAttachmentAddModel>();
         public List<FeatureAddModel>? FeatureAddModels { get; set; } = new List<FeatureAddModel>();
-        
+        public float? MinWeight { get; set; }
+        public float? MaxWeight { get; set; }
+        public DateTime? DeliveryTime { get; set; }
+        public int? SketchRevision { get; set; }
+        public float? ResponseTime { get; set; }
+        public decimal? Price { get; set; }
+
     }
 }
