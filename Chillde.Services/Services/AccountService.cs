@@ -1012,7 +1012,7 @@ public class AccountService : IAccountService
 
 
     #endregion
-    public async Task<ResponseModel> GetVoucher(Guid userId, Guid packageId)
+    public async Task<ResponseModel> GetVoucher(Guid packageId)
     {
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
