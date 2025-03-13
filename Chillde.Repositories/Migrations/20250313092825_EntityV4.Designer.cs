@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250313092825_EntityV4")]
+    partial class EntityV4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -458,6 +461,9 @@ namespace Chillde.Repositories.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid?>("OfferId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Question")
                         .HasColumnType("text");
 
@@ -465,6 +471,8 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OfferId");
 
                     b.ToTable("Features");
                 });
@@ -736,6 +744,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("DeliveryTime")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
@@ -754,11 +765,20 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal?>("Price")
+                        .HasColumnType("numeric");
+
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uuid");
 
+                    b.Property<float?>("ResponseTime")
+                        .HasColumnType("real");
+
                     b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid");
+
+                    b.Property<int?>("SketchRevision")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -1154,24 +1174,19 @@ namespace Chillde.Repositories.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("OfferId")
-                        .HasColumnType("uuid");
-
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric");
 
                     b.Property<float>("ResponseTime")
                         .HasColumnType("real");
 
-                    b.Property<Guid?>("ServiceId")
+                    b.Property<Guid>("ServiceId")
                         .HasColumnType("uuid");
 
                     b.Property<int?>("SketchRevision")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OfferId");
 
                     b.HasIndex("ServiceId");
 
@@ -1214,7 +1229,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<bool?>("IsExtra")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("MaxQuantity")
+                    b.Property<int>("MaxQuantity")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModificationDate")
@@ -1772,12 +1787,6 @@ namespace Chillde.Repositories.Migrations
                     b.PrimitiveCollection<List<string>>("Keywords")
                         .IsRequired()
                         .HasColumnType("text[]");
-
-                    b.Property<float?>("MaxWeight")
-                        .HasColumnType("real");
-
-                    b.Property<float?>("MinWeight")
-                        .HasColumnType("real");
 
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("timestamp with time zone");
@@ -2494,6 +2503,15 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Feature", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Offer", "Offer")
+                        .WithMany()
+                        .HasForeignKey("OfferId");
+
+                    b.Navigation("Offer");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.Feedback", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Account", null)
@@ -2703,15 +2721,11 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Package", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Offer", "Offer")
-                        .WithMany()
-                        .HasForeignKey("OfferId");
-
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
                         .WithMany("Packages")
-                        .HasForeignKey("ServiceId");
-
-                    b.Navigation("Offer");
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Service");
                 });

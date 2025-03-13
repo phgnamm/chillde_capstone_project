@@ -207,11 +207,8 @@ namespace Chillde.Services.Services
                     ServiceId = model.ServiceId,
                     CreatedById = currentUserId!.Value,
                     Message = model.Message,
-                    DeliveryTime = model.DeliveryTime,
                     MinWeight = model.MinWeight,
                     MaxWeight = model.MaxWeight,
-                    Price = model.Price,
-                    ResponseTime = model.ResponseTime,
                 };
                 if (model.OfferAttachmentAddModels != null)
                 {
@@ -274,7 +271,6 @@ namespace Chillde.Services.Services
                             QuestionType = featureModel.QuestionType,
                             IsInformationRequired = featureModel.IsInformationRequired,
                             IsQuantity = featureModel.IsQuantity,
-                            OfferId = newOffer.Id
                         };
 
                         await _unitOfWork.FeatureRepository.AddAsync(newFeature);
