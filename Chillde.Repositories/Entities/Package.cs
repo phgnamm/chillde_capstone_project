@@ -16,10 +16,12 @@ public class Package : BaseEntity
     #endregion
 
     // Foreign key
-    public Guid ServiceId { get; set; }
+    public Guid? ServiceId { get; set; }
+    public Guid? OfferId { get; set; }
 
     // Relationship
-    public Service Service { get; set; } = null!;
+    public Service? Service { get; set; }
+    public Offer? Offer { get; set; }
     public virtual ICollection<PackageFeature> PackageFeatures { get; set; } = new List<PackageFeature>();
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 }
