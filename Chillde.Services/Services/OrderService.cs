@@ -379,7 +379,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            string partnerId = $"{order.Code}_{order.Stage.GetStringValue()}";
+            string partnerId = $"{order.Code}_{order.Stage.GetStringValue()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
             var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerId);
 
