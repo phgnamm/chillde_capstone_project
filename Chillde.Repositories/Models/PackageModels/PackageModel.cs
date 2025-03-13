@@ -8,7 +8,7 @@ namespace Chillde.Repositories.Models.PackageModels
         public string? Name { get; set; }
         public string? Description { get; set; }
         public decimal? Price { get; set; }
-        public Guid ServiceId { get; set; }
+        public Guid? ServiceId { get; set; }
         public List<FeatureModel> Features { get; set; }
     }
 }
