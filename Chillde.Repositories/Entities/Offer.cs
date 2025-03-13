@@ -8,10 +8,6 @@ public class Offer : BaseEntity
     public OfferStatus Status { get; set; }
     public float? MinWeight { get; set; }
     public float? MaxWeight { get; set; }
-    public DateTime? DeliveryTime { get; set; }
-    public int? SketchRevision { get; set; }
-    public decimal? Price { get; set; }
-    public float? ResponseTime { get; set; }
 
     // Foreign key
     public Guid RequestId { get; set; }

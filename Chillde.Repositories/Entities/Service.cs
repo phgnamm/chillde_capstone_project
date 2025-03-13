@@ -9,6 +9,8 @@ public class Service : BaseEntity
     public double? Rate { get; set; }
     public int? FeedbackCount { get; set; }
     public ServiceStatus Status { get; set; }
+    public float? MinWeight { get; set; }
+    public float? MaxWeight { get; set; }
 
     // Foreign key
     public Guid CategoryId { get; set; }

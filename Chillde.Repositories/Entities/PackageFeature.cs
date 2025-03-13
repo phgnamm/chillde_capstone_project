@@ -11,7 +11,7 @@ public class PackageFeature : BaseEntity
     public int? AdditionalDay { get; set; }
     public bool? IsExtra { get; set; }
     public bool? IsChecked { get; set; }
-    public int MaxQuantity { get; set; }
+    public int? MaxQuantity { get; set; }
     #endregion
 
     // Foreign key
