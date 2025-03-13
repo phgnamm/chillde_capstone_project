@@ -265,7 +265,7 @@ public static class Configuration
         services.AddScoped<IWalletService, WalletService>();
 
         //WalletHistory
-        services.AddScoped<IWalletHistoryRepository, WalletHistoryRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IWalletHistoryService, WalletHistoryService>();
 
         //Translation
@@ -283,14 +283,6 @@ public static class Configuration
         //Caterory
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ICategoryServive, CategoryService>();
-
-        //Subcategory
-        services.AddScoped<ISubCategoryRepository, SubCategoryRepository>();
-        services.AddScoped<ISubCategoryService, SubCategoryService>();
-
-        //Item
-        services.AddScoped<IItemRepository, ItemRepository>();
-        services.AddScoped<IItemService, ItemService>();
 
         //FAQ
         services.AddScoped<IFAQRepository, FAQRepository>();
@@ -351,6 +343,14 @@ public static class Configuration
         //SearchHistory
         services.AddScoped<IElasticsearchService, ElasticsearchService>();
         services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
+
+        //Voucher
+        services.AddScoped<IVoucherRepository, VoucherRepository>();
+        services.AddScoped<IVoucherService, VoucherService>();
+
+        //VoucherUsageLog
+        services.AddScoped<IVoucherUsageLogRepository, VoucherUsageLogRepository>();
+
 
         #endregion
 

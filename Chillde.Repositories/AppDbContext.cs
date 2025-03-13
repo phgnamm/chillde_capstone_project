@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
             entity.Property(account => account.Username).HasMaxLength(50);
             entity.Property(account => account.Email).HasMaxLength(256);
             entity.Property(account => account.PhoneNumber).HasMaxLength(15);
+            entity.Property(account => account.WalletId).IsRequired();
             entity.HasIndex(account => account.Username).IsUnique();
             entity.HasIndex(account => account.Email).IsUnique();
         });
@@ -54,23 +55,11 @@ public class AppDbContext : DbContext
             entity.Property(conversation => conversation.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Category>(entity =>
-        {
-            entity.Property(category => category.Name).HasMaxLength(100);
-            entity.Property(category => category.Code).HasMaxLength(25);
-            entity.HasIndex(category => category.Code).IsUnique();
-        });
+        modelBuilder.Entity<Category>(entity => { entity.Property(category => category.Name).HasMaxLength(100); });
 
         modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
 
         modelBuilder.Entity<Feature>(entity => { entity.Property(feature => feature.Name).HasMaxLength(100); });
-
-        modelBuilder.Entity<Item>(entity =>
-        {
-            entity.Property(item => item.Name).HasMaxLength(100);
-            entity.Property(item => item.Code).HasMaxLength(25);
-            entity.HasIndex(item => item.Code).IsUnique();
-        });
 
         modelBuilder.Entity<OrderTracking>(entity =>
         {
@@ -93,13 +82,6 @@ public class AppDbContext : DbContext
             entity.Property(shippingAddress => shippingAddress.WardCode).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<SubCategory>(entity =>
-        {
-            entity.Property(subCategory => subCategory.Code).HasMaxLength(50);
-            entity.Property(subCategory => subCategory.Name).HasMaxLength(100);
-            entity.HasIndex(subCategory => subCategory.Code).IsUnique();
-        });
-
         modelBuilder.Entity<Translation>(entity =>
         {
             entity.Property(translation => translation.FieldName).HasMaxLength(50);
@@ -107,42 +89,70 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Message>(entity => { entity.Property(message => message.CreatedById).IsRequired(); });
-        modelBuilder.Entity<Wallet>(entity => { entity.Property(wallet => wallet.CreatedById).IsRequired(); });
         modelBuilder.Entity<Service>(entity => { entity.Property(service => service.CreatedById).IsRequired(); });
         modelBuilder.Entity<Offer>(entity => { entity.Property(offer => offer.CreatedById).IsRequired(); });
-        modelBuilder.Entity<ShippingAddress>(entity => { entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired(); });
+        modelBuilder.Entity<ShippingAddress>(entity =>
+        {
+            entity.Property(shippingAddress => shippingAddress.CreatedById).IsRequired();
+        });
         modelBuilder.Entity<Feedback>(entity => { entity.Property(feedback => feedback.CreatedById).IsRequired(); });
         modelBuilder.Entity<SystemConfig>(entity => { entity.Property(e => e.Value).HasColumnType("jsonb"); });
         modelBuilder.Entity<AccountRole>(entity => { entity.Property(e => e.TotalReputation).HasDefaultValue(100); });
+        modelBuilder.Entity<Package>(entity => { entity.Property(e => e.Name).HasColumnType("int"); });
 
-            
         #endregion
 
         #region Relationship Configuration
 
         modelBuilder.Entity<Shipment>()
-                .HasOne(a => a.Order)
-                .WithMany(w => w.Shipments)
-                .HasForeignKey(a => a.OrderId);
+            .HasOne(a => a.Order)
+            .WithMany(w => w.Shipments)
+            .HasForeignKey(a => a.OrderId);
         modelBuilder.Entity<Translation>(entity =>
         {
             entity.HasKey(t => new { t.EntityType, t.EntityId, t.FieldName, t.LanguageId });
 
             entity.HasOne(t => t.Language)
-                  .WithMany(l => l.Translations)
-                  .HasForeignKey(t => t.LanguageId);
+                .WithMany(l => l.Translations)
+                .HasForeignKey(t => t.LanguageId);
         });
         modelBuilder.Entity<Voucher>()
-            .HasOne(v => v.Creator) 
-            .WithMany(a => a.CreatedVouchers) 
-            .HasForeignKey(v => v.CreatedById) 
-            .OnDelete(DeleteBehavior.Cascade); 
+            .HasOne(v => v.Creator)
+            .WithMany(a => a.CreatedVouchers)
+            .HasForeignKey(v => v.CreatedById)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Voucher>()
-            .HasOne(v => v.Receiver) 
-            .WithMany(a => a.ReceivedVouchers) 
-            .HasForeignKey(v => v.ReceiverId) 
+            .HasOne(v => v.Receiver)
+            .WithMany(a => a.ReceivedVouchers)
+            .HasForeignKey(v => v.ReceiverId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<ServiceWishlist>(entity =>
+        {
+            entity.HasKey(sw => new { sw.ServiceId, sw.ServiceCollectionId });
+            entity.Ignore(sw => sw.Id);
+        });
+        modelBuilder.Entity<Feedback>()
+            .HasOne(f => f.CreatedBy)
+            .WithMany()
+            .HasForeignKey(f => f.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Feedback>()
+            .HasOne(f => f.Artisan)
+            .WithMany()
+            .HasForeignKey(f => f.ArtisanId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.HasOne(c => c.Parent)
+                .WithMany(c => c.Children)
+                .HasForeignKey(c => c.ParentId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         #endregion
     }
 
@@ -157,7 +167,6 @@ public class AppDbContext : DbContext
     public DbSet<Feature> Features { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
     public DbSet<FeedbackAttachment> FeedbackAttachments { get; set; }
-    public DbSet<Item> Items { get; set; }
     public DbSet<RequestAttribute> RequestAttributes { get; set; }
     public DbSet<RequestAttributeAttachment> RequestAttributeAttachments { get; set; }
     public DbSet<RequestAttributeValue> RequestAttributeValues { get; set; }
@@ -182,10 +191,8 @@ public class AppDbContext : DbContext
     public DbSet<ServiceWishlist> ServiceWishlists { get; set; }
     public DbSet<Shipment> Shipment { get; set; }
     public DbSet<ShippingAddress> ShippingAddresses { get; set; }
-    public DbSet<SubCategory> SubCategories { get; set; }
     public DbSet<Translation> Translations { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
-    public DbSet<WalletHistory> WalletHistory { get; set; }
     public DbSet<SystemConfig> SystemConfigs { get; set; }
     public DbSet<UserActivityLog> UserActivityLogs { get; set; }
     public DbSet<RequestAttachment> RequestAttachments { get; set; }

@@ -31,15 +31,13 @@ public interface IUnitOfWork
     IPackageRepository PackageRepository { get; }
     IFeedbackAttachmentRepository FeedbackAttachmentRepository { get; }
     IWalletRepository WalletRepository { get; }
-    IWalletHistoryRepository WalletHistoryRepository { get; }
+    ITransactionRepository TransactionRepository { get; }
     IOfferRepository OfferRepository { get; }
     ITranslationRepository TranslationRepository { get; }
     ILanguageRepository LanguageRepository { get; }
     IServiceAttachmentRepository ServiceAttachmentRepository { get; }
     ICategoryRepository CategoryRepository { get; }
     IFAQRepository FAQRepository { get; }
-    ISubCategoryRepository SubCategoryRepository { get; }
-    IItemRepository ItemRepository { get; }
     IShippingAddressRepository ShippingAddressRepository { get; }
     IFeatureRepository FeatureRepository { get; }
     IPackageFeatureRepository PackageFeatureRepository { get; }
@@ -49,6 +47,8 @@ public interface IUnitOfWork
     IPaymentRepository PaymentRepository { get; }
     IUserActivityLogRepository UserActivityLogRepository { get; }
     ISystemConfigRepository SystemConfigRepository { get; }
+    IVoucherRepository VoucherRepository { get; }
+    IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
 
     #endregion
 }

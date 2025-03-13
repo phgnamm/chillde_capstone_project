@@ -1,4 +1,4 @@
-﻿namespace Chillde.API.Helper
+﻿namespace Chillde.API.Helpers
 {
     public static class LanguageHelper
     {

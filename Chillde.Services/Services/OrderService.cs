@@ -16,6 +16,7 @@ using Chillde.Services.Common;
 using Chillde.Repositories.Models.OrderModels;
 using Chillde.Services.Helpers;
 using Elasticsearch.Net;
+using TransactionStatus = Chillde.Repositories.Enums.TransactionStatus;
 
 namespace Chillde.Services.Services
 {
@@ -84,12 +85,12 @@ namespace Chillde.Services.Services
 
             wallet.Balance -= totalPrice;
 
-            var walletHistory = new WalletHistory
+            var walletHistory = new Transaction()
             {
                 WalletId = wallet.Id,
                 Amount = totalPrice,
-                Type = WalletHistoryType.TransferOut,
-                Status = WalletHistoryStatus.Completed,
+                Type = TransactionType.TransferOut,
+                Status = TransactionStatus.Completed,
                 CreatedById = currentUserId.Value
             };
             wallet.WalletHistories.Add(walletHistory);
@@ -330,12 +331,12 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var walletHistory = new WalletHistory
+                var walletHistory = new Transaction()
                 {
                     WalletId = wallet.Id,
                     Amount = balancePayment.Amount,
-                    Type = WalletHistoryType.TransferOut,
-                    Status = WalletHistoryStatus.Completed,
+                    Type = TransactionType.TransferOut,
+                    Status = TransactionStatus.Completed,
                     CreatedById = order.CreatedById,
                 };
 
@@ -642,7 +643,7 @@ namespace Chillde.Services.Services
                 ToWard = _.ToWard,
                 TotalPrice = _.TotalPrice,
                 PackagePrice = _.PackagePrice,
-                PackageName = _.Package.Name,
+                PackageName = _.Package.Name.ToString(),
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
                 Status = _.Status,

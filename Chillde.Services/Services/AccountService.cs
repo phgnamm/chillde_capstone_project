@@ -8,6 +8,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
@@ -25,12 +26,12 @@ namespace Chillde.Services.Services;
 public class AccountService : IAccountService
 {
     private readonly IClaimService _claimService;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ICloudinaryHelper _cloudinaryHelper;
     private readonly IConfiguration _configuration;
     private readonly IEmailHelper _iIEmailHelper;
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
-    private readonly IUnitOfWork _unitOfWork;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
         IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork)
@@ -76,7 +77,6 @@ public class AccountService : IAccountService
         account.Wallet = new Wallet
         {
             Balance = 0,
-            CreatedById = account.Id
         };
         await _unitOfWork.AccountRepository.AddAsync(account);
 
@@ -314,7 +314,7 @@ public class AccountService : IAccountService
 
         // Validate refresh token
         var account = await _unitOfWork.AccountRepository.GetAsync(accountId);
-        if (account == null || account.IsDeleted || refreshToken.AccountId != account.Id ||
+        if (account == null || account.IsDeleted || refreshToken.CreatedById != account.Id ||
             refreshToken.Token != accountRefreshTokenModel.RefreshToken ||
             refreshToken.Expires < DateTime.UtcNow)
             return new ResponseModel
@@ -342,7 +342,7 @@ public class AccountService : IAccountService
     {
         var refreshTokens =
             await _unitOfWork.RefreshTokenRepository.GetAllAsync(
-                refreshToken => refreshToken.Account.Email == accountEmailModel.Email);
+                refreshToken => refreshToken.CreatedBy.Email == accountEmailModel.Email);
         _unitOfWork.RefreshTokenRepository.HardRemoveRange(refreshTokens.Data);
         await _unitOfWork.SaveChangeAsync();
 
@@ -561,7 +561,16 @@ public class AccountService : IAccountService
                     accountSignUpModel.Roles.Select(r => r.ToString()).Distinct().Contains(role.Name)).ToList();
                 if (rolesOfAccount.Any())
                     foreach (var role in rolesOfAccount)
+                    {
                         account.AccountRoles.Add(new AccountRole { Account = account, Role = role });
+                        if (role.Name != Role.Admin.ToString())
+                        {
+                            account.Wallet = new Wallet
+                            {
+                                Balance = 0,
+                            };
+                        }
+                    }
             }
             else
             {
@@ -981,7 +990,7 @@ public class AccountService : IAccountService
                 DeviceId = deviceId,
                 Token = refreshTokenString,
                 Expires = expires,
-                Account = account
+                CreatedBy = account
             });
         }
 
@@ -1001,5 +1010,63 @@ public class AccountService : IAccountService
         return null;
     }
 
+
     #endregion
+    public async Task<ResponseModel> GetVoucher(Guid packageId)
+    {
+        var currentUserId = _claimService.GetCurrentUserId;
+        if (!currentUserId.HasValue)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status401Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+
+        var artisan = await _unitOfWork.PackageRepository.GetArtist(packageId);
+        if (artisan == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Artisan not found."
+            };
+        }
+
+        var vouchersByArtisan = await _unitOfWork.VoucherRepository.CheckHasVoucher(artisan);
+        if (vouchersByArtisan.Count == 0)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "No vouchers available."
+            };
+        }
+
+        var orderedQuantity = await _unitOfWork.OrderRepository.NumberCompletedOrder(currentUserId.Value, artisan);
+        var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles));
+        var customerReputation = customer?.AccountRoles?.Select(_ => _.TotalReputation).FirstOrDefault() ?? 0;
+
+        var showVoucher = vouchersByArtisan.Where(voucher =>
+            (!voucher.MinOrderRequired.HasValue || orderedQuantity >= voucher.MinOrderRequired) &&
+            (!voucher.MinReputation.HasValue || customerReputation >= voucher.MinReputation)
+        ).ToList();
+
+        var voucherModelLists = showVoucher.Select(voucher => new VoucherModel
+        {
+            Id = voucher.Id,
+            Code = voucher.Code,
+            MinOrderValue = voucher.MinOrderValue,
+            MaxDiscountValue = voucher.MaxDiscountValue,
+            DiscountValue = voucher.DiscountValue,
+            ExpiredTime = voucher.ExpiredTime
+        });
+
+        return new ResponseModel
+        {
+            Data = voucherModelLists,
+            Message = "Vouchers retrieved successfully."
+        };
+    }
 }
