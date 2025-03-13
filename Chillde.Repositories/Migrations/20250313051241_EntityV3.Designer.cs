@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250312081157_EntityV1")]
-    partial class EntityV1
+    [Migration("20250313051241_EntityV3")]
+    partial class EntityV3
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -295,10 +295,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("AttachmentUrl")
                         .HasColumnType("text");
 
-                    b.Property<string>("Code")
-                        .HasMaxLength(25)
-                        .HasColumnType("character varying(25)");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -334,9 +330,6 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.HasIndex("OfferId");
 
@@ -778,7 +771,10 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<float?>("ResponseTime")
+                        .HasColumnType("real");
+
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid");
 
                     b.Property<int?>("SketchRevision")
@@ -1181,6 +1177,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric");
 
+                    b.Property<float>("ResponseTime")
+                        .HasColumnType("real");
+
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uuid");
 
@@ -1357,9 +1356,6 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -1392,7 +1388,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId");
+                    b.HasIndex("CreatedById");
 
                     b.ToTable("RefreshTokens");
                 });
@@ -2327,6 +2323,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("TotalQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<int>("VoucherStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("VoucherType")
                         .HasColumnType("integer");
 
@@ -2378,6 +2377,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("UsageStatus")
+                        .HasColumnType("integer");
+
                     b.Property<Guid>("VoucherId")
                         .HasColumnType("uuid");
 
@@ -2401,7 +2403,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("CreatedById")
+                    b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -2479,12 +2481,13 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Offer", null)
-                        .WithMany("Items")
+                        .WithMany("Categories")
                         .HasForeignKey("OfferId");
 
                     b.HasOne("Chillde.Repositories.Entities.Category", "Parent")
-                        .WithMany()
-                        .HasForeignKey("ParentId");
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
                 });
@@ -2604,7 +2607,7 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
-                        .WithMany()
+                        .WithMany("Offers")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2617,9 +2620,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
                         .WithMany("Offers")
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ServiceId");
 
                     b.Navigation("CreatedBy");
 
@@ -2770,13 +2771,11 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
+                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
                         .WithMany("RefreshTokens")
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CreatedById");
 
-                    b.Navigation("Account");
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ReputationLog", b =>
@@ -3030,6 +3029,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("MessageRecipients");
 
+                    b.Navigation("Offers");
+
                     b.Navigation("Orders");
 
                     b.Navigation("ReceivedVouchers");
@@ -3059,6 +3060,11 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("Reputations");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
+                {
+                    b.Navigation("Children");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.Conversation", b =>
                 {
                     b.Navigation("AccountConversations");
@@ -3086,7 +3092,7 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("Categories");
 
                     b.Navigation("OfferAttachments");
                 });

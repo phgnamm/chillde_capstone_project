@@ -11,6 +11,7 @@ public class Package : BaseEntity
     #region new fields
     public DateTime? DeliveryTime { get; set; }
     public int? SketchRevision { get; set; }
+    public float ResponseTime { get; set; }
 
     #endregion
 

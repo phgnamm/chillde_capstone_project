@@ -768,7 +768,10 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("RequestId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<float?>("ResponseTime")
+                        .HasColumnType("real");
+
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid");
 
                     b.Property<int?>("SketchRevision")
@@ -1170,6 +1173,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<decimal?>("Price")
                         .HasColumnType("numeric");
+
+                    b.Property<float>("ResponseTime")
+                        .HasColumnType("real");
 
                     b.Property<Guid>("ServiceId")
                         .HasColumnType("uuid");
@@ -2314,6 +2320,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("TotalQuantity")
                         .HasColumnType("integer");
 
+                    b.Property<int>("VoucherStatus")
+                        .HasColumnType("integer");
+
                     b.Property<int>("VoucherType")
                         .HasColumnType("integer");
 
@@ -2364,6 +2373,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("UsageStatus")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("VoucherId")
                         .HasColumnType("uuid");
@@ -2466,7 +2478,7 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Offer", null)
-                        .WithMany("Items")
+                        .WithMany("Categories")
                         .HasForeignKey("OfferId");
 
                     b.HasOne("Chillde.Repositories.Entities.Category", "Parent")
@@ -2592,7 +2604,7 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
-                        .WithMany()
+                        .WithMany("Offers")
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -2605,9 +2617,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
                         .WithMany("Offers")
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ServiceId");
 
                     b.Navigation("CreatedBy");
 
@@ -3016,6 +3026,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("MessageRecipients");
 
+                    b.Navigation("Offers");
+
                     b.Navigation("Orders");
 
                     b.Navigation("ReceivedVouchers");
@@ -3077,7 +3089,7 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("Categories");
 
                     b.Navigation("OfferAttachments");
                 });

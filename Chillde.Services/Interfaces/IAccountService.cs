@@ -23,4 +23,5 @@ public interface IAccountService
     Task<ResponseModel> Delete(Guid id);
     Task<ResponseModel> Restore(Guid id);
     Task<ResponseModel> BecomeASeller(Guid id, AccountBecomeASellerModel accountBecomeASellerModel);
+    Task<ResponseModel> GetVoucher(Guid packageId);
 }

@@ -6,7 +6,7 @@ using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Chillde.API.Helper;
+using Chillde.API.Helpers;
 
 namespace Chillde.API.Controllers
 {
