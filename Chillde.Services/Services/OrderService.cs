@@ -17,6 +17,10 @@ using Chillde.Repositories.Models.OrderModels;
 using Chillde.Services.Helpers;
 using Elasticsearch.Net;
 using TransactionStatus = Chillde.Repositories.Enums.TransactionStatus;
+using CloudinaryDotNet;
+using StackExchange.Redis;
+using Chillde.Repositories.Models.SystemConfigModel;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Chillde.Services.Services
 {
@@ -30,14 +34,16 @@ namespace Chillde.Services.Services
         private readonly HttpClient _httpClient;
         private readonly string? _shopId;
         private readonly string? _token;
+        private readonly ISystemConfigService _systemConfigService;
 
-        public OrderService(IUnitOfWork unitOfWork, IClaimService claimService, 
+        public OrderService(ISystemConfigService systemConfigService, IUnitOfWork unitOfWork, IClaimService claimService, 
             ICloudinaryHelper cloudinaryHelper, 
             IVnpay vnpay, 
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory
+            IHttpClientFactory httpClientFactory         
             )
         {
+            _systemConfigService = systemConfigService;
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
@@ -62,13 +68,16 @@ namespace Chillde.Services.Services
                     Message = "Package not found"
                 };
 
-            decimal totalPrice = (decimal)package.Price;
-            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
+            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
 
             if (orderAddModel.OrderInformationAddModels != null)
-                await ProcessExtraFeatures(orderAddModel, newOrder, totalPrice);
-
-            var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
+                await ProcessExtraFeatures(orderAddModel, newOrder);
+            if(orderAddModel.VoucherId != null && orderAddModel.VoucherId is List<Guid> voucherIds)
+            {
+                await ApplyVoucher(voucherIds, newOrder);
+            }
+            var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
+            var wallet = account?.Wallet;
             if (wallet == null)
                 return new ResponseModel
                 {
@@ -76,34 +85,25 @@ namespace Chillde.Services.Services
                     Message = "Wallet not found"
                 };
 
-            if (wallet.Balance < totalPrice)
+            if (wallet.Balance < newOrder.TotalPrice)
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Your balance does not have enough money to complete this order"
                 };
 
-            wallet.Balance -= totalPrice;
+            wallet.Balance -= (decimal)newOrder.TotalPrice;
 
-            var walletHistory = new Transaction()
+            newOrder.Transactions.Add(new Transaction
             {
                 WalletId = wallet.Id,
-                Amount = totalPrice,
+                Amount = newOrder.TotalPrice,
                 Type = TransactionType.TransferOut,
                 Status = TransactionStatus.Completed,
                 CreatedById = currentUserId.Value
-            };
-            wallet.WalletHistories.Add(walletHistory);
-
-            _unitOfWork.WalletRepository.Update(wallet);
-            newOrder.Payments.Add(new Payment
-            {
-                PaymentType = PaymentType.Balance,
-                Amount = totalPrice,
-                PaymentStatus = PaymentStatus.Success,
-                CreatedById = currentUserId.Value
-
             });
+            
+            _unitOfWork.WalletRepository.Update(wallet);
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
             return result < 0 ?
@@ -139,30 +139,37 @@ namespace Chillde.Services.Services
                     Message = "Package not found."
                 };
 
-            decimal totalPrice = (decimal)package.Price;
             decimal remainingAmount = 0;
 
-            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value, totalPrice);
+            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
 
             if (orderAddModel.OrderInformationAddModels != null)
-                await ProcessExtraFeatures(orderAddModel, newOrder, totalPrice);
-
+                await ProcessExtraFeatures(orderAddModel, newOrder);
+            if (orderAddModel.VoucherId != null)
+            {
+                await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder);
+            }
             if ((bool)orderAddModel.WithBalance)
             {
-                var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount(currentUserId.Value);
-                var response = await ProcessWalletPayment(wallet, totalPrice, newOrder, currentUserId.Value);
+                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
+                var wallet = account?.Wallet;
+                var response = await ProcessWalletPayment(wallet, newOrder, currentUserId.Value);
                 if (response != null) return response;
                 remainingAmount = (decimal)response.Data;
             }
             if (!(bool)orderAddModel.WithBalance)
             {
-                newOrder.Payments.Add(new Payment
+                newOrder.Transactions.Add(new Transaction
                 {
-                    PaymentType = PaymentType.VnPay,
-                    Amount = totalPrice,
-                    PaymentStatus = PaymentStatus.Pending,
+                    Amount = newOrder.TotalPrice,
+                    Type = TransactionType.Deposit,
+                    CreatedById = currentUserId.Value,
+                });
+                newOrder.Transactions.Add(new Transaction
+                {
+                    Amount = newOrder.TotalPrice,
+                    Type = TransactionType.TransferOut,
                     CreatedById = currentUserId.Value
-
                 });
             }
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
@@ -177,9 +184,9 @@ namespace Chillde.Services.Services
 
             return new ResponseModel { Data = paymentUrl, Message = "Created paymentUrl successfully" };
         }
-        private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId, decimal totalPrice)
+        private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId)
         {
-            var requiredFeatures = package.PackageFeatures.Where(_ => _.IsExtra == true).ToList();
+            var requiredFeatures = package.PackageFeatures.Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra.HasValue || !_.IsExtra.Value)).ToList();
 
             foreach (var feature in requiredFeatures)
             {
@@ -195,14 +202,26 @@ namespace Chillde.Services.Services
                     };
                 }
             }
+            var totalOrder = package.Price * orderAddModel.Quantity;
+            var adminCommisstion = await AdminCommission((decimal)totalOrder);
             return new Repositories.Entities.Order
             {
                 CreatedById = userId,
                 Code = GenerateCodeHelper.GenerateOrderCode(),
                 Phone = orderAddModel.Phone,
                 Address = orderAddModel.Address,
-                TotalPrice = totalPrice * orderAddModel.Quantity,
-                PackagePrice = package.Price,
+                ToWard = orderAddModel.ToWard,
+                ToDistrict = orderAddModel.ToDistrict,
+                ToProvince = orderAddModel.ToProvince,
+                TotalPrice = totalOrder + orderAddModel.ShippingPrice,
+                DeliveryTime = package.DeliveryTime,
+                ShippingPrice = orderAddModel.ShippingPrice,
+                OriginPrice = totalOrder,
+                AdminCommDefault = adminCommisstion,
+                AdminCommUsedVch = null,
+                ArtistRevenue = totalOrder - adminCommisstion,
+                AfterApplyVoucherPrice = null,
+                VoucherCost = null,
                 Quantity = orderAddModel.Quantity,
                 PackageId = orderAddModel.PackageId,
                 OrderInformations = orderAddModel.OrderInformationAddModels!.Select(_ => new OrderInformation
@@ -214,18 +233,112 @@ namespace Chillde.Services.Services
                 }).ToList()
             };
         }
-        private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder, decimal totalPrice)
+        private async Task<decimal> AdminCommission(decimal totalOrder)
         {
-            var extraFeatureCost = orderAddModel.OrderInformationAddModels!.Sum(_ => _.Quantity * _.Price);
-            //var extraFeatureCost = await _unitOfWork.PackageFeatureRepository.SumPriceOfExtraFeatures(featureIds);
+            var commissionResponse = await _systemConfigService.Get(SystemConfigKey.Commission);
+            if (commissionResponse.Data is SystemConfigModel config && decimal.TryParse((string?)config.Value, out decimal commissionValue))
+            {
+                return totalOrder * (commissionValue / 100);
+            }
+            return 0;
+        }
+        private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder)
+        {
+            var extraFeatureIds = orderAddModel.OrderInformationAddModels?
+                                    .Select(_ => _.PackageFeatureId)
+                                    .ToList() ?? new List<Guid>();
+
+            var takeExtraFeature = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                filter: _ => extraFeatureIds.Contains(_.Id) && _.IsExtra == true
+            );
+            if (takeExtraFeature?.Data == null || !takeExtraFeature.Data.Any())
+            {
+                return;
+            }
+            var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
+                orderAddModel.OrderInformationAddModels!
+                    .Where(_ => _.PackageFeatureId == pf.Id)
+                    .Sum(_ => (_.Quantity ?? 1) * (_.Price ?? 0))
+            );
 
             if (extraFeatureCost > 0)
             {
-                totalPrice += (decimal)extraFeatureCost;
-                newOrder.TotalPrice = totalPrice;
+
+                newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+                newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+                var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice));
+                newOrder.AdminCommDefault = newCommission;
+                newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
             }
         }
-        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, decimal totalPrice, Repositories.Entities.Order order, Guid accountId)
+        private async Task ApplyVoucher(List<Guid> voucherIds, Repositories.Entities.Order order)
+        {
+            var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
+                filter: _ => voucherIds.Contains(_.Id)
+            );
+
+            if (vouchers == null || !vouchers.Data.Any())
+            {
+                throw new Exception("No valid vouchers found.");
+            }
+
+            decimal remainingOrderPrice = (decimal)order.OriginPrice; 
+            decimal totalVoucherCost = 0;
+
+            foreach (var voucherId in voucherIds)
+            {
+                var voucher = vouchers.Data.FirstOrDefault(_ => _.Id == voucherId);
+                if (voucher == null) throw new Exception( "No valid vouchers found.");
+
+
+                if (voucher.MinOrderValue.HasValue && remainingOrderPrice < voucher.MinOrderValue.Value)
+                {
+                    throw new Exception($"The order has at least {voucher.MinOrderValue} to apply this voucher.");
+                }
+             
+                if (voucher.RemainingQuantity.HasValue && voucher.RemainingQuantity.Value <= 0)
+                {
+                    throw new Exception("This voucher is out of stock to use.");
+
+                }
+                if(voucher.ExpiredTime < DateTime.Now)
+                {
+                    throw new Exception("This voucher has expired.");
+                }
+                decimal discount = remainingOrderPrice * (voucher.DiscountValue / 100);
+                if (voucher.MaxDiscountValue.HasValue && discount > voucher.MaxDiscountValue.Value)
+                {
+                    discount = voucher.MaxDiscountValue.Value; 
+                }
+
+                remainingOrderPrice -= discount;
+                totalVoucherCost += discount;
+
+                order.VoucherUsageLogs.Add(new VoucherUsageLog
+                {
+                    VoucherId = voucher.Id,
+                    CustomerId = (Guid)order.CreatedById,
+                    DiscountValue = discount,
+                    DiscountValueOrigin = voucher.DiscountValue,
+                    UsageStatus = UsageStatus.Used
+                });
+
+                if (voucher.TotalQuantity.HasValue)
+                {
+                    voucher.RemainingQuantity -= 1;
+                }
+                order.AfterApplyVoucherPrice = remainingOrderPrice;
+                order.VoucherCost = totalVoucherCost;
+                var adminCommAfterUsedVch = await AdminCommission((decimal)remainingOrderPrice);
+                order.AdminCommDefault = adminCommAfterUsedVch;
+                order.ArtistRevenue = remainingOrderPrice - adminCommAfterUsedVch;
+                order.TotalPrice = remainingOrderPrice + order.ShippingPrice;
+                 _unitOfWork.VoucherRepository.Update(voucher);
+            }
+
+         
+        }
+        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, Repositories.Entities.Order order, Guid accountId)
         {
             var balance = wallet.Balance;
 
@@ -236,7 +349,7 @@ namespace Chillde.Services.Services
                     Message = "Your balance does not have enough money to order"
                 };
 
-            if (balance > totalPrice)
+            if (balance > order.TotalPrice)
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
@@ -250,25 +363,19 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest,
                     Message = $"Cannot checkout VNPay with '{remainingAmount} VND'. Please checkout with just vnPay payment!"
                 };
-
-            order.Payments.Add(new Payment
+            order.Transactions.Add(new Transaction
             {
-                PaymentType = PaymentType.Balance,
-                Amount = balance,
-                PaymentStatus = PaymentStatus.Pending,
+                Amount = remainingAmount,
+                Type = TransactionType.Deposit,
+                CreatedById = accountId,
+            });
+            order.Transactions.Add(new Transaction
+            {
+                Amount = remainingAmount + balance,
+                Type = TransactionType.TransferOut,
                 CreatedById = accountId
-
             });
 
-            order.Payments.Add(new Payment
-            {
-                PaymentType = PaymentType.VnPay,
-                Amount = (decimal)remainingAmount,
-                PaymentStatus = PaymentStatus.Pending,
-                CreatedById = accountId
-
-
-            });
             return new ResponseModel { Data = remainingAmount };
         }
         private async Task<string> GenerateVnPayUrl(Repositories.Entities.Order order, string ipAddress, decimal remainingAmount)
@@ -340,7 +447,7 @@ namespace Chillde.Services.Services
                     CreatedById = order.CreatedById,
                 };
 
-                wallet.WalletHistories.Add(walletHistory);
+                wallet.Transactions.Add(walletHistory);
                 wallet.Balance -= balancePayment.Amount;
 
                 _unitOfWork.WalletRepository.Update(wallet);
@@ -642,7 +749,7 @@ namespace Chillde.Services.Services
                 ToProvince = _.ToProvince,
                 ToWard = _.ToWard,
                 TotalPrice = _.TotalPrice,
-                PackagePrice = _.PackagePrice,
+                PackagePrice = _.OriginPrice,
                 PackageName = _.Package.Name.ToString(),
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
@@ -677,6 +784,11 @@ namespace Chillde.Services.Services
             return result > 0
                 ? new ResponseModel { Message = "Successfully" }
                 : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
+        }
+
+        public async Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId)
+        {
+            
         }
     }
 }

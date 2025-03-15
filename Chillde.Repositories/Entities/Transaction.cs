@@ -7,7 +7,7 @@ public class Transaction : BaseEntity
     public decimal? Amount { get; set; }
     public TransactionType Type { get; set; }
 
-    public TransactionStatus Status { get; set; }
+    public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
 
     // Foreign key
     public Guid WalletId { get; set; }

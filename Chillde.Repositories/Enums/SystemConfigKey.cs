@@ -22,6 +22,7 @@ namespace Chillde.Repositories.Enums
         DefaultSlidingExpiration,
         MaximumPackageOfOneService,
         MaximumFeatureOfOnePackage,
+        Commission,
 
         //New values ​​related to order processing
         MaxSystemCancelPerYear,

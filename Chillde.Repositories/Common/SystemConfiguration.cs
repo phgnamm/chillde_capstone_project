@@ -20,6 +20,7 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" },
             { SystemConfigKey.MaximumPackageOfOneService, "MaximumPackageOfOneService" },
             { SystemConfigKey.MaximumFeatureOfOnePackage, "MaximumFeatureOfOnePackage" },
+            { SystemConfigKey.Commission, "Commission" },
             //New values ​​related to order processing
             { SystemConfigKey.MaxSystemCancelPerYear, "MaxSystemCancelPerYear" }, // Số lần hủy tối đa trong 1 năm
             { SystemConfigKey.MaxSystemCancelBeforePenalty, "MaxSystemCancelBeforePenalty" }, // Số lần hủy trước khi bị phạt
