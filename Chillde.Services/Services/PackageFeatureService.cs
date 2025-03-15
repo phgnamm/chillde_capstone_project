@@ -1,15 +1,10 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
-using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.FAQModels;
-using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
-using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
 {
@@ -18,18 +13,32 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ITranslationService _translationService;
+        private readonly IBadWordFilterService _badWordFilterService;
 
-        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService)
+        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService, IBadWordFilterService badWordFilterService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _translationService = translationService;
+            _badWordFilterService = badWordFilterService;
         }
 
-        public async Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id)
+        public async Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { packageFeatureUpdateModel.Name };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(id);
                 if (packageFeature == null)
                 {

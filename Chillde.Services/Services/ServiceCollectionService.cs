@@ -4,6 +4,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ServiceCollectionModels;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceCollectionModels;
 using Microsoft.AspNetCore.Http;
@@ -16,15 +17,32 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IBadWordFilterService _badWordFilterService;
 
-        public ServiceCollectionService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper)
+        public ServiceCollectionService(IUnitOfWork unitOfWork, 
+            IClaimService claimService, 
+            ICloudinaryHelper cloudinaryHelper, 
+            IBadWordFilterService badWordFilterService)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
+            _badWordFilterService = badWordFilterService;
         }
-        public async Task<ResponseModel> AddAsync(ServiceCollectionAddModel model)
+        public async Task<ResponseModel> AddAsync(ServiceCollectionAddModel model, string sourceLanguageCode)
         {
+            string[] fieldsToCheck = { model.Name! };
+
+            foreach (var field in fieldsToCheck)
+            {
+                ResponseModel response = sourceLanguageCode == "vi"
+                    ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                    : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                if (response.Code != StatusCodes.Status200OK)
+                    return response;
+            }
+
             var currentUserId = _claimService.GetCurrentUserId;
             if (string.IsNullOrEmpty(model.Name))
             {
@@ -143,8 +161,20 @@ namespace Chillde.Services.Services
                 Data = serviceCollection
             };
         }
-        public async Task<ResponseModel> UpdateAsync(Guid id, ServiceCollectionAddModel model)
+        public async Task<ResponseModel> UpdateAsync(Guid id, ServiceCollectionAddModel model, string sourceLanguageCode)
         {
+            string[] fieldsToCheck = { model.Name! };
+
+            foreach (var field in fieldsToCheck)
+            {
+                ResponseModel response = sourceLanguageCode == "vi"
+                    ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                    : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                if (response.Code != StatusCodes.Status200OK)
+                    return response;
+            }
+
             var serviceCollection = await _unitOfWork.ServiceCollectionRepository.GetAsync(id);
             if (serviceCollection == null)
             {

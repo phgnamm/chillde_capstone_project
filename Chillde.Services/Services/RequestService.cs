@@ -30,11 +30,13 @@ namespace Chillde.Services.Services
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly ITranslationService _translationService;
         private readonly IStringLocalizer<OfferLanguage> _localizer;
+        private readonly IBadWordFilterService _badWordFilterService;
 
         public RequestService(IUnitOfWork unitOfWork, IClaimService claimService,
             ICloudinaryHelper cloudinaryHelper,
             ITranslationService translationService,
-            IStringLocalizer<OfferLanguage> localizer
+            IStringLocalizer<OfferLanguage> localizer,
+            IBadWordFilterService badWordFilterService
 
             )
         {
@@ -43,6 +45,7 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
             _translationService = translationService;
             _localizer = localizer;
+            _badWordFilterService = badWordFilterService;
         }
 
         public async Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode)
@@ -214,10 +217,22 @@ namespace Chillde.Services.Services
             return null;
         }
 
-        public async Task<ResponseModel> AddAsync(RequestAddModel requestAddModel)
+        public async Task<ResponseModel> AddAsync(RequestAddModel requestAddModel, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { requestAddModel.Name, requestAddModel.Description };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var currentUserId = _claimService.GetCurrentUserId;
                 if (!currentUserId.HasValue)
                 {

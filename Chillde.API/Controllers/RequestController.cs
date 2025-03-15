@@ -75,8 +75,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
 
-                var result = await _requestService.AddAsync(requestAddModel);
+                var result = await _requestService.AddAsync(requestAddModel, sourceLanguageCode);
                 if (result.Status)
                 {
                     return Ok(result);

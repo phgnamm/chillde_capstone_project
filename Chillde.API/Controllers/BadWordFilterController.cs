@@ -30,7 +30,15 @@ namespace Chillde.API.Controllers
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
-                var result = await _badWordFilterService.FilterBadWordsAsync(serviceAddModel, sourceLanguageCode, targetLanguageCode);
+                var result = new ResponseModel();
+                if (sourceLanguageCode == "vi")
+                {
+                    result = await _badWordFilterService.FilterVietnameseBadWordsAsync(serviceAddModel.Content);
+                }
+                else
+                {
+                    result = await _badWordFilterService.FilterEnglishBadWordsAsync(serviceAddModel.Content);
+                }
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

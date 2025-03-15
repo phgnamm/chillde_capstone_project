@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.API.Helpers;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
@@ -25,7 +26,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _faqService.UpdateAsync(faqAddAndUpdateModel, id);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _faqService.UpdateAsync(faqAddAndUpdateModel, id, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
