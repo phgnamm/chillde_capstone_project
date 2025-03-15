@@ -1015,7 +1015,7 @@ public class AccountService : IAccountService
 
 
     #endregion
-    public async Task<ResponseModel> GetVoucher(Guid packageId, decimal? minOrderValue)
+    public async Task<ResponseModel> GetVoucher(Guid packageId, decimal? totalPriceOfOrder)
     {
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
@@ -1039,6 +1039,7 @@ public class AccountService : IAccountService
         var artisanId = (Guid)artisan.Service.CreatedById;
         var vouchersByArtisan = await _unitOfWork.VoucherRepository.GetAllAsync(
                                            filter: _ => _.CreatedById == artisanId
+                                           && _.VoucherType == Repositories.Enums.VoucherType.ArtistToCustomer
                                            && _.ExpiredTime >= DateTime.UtcNow
                                            && _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending);
         if (vouchersByArtisan.Data.Count == 0)
@@ -1054,13 +1055,10 @@ public class AccountService : IAccountService
         var orderedQuantity = await _unitOfWork.OrderRepository.NumberCompletedOrder(currentUserId.Value, artisanId);
         var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles));
         var customerReputation = customer?.AccountRoles?.Select(_ => _.TotalReputation).FirstOrDefault() ?? 0;
-
-
-        // moi lan apply voucher xong thi phai goi lai phuong nay
         var showVoucher = vouchersByArtisan.Data.Where(_ =>
             (!_.MinOrderRequired.HasValue || orderedQuantity >= _.MinOrderRequired) &&
             (!_.MinReputation.HasValue || customerReputation >= _.MinReputation) &&
-            (!_.MinOrderValue.HasValue || minOrderValue >= _.MinOrderValue) &&
+            (!_.MinOrderValue.HasValue || totalPriceOfOrder >= _.MinOrderValue) &&
             (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0)
         ).ToList();
 
@@ -1081,7 +1079,7 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ResponseModel> GetVoucherAdmin(Guid artisanId, decimal? minOrderValue)
+    public async Task<ResponseModel> GetVoucherAdmin(Guid orderId)
     {
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
@@ -1092,11 +1090,13 @@ public class AccountService : IAccountService
                 Message = "Unauthorized."
             };
         }
-        var voucher = await _unitOfWork.VoucherRepository.GetAllAsync(filter: _ => _.ReceiverId == artisanId
+        var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+        var voucher = await _unitOfWork.VoucherRepository.GetAllAsync(filter: _ => _.ReceiverId == currentUserId
                                            && _.ExpiredTime >= DateTime.UtcNow
+                                           && _.VoucherType == Repositories.Enums.VoucherType.AdminToArtist
                                            && _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending
                                            && (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0)
-                                           && (!_.MinOrderValue.HasValue || minOrderValue >= _.MinOrderValue), 
+                                           && (!_.MinOrderValue.HasValue || (order.TotalPrice - order.ShippingPrice) >= _.MinOrderValue), 
                                            include: _ => _.Include(_ => _.Receiver));
         if (voucher == null) {
             return new ResponseModel

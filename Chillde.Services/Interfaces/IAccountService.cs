@@ -23,6 +23,6 @@ public interface IAccountService
     Task<ResponseModel> Delete(Guid id);
     Task<ResponseModel> Restore(Guid id);
     Task<ResponseModel> BecomeASeller(Guid id, AccountBecomeASellerModel accountBecomeASellerModel);
-    Task<ResponseModel> GetVoucher(Guid packageId, decimal? minOrderValue);
-    Task<ResponseModel> GetVoucherAdmin(Guid artisanId, decimal? minOrderValue);
+    Task<ResponseModel> GetVoucher(Guid packageId, decimal? totalPriceOfOrder);
+    Task<ResponseModel> GetVoucherAdmin(Guid orderId);
 }

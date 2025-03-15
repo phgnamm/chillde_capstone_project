@@ -50,6 +50,9 @@ namespace Chillde.Services.Services
             _vnpay = vnpay;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
         }
+
+
+        Order cho offer nua nha
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -203,7 +206,7 @@ namespace Chillde.Services.Services
                 }
             }
             var totalOrder = package.Price * orderAddModel.Quantity;
-            var adminCommisstion = await AdminCommission((decimal)totalOrder);
+            var adminCommisstion = await AdminCommission((decimal)totalOrder, 0);
             return new Repositories.Entities.Order
             {
                 CreatedById = userId,
@@ -233,11 +236,18 @@ namespace Chillde.Services.Services
                 }).ToList()
             };
         }
-        private async Task<decimal> AdminCommission(decimal totalOrder)
+        private async Task<decimal> AdminCommission(decimal totalOrder, decimal? commsionVoucherValue)
         {
             var commissionResponse = await _systemConfigService.Get(SystemConfigKey.Commission);
+
             if (commissionResponse.Data is SystemConfigModel config && decimal.TryParse((string?)config.Value, out decimal commissionValue))
             {
+                if (commissionValue > 0)
+                {
+                    var adjustedCommission = Math.Max(commissionValue - (commsionVoucherValue ?? 0), 0) / 100;
+                    return totalOrder * adjustedCommission;
+                }
+
                 return totalOrder * (commissionValue / 100);
             }
             return 0;
@@ -266,7 +276,7 @@ namespace Chillde.Services.Services
 
                 newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
                 newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
-                var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice));
+                var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
                 newOrder.AdminCommDefault = newCommission;
                 newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
             }
@@ -329,7 +339,7 @@ namespace Chillde.Services.Services
                 }
                 order.AfterApplyVoucherPrice = remainingOrderPrice;
                 order.VoucherCost = totalVoucherCost;
-                var adminCommAfterUsedVch = await AdminCommission((decimal)remainingOrderPrice);
+                var adminCommAfterUsedVch = await AdminCommission((decimal)remainingOrderPrice, 0);
                 order.AdminCommDefault = adminCommAfterUsedVch;
                 order.ArtistRevenue = remainingOrderPrice - adminCommAfterUsedVch;
                 order.TotalPrice = remainingOrderPrice + order.ShippingPrice;
@@ -788,7 +798,120 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId)
         {
-            
+            //var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+            //if(order.Status != OrderStatus.Pending)
+            //{
+            //    return new ResponseModel { Message = "Voucher just allowed in pending processing", Code = StatusCodes.Status400BadRequest };
+            //}
+            //var voucher = await _unitOfWork.VoucherRepository.GetAsync(voucherId);
+            //if(voucher.TotalQuantity.HasValue && voucher.TotalQuantity < 1)
+            //{
+            //    return new ResponseModel { Message = "Voucher out of stock", Code = StatusCodes.Status400BadRequest };
+            //}
+            //var totalPriceOrder = order.TotalPrice - order.ShippingPrice;
+            //var voucherDiscountValue = voucher.DiscountValue;
+            //var adminCommAfterUsed = await AdminCommission((decimal)totalPriceOrder, voucherDiscountValue);
+            //if(voucher.MaxDiscountValue.HasValue && voucher.MaxDiscountValue.Value < adminCommAfterUsed)
+            //{
+            //    adminCommAfterUsed = (decimal)voucher.MaxDiscountValue;
+            //}
+            //order.AdminCommUsedVch = adminCommAfterUsed;
+            //order.ArtistRevenue = totalPriceOrder - adminCommAfterUsed;
+            //order.VoucherUsageLogs.Add(new VoucherUsageLog
+            //{
+            //    VoucherId = voucher.Id,
+            //    CustomerId = (Guid)order.CreatedById,
+            //    DiscountValue = (decimal)(order.AdminCommDefault - adminCommAfterUsed),
+            //    DiscountValueOrigin = voucherDiscountValue,
+            //    UsageStatus = UsageStatus.Used
+            //});
+
+            //if (voucher.TotalQuantity.HasValue)
+            //{
+            //    voucher.RemainingQuantity -= 1;
+            //}
+            //_unitOfWork.OrderRepository.Update(order);
+            //var result = await _unitOfWork.SaveChangeAsync();
+            //return result > 0 ? new ResponseModel { Message = "Apply voucher successfully." } : new ResponseModel { Message = "Apply voucher successfully.", Code = StatusCodes.Status400BadRequest };
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+            if (order == null)
+            {
+                return new ResponseModel
+                {
+                    Message = "Order not found.",
+                    Code = StatusCodes.Status404NotFound
+                };
+            }
+
+            if (order.Status != OrderStatus.Pending)
+            {
+                return new ResponseModel
+                {
+                    Message = "Voucher can only be applied to orders in pending status.",
+                    Code = StatusCodes.Status400BadRequest
+                };
+            }
+
+            var voucher = await _unitOfWork.VoucherRepository.GetAsync(voucherId);
+            if (voucher == null)
+            {
+                return new ResponseModel
+                {
+                    Message = "Voucher not found.",
+                    Code = StatusCodes.Status404NotFound
+                };
+            }
+
+            if (voucher.TotalQuantity.HasValue && voucher.TotalQuantity.Value < 1)
+            {
+                return new ResponseModel
+                {
+                    Message = "Voucher is out of stock.",
+                    Code = StatusCodes.Status400BadRequest
+                };
+            }
+
+            var totalPriceOrder = order.TotalPrice - order.ShippingPrice ?? 0;
+
+            var voucherDiscountValue = voucher.DiscountValue;
+            var adminCommAfterUsed = await AdminCommission(totalPriceOrder, voucherDiscountValue);
+
+            if (voucher.MaxDiscountValue.HasValue && adminCommAfterUsed > voucher.MaxDiscountValue.Value)
+            {
+                adminCommAfterUsed = voucher.MaxDiscountValue.Value;
+            }
+
+            order.AdminCommUsedVch = adminCommAfterUsed;
+            order.ArtistRevenue = totalPriceOrder - adminCommAfterUsed;
+
+            order.VoucherUsageLogs.Add(new VoucherUsageLog
+            {
+                VoucherId = voucher.Id,
+                CustomerId = (Guid)order.CreatedById,
+                DiscountValue = (decimal)(order.AdminCommDefault - adminCommAfterUsed),
+                DiscountValueOrigin = voucherDiscountValue,
+                UsageStatus = UsageStatus.Used
+            });
+            if (voucher.TotalQuantity.HasValue)
+            {
+                voucher.RemainingQuantity -= 1;
+            }
+
+            _unitOfWork.OrderRepository.Update(order);
+            _unitOfWork.VoucherRepository.Update(voucher);
+
+            var result = await _unitOfWork.SaveChangeAsync();
+            return result > 0
+                ? new ResponseModel
+                {
+                    Message = "Voucher applied successfully.",
+                    Code = StatusCodes.Status200OK
+                }
+                : new ResponseModel
+                {
+                    Message = "Failed to apply voucher.",
+                    Code = StatusCodes.Status400BadRequest
+                };
         }
     }
 }
