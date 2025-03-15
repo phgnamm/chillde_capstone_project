@@ -48,7 +48,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                if(!ModelState.IsValid)
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                if (!ModelState.IsValid)
                 {
                     return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel
                     {
@@ -56,7 +59,7 @@ namespace Chillde.API.Controllers
                         Message = "Invalid model."
                     });
                 }
-                var result = await _featureService.UpdateAsync(featureUpdateModel, id);
+                var result = await _featureService.UpdateAsync(featureUpdateModel, id, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

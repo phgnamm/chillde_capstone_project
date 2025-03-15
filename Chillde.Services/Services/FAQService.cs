@@ -1,8 +1,6 @@
-﻿using Chillde.Repositories.Entities;
-using Chillde.Repositories.Interfaces;
+﻿using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
-using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 
@@ -11,16 +9,29 @@ namespace Chillde.Services.Services
     public class FAQService : IFAQService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBadWordFilterService _badWordFilterService;
 
-        public FAQService(IUnitOfWork unitOfWork)
+        public FAQService(IUnitOfWork unitOfWork, IBadWordFilterService badWordFilterService)
         {
             _unitOfWork = unitOfWork;
+            _badWordFilterService = badWordFilterService;
         }
 
-        public async Task<ResponseModel> UpdateAsync(FAQAddAndUpdateModel faqAddAndUpdateModel, Guid id)
+        public async Task<ResponseModel> UpdateAsync(FAQAddAndUpdateModel faqAddAndUpdateModel, Guid id, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { faqAddAndUpdateModel.Question, faqAddAndUpdateModel.Answer };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
                 var faq = await _unitOfWork.FAQRepository.GetAsync(id);
                 if (faq == null)
                 {

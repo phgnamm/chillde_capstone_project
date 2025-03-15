@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.API.Helpers;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceModels;
@@ -24,7 +25,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _packageFeatureService.UpdateAsync(model, id);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _packageFeatureService.UpdateAsync(model, id, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

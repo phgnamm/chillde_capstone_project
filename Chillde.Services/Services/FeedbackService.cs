@@ -24,9 +24,6 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
         }
 
-
-
-
         public async Task<ResponseModel> GetById(Guid id)
         {
             var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id).Include(_ => _.FeedbackAttachments));

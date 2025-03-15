@@ -9,7 +9,7 @@ namespace Chillde.Services.Interfaces
 {
     public interface IServiceService
     {
-        Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel);
+        Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel, string sourceLanguageCode);
         Task<ResponseModel> GetAllFeedbacksByServiceAndUserAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel);
         Task<ResponseModel> GetAllFeedbacksByServiceAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel);
         Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel);
@@ -17,11 +17,11 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId);
         Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId,string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> GetAsync(Guid id);
-        Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel);
-        Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id);
+        Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel, string sourceLanguageCode);
+        Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id, string sourceLanguageCode);
         Task<ResponseModel> DeleteAsync(Guid id);
-        Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId);    
-        Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId);
+        Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId);
+        Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId, string sourceLanguageCode);
         Task<ResponseModel> GetAllFAQsAsync(Guid serviceId, FAQFilterModel faqFilterModel);
         Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode);
     }
