@@ -1,11 +1,5 @@
-﻿using Chillde.Services.Models.ConversationModels;
-using Chillde.Services.Models.RequestModels;
+﻿using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chillde.Services.Interfaces
 {
@@ -18,6 +12,6 @@ namespace Chillde.Services.Interfaces
         //Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel);
         Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode);
-        Task<ResponseModel> AddAsync(RequestAddModel requestAddModel);
+        Task<ResponseModel> AddAsync(RequestAddModel requestAddModel, string sourceLanguageCode);
     }
 }

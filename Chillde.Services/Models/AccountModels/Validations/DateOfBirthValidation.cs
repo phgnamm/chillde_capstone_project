@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Chillde.Services.Models.ResponseModels;
+using System.ComponentModel.DataAnnotations;
 
 namespace Chillde.Services.Models.AccountModels.Validations;
 
