@@ -52,7 +52,11 @@ namespace Chillde.Services.Services
         }
 
 
-        Order cho offer nua nha
+       /// <summary>
+       /// //////////////////Order cho offer nua nha
+       /// </summary>
+       /// <param name="orderAddModel"></param>
+       /// <returns></returns>
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -63,7 +67,8 @@ namespace Chillde.Services.Services
                     Message = "Unauthorized"
                 };
 
-            var package = await _unitOfWork.PackageRepository.Get(orderAddModel.PackageId);
+            var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId,
+                include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request));
             if (package == null)
                 return new ResponseModel
                 {
@@ -73,7 +78,7 @@ namespace Chillde.Services.Services
 
             var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
 
-            if (orderAddModel.OrderInformationAddModels != null)
+            if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
                 await ProcessExtraFeatures(orderAddModel, newOrder);
             if(orderAddModel.VoucherId != null && orderAddModel.VoucherId is List<Guid> voucherIds)
             {
@@ -134,7 +139,8 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var package = await _unitOfWork.PackageRepository.Get(orderAddModel.PackageId);
+            var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId, 
+                include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature) .Include(_ => _.Offer).ThenInclude(_ => _.Request));
             if (package == null)
                 return new ResponseModel
                 {
@@ -142,11 +148,11 @@ namespace Chillde.Services.Services
                     Message = "Package not found."
                 };
 
-            decimal remainingAmount = 0;
 
             var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
+            decimal remainingAmount = 0;
 
-            if (orderAddModel.OrderInformationAddModels != null)
+            if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
                 await ProcessExtraFeatures(orderAddModel, newOrder);
             if (orderAddModel.VoucherId != null)
             {
@@ -189,8 +195,36 @@ namespace Chillde.Services.Services
         }
         private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId)
         {
+            var packageOffer = package.Offer;
+            decimal totalOrder = 0m;
+            decimal adminCommission = 0m;
+            if (packageOffer != null && packageOffer.Status == OfferStatus.Approved) {
+                totalOrder = (decimal)(package.Price * packageOffer.Request.Quantity);
+                adminCommission = await AdminCommission((decimal)totalOrder, 0);
+                return new Repositories.Entities.Order
+                {
+                    CreatedById = userId,
+                    Code = GenerateCodeHelper.GenerateOrderCode(),
+                    Phone = orderAddModel.Phone,
+                    Address = orderAddModel.Address,
+                    ToWard = orderAddModel.ToWard,
+                    ToDistrict = orderAddModel.ToDistrict,
+                    ToProvince = orderAddModel.ToProvince,
+                    TotalPrice = totalOrder + orderAddModel.ShippingPrice,
+                    DeliveryTime = package.DeliveryTime,
+                    ShippingPrice = orderAddModel.ShippingPrice,
+                    OriginPrice = totalOrder,
+                    AdminCommDefault = adminCommission,
+                    AdminCommUsedVch = null,
+                    ArtistRevenue = totalOrder - adminCommission,
+                    AfterApplyVoucherPrice = null,
+                    VoucherCost = null,
+                    Quantity = packageOffer.Request.Quantity,
+                    PackageId = orderAddModel.PackageId,
+                    OrderInformations = null
+                };
+            }
             var requiredFeatures = package.PackageFeatures.Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra.HasValue || !_.IsExtra.Value)).ToList();
-
             foreach (var feature in requiredFeatures)
             {
                 var correspondingInfo = orderAddModel.OrderInformationAddModels?
@@ -205,8 +239,8 @@ namespace Chillde.Services.Services
                     };
                 }
             }
-            var totalOrder = package.Price * orderAddModel.Quantity;
-            var adminCommisstion = await AdminCommission((decimal)totalOrder, 0);
+            totalOrder = (decimal)(package.Price * orderAddModel.Quantity);
+            adminCommission = await AdminCommission((decimal)totalOrder, 0);
             return new Repositories.Entities.Order
             {
                 CreatedById = userId,
@@ -220,13 +254,14 @@ namespace Chillde.Services.Services
                 DeliveryTime = package.DeliveryTime,
                 ShippingPrice = orderAddModel.ShippingPrice,
                 OriginPrice = totalOrder,
-                AdminCommDefault = adminCommisstion,
+                AdminCommDefault = adminCommission,
                 AdminCommUsedVch = null,
-                ArtistRevenue = totalOrder - adminCommisstion,
+                ArtistRevenue = totalOrder - adminCommission,
                 AfterApplyVoucherPrice = null,
                 VoucherCost = null,
                 Quantity = orderAddModel.Quantity,
                 PackageId = orderAddModel.PackageId,
+               //////////////////////////////////// thieu orderinformationAttachment
                 OrderInformations = orderAddModel.OrderInformationAddModels!.Select(_ => new OrderInformation
                 {
                     Quantity = _.Quantity ?? null,
@@ -239,7 +274,6 @@ namespace Chillde.Services.Services
         private async Task<decimal> AdminCommission(decimal totalOrder, decimal? commsionVoucherValue)
         {
             var commissionResponse = await _systemConfigService.Get(SystemConfigKey.Commission);
-
             if (commissionResponse.Data is SystemConfigModel config && decimal.TryParse((string?)config.Value, out decimal commissionValue))
             {
                 if (commissionValue > 0)
@@ -404,7 +438,7 @@ namespace Chillde.Services.Services
 
             return await _vnpay.GetPaymentUrl(paymentRequest);
         }
-        check lai transaction
+        //check lai transaction
         public async Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(

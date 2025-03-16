@@ -45,7 +45,7 @@ public class Order : BaseEntity
     public virtual ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
     public virtual ICollection<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();
     public virtual ICollection<Payment>? Payments { get; set; } = new List<Payment>();
-    public virtual ICollection<OrderInformation> OrderInformations { get; set; } = new List<OrderInformation>();
+    public virtual ICollection<OrderInformation>? OrderInformations { get; set; } = new List<OrderInformation>();
     public virtual ICollection<OrderTracking> OrderTrackings { get; set; } = new List<OrderTracking>();
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

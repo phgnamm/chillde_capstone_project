@@ -28,6 +28,7 @@ namespace Chillde.Repositories.Enums
             // dieu kien de tao voucher cho nghe nhan, so order toi thieu trong bao nhieu thang
         MinOrdersForArtisan,
         NumberOfMonthForMinOrders,
+        MinReputationOfArtisan,
             // gia tri discount cho voucher
         DiscountValue,
             // gia tri maxDiscount

@@ -9,6 +9,7 @@ public class Request : BaseEntity
     public decimal? MinBudget { get; set; }
     public decimal? MaxBudget { get; set; }
     public int? Timeline { get; set; }
+    public int? Quantity { get; set; }
     public RequestStatus Status { get; set; } = RequestStatus.Pending;
 
     // Foreign key

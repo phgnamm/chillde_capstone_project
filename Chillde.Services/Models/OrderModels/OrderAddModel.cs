@@ -34,9 +34,9 @@ namespace Chillde.Services.Models.OrderModels
 
         public decimal? ShippingPrice { get; set; }
 
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
-        public int Quantity { get; set; } = 1;
+        //[Required]
+        //[Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
+        public int? Quantity { get; set; } = 1;
 
         public string? ShipmentCode { get; set; }
 

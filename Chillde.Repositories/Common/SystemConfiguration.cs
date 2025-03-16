@@ -26,6 +26,7 @@ namespace Chillde.Repositories.Common
             // configuration for create voucher in background service
             { SystemConfigKey.MinOrdersForArtisan , "MinOrdersForArtisan" },
             { SystemConfigKey.NumberOfMonthForMinOrders , "NumberOfMonthForMinOrders " },
+            { SystemConfigKey.MinReputationOfArtisan , "MinReputationOfArtisan " },
             { SystemConfigKey.DiscountValue , "DiscountValue " },
             { SystemConfigKey.MaxDiscountValue , "MaxDiscountValue " },
             { SystemConfigKey.TotalQuantity , "TotalQuantity " },
