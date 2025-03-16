@@ -26,10 +26,6 @@ namespace Chillde.Repositories.Repositories
             return result;
         }
 
-        public async Task<Guid> GetArtist(Guid packageId)
-        {
-            var package = await _dbSet.Where(_ => _.Id.Equals(packageId)).Include(_ => _.Service).FirstOrDefaultAsync();
-            return package.Service.CreatedById.Value;
-        }
+       
     }
 }

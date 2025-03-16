@@ -44,7 +44,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
@@ -185,7 +185,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> GetAllFeatureAsync(FeatureFilterModel model, Guid packageId, string sourceLanguageCode, string targetLanguage)
+        public async Task<ResponseModel> GetAllFeatureByPackageAsync(FeatureFilterModel model, Guid packageId, string sourceLanguageCode, string targetLanguage)
         {
             try
             {
@@ -303,7 +303,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 

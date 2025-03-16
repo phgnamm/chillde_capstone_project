@@ -43,8 +43,7 @@ namespace Chillde.Services.Services
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
                         (!filterParameter.ItemId.HasValue ||
-                         offer.Categories.Any(c => c.Id == filterParameter.ItemId && !c.Children.Any())) &&
-                        offer.Service != null &&
+                         offer.Request.CategoryId == filterParameter.ItemId) &&
                         (!filterParameter.MinPrice.HasValue ||
                          offer.Service.Packages.Any(p => p.Price >= filterParameter.MinPrice)) &&
                         (!filterParameter.MaxPrice.HasValue ||

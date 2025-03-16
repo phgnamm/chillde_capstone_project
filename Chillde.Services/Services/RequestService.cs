@@ -229,7 +229,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 

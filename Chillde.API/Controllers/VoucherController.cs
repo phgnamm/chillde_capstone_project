@@ -19,7 +19,7 @@ namespace Chillde.API.Controllers
         {
             _voucherService = voucherService;
         }
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Artisan")]
         [HttpPost()]
         public async Task<IActionResult> Add([FromBody] VoucherAddModel voucherAddModel)
         {
