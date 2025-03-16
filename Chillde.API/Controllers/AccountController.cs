@@ -71,12 +71,49 @@ public class AccountController : ControllerBase
             });
         }
     }
+    [Authorize(Roles = "Customer")]
     [HttpGet("vouchers")]
-    public async Task<IActionResult> GetVoucher([FromQuery] Guid packageId)
+    public async Task<IActionResult> GetVoucher([FromQuery] Guid packageId, [FromBody] decimal totalPriceOfOrder)
     {
         try
         {
-            var result = await _accountService.GetVoucher(packageId);
+            var result = await _accountService.GetVoucher(packageId, totalPriceOfOrder);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+    [Authorize(Roles = "Artisan")]
+    [HttpGet("admin-vouchers")]
+    public async Task<IActionResult> GetVoucher(Guid orderId)
+    {
+        try
+        {
+            var result = await _accountService.GetVoucherAdmin(orderId);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+    [Authorize]
+    [HttpGet("search-histories")]
+    public async Task<IActionResult> GetSearchHistories()
+    {
+        try
+        {
+            var result = await _accountService.GetSearchHistories();
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

@@ -19,6 +19,7 @@ using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Services.Utils;
 using Nest;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.SystemConfigModel;
 
 namespace Chillde.Services.Services
 {
@@ -34,6 +35,7 @@ namespace Chillde.Services.Services
         private readonly IRedisHelper _redisHelper;
         private readonly KeywordGenerator _keywordGenerator;
         private readonly IElasticClient _client;
+        private readonly ISystemConfigService _systemConfigService;
         private readonly IBadWordFilterService _badWordFilterService;
 
 
@@ -46,7 +48,7 @@ namespace Chillde.Services.Services
             IServiceAttachmentService serviceAttachmentService,
             ITranslationService translationService,
             IRedisHelper redisHelper,
-            IBadWordFilterService badWordFilterService)
+            IBadWordFilterService badWordFilterService, ISystemConfigService systemConfigService)
         {
             _client = client;
             _openAiService = openAiService;
@@ -57,6 +59,7 @@ namespace Chillde.Services.Services
             _serviceAttachmentService = serviceAttachmentService;
             _translationService = translationService;
             _redisHelper = redisHelper;
+            _systemConfigService = systemConfigService;
             _keywordGenerator = new KeywordGenerator();
             _badWordFilterService = badWordFilterService;
         }
@@ -71,7 +74,7 @@ namespace Chillde.Services.Services
                     ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                     : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                if (response.Code != StatusCodes.Status200OK)
+                if (response.Code == StatusCodes.Status422UnprocessableEntity)
                     return response;
             }
 
@@ -279,7 +282,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
@@ -400,7 +403,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
@@ -551,7 +554,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
@@ -672,7 +675,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
@@ -755,7 +758,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> GetAllPackagesAsync(PackageFilterModel packageFilterModel, Guid serviceId)
+        public async Task<ResponseModel> GetAllPackagesByServiceAsync(PackageFilterModel packageFilterModel, Guid serviceId)
         {
             try
             {
@@ -834,7 +837,14 @@ namespace Chillde.Services.Services
             int pageSize = serviceFilterModel.PageSize;
             var result = new Pagination<ServiceModel>(null!, pageIndex, pageSize, 0);
             var currentUserId = _claimService.GetCurrentUserId;
-
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized."
+                };
+            }
             if (currentUserId.HasValue)
             {
                 await SaveSearchHistoryAsync(serviceFilterModel.Search, currentUserId.Value);
@@ -1212,16 +1222,32 @@ namespace Chillde.Services.Services
         {
             var searchHistories = await _unitOfWork.SearchHistoryRepository
                 .GetAllAsync(filter: _ => _.CreatedById == userId);
+            var maxSearchHistoryResponse = await _systemConfigService.Get(SystemConfigKey.MaxSearchHistory);
+            var config = maxSearchHistoryResponse.Data as SystemConfigModel;
+
+            int maxSearchHistoryValue = 0;
+           
 
             var existingSearchHistory = searchHistories.Data
                 .FirstOrDefault(_ => _.SearchText!.Equals(searchText, StringComparison.OrdinalIgnoreCase));
 
             if (existingSearchHistory == null)
             {
+                if (config != null && int.TryParse(config.Value?.ToString(), out int value))
+                {
+                    maxSearchHistoryValue = value;
+                }
+
+                if (searchHistories.Data.Count() >= maxSearchHistoryValue && searchHistories.Data.Any())
+                {
+                    var oldestSearchHistory = searchHistories.Data.OrderBy(_ => _.CreationDate).First();
+                    _unitOfWork.SearchHistoryRepository.HardRemove(oldestSearchHistory);
+                }
                 await _unitOfWork.SearchHistoryRepository.AddAsync(new SearchHistory
                 {
                     SearchText = searchText,
-                    CreatedById = userId
+                    CreatedById = userId,
+                    CreationDate = DateTime.Now
                 });
             }
             else

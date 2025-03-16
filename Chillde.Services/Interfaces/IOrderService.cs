@@ -11,6 +11,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel);
         Task<ResponseModel> CreatePaymentUrl(OrderAddModel orderAddModel, string ipAddress);
         Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId);
+        Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId);
         Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId);
         Task<ResponseModel> CancelShipmentAsync(Guid orderId, string shipmentCode);
         Task<ResponseModel> GetAll(OrderFilterModel orderFilterModel);
