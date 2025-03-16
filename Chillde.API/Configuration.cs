@@ -342,6 +342,7 @@ public static class Configuration
 
         //SearchHistory
         services.AddScoped<IElasticsearchService, ElasticsearchService>();
+        services.AddScoped<ISearchHistoryService, SearchHistoryService>();
         services.AddScoped<ISearchHistoryRepository, SearchHistoryRepository>();
 
         //Voucher

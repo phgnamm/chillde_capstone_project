@@ -22,7 +22,24 @@ namespace Chillde.Repositories.Enums
         DefaultSlidingExpiration,
         MaximumPackageOfOneService,
         MaximumFeatureOfOnePackage,
-
+        // related to search history
+        MaxSearchHistory,
+        // related to voucher
+            // dieu kien de tao voucher cho nghe nhan, so order toi thieu trong bao nhieu thang
+        MinOrdersForArtisan,
+        NumberOfMonthForMinOrders,
+        MinReputationOfArtisan,
+            // gia tri discount cho voucher
+        DiscountValue,
+            // gia tri maxDiscount
+        MaxDiscountValue,
+            // so luong voucher
+        TotalQuantity,
+            // so ngay ket thuc voucher
+        NumberOfDateForUsingVoucher,
+            // toi thieu don hang 
+        MinOrderValue,
+        Commission,
         //New values ​​related to order processing
         MaxSystemCancelPerYear,
         MaxSystemCancelBeforePenalty,

@@ -13,5 +13,6 @@
         Offer,
         Order,
         Reputation,
+        Commission
     }
 }

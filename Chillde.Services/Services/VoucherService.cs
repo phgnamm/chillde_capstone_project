@@ -27,42 +27,49 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Add(VoucherAddModel voucherAddModel)
         {
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
+            try
             {
-                return new ResponseModel
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
                 {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized."
-                };
-            }
-            if (voucherAddModel.ExpiredTime <= DateTime.UtcNow)
-            {
-                return new ResponseModel
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
+                if (voucherAddModel.ExpiredTime <= DateTime.UtcNow)
                 {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "ExpiredTime must be greater than now."
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "ExpiredTime must be greater than now."
+                    };
+                }
+                var newVoucher = new Voucher
+                {
+                    Id = Guid.NewGuid(),
+                    ReceiverId = voucherAddModel.ReceiverId ?? null,
+                    Code = GenerateCodeHelper.GenerateVoucherCode(),
+                    MinOrderRequired = voucherAddModel.MinOrderRequired ?? 0,
+                    MinReputation = voucherAddModel.MinReputation ?? null,
+                    DiscountValue = voucherAddModel.DiscountValue,
+                    MinOrderValue = voucherAddModel.MinOrderValue ?? 0,
+                    MaxDiscountValue = voucherAddModel.MaxDiscountValue ?? null,
+                    TotalQuantity = voucherAddModel.TotalQuantity ?? null,
+                    RemainingQuantity = voucherAddModel.RemainingQuantity ?? voucherAddModel.TotalQuantity ?? null,
+                    ExpiredTime = voucherAddModel.ExpiredTime,
+                    CreatedById = currentUserId.Value,
                 };
-            }
-            var newVoucher = new Voucher
-            {
-                Id = Guid.NewGuid(),
-                ReceiverId = voucherAddModel.ReceiverId,
-                Code =  GenerateCodeHelper.GenerateVoucherCode(),
-                MinOrderRequired = voucherAddModel.MinOrderRequired ?? 0,
-                MinReputation = voucherAddModel.MinReputation ?? null,
-                DiscountValue = voucherAddModel.DiscountValue,
-                MinOrderValue = voucherAddModel.MinOrderValue ?? 0,
-                MaxDiscountValue = voucherAddModel.MaxDiscountValue ?? null,
-                TotalQuantity = voucherAddModel.TotalQuantity ?? null, 
-                RemainingQuantity = voucherAddModel.RemainingQuantity ?? voucherAddModel.TotalQuantity ?? null,
-                ExpiredTime = voucherAddModel.ExpiredTime,
-                CreatedById = currentUserId.Value,
-            };
 
-            await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
-            var result = await _unitOfWork.SaveChangeAsync();
-            return result > 0 ? new ResponseModel { Message = "Create Voucher Successfully" } : new ResponseModel { Message = "Create Voucher Unsuccessfully", Code = StatusCodes.Status400BadRequest };
+                await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
+                var result = await _unitOfWork.SaveChangeAsync();
+                return result > 0 ? new ResponseModel { Message = "Create Voucher Successfully" } : new ResponseModel { Message = "Create Voucher Unsuccessfully", Code = StatusCodes.Status400BadRequest };
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<ResponseModel> Update(Guid id, VoucherUpdateModel voucherUpdateModel)

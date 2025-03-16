@@ -27,4 +27,5 @@ public class Category : BaseEntity
     // Relationship
     public Category? Parent { get; set; }
     public virtual ICollection<Category> Children { get; set; } = new List<Category>();
+    public virtual ICollection<Request> Requests { get; set; } = new List<Request>();
 }

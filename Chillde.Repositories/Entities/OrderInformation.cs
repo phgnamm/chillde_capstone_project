@@ -17,6 +17,6 @@ public class OrderInformation : BaseEntity
     public PackageFeature PackageFeature { get; set; } = null!;
     public Order Order { get; set; } = null!;
 
-    public virtual ICollection<OrderInformationAttachment> OrderInformationAttachments { get; set; } =
+    public virtual ICollection<OrderInformationAttachment>? OrderInformationAttachments { get; set; } =
         new List<OrderInformationAttachment>();
 }

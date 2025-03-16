@@ -20,6 +20,19 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" },
             { SystemConfigKey.MaximumPackageOfOneService, "MaximumPackageOfOneService" },
             { SystemConfigKey.MaximumFeatureOfOnePackage, "MaximumFeatureOfOnePackage" },
+            // related to search history
+            { SystemConfigKey.MaxSearchHistory , "MaxSearchHistory" },
+            // related to voucher
+            // configuration for create voucher in background service
+            { SystemConfigKey.MinOrdersForArtisan , "MinOrdersForArtisan" },
+            { SystemConfigKey.NumberOfMonthForMinOrders , "NumberOfMonthForMinOrders " },
+            { SystemConfigKey.MinReputationOfArtisan , "MinReputationOfArtisan " },
+            { SystemConfigKey.DiscountValue , "DiscountValue " },
+            { SystemConfigKey.MaxDiscountValue , "MaxDiscountValue " },
+            { SystemConfigKey.TotalQuantity , "TotalQuantity " },
+            { SystemConfigKey.NumberOfDateForUsingVoucher , "NumberOfDateForUsingVoucher " },
+            { SystemConfigKey.MinOrderValue , "MinOrderValue " },
+            { SystemConfigKey.Commission, "Commission" },
             //New values ​​related to order processing
             { SystemConfigKey.MaxSystemCancelPerYear, "MaxSystemCancelPerYear" }, // Số lần hủy tối đa trong 1 năm
             { SystemConfigKey.MaxSystemCancelBeforePenalty, "MaxSystemCancelBeforePenalty" }, // Số lần hủy trước khi bị phạt
