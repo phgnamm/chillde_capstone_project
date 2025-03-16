@@ -9,8 +9,11 @@ namespace Chillde.Repositories.Models.CategoryModels
 {
     public class CategoryModel : BaseEntity
     {
-        public string? Code { get; set; }
+        public string? Slug { get; set; }
         public string? Name { get; set; }
-        public string? ImageUrl { get; set; }
+        public Guid? ParentId { get; set; }
+        public string? AttachmentUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
+
     }
 }
