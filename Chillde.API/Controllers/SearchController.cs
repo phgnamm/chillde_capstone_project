@@ -10,17 +10,42 @@ namespace Chillde.API.Controllers
     public class SearchController : ControllerBase
     {
         private readonly IElasticsearchService _elasticSearchService;
+        private readonly ISearchHistoryService _searchHistoryService;
 
-        public SearchController(IElasticsearchService elasticSearchService)
+        public SearchController(IElasticsearchService elasticSearchService, ISearchHistoryService searchHistoryService)
         {
             _elasticSearchService = elasticSearchService;
+            _searchHistoryService = searchHistoryService;
         }
+
         [HttpGet("suggest")]
         public async Task<IActionResult> SuggestKeywordsAsync([FromQuery] string indexName, [FromQuery] string query)
         {
             try
             {
                 var result = await _elasticSearchService.SuggestKeywordsAsync(indexName, query);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpDelete()]
+        public async Task<IActionResult> Delete([FromQuery] Guid id)
+        {
+            try
+            {
+                var result = await _searchHistoryService.Delete(id);
                 if (result.Status)
                 {
                     return Ok(result);
