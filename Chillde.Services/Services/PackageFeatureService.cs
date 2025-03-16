@@ -35,7 +35,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
@@ -97,15 +97,31 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var feature = await _unitOfWork.FeatureRepository.GetAsync(packageFeature.FeatureId);
+                if (feature == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Feature not found."
+                    };
+                }
+
                 var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId!.Value);
 
                 if (!anyOrder.Result)
                 {
                     _unitOfWork.PackageFeatureRepository.HardRemove(packageFeature);
+                    int availablePackageFeatures = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeatures(packageFeature.FeatureId);
+                    if (availablePackageFeatures == 1)
+                    {
+                        await _unitOfWork.FeatureRepository.GetAsync(packageFeature.FeatureId);
+                        _unitOfWork.FeatureRepository.HardRemove(feature);
+                    }
                 }
                 else
                 {
-                    _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);
+                    _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);                    
                 }
 
                 await _unitOfWork.SaveChangeAsync();

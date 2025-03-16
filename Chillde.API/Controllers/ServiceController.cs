@@ -221,11 +221,11 @@ namespace Chillde.API.Controllers
 
         //[Authorize]
         [HttpGet("{serviceId}/packages")]
-        public async Task<IActionResult> GetAllPackagesAsync(Guid serviceId, [FromQuery] PackageFilterModel packageFilterModel)
+        public async Task<IActionResult> GetAllPackagesByServiceAsync(Guid serviceId, [FromQuery] PackageFilterModel packageFilterModel)
         {
             try
             {
-                var result = await _serviceService.GetAllPackagesAsync(packageFilterModel, serviceId);
+                var result = await _serviceService.GetAllPackagesByServiceAsync(packageFilterModel, serviceId);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

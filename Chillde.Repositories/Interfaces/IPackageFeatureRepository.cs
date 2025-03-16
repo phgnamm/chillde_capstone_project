@@ -10,5 +10,6 @@ namespace Chillde.Repositories.Interfaces
     public interface IPackageFeatureRepository : IGenericRepository<PackageFeature>
     {
         Task<decimal> SumPriceOfExtraFeatures(List<Guid> ids);
+        int CountAvailablePackageFeatures(Guid featureId);
     }
 }
