@@ -25,4 +25,6 @@ public interface IAccountService
     Task<ResponseModel> BecomeASeller(Guid id, AccountBecomeASellerModel accountBecomeASellerModel);
     Task<ResponseModel> GetVoucher(Guid packageId, decimal? totalPriceOfOrder);
     Task<ResponseModel> GetVoucherAdmin(Guid orderId);
+    Task<ResponseModel> GetSearchHistories();
+
 }

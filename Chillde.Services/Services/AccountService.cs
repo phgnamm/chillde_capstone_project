@@ -9,6 +9,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.SearchModels;
 using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
@@ -1121,5 +1122,29 @@ public class AccountService : IAccountService
             Data = voucherModelLists,
             Message = "Vouchers retrieved successfully."
         };
+    }
+
+    public async Task<ResponseModel> GetSearchHistories()
+    {
+        var currentUserId = _claimService.GetCurrentUserId;
+        if (!currentUserId.HasValue)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status401Unauthorized,
+                Message = "Unauthorized."
+            };
+        }
+        var searchHistories = await _unitOfWork.SearchHistoryRepository.GetAllAsync(filter: _ => _.CreatedById == currentUserId.Value);
+        if (!searchHistories.Data.Any()) {
+            return new ResponseModel { Message = "Not found.", Code = StatusCodes.Status400BadRequest };     
+        }
+        var searchHistoryModels = searchHistories.Data.Select(_ => new SearchModel
+        {
+            Id = _.Id,
+            SearchText = _.SearchText
+        }).ToList();
+        return new ResponseModel { Data = searchHistoryModels};
+
     }
 }

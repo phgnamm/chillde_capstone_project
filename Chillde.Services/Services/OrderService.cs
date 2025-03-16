@@ -404,6 +404,7 @@ namespace Chillde.Services.Services
 
             return await _vnpay.GetPaymentUrl(paymentRequest);
         }
+        check lai transaction
         public async Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(

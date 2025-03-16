@@ -32,6 +32,8 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
+            entity.HasIndex(order => order.Code).IsUnique();
+            entity.HasIndex(order => order.ShipmentCode).IsUnique();
             entity.Property(order => order.Phone).HasMaxLength(15);
             entity.Property(order => order.Address).HasMaxLength(256);
             entity.Property(order => order.CreatedById).IsRequired();
@@ -42,7 +44,10 @@ public class AppDbContext : DbContext
             entity.Property(request => request.Name).HasMaxLength(100);
             entity.Property(request => request.CreatedById).IsRequired();
         });
-
+        modelBuilder.Entity<Language>(entity =>
+        {
+            entity.HasIndex(languague => languague.Code).IsUnique();
+        });
         modelBuilder.Entity<Role>(entity =>
         {
             entity.Property(role => role.Name).HasMaxLength(50);
@@ -55,7 +60,10 @@ public class AppDbContext : DbContext
             entity.Property(conversation => conversation.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Category>(entity => { entity.Property(category => category.Name).HasMaxLength(100); });
+        modelBuilder.Entity<Category>(entity => {
+            entity.HasIndex(voucher => voucher.Slug).IsUnique();
+            entity.Property(category => category.Name).HasMaxLength(100); 
+        });
 
         modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
 
@@ -116,11 +124,15 @@ public class AppDbContext : DbContext
                 .WithMany(l => l.Translations)
                 .HasForeignKey(t => t.LanguageId);
         });
-        modelBuilder.Entity<Voucher>()
-            .HasOne(v => v.Creator)
+        modelBuilder.Entity<Voucher>(entity =>
+        {
+            entity.HasIndex(voucher => voucher.Code).IsUnique();
+            entity.HasOne(v => v.Creator)
             .WithMany(a => a.CreatedVouchers)
             .HasForeignKey(v => v.CreatedById)
             .OnDelete(DeleteBehavior.Cascade);
+        });
+            
 
         modelBuilder.Entity<Voucher>()
             .HasOne(v => v.Receiver)
