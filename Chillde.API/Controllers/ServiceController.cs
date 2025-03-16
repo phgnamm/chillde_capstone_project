@@ -32,7 +32,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceService.AddFeedbackAsync(feedbackAddModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _serviceService.AddFeedbackAsync(feedbackAddModel, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -140,7 +143,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceService.AddAsync(serviceAddModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _serviceService.AddAsync(serviceAddModel, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -159,7 +165,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceService.UpdateAsync(serviceUpdateModel, id);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _serviceService.UpdateAsync(serviceUpdateModel, id, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -257,7 +266,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceService.AddFAQAsync(faqAddModel, serviceId);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _serviceService.AddFAQAsync(faqAddModel, serviceId, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

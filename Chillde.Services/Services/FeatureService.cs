@@ -3,8 +3,6 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
-using Chillde.Services.Models.PackageFeatureModels;
-using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 
@@ -15,18 +13,32 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ITranslationService _translationService;
         private readonly IMapper _mapper;
+        private readonly IBadWordFilterService _badWordFilterService;
 
-        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService, IMapper mapper)
+        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService, IMapper mapper, IBadWordFilterService badWordFilterService)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
             _mapper = mapper;
+            _badWordFilterService = badWordFilterService;
         }
 
         public async Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { featureAddModel.Name, featureAddModel.Question };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 await _unitOfWork.BeginTransactionAsync();
                 //var fieldsToTranslate = new Dictionary<string, string>
                 //{
@@ -142,10 +154,22 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id)
+        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { featureUpdateModel.Name, featureUpdateModel.Question };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var feature = await _unitOfWork.FeatureRepository.GetAsync(id);
                 if (feature == null)
                 {

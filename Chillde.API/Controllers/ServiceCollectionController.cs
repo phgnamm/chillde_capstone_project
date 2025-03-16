@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.API.Helpers;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceCollectionModels;
 using Chillde.Services.Models.ServiceWishlistModels;
@@ -28,7 +29,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceCollectionService.AddAsync(serviceCollectionAddModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _serviceCollectionService.AddAsync(serviceCollectionAddModel, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -47,7 +51,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _serviceCollectionService.UpdateAsync(id, serviceCollectionUpdateModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+
+                var result = await _serviceCollectionService.UpdateAsync(id, serviceCollectionUpdateModel, sourceLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

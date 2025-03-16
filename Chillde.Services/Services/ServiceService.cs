@@ -36,8 +36,19 @@ namespace Chillde.Services.Services
         private readonly KeywordGenerator _keywordGenerator;
         private readonly IElasticClient _client;
         private readonly ISystemConfigService _systemConfigService;
+        private readonly IBadWordFilterService _badWordFilterService;
 
 
+        public ServiceService(IElasticClient client,
+            IOpenAiService openAiService,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            IClaimService claimService,
+            ICloudinaryHelper cloudinaryHelper,
+            IServiceAttachmentService serviceAttachmentService,
+            ITranslationService translationService,
+            IRedisHelper redisHelper,
+            IBadWordFilterService badWordFilterService)
         public ServiceService(ISystemConfigService systemConfigService, IElasticClient client, IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
         {
             _client = client;
@@ -51,11 +62,23 @@ namespace Chillde.Services.Services
             _redisHelper = redisHelper;
             _systemConfigService = systemConfigService;
             _keywordGenerator = new KeywordGenerator();
-
+            _badWordFilterService = badWordFilterService;
         }
 
-        public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel)
+        public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel, string sourceLanguageCode)
         {
+            string[] fieldsToCheck = { feedbackAddModel.Description };
+
+            foreach (var field in fieldsToCheck)
+            {
+                ResponseModel response = sourceLanguageCode == "vi"
+                    ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                    : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                if (response.Code != StatusCodes.Status200OK)
+                    return response;
+            }
+
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
             {
@@ -248,10 +271,22 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel)
+        public async Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { serviceAddModel.Name, serviceAddModel.Description };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var currentUserId = _claimService.GetCurrentUserId;
                 if (!currentUserId.HasValue)
                 {
@@ -357,10 +392,22 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id)
+        public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { serviceUpdateModel.Name, serviceUpdateModel.Description };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var service = await _unitOfWork.ServiceRepository.GetAsync(id);
                 if (service == null)
                 {
@@ -500,6 +547,18 @@ namespace Chillde.Services.Services
         {
             try
             {
+                string[] fieldsToCheck = { packageAddModel.Name, packageAddModel.Description };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
                 if (service == null)
                 {
@@ -605,10 +664,22 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId)
+        public async Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId, string sourceLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { faqAddModel.Question, faqAddModel.Answer };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
                 if (service == null)
                 {
@@ -706,7 +777,7 @@ namespace Chillde.Services.Services
                      package.ServiceId == serviceId &&
                      package.IsDeleted == packageFilterModel.IsDeleted &&
                      (string.IsNullOrEmpty(packageFilterModel.Search) //||
-                     //package.Name!.Contains(packageFilterModel.Search)
+                                                                      //package.Name!.Contains(packageFilterModel.Search)
                      );
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>

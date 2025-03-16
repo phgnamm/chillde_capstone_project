@@ -5,7 +5,7 @@ namespace Chillde.Services.Interfaces
 {
     public interface IFAQService
     {
-        Task<ResponseModel> UpdateAsync(FAQAddAndUpdateModel faqAddAndUpdateModel, Guid id);
+        Task<ResponseModel> UpdateAsync(FAQAddAndUpdateModel faqAddAndUpdateModel, Guid id, string sourceLanguageCode);
         Task<ResponseModel> HardDeleteAsync(Guid id);
     }
 }
