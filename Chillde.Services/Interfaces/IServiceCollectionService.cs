@@ -7,10 +7,10 @@ namespace Chillde.Services.Interfaces
 {
     public interface IServiceCollectionService
     {
-        Task<ResponseModel> AddAsync(ServiceCollectionAddModel model);
+        Task<ResponseModel> AddAsync(ServiceCollectionAddModel model, string sourceLanguageCode);
         Task<ResponseModel> GetAllAsync(ServiceCollectionFilterModel filterModel);
         Task<ResponseModel> GetByIdAsync(Guid id);
-        Task<ResponseModel> UpdateAsync(Guid id, ServiceCollectionAddModel model);
+        Task<ResponseModel> UpdateAsync(Guid id, ServiceCollectionAddModel model, string sourceLanguageCode);
         Task<ResponseModel> DeleteAsync(Guid id);
     }
 }

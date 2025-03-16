@@ -26,34 +26,15 @@ namespace Chillde.Services.Services
             _apiKey = configuration["NeutrinoApi:ApiKey"];
         }
 
-        public async Task<ResponseModel> FilterBadWordsAsync(BadWordFilterModel badWordFilterModel, string sourceLanguageCode, string targetLanguageCode)
+        public async Task<ResponseModel> FilterEnglishBadWordsAsync(string content)
         {
             try
             {
-                string? translatedMessage = null;
-
-                if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
-                {
-                    var translationResponse = await _translationService.TranslateAsync(badWordFilterModel.Content, sourceLanguageCode, targetLanguageCode);
-
-                    if (translationResponse.Code != StatusCodes.Status200OK)
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status500InternalServerError,
-                            Message = "Failed to translate message."
-                        };
-                    }
-
-                    translatedMessage = translationResponse.Message;
-                    badWordFilterModel.Content = targetLanguageCode == "en" ? translatedMessage : badWordFilterModel.Content;
-                }
-
                 var formData = new FormUrlEncodedContent(new[]
                 {
-                    new KeyValuePair<string, string>("content", badWordFilterModel.Content),
-                    new KeyValuePair<string, string>("catalog", badWordFilterModel.Catalog),
-                    new KeyValuePair<string, string>("censor-character", badWordFilterModel.CensorCharacter)
+                    new KeyValuePair<string, string>("content", content),
+                    new KeyValuePair<string, string>("catalog", "strict"),
+                    new KeyValuePair<string, string>("censor-character", "*")
                 });
 
                 _httpClient.DefaultRequestHeaders.Clear();
@@ -66,11 +47,54 @@ namespace Chillde.Services.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<BadWordFilterResponse>(responseContent);
 
+                if (result.IsBad)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Profane words: {string.Join(", ", result.BadWordsList)}. Please write the polite content.",
+                    };
+                }
+
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status201Created,
-                    Message = "Feedback created successfully.",
-                    Data = result
+                    Code = StatusCodes.Status200OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+        public async Task<ResponseModel> FilterVietnameseBadWordsAsync(string content)
+        {
+            try
+            {
+                HashSet<string> badWordsSet = new HashSet<string>(
+                    File.ReadAllLines("VietnameseBadWord.txt"),
+                    StringComparer.OrdinalIgnoreCase
+                );
+
+                string[] words = content.Split(new char[] { ' ', ',', '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+
+                List<string> foundBadWords = words.Where(word => badWordsSet.Contains(word)).ToList();
+
+                if (foundBadWords.Count > 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Profane words: {string.Join(", ", foundBadWords)}. Please write the polite content.",
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK
                 };
             }
             catch (Exception ex)

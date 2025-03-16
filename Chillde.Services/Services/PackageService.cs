@@ -22,18 +22,32 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ITranslationService _translationService;
+        private readonly IBadWordFilterService _badWordFilterService;
 
-        public PackageService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService)
+        public PackageService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService, IBadWordFilterService badWordFilterService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _translationService = translationService;
+            _badWordFilterService = badWordFilterService;
         }
 
         public async Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
+                string[] fieldsToCheck = { packageUpdateModel.Name, packageUpdateModel.Description };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var package = await _unitOfWork.PackageRepository.GetAsync(id);
                 if (package == null)
                 {
@@ -281,6 +295,18 @@ namespace Chillde.Services.Services
         {
             try
             {
+                string[] fieldsToCheck = { packageFeatureAddModel.Name };
+
+                foreach (var field in fieldsToCheck)
+                {
+                    ResponseModel response = sourceLanguageCode == "vi"
+                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                    if (response.Code != StatusCodes.Status200OK)
+                        return response;
+                }
+
                 var package = await _unitOfWork.PackageRepository.GetAsync(packageId);
                 if (package == null)
                 {

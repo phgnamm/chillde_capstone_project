@@ -9,7 +9,7 @@ namespace Chillde.Services.Models.BadWordFilterModels
     public class BadWordFilterModel
     {
         public string Content {  get; set; }
-        public string Catalog { get; set; } = "strict";
-        public string CensorCharacter { get; set; } = "*";
+        //public string Catalog { get; set; } = "strict";
+        //public string CensorCharacter { get; set; } = "*";
     }
 }
