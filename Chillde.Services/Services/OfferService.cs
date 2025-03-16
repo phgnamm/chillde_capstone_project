@@ -270,16 +270,12 @@ namespace Chillde.Services.Services
                             {
                                 Id = featureId,
                                 Name = featureModel.Name,
-                                Question = featureModel.Question,
-                                QuestionType = featureModel.QuestionType,
                                 IsInformationRequired = featureModel.IsInformationRequired,
                                 IsQuantity = featureModel.IsQuantity
                             };
                             features.Add(newFeature);
 
                             textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
-                            if (featureModel.Question != null)
-                                textsToTranslate.Add($"Feature.{featureId}.Question", featureModel.Question);
 
                             if (featureModel.PackageFeatureAddModel != null)
                             {
@@ -290,11 +286,7 @@ namespace Chillde.Services.Services
                                     FeatureId = featureId,
                                     PackageId = packageId,
                                     Name = featureModel.PackageFeatureAddModel.Name,
-                                    IsExtra = featureModel.PackageFeatureAddModel.IsExtra,
-                                    AdditionalCost = featureModel.PackageFeatureAddModel.AdditionalCost,
-                                    AdditionalDay = featureModel.PackageFeatureAddModel.AdditionalDay,
                                     IsChecked = featureModel.PackageFeatureAddModel.IsChecked,
-                                    MaxQuantity = featureModel.PackageFeatureAddModel.MaxQuantity
                                 };
                                 packageFeatures.Add(newPackageFeature);
 
@@ -343,11 +335,6 @@ namespace Chillde.Services.Services
                             if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Name", out var featureName))
                             {
                                 feature.Name = featureName;
-                            }
-
-                            if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Question", out var featureQuestion))
-                            {
-                                feature.Question = featureQuestion;
                             }
                         }
 
