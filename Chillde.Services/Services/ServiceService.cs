@@ -48,8 +48,7 @@ namespace Chillde.Services.Services
             IServiceAttachmentService serviceAttachmentService,
             ITranslationService translationService,
             IRedisHelper redisHelper,
-            IBadWordFilterService badWordFilterService)
-        public ServiceService(ISystemConfigService systemConfigService, IElasticClient client, IOpenAiService openAiService, IUnitOfWork unitOfWork, IMapper mapper, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceAttachmentService serviceAttachmentService, ITranslationService translationService, IRedisHelper redisHelper)
+            IBadWordFilterService badWordFilterService, ISystemConfigService systemConfigService)
         {
             _client = client;
             _openAiService = openAiService;
