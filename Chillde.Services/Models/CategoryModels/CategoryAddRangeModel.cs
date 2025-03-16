@@ -2,14 +2,16 @@
 
 namespace Chillde.Services.Models.CategoryModels
 {
-    public class CategoryAddRangeModel
-    {
-        public required List<CategoryAddRequestModel> CategoryAddRequestModels { get; set; }
-        public List<IFormFile>? ImageUrls { get; set; }    
-    }
-    public class CategoryAddRequestModel
+    public class CategoryRangeModel
     {
         public required string Name { get; set; }
-        public string? Code { get; set; }
+        public IFormFile? ImageUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
+    }
+
+    public class CategoryAddRangeModel
+    {
+        public List<CategoryRangeModel>? CategoryAddRequestModels { get; set; }
+        public Guid? ParentId { get; set; }
     }
 }
