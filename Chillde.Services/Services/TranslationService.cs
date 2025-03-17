@@ -280,6 +280,7 @@ namespace Chillde.Services.Services
         {
             var targetLanguageCode = sourceLanguageCode.ToLower() == "vi" ? "en" : "vi";
             var translations = new Dictionary<string, string>();
+            if (translations == null) throw new ArgumentNullException(nameof(translations));
 
             try
             {

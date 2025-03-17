@@ -10,10 +10,6 @@ namespace Chillde.Services.Models.ServiceModels
         public string Name { get; set; }
         [Required]
         public string Description { get; set; }
-        [Required]
-        public bool IsOffer { get; set; }
-        [Required]
-        public Guid ItemId { get; set; }
         public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
     }
 }
