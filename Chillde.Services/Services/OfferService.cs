@@ -293,29 +293,29 @@ namespace Chillde.Services.Services
                         //    };
 
                         //    await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
-                        //}
+                    //}
 
-                        //var packageFeatures = new List<PackageFeature>();
-                        //for (int i = 0; i < featureModel.PackageFeatureAddModels.Count; i++)
-                        //{
-                        //    var packageFeature = featureModel.PackageFeatureAddModels[i];
-                        //    //string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
-                        //    var newPackageFeature = new PackageFeature
-                        //    {
-                        //        //Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
-                        //        Name = packageFeature.Name,
-                        //        AdditionalCost = packageFeature.AdditionalCost,
-                        //        AdditionalDay = packageFeature.AdditionalDay,
-                        //        IsExtra = packageFeature.IsExtra,
-                        //        IsChecked = packageFeature.IsChecked,
-                        //        MaxQuantity = packageFeature.MaxQuantity,
-                        //        FeatureId = newFeature.Id,
-                        //        //PackageId = package.Id
-                        //    };
-                        //    packageFeatures.Add(newPackageFeature);
-                        //}
-                        //await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
-                    }
+                //var packageFeatures = new List<PackageFeature>();
+                //for (int i = 0; i < featureModel.PackageFeatureAddModels.Count; i++)
+                //{
+                //    var packageFeature = featureModel.PackageFeatureAddModels[i];
+                //    //string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
+                //    var newPackageFeature = new PackageFeature
+                //    {
+                //        //Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
+                //        Name = packageFeature.Name,
+                //        AdditionalCost = packageFeature.AdditionalCost,
+                //        AdditionalDay = packageFeature.AdditionalDay,
+                //        IsExtra = packageFeature.IsExtra,
+                //        IsChecked = packageFeature.IsChecked,
+                //        MaxQuantity = packageFeature.MaxQuantity,
+                //        FeatureId = newFeature.Id,
+                //        //PackageId = package.Id
+                //    };
+                //    packageFeatures.Add(newPackageFeature);
+                //}
+                //await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
+            }
 
                 await _unitOfWork.SaveChangeAsync();
                 await _unitOfWork.CommitTransactionAsync();
