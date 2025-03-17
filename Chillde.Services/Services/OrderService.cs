@@ -21,6 +21,7 @@ using CloudinaryDotNet;
 using StackExchange.Redis;
 using Chillde.Repositories.Models.SystemConfigModel;
 using System.Reflection.Metadata.Ecma335;
+using CloudinaryDotNet.Core;
 
 namespace Chillde.Services.Services
 {
@@ -50,13 +51,6 @@ namespace Chillde.Services.Services
             _vnpay = vnpay;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
         }
-
-
-       /// <summary>
-       /// //////////////////Order cho offer nua nha
-       /// </summary>
-       /// <param name="orderAddModel"></param>
-       /// <returns></returns>
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -83,6 +77,10 @@ namespace Chillde.Services.Services
             if(orderAddModel.VoucherId != null && orderAddModel.VoucherId is List<Guid> voucherIds)
             {
                 await ApplyVoucher(voucherIds, newOrder);
+                foreach(var voucherUsageLog in newOrder.VoucherUsageLogs)
+                {
+                    voucherUsageLog.UsageStatus = UsageStatus.Used;
+                }
             }
             var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
             var wallet = account?.Wallet;
@@ -173,12 +171,14 @@ namespace Chillde.Services.Services
                     Amount = newOrder.TotalPrice,
                     Type = TransactionType.Deposit,
                     CreatedById = currentUserId.Value,
+                    Status = TransactionStatus.Pending
                 });
                 newOrder.Transactions.Add(new Transaction
                 {
                     Amount = newOrder.TotalPrice,
                     Type = TransactionType.TransferOut,
-                    CreatedById = currentUserId.Value
+                    CreatedById = currentUserId.Value,
+                    Status = TransactionStatus.Pending
                 });
             }
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
@@ -220,7 +220,7 @@ namespace Chillde.Services.Services
                     AfterApplyVoucherPrice = null,
                     VoucherCost = null,
                     Quantity = packageOffer.Request.Quantity,
-                    PackageId = orderAddModel.PackageId,
+                    PackageId = package.Id,
                     OrderInformations = null
                 };
             }
@@ -260,8 +260,7 @@ namespace Chillde.Services.Services
                 AfterApplyVoucherPrice = null,
                 VoucherCost = null,
                 Quantity = orderAddModel.Quantity,
-                PackageId = orderAddModel.PackageId,
-               //////////////////////////////////// thieu orderinformationAttachment
+                PackageId = package.Id,
                 OrderInformations = orderAddModel.OrderInformationAddModels!.Select(_ => new OrderInformation
                 {
                     Quantity = _.Quantity ?? null,
@@ -364,7 +363,6 @@ namespace Chillde.Services.Services
                     CustomerId = (Guid)order.CreatedById,
                     DiscountValue = discount,
                     DiscountValueOrigin = voucher.DiscountValue,
-                    UsageStatus = UsageStatus.Used
                 });
 
                 if (voucher.TotalQuantity.HasValue)
@@ -412,12 +410,14 @@ namespace Chillde.Services.Services
                 Amount = remainingAmount,
                 Type = TransactionType.Deposit,
                 CreatedById = accountId,
+                Status = TransactionStatus.Pending
             });
             order.Transactions.Add(new Transaction
             {
                 Amount = remainingAmount + balance,
                 Type = TransactionType.TransferOut,
-                CreatedById = accountId
+                CreatedById = accountId,
+                Status = TransactionStatus.Pending
             });
 
             return new ResponseModel { Data = remainingAmount };
@@ -438,65 +438,62 @@ namespace Chillde.Services.Services
 
             return await _vnpay.GetPaymentUrl(paymentRequest);
         }
-        //check lai transaction
         public async Task<ResponseModel> UpdateOrderStatusToCompleted(Guid orderId)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(
                 orderId,
-                _ => _.Include(_ => _.CreatedBy).Include(_ => _.Payments)
+                _ => _.Include(_ => _.CreatedBy)
+                      .ThenInclude(_ => _.Wallet)
+                      .Include(_ => _.Transactions)
+                      .Include(_ => _.VoucherUsageLogs)
             );
 
             if (order == null)
-            {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status404NotFound,
                     Message = "Order not found."
                 };
-            }
 
             if (order.Status == OrderStatus.Accepted)
-            {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
                     Message = "Order is already completed."
                 };
+
+            foreach (var voucherUsageLog in order.VoucherUsageLogs)
+            {
+                voucherUsageLog.UsageStatus = UsageStatus.Used;
             }
 
-            order.Status = OrderStatus.Accepted;
-            foreach (var payment in order.Payments)
-            {
-                payment.PaymentStatus = PaymentStatus.Success;
-            }
+            order.Status = OrderStatus.Success;
 
-            var balancePayment = order.Payments.FirstOrDefault(_ => _.PaymentType == PaymentType.Balance);
-            if (balancePayment != null)
+            var transferOut = order.Transactions.FirstOrDefault(_ => _.Type == TransactionType.TransferOut);
+            var deposit = order.Transactions.FirstOrDefault(_ => _.Type == TransactionType.Deposit);
+
+            if (transferOut != null && deposit != null)
             {
-                var wallet = await _unitOfWork.WalletRepository.GetWalletByAccount((Guid)order.CreatedById);
-                if (wallet == null)
+                foreach (var transaction in order.Transactions)
                 {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Wallet not found for the user."
-                    };
+                    transaction.Status = TransactionStatus.Completed;
                 }
 
-                var walletHistory = new Transaction()
+                if (transferOut.Amount > deposit.Amount)
                 {
-                    WalletId = wallet.Id,
-                    Amount = balancePayment.Amount,
-                    Type = TransactionType.TransferOut,
-                    Status = TransactionStatus.Completed,
-                    CreatedById = order.CreatedById,
-                };
+                    var wallet = order.CreatedBy.Wallet;
+                    if (wallet == null)
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Wallet not found for the user."
+                        };
 
-                wallet.Transactions.Add(walletHistory);
-                wallet.Balance -= balancePayment.Amount;
-
-                _unitOfWork.WalletRepository.Update(wallet);
+                    wallet.Balance -= (decimal)(transferOut.Amount - deposit.Amount);
+                    _unitOfWork.WalletRepository.Update(wallet);
+                }
             }
+
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
 
@@ -510,6 +507,7 @@ namespace Chillde.Services.Services
                 Message = "Failed to update order status and wallet."
             };
         }
+   
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
