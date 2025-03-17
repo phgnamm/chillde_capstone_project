@@ -291,6 +291,16 @@ public static class InitialSeeding
             FeatureId = Features[1].Id
         },
     };
+    private static readonly List<CancellationReason> CancellationReasons = new()
+    {
+        new()
+        {
+            Id = Guid.Parse("abca3b34-d33e-479b-8940-da24f2a5bacd"),
+            Name = "A",
+            Value = 1
+        }
+    };
+
     private static readonly List<Order> Orders = new()
     {
         new()
@@ -318,6 +328,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
+        CancellationReasonId = CancellationReasons[0].Id,
         Payments = new List<Payment>
         {
             new Payment
@@ -359,7 +370,7 @@ public static class InitialSeeding
         ToProvince = "HCM",
         OriginPrice = 2500000,
         Quantity = 1,
-        ShipmentCode = "ORDCHD125FG8G1_Delivery",
+        ShipmentCode = "ORDCHD125FG8G1_Return",
         CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
         DeliveryTime = DateTime.UtcNow.AddDays(7),
         CurrentSketchRevision = 1,
@@ -373,6 +384,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
+        CancellationReasonId = CancellationReasons[0].Id,
         Payments = new List<Payment>
         {
             new Payment
@@ -494,6 +506,16 @@ public static class InitialSeeding
                 context.PackageFeatures.Add(packageFeature);
             }
         }
+
+        foreach (var cancellationReason in CancellationReasons)
+        {
+            if (!context.CancellationReasons.Any(i => i.Id == cancellationReason.Id))
+            {
+                cancellationReason.CreationDate = DateTime.UtcNow;
+                context.CancellationReasons.Add(cancellationReason);
+            }
+        }
+
         foreach (var order in Orders)
         {
             if (!context.Orders.Any(i => i.Id == order.Id))

@@ -16,7 +16,7 @@ public class Order : BaseEntity
     public string? ShipmentCode { get; set; }
 
     //ly do huy
-    public CancleOrderReason CancleOrderReason { get; set; }
+    public CancleOrderReason? CancleOrderReason { get; set; }
 
     #region new fields
     public DateTime? DeliveryTime { get; set; }
