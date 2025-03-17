@@ -143,10 +143,20 @@ public static class InitialSeeding
             CategoryId = Categories[0].Id,
             CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
         },
+        new()
+        {
+            Id = Guid.Parse("5bd4bcfd-9353-4ace-80a5-82d6d313ed59"),
+            Name = "Ví da cho ngày lễ tình nhân",
+            Description = "Thiết kế ví da hoàn toàn mới theo yêu cầu của khách hàng.",
+            Status = Enums.ServiceStatus.Active,
+            CategoryId = Categories[0].Id,
+            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
+        },
     };
 
     private static readonly List<Package> Packages = new()
     {
+        #region Sample Package of service Làm dây chuyền chữ Y (dùng để test)
         new()
         {
             Id = Guid.Parse("22e1e7a3-bc97-438c-a36e-30379874165c"),
@@ -174,10 +184,42 @@ public static class InitialSeeding
             SketchRevision = 3,
             ServiceId = Services[0].Id
         },
+        #endregion
+
+        #region Package of service: "Wallet for Valentine Day"
+        new()
+        {
+            Id = Guid.Parse("fbadecdc-f98e-40cf-877a-9f71dd36be0b"),
+            Name = PackageName.Basic,
+            Description = "",
+            Price = 250000,
+            SketchRevision = 1,
+            ServiceId = Services[1].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a52c74de-5b24-4a07-b13a-4a725d45a050"),
+            Name = PackageName.Standard,
+            Description = "",
+            Price = 275000,
+            SketchRevision = 2,
+            ServiceId = Services[1].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("e428a1f9-65ec-4324-9cd3-42b3217c23e0"),
+            Name = PackageName.Premium,
+            Description = "",
+            Price = 350000,
+            SketchRevision = 3,
+            ServiceId = Services[1].Id
+        },
+#endregion
     };
 
     private static readonly List<Feature> Features = new()
     {
+        #region Sample Feature of service Làm dây chuyền chữ Y (dùng để test)
         new()
         {
             Id = Guid.Parse("e51ae29b-e048-4db0-89a2-670a44e6eea7"),
@@ -214,10 +256,87 @@ public static class InitialSeeding
             IsInformationRequired = true,
             IsQuantity = true
         },
+        #endregion
+
+        #region Feature of service: "Wallet for Valentine Day"
+        new()
+        {
+            Id = Guid.Parse("8bb06e3f-17da-47d8-b6f3-44e6325921cc"),
+            Name = "Màu",
+            Question = "Chọn màu gì?",
+            QuestionType = MediaType.Select,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("d2ddc903-b467-4867-acf5-ab5a5f187288"),
+            Name = "Kích thước",
+            Question = "Chọn size gì?",
+            QuestionType = MediaType.Select,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("220dcbe8-8388-45e9-9a8e-c09fc246abff"),
+            Name = "Phụ kiện đi kèm",
+            Question = "Muốn đính kèm item gì?",
+            QuestionType = MediaType.CheckBox,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("3ee74bb9-f578-42cd-b214-eca534f3a89b"),
+            Name = "Khoá ví",
+            Question = "Muốn có muốn thêm khoá ví?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("811219b6-29e6-46e0-96d3-eba76d334895"),
+            Name = "Khe đựng thẻ",
+            Question = "Muốn có muốn thêm khe đựng thẻ?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("59a5fa0a-9cb9-44c5-95e5-b55395584e89"),
+            Name = "Khắc ký tự",
+            Question = "Muốn có muốn thêm ký tự gì?",
+            QuestionType = MediaType.Text,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("fcfedfc2-3fbc-41c3-94ad-e922bdbe88e6"),
+            Name = "Hình dán ngôi sao",
+            Question = "Muốn có muốn thêm hình dán ngôi sao?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("fcfedfc2-3fbc-41c3-94ad-e922bdbe88e6"),
+            Name = "Inside flap",
+            Question = "",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = false
+        },
+#endregion
     };
 
     private static readonly List<PackageFeature> PackageFeatures = new()
     {
+        #region Sample PackageFeature of service Làm dây chuyền chữ Y (dùng để test)
         new()
         {
             Id = Guid.Parse("9117fe29-9fec-4cf5-8f52-37d1efec7b22"),
@@ -290,7 +409,411 @@ public static class InitialSeeding
             PackageId = Packages[2].Id,
             FeatureId = Features[1].Id
         },
+        #endregion
+
+        #region PackageFeature of package Basic, service: "Wallet for Valentine Day"
+        new()
+        {
+            Id = Guid.Parse("7cdb3bd2-259a-445d-b521-6b8781adc277"),
+            Name = "Rustic Brown",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[4].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("50da6db7-f16a-4409-ba94-7e9194bb9204"),
+            Name = "Brown Oily",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[4].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("4e078d74-5d79-4066-802a-87dfbf163ffe"),
+            Name = "Mini (38 mm x 64 mm)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("179bf376-c57c-4037-aac6-773b109cbaa6"),
+            Name = "Standard (64 mm x 89 mm)",
+            IsExtra = true,
+            AdditionalCost = 10000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("071908d8-2dcd-4bb0-a986-4db68d937890"),
+            Name = "Large (51 mm x 76 mm)",
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("5b05f3e6-1565-4a42-b515-8b5fff359546"),
+            Name = "5",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 5,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[8].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("92c60a43-88d5-48e6-bc24-4e87a12dec37"),
+            Name = "Hình dán",
+            IsExtra = true,
+            AdditionalCost = 1000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[3].Id,
+            FeatureId = Features[10].Id
+        },
+        #endregion
+
+        #region PackageFeature of package Standard, service: "Wallet for Valentine Day"
+        new()
+        {
+            Id = Guid.Parse("5d44a142-80af-4054-8e7d-ef440181dda3"),
+            Name = "Rustic Brown",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[4].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("947d3c1d-2e29-45ea-a965-d6dbc9d5a503"),
+            Name = "Brown Oily",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[4].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("8b6e33a8-1def-423a-a6c8-9306245d33e8"),
+            Name = "Mini (38 mm x 64 mm)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("d4ed5890-9abd-453a-8adc-e43148864ee9"),
+            Name = "Standard (64 mm x 89 mm)",
+            IsExtra = true,
+            AdditionalCost = 10000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("5e34916e-8cca-45a2-b922-c98db668549f"),
+            Name = "Large (51 mm x 76 mm)",
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("03a5408f-56b0-4a24-9884-ae32bb4b33a0"),
+            Name = "Thẻ tên",
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[6].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("7663c879-e53a-4cf7-9314-5a56c10cf997"),
+            Name = "Chuông",
+            IsExtra = true,
+            AdditionalCost = 5000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[6].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("46337b72-992b-4e80-9828-d07386afb141"),
+            Name = "Dây xích",
+            IsExtra = true,
+            AdditionalCost = 7000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[6].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a29ab9b9-2d03-4375-ab68-f5a395d591e5"),
+            Name = "True",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[7].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("02ecd8e3-8410-43d9-bdc5-3701dfa2109d"),
+            Name = "10",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[8].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a2690141-4af6-4a45-884a-9b7c71bb4e7b"),
+            Name = "True",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[9].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a1a6fdd8-c19a-43c4-99a9-6c6b424e9e36"),
+            Name = "Hình dán",
+            IsExtra = true,
+            AdditionalCost = 1000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[4].Id,
+            FeatureId = Features[10].Id
+        },
+        #endregion
+
+        #region PackageFeature of package Premium, service: "Wallet for Valentine Day"
+        new()
+        {
+            Id = Guid.Parse("42e781b4-83fa-46c6-a8d2-aba9b9468b8a"),
+            Name = "Rustic Brown",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[4].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("c14463bc-d755-4f65-8043-a1c005734133"),
+            Name = "Brown Oily",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[4].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("416e224c-1119-482c-b8f6-503ca5eee81a"),
+            Name = "Mini (38 mm x 64 mm)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a79645f4-be8e-4c97-9f62-355536340704"),
+            Name = "Standard (64 mm x 89 mm)",
+            IsExtra = true,
+            AdditionalCost = 10000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("b9ed3f96-f127-4bd6-b310-e3493136c296"),
+            Name = "Large (51 mm x 76 mm)",
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[5].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("475aa523-b039-459b-916a-65896ac29e9b"),
+            Name = "Thẻ tên",
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[6].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("1acf0999-c20c-4192-814a-fdcf6aae7260"),
+            Name = "Chuông",
+            IsExtra = true,
+            AdditionalCost = 5000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[6].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("7f1b07a4-2eff-44f8-90dd-3e64786beea6"),
+            Name = "Dây xích",
+            IsExtra = true,
+            AdditionalCost = 7000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[6].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("6ef5683b-935f-4599-8011-5cd45f8de5e0"),
+            Name = "True",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[7].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("6b03623a-d59d-4d1a-816f-742e297ef240"),
+            Name = "12",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[8].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("f50c24f8-10ed-46fa-80df-20ba0aa0e61d"),
+            Name = "True",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[11].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("4eba12bb-164b-45b5-a3cc-334496551c8b"),
+            Name = "True",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[9].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("f4b887d3-9730-44ec-b774-26f77a42c347"),
+            Name = "Hình dán",
+            IsExtra = true,
+            AdditionalCost = 1000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[5].Id,
+            FeatureId = Features[10].Id
+        },
+        #endregion
     };
+    private static readonly List<CancellationReason> CancellationReasons = new()
+    {
+        new()
+        {
+            Id = Guid.Parse("abca3b34-d33e-479b-8940-da24f2a5bacd"),
+            Name = "A",
+            Value = 1
+        }
+    };
+
     private static readonly List<Order> Orders = new()
     {
         new()
@@ -318,6 +841,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
+        CancellationReasonId = CancellationReasons[0].Id,
         Payments = new List<Payment>
         {
             new Payment
@@ -359,7 +883,7 @@ public static class InitialSeeding
         ToProvince = "HCM",
         OriginPrice = 2500000,
         Quantity = 1,
-        ShipmentCode = "ORDCHD125FG8G1_Delivery",
+        ShipmentCode = "ORDCHD125FG8G1_Return",
         CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
         DeliveryTime = DateTime.UtcNow.AddDays(7),
         CurrentSketchRevision = 1,
@@ -373,6 +897,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
+        CancellationReasonId = CancellationReasons[0].Id,
         Payments = new List<Payment>
         {
             new Payment
@@ -494,6 +1019,16 @@ public static class InitialSeeding
                 context.PackageFeatures.Add(packageFeature);
             }
         }
+
+        foreach (var cancellationReason in CancellationReasons)
+        {
+            if (!context.CancellationReasons.Any(i => i.Id == cancellationReason.Id))
+            {
+                cancellationReason.CreationDate = DateTime.UtcNow;
+                context.CancellationReasons.Add(cancellationReason);
+            }
+        }
+
         foreach (var order in Orders)
         {
             if (!context.Orders.Any(i => i.Id == order.Id))
