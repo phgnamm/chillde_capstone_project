@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Chillde.Repositories.Common;
+using AutoMapper.Features;
+using Chillde.Services.Models.FeatureModels;
 
 
 namespace Chillde.Services.Services
@@ -275,23 +277,44 @@ namespace Chillde.Services.Services
 
                         await _unitOfWork.FeatureRepository.AddAsync(newFeature);
 
-                        if (featureModel.PackageFeatureAddModel != null)
-                        {
-                            var packageFeatureModel = featureModel.PackageFeatureAddModel;
-                            var newPackageFeature = new PackageFeature
-                            {
-                                Id = Guid.NewGuid(),
-                                FeatureId = newFeature.Id,
-                                Name = packageFeatureModel.Name,
-                                IsExtra = packageFeatureModel.IsExtra,
-                                AdditionalCost = packageFeatureModel.AdditionalCost,
-                                AdditionalDay = packageFeatureModel.AdditionalDay,
-                                IsChecked = packageFeatureModel.IsChecked,
-                                MaxQuantity = packageFeatureModel.MaxQuantity
-                            };
+                        //if (featureModel.PackageFeatureAddModel != null)
+                        //{
+                        //    var packageFeatureModel = featureModel.PackageFeatureAddModel;
+                        //    var newPackageFeature = new PackageFeature
+                        //    {
+                        //        Id = Guid.NewGuid(),
+                        //        FeatureId = newFeature.Id,
+                        //        Name = packageFeatureModel.Name,
+                        //        IsExtra = packageFeatureModel.IsExtra,
+                        //        AdditionalCost = packageFeatureModel.AdditionalCost,
+                        //        AdditionalDay = packageFeatureModel.AdditionalDay,
+                        //        IsChecked = packageFeatureModel.IsChecked,
+                        //        MaxQuantity = packageFeatureModel.MaxQuantity
+                        //    };
 
-                            await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
-                        }
+                        //    await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
+                        //}
+
+                        //var packageFeatures = new List<PackageFeature>();
+                        //for (int i = 0; i < featureModel.PackageFeatureAddModels.Count; i++)
+                        //{
+                        //    var packageFeature = featureModel.PackageFeatureAddModels[i];
+                        //    //string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
+                        //    var newPackageFeature = new PackageFeature
+                        //    {
+                        //        //Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
+                        //        Name = packageFeature.Name,
+                        //        AdditionalCost = packageFeature.AdditionalCost,
+                        //        AdditionalDay = packageFeature.AdditionalDay,
+                        //        IsExtra = packageFeature.IsExtra,
+                        //        IsChecked = packageFeature.IsChecked,
+                        //        MaxQuantity = packageFeature.MaxQuantity,
+                        //        FeatureId = newFeature.Id,
+                        //        //PackageId = package.Id
+                        //    };
+                        //    packageFeatures.Add(newPackageFeature);
+                        //}
+                        //await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
                     }
 
                 await _unitOfWork.SaveChangeAsync();
