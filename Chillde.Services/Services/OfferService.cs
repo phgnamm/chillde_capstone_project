@@ -278,7 +278,7 @@ namespace Chillde.Services.Services
 
                             textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
 
-                            if (featureModel.PackageFeatureAddModel != null)
+                            if (featureModel.PackageFeatureAddModels != null)
                             {
                                 var packageFeatureId = Guid.NewGuid();
                                 var newPackageFeature = new PackageFeature
@@ -286,13 +286,13 @@ namespace Chillde.Services.Services
                                     Id = packageFeatureId,
                                     FeatureId = featureId,
                                     PackageId = packageId,
-                                    Name = featureModel.PackageFeatureAddModel.Name,
-                                    IsChecked = featureModel.PackageFeatureAddModel.IsChecked,
+                                    Name = featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name,
+                                    IsChecked = featureModel.PackageFeatureAddModels.FirstOrDefault()!.IsChecked,
                                 };
                                 packageFeatures.Add(newPackageFeature);
 
                                 textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name",
-                                    featureModel.PackageFeatureAddModel.Name);
+                                    featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name);
                             }
                         }
                     }

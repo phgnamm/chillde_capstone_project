@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 
@@ -1004,7 +1005,10 @@ public static class InitialSeeding
 
         foreach (var feature in Features)
         {
-            if (!context.Features.Any(i => i.Id == feature.Id))
+            var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
+                                  ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
+
+            if (existingFeature == null)
             {
                 feature.CreationDate = DateTime.UtcNow;
                 context.Features.Add(feature);
