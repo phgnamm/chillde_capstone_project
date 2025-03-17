@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.Json;
 
@@ -324,7 +325,7 @@ public static class InitialSeeding
         },
         new()
         {
-            Id = Guid.Parse("fcfedfc2-3fbc-41c3-94ad-e922bdbe88e6"),
+            Id = Guid.Parse("07d87d20-3176-497a-b665-2932f5e7d7d4"),
             Name = "Inside flap",
             Question = "",
             QuestionType = MediaType.Switch,
@@ -1004,7 +1005,10 @@ public static class InitialSeeding
 
         foreach (var feature in Features)
         {
-            if (!context.Features.Any(i => i.Id == feature.Id))
+            var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
+                                  ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
+
+            if (existingFeature == null)
             {
                 feature.CreationDate = DateTime.UtcNow;
                 context.Features.Add(feature);
