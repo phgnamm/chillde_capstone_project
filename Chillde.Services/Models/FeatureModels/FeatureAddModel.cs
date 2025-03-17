@@ -8,6 +8,8 @@ namespace Chillde.Services.Models.FeatureModels
     public class FeatureAddModel
     {
         [Required]
+        public Guid PackageId { get; set; }
+        [Required]
         public string Name { get; set; }
         public string? Question { get; set; }
         [Required]
@@ -16,6 +18,7 @@ namespace Chillde.Services.Models.FeatureModels
         public bool IsInformationRequired { get; set; }
         [Required]
         public bool IsQuantity { get; set; }
-        public PackageFeatureAddModel? PackageFeatureAddModel { get; set; }
+        [Required]
+        public required List<PackageFeatureAddModel> PackageFeatureAddModels { get; set; }
     }
 }

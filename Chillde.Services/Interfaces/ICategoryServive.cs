@@ -20,9 +20,8 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel);
         Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel);
         Task<ResponseModel> Delete(Guid id);
-        Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddRangeModel subCategoryAddRangeModel);
-        Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel);
         Task<ResponseModel> GetById(Guid id);
+        Task<ResponseModel> GetAllByParentId(CategoryParentFilterModel filterModel);
 
 
 

@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Models.CategoriesModels
 {
-    public class CategoryAddModel
+    public class  CategoryAddModel
     {    
         public required string Name { get; set; }
-        public string? Code { get; set; }      
+        public Guid? ParentId { get; set; }
         public IFormFile? ImageUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
     }
 }
