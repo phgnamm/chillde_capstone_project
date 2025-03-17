@@ -10,7 +10,7 @@ namespace Chillde.Services.Models.FeatureModels
         [Required]
         public Guid PackageId { get; set; }
         [Required]
-        public string Name { get; set; }
+        public required string Name { get; set; }
         public string? Question { get; set; }
         [Required]
         public MediaType QuestionType { get; set; }
