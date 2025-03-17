@@ -10,5 +10,5 @@ public class CategoryTreeModel : BaseEntity
     public Guid? ParentId { get; set; }
     public string? AttachmentUrl { get; set; }
     public string? AttachmentAlt { get; set; }
-    public List<CategoryTreeModel>? Children { get; set; } = new List<CategoryTreeModel>();
+    public List<CategoryTreeModel>? Children { get; set; } 
 }
