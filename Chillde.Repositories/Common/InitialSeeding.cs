@@ -325,7 +325,7 @@ public static class InitialSeeding
         },
         new()
         {
-            Id = Guid.Parse("fcfedfc2-3fbc-41c3-94ad-e922bdbe88e6"),
+            Id = Guid.Parse("07d87d20-3176-497a-b665-2932f5e7d7d4"),
             Name = "Inside flap",
             Question = "",
             QuestionType = MediaType.Switch,
