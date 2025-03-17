@@ -9,7 +9,8 @@ namespace Chillde.Services.Models.CategoryModels
 {
     public class CategoryFilterModel : FilterParameter
     {
- 
+        public string? Slug { get; set; }
+        public Guid? CategoryId { get; set; }
     }
 }
 
