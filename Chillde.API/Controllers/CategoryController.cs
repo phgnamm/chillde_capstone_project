@@ -71,24 +71,6 @@ namespace Chillde.API.Controllers
             }
         }
         //[Authorize]
-        [HttpGet( "parent")]
-        public async Task<IActionResult> GetAll([FromQuery] CategoryParentFilterModel categoryParentFilterModel)
-        {
-            try
-            {
-                var result = await _categoryService.GetAllByParentId(categoryParentFilterModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        //[Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] CategoryUpdateModel categoryUpdateModel)
         {
@@ -126,12 +108,12 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        /*[HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        [HttpGet("{idOrSlug}")]
+        public async Task<IActionResult> GetById(string idOrSlug)
         {
             try
             {
-                var response = await _categoryService.GetById(id);
+                var response = await _categoryService.GetByIdOrSlug(idOrSlug);
                 return StatusCode(response.Code, response);
             }
             catch (Exception ex)
@@ -142,7 +124,7 @@ namespace Chillde.API.Controllers
                     Message = ex.Message
                 });
             }
-        }*/
+        }
 
     }
 }

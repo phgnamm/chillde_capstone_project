@@ -12,6 +12,6 @@ namespace Chillde.Services.Models.CategoryModels
         public string? Name { get; set; }
         public Guid? ParentId { get; set; }
         public string? AttachmentAlt { get; set; }
-        public IFormFile? ImageUrl { get; set; }
+        public IFormFile? AttachmentUrl { get; set; }
     }
 }

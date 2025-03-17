@@ -5,7 +5,7 @@ namespace Chillde.Services.Models.CategoryModels
     public class CategoryRangeModel
     {
         public required string Name { get; set; }
-        public IFormFile? ImageUrl { get; set; }
+        public IFormFile? AttachmentUrl { get; set; }
         public string? AttachmentAlt { get; set; }
     }
 
