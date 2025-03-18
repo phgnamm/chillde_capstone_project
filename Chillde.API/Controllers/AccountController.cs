@@ -91,7 +91,7 @@ public class AccountController : ControllerBase
     }
     [Authorize(Roles = "Artisan")]
     [HttpGet("admin-vouchers")]
-    public async Task<IActionResult> GetVoucher(Guid orderId)
+    public async Task<IActionResult> GetVoucherAdmin(Guid orderId)
     {
         try
         {

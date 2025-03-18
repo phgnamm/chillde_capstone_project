@@ -1,4 +1,4 @@
-﻿using Chillde.Repositories.Enums;
+﻿/*using Chillde.Repositories.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,3 +15,4 @@ namespace Chillde.Repositories.Entities
         public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     }
 }
+*/
