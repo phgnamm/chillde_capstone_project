@@ -44,7 +44,7 @@ public interface IUnitOfWork
     IServiceCollectionRepository ServiceCollectionRepository { get; }
     IServiceWishlistRepository ServiceWishlistRepository { get; }
     IShipmentRepository ShipmentRepository { get; }
-    IPaymentRepository PaymentRepository { get; }
+    //IPaymentRepository PaymentRepository { get; }
     IUserActivityLogRepository UserActivityLogRepository { get; }
     ISystemConfigRepository SystemConfigRepository { get; }
     IVoucherRepository VoucherRepository { get; }

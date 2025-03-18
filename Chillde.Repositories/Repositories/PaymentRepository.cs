@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Repositories
 {
-    public class PaymentRepository : GenericRepository<Payment>, IPaymentRepository
-    {
-        public PaymentRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
-        {
-        }
-    }
+    //public class PaymentRepository : GenericRepository<Payment>, IPaymentRepository
+    //{
+    //    public PaymentRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
+    //    {
+    //    }
+    //}
 }
