@@ -19,7 +19,7 @@ namespace Chillde.Services.Models.ServiceModels
         public decimal? MaxPrice { get; set; }
         public double? MinRate { get; set; }
         public double? MaxRate { get; set; }
-        public DateTime? MinDate { get; set; }
-        public DateTime? MaxDate { get; set; }
+        public int? MinDate { get; set; }
+        public int? MaxDate { get; set; }
     }
 }

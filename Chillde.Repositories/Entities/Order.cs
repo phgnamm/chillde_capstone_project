@@ -19,7 +19,7 @@ public class Order : BaseEntity
     public CancleOrderReason? CancleOrderReason { get; set; }
 
     #region new fields
-    public DateTime? DeliveryTime { get; set; }
+    public int? DeliveryTime { get; set; }
     public int? CurrentSketchRevision { get; set; }
     public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
     public OrderStatus Status { get; set; } = OrderStatus.Pending;

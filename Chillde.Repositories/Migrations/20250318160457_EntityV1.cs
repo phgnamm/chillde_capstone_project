@@ -34,6 +34,35 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Categories",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Slug = table.Column<string>(type: "text", nullable: true),
+                    AttachmentAlt = table.Column<string>(type: "text", nullable: true),
+                    AttachmentUrl = table.Column<string>(type: "text", nullable: true),
+                    ParentId = table.Column<Guid>(type: "uuid", nullable: true),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Categories_Categories_ParentId",
+                        column: x => x.ParentId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Conversations",
                 columns: table => new
                 {
@@ -52,6 +81,29 @@ namespace Chillde.Repositories.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Conversations", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Features",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Question = table.Column<string>(type: "text", nullable: true),
+                    QuestionType = table.Column<int>(type: "integer", nullable: false),
+                    IsInformationRequired = table.Column<bool>(type: "boolean", nullable: false),
+                    IsQuantity = table.Column<bool>(type: "boolean", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Features", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -328,6 +380,44 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Requests",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    MinBudget = table.Column<decimal>(type: "numeric", nullable: true),
+                    MaxBudget = table.Column<decimal>(type: "numeric", nullable: true),
+                    Timeline = table.Column<int>(type: "integer", nullable: true),
+                    Quantity = table.Column<int>(type: "integer", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Requests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Requests_Accounts_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Requests_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SearchHistory",
                 columns: table => new
                 {
@@ -373,6 +463,46 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_ServiceCollection_Accounts_CreatedById",
                         column: x => x.CreatedById,
                         principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Services",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Rate = table.Column<double>(type: "double precision", nullable: true),
+                    FeedbackCount = table.Column<int>(type: "integer", nullable: true),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    MinWeight = table.Column<float>(type: "real", nullable: true),
+                    MaxWeight = table.Column<float>(type: "real", nullable: true),
+                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Keywords = table.Column<List<string>>(type: "text[]", nullable: false),
+                    EmbeddingVector = table.Column<float[]>(type: "real[]", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Services", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Services_Accounts_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Services_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -477,111 +607,6 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_ReputationLogs_AccountRoles_AccountRoleId",
                         column: x => x.AccountRoleId,
                         principalTable: "AccountRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Categories",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Slug = table.Column<string>(type: "text", nullable: true),
-                    AttachmentAlt = table.Column<string>(type: "text", nullable: true),
-                    AttachmentUrl = table.Column<string>(type: "text", nullable: true),
-                    ParentId = table.Column<Guid>(type: "uuid", nullable: true),
-                    OfferId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Categories", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Categories_Categories_ParentId",
-                        column: x => x.ParentId,
-                        principalTable: "Categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Requests",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    MinBudget = table.Column<decimal>(type: "numeric", nullable: true),
-                    MaxBudget = table.Column<decimal>(type: "numeric", nullable: true),
-                    Timeline = table.Column<int>(type: "integer", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Requests", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Requests_Accounts_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Requests_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Services",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Rate = table.Column<double>(type: "double precision", nullable: true),
-                    FeedbackCount = table.Column<int>(type: "integer", nullable: true),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Keywords = table.Column<List<string>>(type: "text[]", nullable: false),
-                    EmbeddingVector = table.Column<float[]>(type: "real[]", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Services", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Services_Accounts_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Services_Categories_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -723,9 +748,6 @@ namespace Chillde.Repositories.Migrations
                     Status = table.Column<int>(type: "integer", nullable: false),
                     MinWeight = table.Column<float>(type: "real", nullable: true),
                     MaxWeight = table.Column<float>(type: "real", nullable: true),
-                    DeliveryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    SketchRevision = table.Column<int>(type: "integer", nullable: true),
-                    Price = table.Column<decimal>(type: "numeric", nullable: true),
                     RequestId = table.Column<Guid>(type: "uuid", nullable: false),
                     ServiceId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -756,36 +778,6 @@ namespace Chillde.Repositories.Migrations
                         column: x => x.ServiceId,
                         principalTable: "Services",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Packages",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<int>(type: "int", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Price = table.Column<decimal>(type: "numeric", nullable: true),
-                    DeliveryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    SketchRevision = table.Column<int>(type: "integer", nullable: true),
-                    ServiceId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Packages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Packages_Services_ServiceId",
-                        column: x => x.ServiceId,
-                        principalTable: "Services",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -927,35 +919,6 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Features",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    Question = table.Column<string>(type: "text", nullable: true),
-                    QuestionType = table.Column<int>(type: "integer", nullable: false),
-                    IsInformationRequired = table.Column<bool>(type: "boolean", nullable: false),
-                    IsQuantity = table.Column<bool>(type: "boolean", nullable: false),
-                    OfferId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Features", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Features_Offers_OfferId",
-                        column: x => x.OfferId,
-                        principalTable: "Offers",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Messages",
                 columns: table => new
                 {
@@ -1023,69 +986,18 @@ namespace Chillde.Repositories.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Orders",
+                name: "Packages",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Code = table.Column<string>(type: "text", nullable: false),
-                    Phone = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: true),
-                    Address = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    ToWard = table.Column<string>(type: "text", nullable: false),
-                    ToDistrict = table.Column<int>(type: "integer", nullable: false),
-                    ToProvince = table.Column<string>(type: "text", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: true),
-                    PackagePrice = table.Column<decimal>(type: "numeric", nullable: true),
-                    Quantity = table.Column<int>(type: "integer", nullable: true),
-                    ShipmentCode = table.Column<string>(type: "text", nullable: true),
-                    CancleOrderReason = table.Column<int>(type: "integer", nullable: false),
-                    DeliveryTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    CurrentSketchRevision = table.Column<int>(type: "integer", nullable: true),
-                    Stage = table.Column<int>(type: "integer", nullable: false),
-                    Status = table.Column<int>(type: "integer", nullable: false),
-                    TotalValue = table.Column<decimal>(type: "numeric", nullable: true),
-                    FinalValue = table.Column<decimal>(type: "numeric", nullable: true),
-                    AdminCommission = table.Column<decimal>(type: "numeric", nullable: true),
-                    ArtistRevenue = table.Column<decimal>(type: "numeric", nullable: true),
-                    VoucherCost = table.Column<decimal>(type: "numeric", nullable: true),
-                    PackageId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Orders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Orders_Accounts_CreatedById",
-                        column: x => x.CreatedById,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Orders_Packages_PackageId",
-                        column: x => x.PackageId,
-                        principalTable: "Packages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PackageFeatures",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    AdditionalCost = table.Column<decimal>(type: "numeric", nullable: true),
-                    AdditionalDay = table.Column<int>(type: "integer", nullable: true),
-                    IsExtra = table.Column<bool>(type: "boolean", nullable: true),
-                    IsChecked = table.Column<bool>(type: "boolean", nullable: true),
-                    MaxQuantity = table.Column<int>(type: "integer", nullable: false),
-                    PackageId = table.Column<Guid>(type: "uuid", nullable: false),
-                    FeatureId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<int>(type: "int", maxLength: 100, nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Price = table.Column<decimal>(type: "numeric", nullable: true),
+                    DeliveryTime = table.Column<int>(type: "integer", nullable: true),
+                    SketchRevision = table.Column<int>(type: "integer", nullable: true),
+                    ResponseTime = table.Column<float>(type: "real", nullable: false),
+                    ServiceId = table.Column<Guid>(type: "uuid", nullable: true),
+                    OfferId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -1096,19 +1008,17 @@ namespace Chillde.Repositories.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PackageFeatures", x => x.Id);
+                    table.PrimaryKey("PK_Packages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PackageFeatures_Features_FeatureId",
-                        column: x => x.FeatureId,
-                        principalTable: "Features",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Packages_Offers_OfferId",
+                        column: x => x.OfferId,
+                        principalTable: "Offers",
+                        principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_PackageFeatures_Packages_PackageId",
-                        column: x => x.PackageId,
-                        principalTable: "Packages",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_Packages_Services_ServiceId",
+                        column: x => x.ServiceId,
+                        principalTable: "Services",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1150,6 +1060,102 @@ namespace Chillde.Repositories.Migrations
                         principalTable: "Messages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: false),
+                    Phone = table.Column<string>(type: "character varying(15)", maxLength: 15, nullable: true),
+                    Address = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    ToWard = table.Column<string>(type: "text", nullable: false),
+                    ToDistrict = table.Column<int>(type: "integer", nullable: false),
+                    ToProvince = table.Column<string>(type: "text", nullable: false),
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: true),
+                    ShippingPrice = table.Column<decimal>(type: "numeric", nullable: true),
+                    Quantity = table.Column<int>(type: "integer", nullable: true),
+                    ShipmentCode = table.Column<string>(type: "text", nullable: true),
+                    CancleOrderReason = table.Column<int>(type: "integer", nullable: true),
+                    DeliveryTime = table.Column<int>(type: "integer", nullable: true),
+                    CurrentSketchRevision = table.Column<int>(type: "integer", nullable: true),
+                    Stage = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    OriginPrice = table.Column<decimal>(type: "numeric", nullable: true),
+                    AfterApplyVoucherPrice = table.Column<decimal>(type: "numeric", nullable: true),
+                    AdminCommUsedVch = table.Column<decimal>(type: "numeric", nullable: true),
+                    AdminCommDefault = table.Column<decimal>(type: "numeric", nullable: true),
+                    ArtistRevenue = table.Column<decimal>(type: "numeric", nullable: true),
+                    VoucherCost = table.Column<decimal>(type: "numeric", nullable: true),
+                    PackageId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CancellationReasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Orders_Accounts_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_CancellationReasons_CancellationReasonId",
+                        column: x => x.CancellationReasonId,
+                        principalTable: "CancellationReasons",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Orders_Packages_PackageId",
+                        column: x => x.PackageId,
+                        principalTable: "Packages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PackageFeatures",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    AdditionalCost = table.Column<decimal>(type: "numeric", nullable: true),
+                    AdditionalDay = table.Column<int>(type: "integer", nullable: true),
+                    IsExtra = table.Column<bool>(type: "boolean", nullable: true),
+                    IsChecked = table.Column<bool>(type: "boolean", nullable: true),
+                    MaxQuantity = table.Column<int>(type: "integer", nullable: true),
+                    PackageId = table.Column<Guid>(type: "uuid", nullable: true),
+                    FeatureId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PackageFeatures", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PackageFeatures_Features_FeatureId",
+                        column: x => x.FeatureId,
+                        principalTable: "Features",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PackageFeatures_Packages_PackageId",
+                        column: x => x.PackageId,
+                        principalTable: "Packages",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -1484,24 +1490,20 @@ namespace Chillde.Repositories.Migrations
                 column: "WalletId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Categories_OfferId",
-                table: "Categories",
-                column: "OfferId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Categories_ParentId",
                 table: "Categories",
                 column: "ParentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Categories_Slug",
+                table: "Categories",
+                column: "Slug",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FAQs_ServiceId",
                 table: "FAQs",
                 column: "ServiceId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Features_OfferId",
-                table: "Features",
-                column: "OfferId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FeedbackAttachments_FeedbackId",
@@ -1527,6 +1529,12 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_Feedbacks_ServiceId",
                 table: "Feedbacks",
                 column: "ServiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Languages_Code",
+                table: "Languages",
+                column: "Code",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MessageRecipients_AccountConversationId",
@@ -1594,6 +1602,17 @@ namespace Chillde.Repositories.Migrations
                 column: "OrderInformationId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Orders_CancellationReasonId",
+                table: "Orders",
+                column: "CancellationReasonId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_Code",
+                table: "Orders",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_CreatedById",
                 table: "Orders",
                 column: "CreatedById");
@@ -1602,6 +1621,12 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_Orders_PackageId",
                 table: "Orders",
                 column: "PackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ShipmentCode",
+                table: "Orders",
+                column: "ShipmentCode",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderTrackingAttachments_OrderTrackingId",
@@ -1627,6 +1652,11 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_PackageFeatures_PackageId",
                 table: "PackageFeatures",
                 column: "PackageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Packages_OfferId",
+                table: "Packages",
+                column: "OfferId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Packages_ServiceId",
@@ -1745,6 +1775,12 @@ namespace Chillde.Repositories.Migrations
                 column: "LanguageId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Vouchers_Code",
+                table: "Vouchers",
+                column: "Code",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Vouchers_CreatedById",
                 table: "Vouchers",
                 column: "CreatedById");
@@ -1768,37 +1804,11 @@ namespace Chillde.Repositories.Migrations
                 name: "IX_VoucherUsageLogs_VoucherId",
                 table: "VoucherUsageLogs",
                 column: "VoucherId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Categories_Offers_OfferId",
-                table: "Categories",
-                column: "OfferId",
-                principalTable: "Offers",
-                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Offers_Accounts_CreatedById",
-                table: "Offers");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Requests_Accounts_CreatedById",
-                table: "Requests");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Services_Accounts_CreatedById",
-                table: "Services");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Categories_Offers_OfferId",
-                table: "Categories");
-
-            migrationBuilder.DropTable(
-                name: "CancellationReasons");
-
             migrationBuilder.DropTable(
                 name: "FAQs");
 
@@ -1914,13 +1924,10 @@ namespace Chillde.Repositories.Migrations
                 name: "Features");
 
             migrationBuilder.DropTable(
+                name: "CancellationReasons");
+
+            migrationBuilder.DropTable(
                 name: "Packages");
-
-            migrationBuilder.DropTable(
-                name: "Accounts");
-
-            migrationBuilder.DropTable(
-                name: "Wallets");
 
             migrationBuilder.DropTable(
                 name: "Offers");
@@ -1932,7 +1939,13 @@ namespace Chillde.Repositories.Migrations
                 name: "Services");
 
             migrationBuilder.DropTable(
+                name: "Accounts");
+
+            migrationBuilder.DropTable(
                 name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "Wallets");
         }
     }
 }

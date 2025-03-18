@@ -19,6 +19,6 @@ namespace Chillde.Services.Models.FeatureModels
         [Required]
         public bool IsQuantity { get; set; }
         [Required]
-        public required List<PackageFeatureAddModel> PackageFeatureAddModels { get; set; }
+        public required List<PackageFeatureAddModelForFeature> PackageFeatureAddModels { get; set; }
     }
 }

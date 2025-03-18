@@ -10,6 +10,10 @@ namespace Chillde.Services.Models.ServiceModels
         public string Name { get; set; }
         [Required]
         public string Description { get; set; }
+        public float? MinWeight { get; set; }
+        public float? MaxWeight { get; set; }
+        [Required]
+        public Guid CategoryId { get; set; }
         public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
     }
 }

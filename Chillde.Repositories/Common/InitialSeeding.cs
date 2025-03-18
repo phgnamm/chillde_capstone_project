@@ -77,12 +77,14 @@ public static class InitialSeeding
         // Customer
         new()
         {
+            Id = Guid.Parse("e730d312-7713-49e0-b440-0516968bcbbb"),
             AccountId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
             RoleId = Guid.Parse("0195a73a-9919-714b-a9ad-29b849e946f7")
         },
         // Artisan
         new()
         {
+            Id = Guid.Parse("a7122e49-64af-4265-b1e3-a6d794178829"),
             AccountId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
             RoleId = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b")
         }
@@ -974,7 +976,7 @@ public static class InitialSeeding
             Quantity = 2,
             ShipmentCode = "ORDCHD125FG8G1_Delivery",
             CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-            DeliveryTime = DateTime.UtcNow.AddDays(7),
+            DeliveryTime = 7,
             CurrentSketchRevision = 1,
             Stage = OrderStage.Shipping,
             Status = OrderStatus.Pending,
@@ -1030,7 +1032,7 @@ public static class InitialSeeding
             Quantity = 1,
             ShipmentCode = "ORDCHD125FG8G1_Return",
             CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-            DeliveryTime = DateTime.UtcNow.AddDays(7),
+            DeliveryTime = 7,
             CurrentSketchRevision = 1,
             Stage = OrderStage.Shipping,
             Status = OrderStatus.Pending,

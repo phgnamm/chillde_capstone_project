@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
@@ -47,6 +48,17 @@ namespace Chillde.Services.Services
                     {
                         Code = StatusCodes.Status404NotFound,
                         Message = "Package not found."
+                    };
+                }
+
+                var numberOfExistedPackageFeature = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(package.Id);
+                var maximumPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageFeatureOfOnePackage).Result;
+                if (numberOfExistedPackageFeature >= int.Parse(maximumPackageFeature!))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Number of package features cannot exceed {maximumPackageFeature}."
                     };
                 }
 
@@ -149,7 +161,7 @@ namespace Chillde.Services.Services
                 //}
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
-                await _unitOfWork.CommitTransactionAsync();
+                //await _unitOfWork.CommitTransactionAsync();
 
                 return new ResponseModel
                 {

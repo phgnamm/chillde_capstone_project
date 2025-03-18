@@ -21,7 +21,7 @@ namespace Chillde.Repositories.Enums
         DefaultAbsoluteExpiration,
         DefaultSlidingExpiration,
         MaximumPackageOfOneService,
-        MaximumFeatureOfOnePackage,
+        MaximumPackageFeatureOfOnePackage,
         // related to search history
         MaxSearchHistory,
         // related to voucher
