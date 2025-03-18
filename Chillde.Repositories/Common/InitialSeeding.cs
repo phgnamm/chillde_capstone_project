@@ -11,17 +11,26 @@ namespace Chillde.Repositories.Common;
 /// </summary>
 public static class InitialSeeding
 {
-
     private static readonly List<Entities.Role> Roles = new()
     {
-        new() { Name = Enums.Role.Admin.ToString() },
-        new() { Name = Enums.Role.Customer.ToString() },
-        new() { Name = Enums.Role.Artisan.ToString() }
+        new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f1"), Name = Enums.Role.Admin.ToString() },
+        new() { Id = Guid.Parse("0195a73a-9919-714b-a9ad-29b849e946f7"), Name = Enums.Role.Customer.ToString() },
+        new() { Id = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b"), Name = Enums.Role.Artisan.ToString() }
     };
 
     private static readonly List<Wallet> Wallets = new()
     {
-        new() {Id = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c"), Balance = 1000000000000, CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b")}
+        new()
+        {
+            Id = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c"),
+            Balance = 1000000000000,
+            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b")
+        },
+        new Wallet()
+        {
+            Id = Guid.Parse("01958fac-8839-70e4-86b5-46e245936b42"),
+            Balance = 500000,
+        }
     };
 
     private static readonly List<Account> Accounts = new()
@@ -39,6 +48,43 @@ public static class InitialSeeding
             PhoneNumberConfirmed = true,
             Status = Enums.AccountStatus.Active,
             WalletId = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c")
+        },
+        new Account()
+        {
+            Id = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
+            FirstName = "Văn Hải",
+            LastName = "Đặng",
+            Username = "vanhaitsu",
+            Email = "vanhaicntt5@gmail.com",
+            HashedPassword = "$2a$11$rL..OUglbn/AAQlXarix2u9EsRk36vx2NN.0trthImOyJcK7K6iia",
+            Image =
+                "https://res.cloudinary.com/dhktjmuv6/image/upload/v1741952342/01958fac-878c-7a59-b2b9-ea2521f3a1ff_image.jpg",
+            StoreAddress = "Thành phố Hồ Chí Minh",
+            Banner =
+                "https://res.cloudinary.com/dhktjmuv6/image/upload/v1741952349/01958fac-878c-7a59-b2b9-ea2521f3a1ff_banner.jpg",
+            StoreDescription =
+                "Chào mừng đến với không gian sáng tạo nơi những món quà độc đáo và ý nghĩa được sinh ra. Chúng tôi chuyên cung cấp dịch vụ làm đồ handmade, mang đến cho bạn những sản phẩm thủ công tinh tế và đầy cá tính. Từ những chiếc vòng cổ xinh xắn đến những chiếc túi tote độc đáo, mỗi món đồ đều được làm bằng tình yêu và sự tỉ mỉ. Hãy để chúng tôi giúp bạn tạo ra những món quà đặc biệt cho bản thân hoặc những người thân yêu. Liên hệ với chúng tôi ngay hôm nay để khám phá thế giới thủ công đầy màu sắc và ý nghĩa!",
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = false,
+            Status = AccountStatus.Active,
+            WalletId = Guid.Parse("01958fac-8839-70e4-86b5-46e245936b42")
+        }
+    };
+
+    private static readonly List<AccountRole> AccountRoles = new()
+    {
+        // vanhaitsu
+        // Customer
+        new()
+        {
+            AccountId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
+            RoleId = Guid.Parse("0195a73a-9919-714b-a9ad-29b849e946f7")
+        },
+        // Artisan
+        new()
+        {
+            AccountId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
+            RoleId = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b")
         }
     };
 
@@ -48,91 +94,172 @@ public static class InitialSeeding
         {
             Id = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"),
             Name = "Accessories",
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1569388330338-53ecda03dfa1?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
         new()
         {
             Id = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"),
-            Name = "Art & Collectibles"
+            Name = "Art & Collectibles",
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1695142258314-180ea86bdb48?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
         new()
-        { 
+        {
             Id = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
-            Name = "Jewelry"
+            Name = "Jewelry",
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
-        new() 
-        { 
+        new()
+        {
             Id = Guid.Parse("f2ef8608-50f5-48e5-a6a3-51e2dbdf065b"),
-            Name = "Belts & Suspenders", 
-            ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b")
+            Name = "Belts & Suspenders",
+            ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"),
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1664286022075-8e997e95bd17?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
-        new() 
-        { 
-            Id = Guid.Parse("85a007bc-b215-46fe-98bc-eac1d44e2234"), 
+        new()
+        {
+            Id = Guid.Parse("85a007bc-b215-46fe-98bc-eac1d44e2234"),
             Name = "Sunglasses & Eyewear",
-            ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b")
+            ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"),
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=2680&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
-        new() 
-        { 
+        new()
+        {
             Id = Guid.Parse("f576216f-b84c-4b71-adff-0d67f21ae7a3"),
             Name = "Bouquets & Corsages",
-            ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b")
+            ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"),
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1668233342581-ce94a57d9e01?q=80&w=2663&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
-        new() 
-        { 
+        new()
+        {
             Id = Guid.Parse("723b7ac6-ea6f-4ba0-b456-2bd6ea225e3e"),
             Name = "Prints",
-            ParentId = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52")
+            ParentId = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"),
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1626868554387-ec8e6e1aef18?q=80&w=2574&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
-        new() 
-        { 
+        new()
+        {
             Id = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"),
             Name = "Earrings",
-            ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a")
+            ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+            AttachmentUrl =
+                "https://images.unsplash.com/photo-1629224316810-9d8805b95e76?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
     };
 
-    //private static readonly List<C> SubCategories = new()
-    //{
-            
-            
-            
-            
-    //        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
-    //        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
-    //        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
-            
-    //        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
-    //};
+//private static readonly List<C> SubCategories = new()
+//{
 
+//        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
+//        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
+//        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
 
-    private static readonly List<SystemConfig> systemConfigs = new()
+//        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
+//};
+    private static readonly List<SystemConfig> SystemConfigs = new()
     {
-        new() { EntityType = ConfigType.Security, FieldName = "AccessTokenValidityInMinutes", Value = JsonDocument.Parse("5") },
-        new() { EntityType = ConfigType.Security, FieldName = "RefreshTokenValidityInDays", Value = JsonDocument.Parse("7") },
-        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeValidityInMinutes", Value = JsonDocument.Parse("15") },
-        new() { EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("6") },
-        new() { EntityType = ConfigType.Security, FieldName = "ResetPasswordTokenValidityInMinutes", Value = JsonDocument.Parse("15") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("10") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("50") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("20") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("10") },
-        new() { EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("100") },
-        new() { EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes", Value = JsonDocument.Parse("60") },
-        new() { EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes", Value = JsonDocument.Parse("30") },
-        new() { EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3") },
-        new() { EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15") },
+        new()
+        {
+            EntityType = ConfigType.Security, FieldName = "AccessTokenValidityInMinutes",
+            Value = JsonDocument.Parse("5")
+        },
+        new()
+        {
+            EntityType = ConfigType.Security, FieldName = "RefreshTokenValidityInDays", Value = JsonDocument.Parse("7")
+        },
+        new()
+        {
+            EntityType = ConfigType.Security, FieldName = "VerificationCodeValidityInMinutes",
+            Value = JsonDocument.Parse("15")
+        },
+        new()
+        {
+            EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("6")
+        },
+        new()
+        {
+            EntityType = ConfigType.Security, FieldName = "ResetPasswordTokenValidityInMinutes",
+            Value = JsonDocument.Parse("15")
+        },
+        new()
+        {
+            EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("10")
+        },
+        new()
+        {
+            EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("50")
+        },
+        new()
+        {
+            EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("20")
+        },
+        new()
+        {
+            EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("10")
+        },
+        new()
+        {
+            EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("100")
+        },
+        new()
+        {
+            EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes",
+            Value = JsonDocument.Parse("60")
+        },
+        new()
+        {
+            EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes",
+            Value = JsonDocument.Parse("30")
+        },
+        new()
+        {
+            EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3")
+        },
+        new()
+        {
+            EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15")
+        },
         new() { EntityType = ConfigType.Order, FieldName = "MaxSystemCancelPerYear", Value = JsonDocument.Parse("10") },
-        new() { EntityType = ConfigType.Order, FieldName = "MaxSystemCancelBeforePenalty", Value = JsonDocument.Parse("3") },
-        new() { EntityType = ConfigType.Order, FieldName = "PenaltyPercentageAfterCancel", Value = JsonDocument.Parse("20") },
+        new()
+        {
+            EntityType = ConfigType.Order, FieldName = "MaxSystemCancelBeforePenalty", Value = JsonDocument.Parse("3")
+        },
+        new()
+        {
+            EntityType = ConfigType.Order, FieldName = "PenaltyPercentageAfterCancel", Value = JsonDocument.Parse("20")
+        },
         new() { EntityType = ConfigType.Order, FieldName = "OrderSuccessThreshold", Value = JsonDocument.Parse("3") },
-        new() { EntityType = ConfigType.Reputation, FieldName = "MaxOrderPerMonthBasedOnReputation", Value = JsonDocument.Parse("6") },
-        new() { EntityType = ConfigType.Reputation, FieldName = "MinReputationForVouchers", Value = JsonDocument.Parse("6") },
-        new() { EntityType = ConfigType.Order, FieldName = "MaxCustomerOrdersPerMonth", Value = JsonDocument.Parse("3") },
-        new() { EntityType = ConfigType.Reputation, FieldName = "ReputationIncreaseOnSuccess", Value = JsonDocument.Parse("2") },
-        new() { EntityType = ConfigType.Reputation, FieldName = "MinReputationToAvoidBan", Value = JsonDocument.Parse("3") },
+        new()
+        {
+            EntityType = ConfigType.Reputation, FieldName = "MaxOrderPerMonthBasedOnReputation",
+            Value = JsonDocument.Parse("6")
+        },
+        new()
+        {
+            EntityType = ConfigType.Reputation, FieldName = "MinReputationForVouchers", Value = JsonDocument.Parse("6")
+        },
+        new()
+        {
+            EntityType = ConfigType.Order, FieldName = "MaxCustomerOrdersPerMonth", Value = JsonDocument.Parse("3")
+        },
+        new()
+        {
+            EntityType = ConfigType.Reputation, FieldName = "ReputationIncreaseOnSuccess",
+            Value = JsonDocument.Parse("2")
+        },
+        new()
+        {
+            EntityType = ConfigType.Reputation, FieldName = "MinReputationToAvoidBan", Value = JsonDocument.Parse("3")
+        },
         new() { EntityType = ConfigType.Commission, FieldName = "Commission", Value = JsonDocument.Parse("20") },
-
     };
+
     private static readonly List<Service> Services = new()
     {
         new()
@@ -158,6 +285,7 @@ public static class InitialSeeding
     private static readonly List<Package> Packages = new()
     {
         #region Sample Package of service Làm dây chuyền chữ Y (dùng để test)
+
         new()
         {
             Id = Guid.Parse("22e1e7a3-bc97-438c-a36e-30379874165c"),
@@ -185,9 +313,11 @@ public static class InitialSeeding
             SketchRevision = 3,
             ServiceId = Services[0].Id
         },
+
         #endregion
 
         #region Package of service: "Wallet for Valentine Day"
+
         new()
         {
             Id = Guid.Parse("fbadecdc-f98e-40cf-877a-9f71dd36be0b"),
@@ -215,12 +345,14 @@ public static class InitialSeeding
             SketchRevision = 3,
             ServiceId = Services[1].Id
         },
-#endregion
+
+        #endregion
     };
 
     private static readonly List<Feature> Features = new()
     {
         #region Sample Feature of service Làm dây chuyền chữ Y (dùng để test)
+
         new()
         {
             Id = Guid.Parse("e51ae29b-e048-4db0-89a2-670a44e6eea7"),
@@ -257,9 +389,11 @@ public static class InitialSeeding
             IsInformationRequired = true,
             IsQuantity = true
         },
+
         #endregion
 
         #region Feature of service: "Wallet for Valentine Day"
+
         new()
         {
             Id = Guid.Parse("8bb06e3f-17da-47d8-b6f3-44e6325921cc"),
@@ -332,12 +466,14 @@ public static class InitialSeeding
             IsInformationRequired = false,
             IsQuantity = false
         },
-#endregion
+
+        #endregion
     };
 
     private static readonly List<PackageFeature> PackageFeatures = new()
     {
         #region Sample PackageFeature of service Làm dây chuyền chữ Y (dùng để test)
+
         new()
         {
             Id = Guid.Parse("9117fe29-9fec-4cf5-8f52-37d1efec7b22"),
@@ -410,9 +546,11 @@ public static class InitialSeeding
             PackageId = Packages[2].Id,
             FeatureId = Features[1].Id
         },
+
         #endregion
 
         #region PackageFeature of package Basic, service: "Wallet for Valentine Day"
+
         new()
         {
             Id = Guid.Parse("7cdb3bd2-259a-445d-b521-6b8781adc277"),
@@ -497,9 +635,11 @@ public static class InitialSeeding
             PackageId = Packages[3].Id,
             FeatureId = Features[10].Id
         },
+
         #endregion
 
         #region PackageFeature of package Standard, service: "Wallet for Valentine Day"
+
         new()
         {
             Id = Guid.Parse("5d44a142-80af-4054-8e7d-ef440181dda3"),
@@ -644,9 +784,11 @@ public static class InitialSeeding
             PackageId = Packages[4].Id,
             FeatureId = Features[10].Id
         },
+
         #endregion
 
         #region PackageFeature of package Premium, service: "Wallet for Valentine Day"
+
         new()
         {
             Id = Guid.Parse("42e781b4-83fa-46c6-a8d2-aba9b9468b8a"),
@@ -803,8 +945,10 @@ public static class InitialSeeding
             PackageId = Packages[5].Id,
             FeatureId = Features[10].Id
         },
+
         #endregion
     };
+
     private static readonly List<CancellationReason> CancellationReasons = new()
     {
         new()
@@ -819,119 +963,119 @@ public static class InitialSeeding
     {
         new()
         {
-        Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
-        Code = "ORDCHD125FG8G1",
-        Phone = "0912345678",
-        Address = "123 Fake Street, City, Country",
-        ToWard = "20308",
-        ToDistrict = 1444,
-        ToProvince = "HCM",
-        OriginPrice = 2500000,
-        Quantity = 2,
-        ShipmentCode = "ORDCHD125FG8G1_Delivery",
-        CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-        DeliveryTime = DateTime.UtcNow.AddDays(7),
-        CurrentSketchRevision = 1,
-        Stage = OrderStage.Shipping,
-        Status = OrderStatus.Pending,
-        TotalPrice = 2500000,
-        AfterApplyVoucherPrice = 2500000,
-        AdminCommDefault = 200000,
-        AdminCommUsedVch = null,
-        ArtistRevenue = 2000000,
-        VoucherCost = 0,
-        PackageId = Packages[0].Id,
-        CreatedById = Accounts[0].Id,
-        CancellationReasonId = CancellationReasons[0].Id,
-        Payments = new List<Payment>
-        {
-            new Payment
+            Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
+            Code = "ORDCHD125FG8G1",
+            Phone = "0912345678",
+            Address = "123 Fake Street, City, Country",
+            ToWard = "20308",
+            ToDistrict = 1444,
+            ToProvince = "HCM",
+            OriginPrice = 2500000,
+            Quantity = 2,
+            ShipmentCode = "ORDCHD125FG8G1_Delivery",
+            CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
+            DeliveryTime = DateTime.UtcNow.AddDays(7),
+            CurrentSketchRevision = 1,
+            Stage = OrderStage.Shipping,
+            Status = OrderStatus.Pending,
+            TotalPrice = 2500000,
+            AfterApplyVoucherPrice = 2500000,
+            AdminCommDefault = 200000,
+            AdminCommUsedVch = null,
+            ArtistRevenue = 2000000,
+            VoucherCost = 0,
+            PackageId = Packages[0].Id,
+            CreatedById = Accounts[0].Id,
+            CancellationReasonId = CancellationReasons[0].Id,
+            Payments = new List<Payment>
             {
-                Id = Guid.Parse("f07caba7-842c-46be-acef-fcb6a5d20fd0"),
-                PaymentType = PaymentType.VnPay,
-                Amount = 2500000,
-                PaymentStatus = PaymentStatus.Success
+                new Payment
+                {
+                    Id = Guid.Parse("f07caba7-842c-46be-acef-fcb6a5d20fd0"),
+                    PaymentType = PaymentType.VnPay,
+                    Amount = 2500000,
+                    PaymentStatus = PaymentStatus.Success
+                }
+            },
+            OrderInformations = new List<OrderInformation>
+            {
+                new OrderInformation
+                {
+                    Id = Guid.Parse("d082cfcd-b5d9-4c1a-9f18-d8a0a6113bcc"),
+                    Description = "Order Information for Product A",
+                    Price = 2500000,
+                    PackageFeatureId = PackageFeatures[0].Id,
+                    OrderInformationAttachments = new List<OrderInformationAttachment>
+                    {
+                        new OrderInformationAttachment
+                        {
+                            Id = Guid.Parse("d4675207-1a94-4493-8e5f-f2672d31dd52"),
+                            AttachmentUrl = "path/to/file.jpg",
+                            AttachmentAlt = "image",
+                        }
+                    }
+                }
             }
         },
-        OrderInformations = new List<OrderInformation>
+        new()
         {
-            new OrderInformation
+            Id = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
+            Phone = "0987654321",
+            Code = "ORDCHD126FG8G2",
+            Address = "456 Another Street, City, Country",
+            ToWard = "20308",
+            ToDistrict = 1444,
+            ToProvince = "HCM",
+            OriginPrice = 2500000,
+            Quantity = 1,
+            ShipmentCode = "ORDCHD125FG8G1_Return",
+            CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
+            DeliveryTime = DateTime.UtcNow.AddDays(7),
+            CurrentSketchRevision = 1,
+            Stage = OrderStage.Shipping,
+            Status = OrderStatus.Pending,
+            TotalPrice = 2500000,
+            AfterApplyVoucherPrice = 2500000,
+            AdminCommDefault = 200000,
+            AdminCommUsedVch = null,
+            ArtistRevenue = 2000000,
+            VoucherCost = 0,
+            PackageId = Packages[0].Id,
+            CreatedById = Accounts[0].Id,
+            CancellationReasonId = CancellationReasons[0].Id,
+            Payments = new List<Payment>
             {
-                Id = Guid.Parse("d082cfcd-b5d9-4c1a-9f18-d8a0a6113bcc"),
-                Description = "Order Information for Product A",
-                Price = 2500000,
-                PackageFeatureId = PackageFeatures[0].Id,
-                OrderInformationAttachments = new List<OrderInformationAttachment>
+                new Payment
                 {
-                    new OrderInformationAttachment
+                    Id = Guid.Parse("7604cdf4-3fa1-464c-824d-9b89e567ee8c"),
+                    PaymentType = PaymentType.VnPay,
+                    Amount = 100.75m,
+                    PaymentStatus = PaymentStatus.Success
+                }
+            },
+            OrderInformations = new List<OrderInformation>
+            {
+                new OrderInformation
+                {
+                    Id = Guid.Parse("753a3b34-d33e-479b-8940-da24f2a5bacd"),
+                    Description = "Order Information for Product B",
+                    PackageFeatureId = PackageFeatures[1].Id,
+                    Price = 2500000,
+                    OrderInformationAttachments = new List<OrderInformationAttachment>
                     {
-                        Id = Guid.Parse("d4675207-1a94-4493-8e5f-f2672d31dd52"),
-                        AttachmentUrl = "path/to/file.jpg",
-                        AttachmentAlt = "image",
+                        new OrderInformationAttachment
+                        {
+                            Id = Guid.Parse("dca69da4-8772-4d70-9736-a59e49a61e5f"),
+                            AttachmentUrl = "path/to/attachment.pdf",
+                            AttachmentAlt = "pdf",
+                        }
                     }
                 }
             }
         }
-    },
-    new()
-    {
-        Id = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
-        Phone = "0987654321",
-        Code = "ORDCHD126FG8G2",
-        Address = "456 Another Street, City, Country",
-        ToWard = "20308",
-        ToDistrict = 1444,
-        ToProvince = "HCM",
-        OriginPrice = 2500000,
-        Quantity = 1,
-        ShipmentCode = "ORDCHD125FG8G1_Return",
-        CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-        DeliveryTime = DateTime.UtcNow.AddDays(7),
-        CurrentSketchRevision = 1,
-        Stage = OrderStage.Shipping,
-        Status = OrderStatus.Pending,
-        TotalPrice = 2500000,
-        AfterApplyVoucherPrice = 2500000,
-        AdminCommDefault = 200000,
-        AdminCommUsedVch = null,
-        ArtistRevenue = 2000000,
-        VoucherCost = 0,
-        PackageId = Packages[0].Id,
-        CreatedById = Accounts[0].Id,
-        CancellationReasonId = CancellationReasons[0].Id,
-        Payments = new List<Payment>
-        {
-            new Payment
-            {
-                Id = Guid.Parse("7604cdf4-3fa1-464c-824d-9b89e567ee8c"),
-                PaymentType = PaymentType.VnPay,
-                Amount = 100.75m,
-                PaymentStatus = PaymentStatus.Success
-            }
-        },
-        OrderInformations = new List<OrderInformation>
-        {
-            new OrderInformation
-            {
-                Id = Guid.Parse("753a3b34-d33e-479b-8940-da24f2a5bacd"),
-                Description = "Order Information for Product B",
-                PackageFeatureId = PackageFeatures[1].Id,
-                Price = 2500000,
-                OrderInformationAttachments = new List<OrderInformationAttachment>
-                {
-                    new OrderInformationAttachment
-                    {
-                        Id = Guid.Parse("dca69da4-8772-4d70-9736-a59e49a61e5f"),
-                        AttachmentUrl = "path/to/attachment.pdf",
-                        AttachmentAlt = "pdf",
-                    }
-                }
-      }
-    }
-    }
     };
 
-    // This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
+// This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
 
     /// <summary>
     /// Initialize and seed the database with roles, categories, and subcategories.
@@ -940,7 +1084,7 @@ public static class InitialSeeding
     {
         var context = serviceProvider.GetRequiredService<AppDbContext>();
 
-        foreach (var config in systemConfigs)
+        foreach (var config in SystemConfigs)
         {
             if (!context.SystemConfigs.Any(c => c.EntityType == config.EntityType && c.FieldName == config.FieldName))
             {
@@ -948,10 +1092,11 @@ public static class InitialSeeding
                 context.SystemConfigs.Add(config);
             }
         }
+
         // Seed Roles
         foreach (var role in Roles)
         {
-            if (!context.Roles.Any(r => r.Name == role.Name))
+            if (!context.Roles.Any(r => r.Id == role.Id && r.Name == role.Name))
             {
                 role.CreationDate = DateTime.UtcNow;
                 context.Roles.Add(role);
@@ -973,6 +1118,15 @@ public static class InitialSeeding
             {
                 account.CreationDate = DateTime.UtcNow;
                 context.Accounts.Add(account);
+            }
+        }
+
+        foreach (var accountRole in AccountRoles)
+        {
+            if (!context.AccountRoles.Any(c => c.Id == accountRole.Id))
+            {
+                accountRole.CreationDate = DateTime.UtcNow;
+                context.AccountRoles.Add(accountRole);
             }
         }
 
