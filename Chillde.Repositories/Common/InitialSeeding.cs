@@ -972,7 +972,7 @@ public static class InitialSeeding
         ToProvince = "HCM",
         OriginPrice = 2500000,
         Quantity = 2,
-        ShipmentCode = "ORDCHD125FG8G1_Delivery",
+        ShipmentCode = "ORDCHD125FG8G2_Delivery",
         //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
         DeliveryTime = DateTime.UtcNow.AddDays(7),
         CurrentSketchRevision = 1,

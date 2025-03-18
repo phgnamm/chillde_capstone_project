@@ -116,6 +116,25 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize]
+        [HttpPost("balance-payment")]
+        public async Task<IActionResult> BalancePayment([FromBody] OrderAddModel order)
+        {
+            try
+            {
+                var result = await _orderService.BalancePayment(order);
+
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
         [HttpGet("callback")]
         public async Task<IActionResult> Callback()
         {
