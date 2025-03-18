@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Interfaces
 {
-    public interface IPaymentRepository : IGenericRepository<Payment>
-    {
-    }
+    //public interface IPaymentRepository : IGenericRepository<Payment>
+    //{
+    //}
 }

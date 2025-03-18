@@ -16,7 +16,7 @@ public class Order : BaseEntity
     public string? ShipmentCode { get; set; }
 
     //ly do huy
-    public CancleOrderReason CancleOrderReason { get; set; }
+    //public CancleOrderReason CancleOrderReason { get; set; }
 
     #region new fields
     public DateTime? DeliveryTime { get; set; }
@@ -37,10 +37,10 @@ public class Order : BaseEntity
 
     // Relationship
     public Package Package { get; set; } = null!;
-    public Guid CancellationReasonId { get; set; }
+    public Guid? CancellationReasonId { get; set; }
 
     // Relationship
-    public CancellationReason CancellationReason { get; set; } = null!;
+    public CancellationReason? CancellationReason { get; set; } = null!;
     public Account CreatedBy { get; set; } = null!;
     public virtual ICollection<Shipment> Shipments { get; set; } = new List<Shipment>();
     public virtual ICollection<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();

@@ -60,7 +60,7 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Unauthorized"
                 };
-
+            // lấy package
             var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId,
                 include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request));
             if (package == null)
@@ -69,7 +69,7 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Package not found"
                 };
-
+            // tạo order 
             var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
 
             if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
@@ -195,53 +195,61 @@ namespace Chillde.Services.Services
         }
         private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId)
         {
-            var packageOffer = package.Offer;
-            decimal totalOrder = 0m;
-            decimal adminCommission = 0m;
-            if (packageOffer != null && packageOffer.Status == OfferStatus.Approved) {
-                totalOrder = (decimal)(package.Price * packageOffer.Request.Quantity);
-                adminCommission = await AdminCommission((decimal)totalOrder, 0);
-                return new Repositories.Entities.Order
-                {
-                    CreatedById = userId,
-                    Code = GenerateCodeHelper.GenerateOrderCode(),
-                    Phone = orderAddModel.Phone,
-                    Address = orderAddModel.Address,
-                    ToWard = orderAddModel.ToWard,
-                    ToDistrict = orderAddModel.ToDistrict,
-                    ToProvince = orderAddModel.ToProvince,
-                    TotalPrice = totalOrder + orderAddModel.ShippingPrice,
-                    DeliveryTime = package.DeliveryTime,
-                    ShippingPrice = orderAddModel.ShippingPrice,
-                    OriginPrice = totalOrder,
-                    AdminCommDefault = adminCommission,
-                    AdminCommUsedVch = null,
-                    ArtistRevenue = totalOrder - adminCommission,
-                    AfterApplyVoucherPrice = null,
-                    VoucherCost = null,
-                    Quantity = packageOffer.Request.Quantity,
-                    PackageId = package.Id,
-                    OrderInformations = null
-                };
+            decimal totalOrder;
+            decimal adminCommission;
+
+            if (package.Offer?.Status == OfferStatus.Approved)
+            {
+                totalOrder = (decimal)(package.Price * package.Offer.Request.Quantity);
+                adminCommission = await AdminCommission(totalOrder, 0);
+
+                return await CreateOrderAsync(orderAddModel, package, userId, totalOrder, adminCommission, (int)(package.Offer?.Request?.Quantity ?? 1), null,null);
+
             }
-            var requiredFeatures = package.PackageFeatures.Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra.HasValue || !_.IsExtra.Value)).ToList();
+
+            var requiredFeatures = package.PackageFeatures
+                .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
+                .ToList();
+            
             foreach (var feature in requiredFeatures)
             {
-                var correspondingInfo = orderAddModel.OrderInformationAddModels?
+                var info = orderAddModel.OrderInformationAddModels?
                     .FirstOrDefault(_ => _.PackageFeatureId == feature.Id);
 
-                if (correspondingInfo == null || string.IsNullOrWhiteSpace(correspondingInfo.Description))
+                if (info == null || string.IsNullOrWhiteSpace(info.Description))
                 {
-                    new ResponseModel
-                    {
-                        Code = StatusCodes.Status400BadRequest,
-                        Message = $"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty when a question is present."
-                    };
+                    throw new InvalidOperationException($"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty.");
                 }
             }
+
             totalOrder = (decimal)(package.Price * orderAddModel.Quantity);
-            adminCommission = await AdminCommission((decimal)totalOrder, 0);
-            return new Repositories.Entities.Order
+            adminCommission = await AdminCommission(totalOrder, 0);
+
+            return await CreateOrderAsync(
+                         orderAddModel,
+                         package,
+                         userId,
+                         totalOrder,
+                         adminCommission,
+                         (int)(orderAddModel.Quantity ?? 1), 
+                         orderAddModel.OrderInformationAddModels,
+                         orderAddModel.OrderInformationAddModels?
+                        .SelectMany(_ => _.OrderInformationAttachmentAddModels ?? new List<OrderInformationAttachmentAddModel>())
+             );
+
+        }
+
+        private async Task<Repositories.Entities.Order> CreateOrderAsync(
+               OrderAddModel orderAddModel,
+               Package package,
+               Guid userId,
+               decimal totalOrder,
+               decimal adminCommission,
+               int quantity,
+               IEnumerable<OrderInformationAddModel>? orderInformationAddModels,
+               IEnumerable<OrderInformationAttachmentAddModel>? orderInformationAttachmentAddModels)
+        {
+            var order = new Repositories.Entities.Order
             {
                 CreatedById = userId,
                 Code = GenerateCodeHelper.GenerateOrderCode(),
@@ -250,7 +258,7 @@ namespace Chillde.Services.Services
                 ToWard = orderAddModel.ToWard,
                 ToDistrict = orderAddModel.ToDistrict,
                 ToProvince = orderAddModel.ToProvince,
-                TotalPrice = totalOrder + orderAddModel.ShippingPrice,
+                TotalPrice = totalOrder + (orderAddModel.ShippingPrice ?? 0),
                 DeliveryTime = package.DeliveryTime,
                 ShippingPrice = orderAddModel.ShippingPrice,
                 OriginPrice = totalOrder,
@@ -259,17 +267,53 @@ namespace Chillde.Services.Services
                 ArtistRevenue = totalOrder - adminCommission,
                 AfterApplyVoucherPrice = null,
                 VoucherCost = null,
-                Quantity = orderAddModel.Quantity,
+                Quantity = quantity,
                 PackageId = package.Id,
-                OrderInformations = orderAddModel.OrderInformationAddModels!.Select(_ => new OrderInformation
-                {
-                    Quantity = _.Quantity ?? null,
-                    Price = _.Price ?? null,
-                    Description = _.Description ?? null,
-                    PackageFeatureId = _.PackageFeatureId
-                }).ToList()
+                OrderInformations = new List<OrderInformation>()
             };
+
+            if (orderInformationAddModels != null)
+            {
+                foreach (var info in orderInformationAddModels)
+                {
+                    var orderInfo = new OrderInformation
+                    {
+                        Quantity = info.Quantity,
+                        Price = info.Price,
+                        Description = info.Description,
+                        PackageFeatureId = info.PackageFeatureId,
+                        OrderInformationAttachments = new List<OrderInformationAttachment>()
+                    };
+
+                    if (info.OrderInformationAttachmentAddModels != null)
+                    {
+                        foreach (var attachment in info.OrderInformationAttachmentAddModels)
+                        {
+                            if (attachment.AttachmentUrl != null)
+                            {
+                                var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
+                                    attachment.AttachmentUrl,
+                                    "order_attachments",
+                                    order.Code
+                                );
+
+                                orderInfo.OrderInformationAttachments.Add(new OrderInformationAttachment
+                                {
+                                    AttachmentUrl = attachmentPath,
+                                    AttachmentAlt = attachment.AttachmentAlt
+                                });
+                            }
+                        }
+                    }
+
+                    order.OrderInformations.Add(orderInfo);
+                }
+            }
+
+            return order;
         }
+
+
         private async Task<decimal> AdminCommission(decimal totalOrder, decimal? commsionVoucherValue)
         {
             var commissionResponse = await _systemConfigService.Get(SystemConfigKey.Commission);
@@ -831,41 +875,6 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId)
         {
-            //var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
-            //if(order.Status != OrderStatus.Pending)
-            //{
-            //    return new ResponseModel { Message = "Voucher just allowed in pending processing", Code = StatusCodes.Status400BadRequest };
-            //}
-            //var voucher = await _unitOfWork.VoucherRepository.GetAsync(voucherId);
-            //if(voucher.TotalQuantity.HasValue && voucher.TotalQuantity < 1)
-            //{
-            //    return new ResponseModel { Message = "Voucher out of stock", Code = StatusCodes.Status400BadRequest };
-            //}
-            //var totalPriceOrder = order.TotalPrice - order.ShippingPrice;
-            //var voucherDiscountValue = voucher.DiscountValue;
-            //var adminCommAfterUsed = await AdminCommission((decimal)totalPriceOrder, voucherDiscountValue);
-            //if(voucher.MaxDiscountValue.HasValue && voucher.MaxDiscountValue.Value < adminCommAfterUsed)
-            //{
-            //    adminCommAfterUsed = (decimal)voucher.MaxDiscountValue;
-            //}
-            //order.AdminCommUsedVch = adminCommAfterUsed;
-            //order.ArtistRevenue = totalPriceOrder - adminCommAfterUsed;
-            //order.VoucherUsageLogs.Add(new VoucherUsageLog
-            //{
-            //    VoucherId = voucher.Id,
-            //    CustomerId = (Guid)order.CreatedById,
-            //    DiscountValue = (decimal)(order.AdminCommDefault - adminCommAfterUsed),
-            //    DiscountValueOrigin = voucherDiscountValue,
-            //    UsageStatus = UsageStatus.Used
-            //});
-
-            //if (voucher.TotalQuantity.HasValue)
-            //{
-            //    voucher.RemainingQuantity -= 1;
-            //}
-            //_unitOfWork.OrderRepository.Update(order);
-            //var result = await _unitOfWork.SaveChangeAsync();
-            //return result > 0 ? new ResponseModel { Message = "Apply voucher successfully." } : new ResponseModel { Message = "Apply voucher successfully.", Code = StatusCodes.Status400BadRequest };
             var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
             if (order == null)
             {

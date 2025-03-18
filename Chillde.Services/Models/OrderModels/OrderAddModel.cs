@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -50,22 +51,9 @@ namespace Chillde.Services.Models.OrderModels
 
         public bool? WithBalance { get; set; } = false;
 
-        public ICollection<OrderInformationAddModel>? OrderInformationAddModels { get; set; }
+        public ICollection<OrderInformationAddModel>? OrderInformationAddModels { get; set; } 
         public ICollection<Guid>? VoucherId { get; set; }
     }
-
-    //public class PaymentAddModel
-    //{
-    //    //[Required]
-    //    //public PaymentType PaymentType { get; set; } = PaymentType.VnPay;
-
-    //    [Required]
-    //    [Range(1, double.MaxValue, ErrorMessage = "Payment amount must be greater than 0.")]
-    //    public decimal Amount { get; set; }
-
-    //    //[Required]
-    //    //public PaymentStatus PaymentStatus { get; set; }
-    //}
 
     public class OrderInformationAddModel
     {
@@ -76,6 +64,13 @@ namespace Chillde.Services.Models.OrderModels
 
         [Required]
         public Guid PackageFeatureId { get; set; }
+        public ICollection<OrderInformationAttachmentAddModel>? OrderInformationAttachmentAddModels { get; set; }
+
+    }
+    public class OrderInformationAttachmentAddModel
+    {
+      public string? AttachmentAlt { get; set; }
+      public IFormFile? AttachmentUrl { get; set; }
     }
 
 

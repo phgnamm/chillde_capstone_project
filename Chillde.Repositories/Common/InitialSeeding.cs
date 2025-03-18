@@ -305,7 +305,7 @@ public static class InitialSeeding
         OriginPrice = 2500000,
         Quantity = 2,
         ShipmentCode = "ORDCHD125FG8G1_Delivery",
-        CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
+        //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
         DeliveryTime = DateTime.UtcNow.AddDays(7),
         CurrentSketchRevision = 1,
         Stage = OrderStage.Shipping,
@@ -318,16 +318,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
-        Payments = new List<Payment>
-        {
-            new Payment
-            {
-                Id = Guid.Parse("f07caba7-842c-46be-acef-fcb6a5d20fd0"),
-                PaymentType = PaymentType.VnPay,
-                Amount = 2500000,
-                PaymentStatus = PaymentStatus.Success
-            }
-        },
+       
         OrderInformations = new List<OrderInformation>
         {
             new OrderInformation
@@ -360,7 +351,7 @@ public static class InitialSeeding
         OriginPrice = 2500000,
         Quantity = 1,
         ShipmentCode = "ORDCHD125FG8G1_Delivery",
-        CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
+        //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
         DeliveryTime = DateTime.UtcNow.AddDays(7),
         CurrentSketchRevision = 1,
         Stage = OrderStage.Shipping,
@@ -373,16 +364,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
-        Payments = new List<Payment>
-        {
-            new Payment
-            {
-                Id = Guid.Parse("7604cdf4-3fa1-464c-824d-9b89e567ee8c"),
-                PaymentType = PaymentType.VnPay,
-                Amount = 100.75m,
-                PaymentStatus = PaymentStatus.Success
-            }
-        },
+       
         OrderInformations = new List<OrderInformation>
         {
             new OrderInformation

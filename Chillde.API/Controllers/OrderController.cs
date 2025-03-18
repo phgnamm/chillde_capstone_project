@@ -53,6 +53,28 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
+        [HttpPost("use-admin-vouchers")]
+        public async Task<IActionResult> UsedAdminVoucher(Guid orderId, Guid voucherId)
+        {
+            try
+            {
+                var result = await _orderService.UsedAdminVoucher(orderId, voucherId);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
         [HttpPut("artisans")]
         public async Task<IActionResult> UpdateStatus(Guid orderId, [FromBody] OrderStatus orderStatus)
         {
