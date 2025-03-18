@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Chillde.Repositories.Enums;
 
 namespace Chillde.Services.Models.PackageModels
 {
@@ -16,7 +17,8 @@ namespace Chillde.Services.Models.PackageModels
         [Required]
         public int? SketchRevision { get; set; }
         [Required]
-        public int? DeliveryRevision { get; set; }
+        public float? DeliveryRevision { get; set; }
+        
     }
 }
 

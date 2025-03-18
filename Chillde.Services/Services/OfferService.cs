@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Chillde.Repositories.Common;
+using AutoMapper.Features;
+using Chillde.Services.Models.FeatureModels;
 
 
 namespace Chillde.Services.Services
@@ -104,7 +106,7 @@ namespace Chillde.Services.Services
                         Status = _localizer[offer.Status.ToString()],
                         Message = offer.Message,
                         RequestId = offer.RequestId,
-                        ServiceId = offer.ServiceId?? Guid.Empty,
+                        ServiceId = offer.ServiceId ?? Guid.Empty,
                         CreatedById = offer.CreatedById,
                         CreationDate = offer.CreationDate
                     }).ToList();
@@ -189,6 +191,7 @@ namespace Chillde.Services.Services
                     Message = "User is not authenticated."
                 };
             }
+
             if (string.IsNullOrEmpty(model.Message) || !model.ServiceId.HasValue || model.ServiceId.Value == Guid.Empty)
             {
                 return new ResponseModel
@@ -197,102 +200,155 @@ namespace Chillde.Services.Services
                     Message = "Invalid data provided."
                 };
             }
+
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                var offerId = Guid.NewGuid();
                 var newOffer = new Offer
                 {
+                    Id = offerId,
                     Status = OfferStatus.Pending,
                     RequestId = requestId,
                     ServiceId = model.ServiceId,
-                    CreatedById = currentUserId!.Value,
+                    CreatedById = currentUserId.Value,
                     Message = model.Message,
                     MinWeight = model.MinWeight,
                     MaxWeight = model.MaxWeight,
+                    Service = model.ServiceId.HasValue
+                        ? await _unitOfWork.ServiceRepository.GetAsync(model.ServiceId.Value)
+                        : null
                 };
+
+                await _unitOfWork.OfferRepository.AddAsync(newOffer);
+
                 if (model.OfferAttachmentAddModels != null)
                 {
                     foreach (var attachmentModel in model.OfferAttachmentAddModels)
                     {
-                        var offerAttachment = new OfferAttachment
+                        if (!string.IsNullOrEmpty(attachmentModel.AttachmentUrl?.ToString()))
                         {
-                            AttachmentUrl = attachmentModel.AttachmentUrl != null ?  await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.OFFER) : null,
-                            AttachmentAlt = attachmentModel.AttachmentAlt,
-                        };
-                        newOffer.OfferAttachments.Add(offerAttachment);
+                            var offerAttachment = new OfferAttachment
+                            {
+                                AttachmentUrl = await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.OFFER),
+                                AttachmentAlt = attachmentModel.AttachmentAlt
+                            };
+                            newOffer.OfferAttachments.Add(offerAttachment);
+                        }
                     }
                 }
-                string? translatedMessage = null;
+
+                Dictionary<string, string> textsToTranslate = new Dictionary<string, string>
+                    { { "Message", model.Message } };
+
+                Package? newPackage = null;
+                List<Feature> features = new List<Feature>();
+                List<PackageFeature> packageFeatures = new List<PackageFeature>();
+
+                if (!model.ServiceId.HasValue && model.PackageAddModel != null)
+                {
+                    var packageId = Guid.NewGuid();
+                    newPackage = new Package
+                    {
+                        Id = packageId,
+                        OfferId = offerId,
+                        Name = PackageName.Customized,
+                        Description = model.PackageAddModel.Description,
+                        Price = model.PackageAddModel.Price,
+                        DeliveryTime = model.PackageAddModel.DeliveryTime,
+                        SketchRevision = model.PackageAddModel.SketchRevision,
+                    };
+
+                    await _unitOfWork.PackageRepository.AddAsync(newPackage);
+                    textsToTranslate.Add("Package.Description", model.PackageAddModel.Description);
+
+                    if (model.FeatureAddModels != null)
+                    {
+                        foreach (var featureModel in model.FeatureAddModels)
+                        {
+                            var featureId = Guid.NewGuid();
+                            var newFeature = new Feature
+                            {
+                                Id = featureId,
+                                Name = featureModel.Name,
+                                IsInformationRequired = featureModel.IsInformationRequired,
+                                IsQuantity = featureModel.IsQuantity
+                            };
+                            features.Add(newFeature);
+
+                            textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
+
+                            if (featureModel.PackageFeatureAddModels != null)
+                            {
+                                var packageFeatureId = Guid.NewGuid();
+                                var newPackageFeature = new PackageFeature
+                                {
+                                    Id = packageFeatureId,
+                                    FeatureId = featureId,
+                                    PackageId = packageId,
+                                    Name = featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name,
+                                    IsChecked = featureModel.PackageFeatureAddModels.FirstOrDefault()!.IsChecked,
+                                };
+                                packageFeatures.Add(newPackageFeature);
+
+                                textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name",
+                                    featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name);
+                            }
+                        }
+                    }
+                }
+
+                if (features.Any())
+                    await _unitOfWork.FeatureRepository.AddRangeAsync(features);
+
+                if (packageFeatures.Any())
+                    await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
 
                 if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
                 {
-                    var translationResponse =
-                        await _translationService.TranslateAsync(model.Message, sourceLanguageCode, targetLanguageCode);
+                    var translationResponse = await _translationService.TranslateMultipleAsync(
+                        textsToTranslate, "Offer", offerId, sourceLanguageCode
+                    );
 
                     if (translationResponse.Code != StatusCodes.Status200OK)
                     {
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status500InternalServerError,
-                            Message = "Failed to translate message."
+                            Message = "Failed to translate fields."
                         };
                     }
-                    translatedMessage = translationResponse.Message;
-                    newOffer.Message = targetLanguageCode == "en" ? translatedMessage : model.Message;
-                }
 
-                await _unitOfWork.OfferRepository.AddAsync(newOffer);
-                var languageId =
-                    (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode == "en"
-                        ? sourceLanguageCode
-                        : targetLanguageCode))!;
-                if (!string.IsNullOrEmpty(translatedMessage))
-                {
-                    var translation = new Translation
+                    if (translationResponse.Data is Dictionary<string, string> translatedTexts)
                     {
-                        Id = Guid.NewGuid(),
-                        EntityType = "Offer",
-                        EntityId = newOffer.Id,
-                        FieldName = "Message",
-                        TranslationText = targetLanguageCode == "en" ? model.Message : translatedMessage,
-                        LanguageId = languageId
-                    };
-                    await _unitOfWork.TranslationRepository.AddAsync(translation);
-                }
-
-                if (model.FeatureAddModels != null)
-                    foreach (var featureModel in model.FeatureAddModels)
-                    {
-                        var newFeature = new Feature
+                        if (translatedTexts.TryGetValue("Message", out var text))
                         {
-                            Id = Guid.NewGuid(),
-                            Name = featureModel.Name,
-                            Question = featureModel.Question,
-                            QuestionType = featureModel.QuestionType,
-                            IsInformationRequired = featureModel.IsInformationRequired,
-                            IsQuantity = featureModel.IsQuantity,
-                        };
+                            newOffer.Message = targetLanguageCode == "en" ? text : model.Message;
+                        }
 
-                        await _unitOfWork.FeatureRepository.AddAsync(newFeature);
-
-                        if (featureModel.PackageFeatureAddModel != null)
+                        if (translatedTexts.ContainsKey("Package.Description") && newPackage != null)
                         {
-                            var packageFeatureModel = featureModel.PackageFeatureAddModel;
-                            var newPackageFeature = new PackageFeature
+                            newPackage.Description = translatedTexts["Package.Description"];
+                        }
+
+                        foreach (var feature in features)
+                        {
+                            if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Name", out var featureName))
                             {
-                                Id = Guid.NewGuid(),
-                                FeatureId = newFeature.Id,
-                                Name = packageFeatureModel.Name,
-                                IsExtra = packageFeatureModel.IsExtra,
-                                AdditionalCost = packageFeatureModel.AdditionalCost,
-                                AdditionalDay = packageFeatureModel.AdditionalDay,
-                                IsChecked = packageFeatureModel.IsChecked,
-                                MaxQuantity = packageFeatureModel.MaxQuantity
-                            };
+                                feature.Name = featureName;
+                            }
+                        }
 
-                            await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
+                        foreach (var packageFeature in packageFeatures)
+                        {
+                            if (translatedTexts.TryGetValue($"PackageFeature.{packageFeature.Id}.Name",
+                                    out var packageFeatureName))
+                            {
+                                packageFeature.Name = packageFeatureName;
+                            }
                         }
                     }
+                }
 
                 await _unitOfWork.SaveChangeAsync();
                 await _unitOfWork.CommitTransactionAsync();
@@ -300,7 +356,7 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Offer created successfully with features."
+                    Message = "Offer created successfully."
                 };
             }
             catch (Exception ex)
@@ -341,65 +397,70 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                string? translatedMessage;
                 bool offerMessageExists = existingOffer.Message == model.Message;
-                var existingTranslation = await _unitOfWork.TranslationRepository
-                    .GetTranslationAsync("Offer", offerId, "Message",
-                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode))!);
-                if (existingTranslation == null && targetLanguageCode == "en")
                 {
-                    existingTranslation = await _unitOfWork.TranslationRepository
+                    var existingTranslation = await _unitOfWork.TranslationRepository
+                        .GetTranslationAsync("Offer", offerId, "Message",
+                            (Guid)await _unitOfWork.TranslationRepository
+                                .GetLanguageIdByCodeAsync(targetLanguageCode)!);
+                    if (existingTranslation == null && targetLanguageCode == "en")
+                    {
+                        existingTranslation = await _unitOfWork.TranslationRepository
+                            .GetTranslationAsync("Offer", offerId, "Message",
+                                (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(
+                                    sourceLanguageCode))
+                                !);
+                    }
+
+                    var translationToUpdate = await _unitOfWork.TranslationRepository
                         .GetTranslationAsync("Offer", offerId, "Message",
                             (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode))
                             !);
-                }
+                    bool translationExists =
+                        existingTranslation != null && existingTranslation.TranslationText == model.Message;
 
-                var translationToUpdate = await _unitOfWork.TranslationRepository
-                    .GetTranslationAsync("Offer", offerId, "Message",
-                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode))!);
-                bool translationExists =
-                    existingTranslation != null && existingTranslation.TranslationText == model.Message;
-
-                if (!offerMessageExists && !translationExists && model.Message != null)
-                {
-                    var translationResponse =
-                        await _translationService.TranslateAsync(model.Message, sourceLanguageCode, targetLanguageCode);
-                    if (translationResponse.Code != StatusCodes.Status200OK)
+                    if (!offerMessageExists && !translationExists && model.Message != null)
                     {
-                        return new ResponseModel
+                        var translationResponse =
+                            await _translationService.TranslateAsync(model.Message, sourceLanguageCode,
+                                targetLanguageCode);
+                        if (translationResponse.Code != StatusCodes.Status200OK)
                         {
-                            Code = StatusCodes.Status500InternalServerError,
-                            Message = "Failed to translate message."
-                        };
-                    }
-
-                    translatedMessage = translationResponse.Message;
-                    existingOffer.Message = targetLanguageCode == "en" ? translatedMessage : model.Message;
-                    _unitOfWork.OfferRepository.Update(existingOffer);
-
-                    if (!translationExists && existingTranslation != null)
-                    {
-                        if (targetLanguageCode != "en")
-                        {
-                            if (sourceLanguageCode == "en" && targetLanguageCode == "vi")
+                            return new ResponseModel
                             {
-                                existingTranslation.TranslationText = translatedMessage;
+                                Code = StatusCodes.Status500InternalServerError,
+                                Message = "Failed to translate message."
+                            };
+                        }
+
+                        var translatedMessage = translationResponse.Message;
+                        existingOffer.Message = targetLanguageCode == "en" ? translatedMessage : model.Message;
+                        _unitOfWork.OfferRepository.Update(existingOffer);
+
+                        if (!translationExists && existingTranslation != null)
+                        {
+                            if (targetLanguageCode != "en")
+                            {
+                                if (sourceLanguageCode == "en" && targetLanguageCode == "vi")
+                                {
+                                    existingTranslation.TranslationText = translatedMessage;
+                                }
+                                else if (sourceLanguageCode == "vi" && targetLanguageCode == "en")
+                                {
+                                    existingTranslation.TranslationText = model.Message;
+                                }
+
+                                _unitOfWork.TranslationRepository.Update(existingTranslation);
                             }
-                            else if (sourceLanguageCode == "vi" && targetLanguageCode == "en")
+                            else
                             {
                                 existingTranslation.TranslationText = model.Message;
                             }
-
-                            _unitOfWork.TranslationRepository.Update(existingTranslation);
                         }
-                        else
+                        else if (translationToUpdate != null)
                         {
-                            existingTranslation.TranslationText = model.Message;
+                            translationToUpdate.TranslationText = model.Message;
                         }
-                    }
-                    else if (translationToUpdate != null)
-                    {
-                        translationToUpdate.TranslationText = model.Message;
                     }
                 }
 
@@ -504,7 +565,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
-        
+
         private async Task<string> UploadFile(IFormFile fileUrl, string folderName)
         {
             if (fileUrl == null)

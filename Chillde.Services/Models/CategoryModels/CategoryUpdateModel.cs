@@ -10,7 +10,8 @@ namespace Chillde.Services.Models.CategoryModels
     public class CategoryUpdateModel
     {
         public string? Name { get; set; }
-        public string? Code { get; set; }
-        public IFormFile? ImageUrl { get; set; }
+        public Guid? ParentId { get; set; }
+        public string? AttachmentAlt { get; set; }
+        public IFormFile? AttachmentUrl { get; set; }
     }
 }

@@ -1,13 +1,7 @@
 ﻿using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
-using Chillde.Services.Models.FeedbackModels;
-using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.SubcategoryModels;
-using Chillde.Services.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -22,7 +16,7 @@ namespace Chillde.API.Controllers
         {
             _categoryService = categoryService;
         }
-        //      [Authorize]
+        //[Authorize]
         [HttpPost]
         public async Task<IActionResult> Add([FromForm] CategoryAddModel categoryAddModel)
         {
@@ -40,7 +34,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //      [Authorize]
+        //[Authorize]
         [HttpPost("range")]
         public async Task<IActionResult> AddRange([FromForm] CategoryAddRangeModel categoryAddRangeModel)
         {
@@ -58,7 +52,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //        [Authorize]
+        //[Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] CategoryFilterModel categoryFilterModel)
         {
@@ -76,7 +70,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //      [Authorize]
+        //[Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromForm] CategoryUpdateModel categoryUpdateModel)
         {
@@ -94,7 +88,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        //      [Authorize]
+        //[Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(Guid id)
         {
@@ -114,48 +108,12 @@ namespace Chillde.API.Controllers
             }
         }
         //      [Authorize]
-        [HttpPost("{categoryId}/sub-categories")]
-        public async Task<IActionResult> AddSubcategory(Guid categoryId, [FromForm] SubCategoryAddRangeModel subCategoryAddRangeModel)
-        {
-            try
-            {           
-                var result = await _categoryService.AddSubcategory(categoryId, subCategoryAddRangeModel);
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        //      [Authorize]
-        [HttpGet("{categoryId}/sub-categories")]
-        public async Task<IActionResult> GetSubcategories(Guid categoryId, [FromQuery] SubCategoryFilterModel subCategoryFilterModel)
+        [HttpGet("{idOrSlug}")]
+        public async Task<IActionResult> GetById(string idOrSlug)
         {
             try
             {
-                var response = await _categoryService.GetSubcategoriesByCategory(categoryId, subCategoryFilterModel);
-                return StatusCode(response.Code, response);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-        //      [Authorize]
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
-        {
-            try
-            {
-                var response = await _categoryService.GetById(id);
+                var response = await _categoryService.GetByIdOrSlug(idOrSlug);
                 return StatusCode(response.Code, response);
             }
             catch (Exception ex)

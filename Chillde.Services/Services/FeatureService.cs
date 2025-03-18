@@ -5,6 +5,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using Nest;
 
 namespace Chillde.Services.Services
 {
@@ -35,11 +36,21 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 
-                await _unitOfWork.BeginTransactionAsync();
+                var package = await _unitOfWork.PackageRepository.GetAsync(featureAddModel.PackageId);
+                if (package == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Package not found."
+                    };
+                }
+
+                //await _unitOfWork.BeginTransactionAsync();
                 //var fieldsToTranslate = new Dictionary<string, string>
                 //{
                 //    { "Name", featureAddModel.Name }
@@ -75,23 +86,26 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.FeatureRepository.AddAsync(feature);
 
-                //var packageFeatures = new List<PackageFeature>();
-                //for (int i = 0; i < featureAddModel.PackageFeatures.Count; i++)
-                //{
-                //    var packageFeature = featureAddModel.PackageFeatures[i];
-                //    string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
-                //    var newPackageFeature = new PackageFeature
-                //    {
-                //        Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
-                //        IsExtra = packageFeature.IsExtra,
-                //        AdditionalCost = packageFeature.AdditionalCost,
-                //        AdditionalDay = packageFeature.AdditionalDay,
-                //        FeatureId = feature.Id,
-                //        PackageId = packageId
-                //    };
-                //    packageFeatures.Add(newPackageFeature);
-                //}
-                //await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
+                var packageFeatures = new List<PackageFeature>();
+                for (int i = 0; i < featureAddModel.PackageFeatureAddModels.Count; i++)
+                {
+                    var packageFeature = featureAddModel.PackageFeatureAddModels[i];
+                    //string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
+                    var newPackageFeature = new PackageFeature
+                    {
+                        //Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
+                        Name = packageFeature.Name,
+                        AdditionalCost = packageFeature.AdditionalCost,
+                        AdditionalDay = packageFeature.AdditionalDay,
+                        IsExtra = packageFeature.IsExtra,
+                        IsChecked = packageFeature.IsChecked,
+                        MaxQuantity = packageFeature.MaxQuantity,
+                        FeatureId = feature.Id,
+                        PackageId = package.Id
+                    };
+                    packageFeatures.Add(newPackageFeature);
+                }
+                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
 
                 //var translations = new List<Translation>();
                 //Guid? languageId = null;
@@ -166,7 +180,7 @@ namespace Chillde.Services.Services
                         ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
                         : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
-                    if (response.Code != StatusCodes.Status200OK)
+                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
                         return response;
                 }
 

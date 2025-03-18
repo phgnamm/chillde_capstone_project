@@ -1,19 +1,15 @@
-﻿using AutoMapper;
-using Chillde.Repositories.Common;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
-using Chillde.Repositories.Models.SubCategoryModels;
-using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.SubcategoryModels;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
+using Chillde.Repositories.Common;
+using Chillde.Services.Common;
 
 namespace Chillde.Services.Services
 {
@@ -32,378 +28,599 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> Add(CategoryAddModel categoryAddModel)
         {
-            var existingCategoty = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(c => c.Name == categoryAddModel.Name);
-            if (existingCategoty is not null)
+            try
             {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "A category with the same name already exists."
-                };
-            }
-            string code;
-            if (string.IsNullOrWhiteSpace(categoryAddModel.Code))
-            {
-                code = GenerateSlug(categoryAddModel.Name);
-            }
-            else
-            {
-                if (!IsValidSlug(categoryAddModel.Code))
+                var existingCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(s => s.Name != null && s.Name.ToLower() == categoryAddModel.Name.ToLower());
+                if (existingCategory != null)
                 {
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status400BadRequest,
-                        Message = "Invalid format for Code. Use only lowercase letters, numbers, hyphens, or underscores."
+                        Message = $"Category with name '{categoryAddModel.Name}' already exists."
                     };
                 }
+                // Handle parent category if specified
+                if (categoryAddModel.ParentId.HasValue)
+                {
+                    var parentCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(c => c.Id == categoryAddModel.ParentId);
+                    if (parentCategory == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = $"Parent category with id '{categoryAddModel.ParentId}' does not exist."
+                        };
+                    }
+                }
+                // Handle image upload if specified 
+                string? imageUrl = null;
+                if (categoryAddModel.AttachmentUrl != null)
+                {
+                    try
+                    {
+                        imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                           categoryAddModel.AttachmentUrl,
+                           "categories",
+                           Guid.NewGuid().ToString(),
+                           folderName: FolderAttachment.CATEGORY
+                       );
+                    }
+                    catch (Exception e)
+                    {
+                        return new ResponseModel()
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = e.Message
+                        };
 
-                code = categoryAddModel.Code;
+                    }
+                }
+                // Create new category
+                var newCategory = new Category
+                {
+                    Name = categoryAddModel.Name,
+                    AttachmentUrl = imageUrl,
+                    ParentId = categoryAddModel.ParentId,
+                    AttachmentAlt = categoryAddModel.AttachmentAlt
+                };
+                // Add new category to database
+                await _unitOfWork.CategoryRepository.AddAsync(newCategory);
+                await _unitOfWork.SaveChangeAsync();
+
+                var responseCategory = _mapper.Map<CategoryModel>(newCategory);
+                return new ResponseModel()
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Category created successfully",
+                    Data = responseCategory
+                };
+
+            }
+            catch (Exception e)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = e.Message
+                };
+
             }
 
-            string? imageUrl = null;
-            if (categoryAddModel.ImageUrl != null)
-            {
-                imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                    categoryAddModel.ImageUrl,
-                    "categories",
-                    Guid.NewGuid().ToString(),
-                    folderName: FolderAttachment.CATEGORY
-                );
-            }
-            var newCategory = new Category
-            {
-                Name = categoryAddModel.Name,
-                AttachmentUrl = imageUrl
-            };
-
-            await _unitOfWork.CategoryRepository.AddAsync(newCategory);
-            await _unitOfWork.SaveChangeAsync();
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status201Created,
-                Message = "Category created successfully.",
-                Data = newCategory
-            };
         }
 
         public async Task<ResponseModel> AddList(CategoryAddRangeModel categoryAddRangeModel)
         {
-            if (categoryAddRangeModel.CategoryAddRequestModels.Count != categoryAddRangeModel.ImageUrls!.Count)
+            if (categoryAddRangeModel.CategoryAddRequestModels == null ||
+                !categoryAddRangeModel.CategoryAddRequestModels.Any())
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "The number of categories and images must match."
+                    Message = "No categories provided for creation."
                 };
             }
 
-            var newCategories = new List<Category>();
-
-            for (int i = 0; i < categoryAddRangeModel.CategoryAddRequestModels.Count; i++)
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                var categoryModel = categoryAddRangeModel.CategoryAddRequestModels[i];
-                var imageFile = categoryAddRangeModel.ImageUrls[i];
-
-                var existingCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(s => s.Name == categoryModel.Name);
-                if (existingCategory != null)
+                if (categoryAddRangeModel.ParentId.HasValue)
                 {
-                    return new ResponseModel
+                    var parentCategory = await _unitOfWork.CategoryRepository
+                        .GetFirstOrDefaultAsync(c => c.Id == categoryAddRangeModel.ParentId);
+                    if (parentCategory == null)
                     {
-                        Code = StatusCodes.Status400BadRequest,
-                        Message = $"Category with name '{categoryModel.Name}' already exists."
-                    };
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = $"Parent category with id '{categoryAddRangeModel.ParentId}' does not exist."
+                        };
+                    }
                 }
 
-                string code = string.IsNullOrWhiteSpace(categoryModel.Code)
-                    ? GenerateSlug(categoryModel.Name)
-                    : categoryModel.Code;
-
-                if (!IsValidSlug(code))
+                var newCategories = new List<Category>();
+                foreach (var categoryModel in categoryAddRangeModel.CategoryAddRequestModels)
                 {
-                    return new ResponseModel
+                    if (string.IsNullOrWhiteSpace(categoryModel.Name))
                     {
-                        Code = StatusCodes.Status400BadRequest,
-                        Message = $"Invalid format for Code in category '{categoryModel.Name}'. Use only lowercase letters, numbers, hyphens, or underscores."
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "Category name is required."
+                        };
+                    }
+
+                    var existingCategory = await _unitOfWork.CategoryRepository
+                        .GetFirstOrDefaultAsync(s => s.Name != null &&
+                            s.Name.ToLower() == categoryModel.Name.ToLower());
+                    if (existingCategory != null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = $"Category with name '{categoryModel.Name}' already exists."
+                        };
+                    }
+
+                    string? imageUrl = null;
+                    if (categoryModel.AttachmentUrl != null)
+                    {
+                        try
+                        {
+                            imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                                categoryModel.AttachmentUrl,
+                                "categories",
+                                Guid.NewGuid().ToString(),
+                                folderName: FolderAttachment.CATEGORY
+                            );
+                        }
+                        catch (Exception e)
+                        {
+                            await _unitOfWork.RollbackTransactionAsync();
+                            return new ResponseModel
+                            {
+                                Code = StatusCodes.Status500InternalServerError,
+                                Message = $"Failed to upload image for category '{categoryModel.Name}': {e.Message}"
+                            };
+                        }
+                    }
+
+                    var newCategory = new Category
+                    {
+                        Name = categoryModel.Name,
+                        AttachmentUrl = imageUrl,
+                        ParentId = categoryAddRangeModel.ParentId,
+                        AttachmentAlt = categoryModel.AttachmentAlt
                     };
+                    newCategories.Add(newCategory);
                 }
 
-                string? imageUrl = null;
-                if (imageFile!= null)
-                {
-                    imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                        imageFile,
-                        "categories",
-                        Guid.NewGuid().ToString()
-                    );
-                }
+                await _unitOfWork.CategoryRepository.AddRangeAsync(newCategories);
+                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
 
-                newCategories.Add(new Category
+                var responseCategories = _mapper.Map<List<CategoryModel>>(newCategories);
+                return new ResponseModel
                 {
-                    Name = categoryModel.Name,
-                    AttachmentUrl = imageUrl
-                });
+                    Code = StatusCodes.Status201Created,
+                    Message = "Categories added successfully.",
+                    Data = responseCategories
+                };
             }
-
-            await _unitOfWork.CategoryRepository.AddRangeAsync(newCategories);
-            await _unitOfWork.SaveChangeAsync();
-
-            return new ResponseModel
+            catch (Exception e)
             {
-                Code = StatusCodes.Status201Created,
-                Message = "Categories added successfully.",
-                Data = newCategories
-            };
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"An error occurred: {e.Message}"
+                };
+            }
         }
 
-        public async Task<ResponseModel> AddSubcategory(Guid categoryId, SubCategoryAddRangeModel subCategoryAddRangeModel)
-        {
-            // var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
-            // if (categoryExists == null || categoryExists.IsDeleted)
-            // {
-            //     return new ResponseModel
-            //     {
-            //         Code = StatusCodes.Status404NotFound,
-            //         Message = "Category not found."
-            //     };
-            // }
-            //
-            // var newSubCategories = new List<SubCategoryModel>();
-            //
-            // if (subCategoryAddRangeModel.ImageUrls != null &&
-            //     subCategoryAddRangeModel.ImageUrls.Count != subCategoryAddRangeModel.SubCategoryAddRequestModels.Count)
-            // {
-            //     return new ResponseModel
-            //     {
-            //         Code = StatusCodes.Status400BadRequest,
-            //         Message = "The number of images must match the number of subcategories."
-            //     };
-            // }
-            // var subCategoriesToAdd = new List<SubCategory>();
-            // for (int i = 0; i < subCategoryAddRangeModel.SubCategoryAddRequestModels.Count; i++)
-            // {
-            //     var requestModel = subCategoryAddRangeModel.SubCategoryAddRequestModels[i];
-            //     string? imageUrl = null;
-            //
-            //     if (subCategoryAddRangeModel.ImageUrls != null && subCategoryAddRangeModel.ImageUrls.ElementAtOrDefault(i) != null)
-            //     {
-            //         imageUrl = await _cloudinaryHelper.UploadImageAsync(
-            //             subCategoryAddRangeModel.ImageUrls[i],
-            //             "subcategories",
-            //             Guid.NewGuid().ToString()
-            //         );
-            //     }
-            //
-            //     var subCategory = new SubCategory
-            //     {
-            //         Id = Guid.NewGuid(),
-            //         Name = requestModel.Name,
-            //         Code = string.IsNullOrEmpty(requestModel.Code)
-            //             ? GenerateSlug(requestModel.Name)
-            //             : GenerateSlug(requestModel.Code),
-            //         ImageUrl = imageUrl,
-            //         CategoryId = categoryId
-            //     };
-            //     subCategoriesToAdd.Add(subCategory);
-            //     newSubCategories.Add(_mapper.Map<SubCategoryModel>(subCategory));
-            // }
-            // await _unitOfWork.SubCategoryRepository.AddRangeAsync(subCategoriesToAdd);
-            // await _unitOfWork.SaveChangeAsync();
-
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status201Created,
-                // Message = "Subcategories added successfully.",
-                // Data = newSubCategories
-            };
-        }
 
         public async Task<ResponseModel> Delete(Guid id)
         {
-            var category = await _unitOfWork.CategoryRepository.GetAsync(id);
-            if (category == null || category.IsDeleted)
+            if (id == Guid.Empty)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Category not found."
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid category ID."
                 };
             }
-            _unitOfWork.CategoryRepository.HardRemove(category);
-            await _unitOfWork.SaveChangeAsync();
 
-            return new ResponseModel
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Code = StatusCodes.Status200OK,
-                Message = "Category deleted successfully."
-            };
+                var category = await _unitOfWork.CategoryRepository.GetAsync(id);
+                if (category == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Category with ID {id} not found."
+                    };
+                }
+
+                var serviceRelated = await _unitOfWork.ServiceRepository.GetAllAsync(c => c.CategoryId == id);
+                if (serviceRelated.Data.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Cannot delete category because it is related to ServiceRepository entities."
+                    };
+                }
+
+                var repoRelatedService = await _unitOfWork.ServiceRepository.GetAllAsync(c => c.CategoryId == id);
+                var repoRelatedRequest = await _unitOfWork.RequestRepository.GetAllAsync(c => c.CategoryId == id);
+
+                if (repoRelatedService.Data.Any() || repoRelatedRequest.Data.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Cannot delete category because it is related to Repository entities."
+                    };
+                }
+
+                var children = await _unitOfWork.CategoryRepository.GetAllAsync(
+                    filter: c => c.ParentId == category.Id
+                );
+                if (children.Data.Any())
+                {
+                    var updatedChildren = children.Data.Select(c => { c.ParentId = null; return c; }).ToList();
+                    _unitOfWork.CategoryRepository.UpdateRange(updatedChildren);
+                    await _unitOfWork.SaveChangeAsync();
+                }
+
+                _unitOfWork.CategoryRepository.HardRemove(category);
+                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = $"Category with ID {id} deleted successfully. Children updated to have no parent."
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"An error occurred while deleting category: {ex.Message}"
+                };
+            }
         }
 
         public async Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel)
         {
-            // Expression<Func<Category, bool>> filter = category =>
-            //         category.IsDeleted == categoryFilterModel.IsDeleted &&
-            //         (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-            //         category.Name!.Contains(categoryFilterModel.Search) ||
-            //         category.Code!.Contains(categoryFilterModel.Search));
-            //
-            // Func<IQueryable<Category>, IQueryable<Category>> include = categories =>
-            //          categories.Include(c => c.SubCategories);
-            //
-            // var categorys = await _unitOfWork.CategoryRepository.GetAllAsync(
-            //                 filter: filter,
-            //                 include: include,
-            //                 pageIndex: categoryFilterModel.PageIndex,
-            // pageSize: categoryFilterModel.PageSize
-            // );
-            // /* var cateroryModels = categorys.Data.Select(_ => new CateroryModel
-            //  {
-            //      Id = _.Id,
-            //      Name = _.Name,
-            //      Code = _.Code,      
-            //      ImageUrl = _.ImageUrl,
-            //  }).ToList();*/
-            // var cateroryModels = _mapper.Map<List<CategoryModel>>(categorys.Data);
-            //
-            // var result = new Pagination<CategoryModel>(cateroryModels, categoryFilterModel.PageIndex,
-            //   categoryFilterModel.PageSize, categorys.TotalCount);
-
-            return new ResponseModel
+            try
             {
-                Message = "Get all categorys successfully",
-                //Data = result
-            };
+                Expression<Func<Category, bool>> filter = category =>
+                    (category.IsDeleted == categoryFilterModel.IsDeleted) &&
+                    (string.IsNullOrEmpty(categoryFilterModel.Search) ||
+                     (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
+                     (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
+                    (string.IsNullOrEmpty(categoryFilterModel.Slug) || (category.Slug != null && category.Slug == categoryFilterModel.Slug)) &&
+                    (!categoryFilterModel.ParentId.HasValue || category.ParentId == categoryFilterModel.ParentId);
 
+                var allCategoriesResult = await _unitOfWork.CategoryRepository.GetAllAsync(filter: filter);
+                var allCategories = allCategoriesResult.Data;
 
-
-        }
-
-        public async Task<ResponseModel> GetById(Guid id)
-        {
-            var category = await _unitOfWork.CategoryRepository.GetAsync(id);
-
-            if (category == null || category.IsDeleted)
-            {
-                return new ResponseModel
+                if (categoryFilterModel.IncludeChildren)
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Category not found."
-                };
-            }
+                    var rootCategories = allCategories
+                        .Where(c => c.ParentId == categoryFilterModel.ParentId)
+                        .Select(c => BuildCategoryTree(c, allCategories))
+                        .ToList();
 
-            var cateroryModels = _mapper.Map<CategoryModel>(category);
+                    var totalCount = rootCategories.Count;
+                    var pagedRootCategories = rootCategories
+                        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
+                        .Take(categoryFilterModel.PageSize)
+                        .ToList();
 
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status200OK,
-                Message = "Category retrieved successfully.",
-                Data = cateroryModels
-            };
-        }
+                    var result = new Pagination<CategoryTreeModel>(
+                        pagedRootCategories,
+                        categoryFilterModel.PageIndex,
+                        categoryFilterModel.PageSize,
+                        totalCount
+                    );
 
-        public async Task<ResponseModel> GetSubcategoriesByCategory(Guid categoryId, SubCategoryFilterModel subCategoryFilterModel)
-        {
-            // var categoryExists = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
-            // if (categoryExists == null || categoryExists.IsDeleted)
-            // {
-            //     return new ResponseModel
-            //     {
-            //         Code = StatusCodes.Status404NotFound,
-            //         Message = "Category not found."
-            //     };
-            // }
-            // Expression<Func<SubCategory, bool>> filter = subcategory =>
-            //        subcategory.CategoryId == categoryId &&
-            //        subcategory.IsDeleted == subCategoryFilterModel.IsDeleted &&
-            //        (string.IsNullOrEmpty(subCategoryFilterModel.Search) ||
-            //        subcategory.Name!.Contains(subCategoryFilterModel.Search) ||
-            //        subcategory.Code!.Contains(subCategoryFilterModel.Search));
-            //
-            //
-            // var subcategories = await _unitOfWork.SubCategoryRepository.GetAllAsync(
-            //     filter: filter,
-            //     include: null
-            // );
-            //
-            // var subcategoriesModel = _mapper.Map<List<SubCategoryModel>>(subcategories.Data);
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status200OK,
-                Message = "Subcategories retrieved successfully.",
-                //Data = subcategoriesModel
-            };
-        }
-
-        public async Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel)
-        {
-            var category = await _unitOfWork.CategoryRepository.GetAsync(id);
-            if (category == null || category.IsDeleted)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Category not found."
-                };
-            }
-
-            if (!string.IsNullOrEmpty(categoryUpdateModel.Name))
-            {
-                var existingCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(
-                    c => c.Name == categoryUpdateModel.Name && c.Id != id && !c.IsDeleted
-                );
-                if (existingCategory != null)
-                {
                     return new ResponseModel
                     {
-                        Code = StatusCodes.Status409Conflict,
-                        Message = "Category name already exists."
+                        Code = StatusCodes.Status200OK,
+                        Message = "Get all categories with tree successfully",
+                        Data = result
+                    };
+                }
+                else
+                {
+                    var flatCategories = allCategories
+                        .Where(c => c.ParentId == categoryFilterModel.ParentId)
+                        .Select(category => new CategoryTreeModel
+                        {
+                            Id = category.Id,
+                            Name = category.Name,
+                            Slug = category.Slug,
+                            ParentId = category.ParentId,
+                            AttachmentUrl = category.AttachmentUrl,
+                            AttachmentAlt = category.AttachmentAlt,
+                            CreatedById = category.CreatedById,
+                            CreationDate = category.CreationDate,
+                            ModificationDate = category.ModificationDate,
+                            ModifiedById = category.ModifiedById,
+                            IsDeleted = category.IsDeleted
+                        })
+                        .ToList();
+
+                    var totalCount = flatCategories.Count;
+                    var pagedFlatCategories = flatCategories
+                        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
+                        .Take(categoryFilterModel.PageSize)
+                        .ToList();
+
+                    var result = new Pagination<CategoryTreeModel>(
+                        pagedFlatCategories,
+                        categoryFilterModel.PageIndex,
+                        categoryFilterModel.PageSize,
+                        totalCount
+                    );
+
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Get all categories as flat list successfully",
+                        Data = result
                     };
                 }
             }
-
-            if (categoryUpdateModel.ImageUrl != null)
+            catch (Exception ex)
             {
-                var imageUrl = await _cloudinaryHelper.UploadImageAsync(
-                    categoryUpdateModel.ImageUrl,
-                    "categories",
-                    id.ToString()
-                );
-                category.AttachmentUrl = imageUrl;
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"An error occurred while retrieving categories: {ex.Message}"
+                };
             }
 
-            category.Name = categoryUpdateModel.Name;
+        }
 
-            _unitOfWork.CategoryRepository.Update(category);
-            await _unitOfWork.SaveChangeAsync();
-
-            return new ResponseModel
+        private CategoryTreeModel BuildCategoryTree(Category category, IEnumerable<Category> allCategories)
+        {
+            var treeModel = new CategoryTreeModel
             {
-                Code = StatusCodes.Status200OK,
-                Message = "Category updated successfully."
+                Id = category.Id,
+                Name = category.Name,
+                Slug = category.Slug,
+                ParentId = category.ParentId,
+                AttachmentUrl = category.AttachmentUrl,
+                AttachmentAlt = category.AttachmentAlt,
+                CreatedById = category.CreatedById,
+                CreationDate = category.CreationDate,
+                ModificationDate = category.ModificationDate,
+                ModifiedById = category.ModifiedById,
+                IsDeleted = category.IsDeleted
             };
+
+            var categories = allCategories.ToList();
+            var children = categories.Where(c => c.ParentId == category.Id).ToList();
+            treeModel.Children = children.Select(c => BuildCategoryTree(c, categories)).ToList();
+
+            return treeModel;
+        }
+        public async Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel)
+        {
+            try
+            {
+                if (id == Guid.Empty)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid category ID."
+                    };
+                }
+
+                var category = await _unitOfWork.CategoryRepository.GetAsync(id);
+                if (category == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Category with ID {id} not found."
+                    };
+                }
+
+                var serviceRelated = await _unitOfWork.ServiceRepository.GetAllAsync(c => c.CategoryId == id);
+                if (serviceRelated.Data.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Cannot update category because it is being used by ServiceRepository entities."
+                    };
+                }
+
+                var repoRelatedService = await _unitOfWork.ServiceRepository.GetAllAsync(c => c.CategoryId == id);
+                var repoRelatedRequest = await _unitOfWork.RequestRepository.GetAllAsync(c => c.CategoryId == id);
+
+                if (repoRelatedService.Data.Any() || repoRelatedRequest.Data.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Cannot delete category because it is related to Repository entities."
+                    };
+                }
+
+                if (!string.IsNullOrEmpty(categoryUpdateModel.Name) && categoryUpdateModel.Name.ToLower() != category.Name?.ToLower())
+                {
+                    var existingCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(s => s.Name != null && s.Name.ToLower() == categoryUpdateModel.Name.ToLower() && s.Id != id);
+                    if (existingCategory != null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = $"Category with name '{categoryUpdateModel.Name}' already exists."
+                        };
+                    }
+                }
+
+                if (categoryUpdateModel.ParentId.HasValue)
+                {
+                    var parentCategory = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(c => c.Id == categoryUpdateModel.ParentId);
+                    if (parentCategory == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = $"Parent category with ID '{categoryUpdateModel.ParentId}' does not exist."
+                        };
+                    }
+                    if (categoryUpdateModel.ParentId == id)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "A category cannot be its own parent."
+                        };
+                    }
+                }
+
+                string? imageUrl = category.AttachmentUrl;
+                if (categoryUpdateModel.AttachmentUrl != null)
+                {
+                    try
+                    {
+                        imageUrl = await _cloudinaryHelper.UploadImageAsync(
+                            categoryUpdateModel.AttachmentUrl,
+                            "categories",
+                            Guid.NewGuid().ToString(),
+                            folderName: FolderAttachment.CATEGORY
+                        );
+                    }
+                    catch (Exception e)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = $"Failed to upload image to Cloudinary: {e.Message}"
+                        };
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(categoryUpdateModel.Name))
+                {
+                    category.Name = categoryUpdateModel.Name;
+                }
+
+                category.ParentId = categoryUpdateModel.ParentId;
+                category.AttachmentAlt = categoryUpdateModel.AttachmentAlt;
+                category.AttachmentUrl = imageUrl;
+
+                _unitOfWork.CategoryRepository.Update(category);
+                await _unitOfWork.SaveChangeAsync();
+
+                var responseCategory = _mapper.Map<CategoryModel>(category);
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Category updated successfully",
+                    Data = responseCategory
+                };
+            }
+            catch (Exception e)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = e.Message
+                };
+            }
+
         }
 
-        private string GenerateSlug(string input)
+        public async Task<ResponseModel> GetByIdOrSlug(string idOrSlug)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                return string.Empty;
+            try
+            {
+                if (string.IsNullOrEmpty(idOrSlug))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Id or Slug must be provided."
+                    };
+                }
 
-            input = input.Replace("&", "-and-");
+                Category? category;
 
-            input = input.Replace(",", "-");
+                if (Guid.TryParse(idOrSlug, out Guid categoryId))
+                {
+                    category = await _unitOfWork.CategoryRepository.GetAsync(categoryId);
+                }
+                else
+                {
+                    Expression<Func<Category, bool>> filter = c =>
+                        c.Slug == idOrSlug && c.IsDeleted == false;
 
-            input = input.ToLowerInvariant();
+                    category = await _unitOfWork.CategoryRepository.GetFirstOrDefaultAsync(filter);
+                }
 
-            input = Regex.Replace(input, @"[^a-z0-9\s-]", string.Empty);
+                if (category == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Category with Id or Slug '{idOrSlug}' not found."
+                    };
+                }
 
-            input = Regex.Replace(input, @"\s+", "-");
+                if (category.IsDeleted)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Category with Id or Slug '{idOrSlug}' not found."
+                    };
+                }
 
-            input = input.Trim('-');
+                var categoryModel = new CategoryModel  
+                {
+                    Id = category.Id,
+                    Name = category.Name,
+                    Slug = category.Slug,
+                    ParentId = category.ParentId,
+                    AttachmentAlt = category.AttachmentAlt,
+                    AttachmentUrl = category.AttachmentUrl,
+                    CreatedById = category.CreatedById,
+                    CreationDate = category.CreationDate,
+                    ModificationDate = category.ModificationDate,
+                    ModifiedById = category.ModifiedById,
+                    DeletionDate = category.DeletionDate,
+                    IsDeleted = category.IsDeleted,
+                };
 
-            return input;
-        }
-        private bool IsValidSlug(string code)
-        {
-            return Regex.IsMatch(code, @"^[a-z0-9-_]+$");
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Category retrieved successfully",
+                    Data = categoryModel
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"An error occurred while retrieving category: {ex.Message}"
+                };
+            }
         }
     }
+
 }

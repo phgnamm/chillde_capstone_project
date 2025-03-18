@@ -66,14 +66,14 @@ namespace Chillde.API.Controllers
 
         //        [Authorize]
         [HttpGet("{packageId}/features")]
-        public async Task<IActionResult> GetAllFeatures([FromQuery] FeatureFilterModel model, Guid packageId)
+        public async Task<IActionResult> GetAllFeaturesByPackage([FromQuery] FeatureFilterModel model, Guid packageId)
         {
             try
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-                var result = await _packageService.GetAllFeatureAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
+                var result = await _packageService.GetAllFeatureByPackageAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
