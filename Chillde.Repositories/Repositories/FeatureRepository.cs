@@ -20,9 +20,9 @@ namespace Chillde.Repositories.Repositories
                 .Where(f => f.Id == featureId)
                 .SelectMany(f => f.PackageFeatures)
                 .Select(_ => _.Package)
-                .Select(pf => pf.Orders)
-                .Any();
-            return hasCompletedOrder;
+                .SelectMany(pf => pf.Orders)
+                .Count();
+            return hasCompletedOrder > 0;
         }
     }
 }
