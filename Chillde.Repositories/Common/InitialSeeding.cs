@@ -153,15 +153,15 @@ public static class InitialSeeding
         },
     };
 
-//private static readonly List<C> SubCategories = new()
-//{
+    //private static readonly List<C> SubCategories = new()
+    //{
 
-//        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
-//        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
-//        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
+    //        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
+    //        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
+    //        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
 
-//        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
-//};
+    //        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
+    //};
     private static readonly List<SystemConfig> SystemConfigs = new()
     {
         new()
@@ -974,7 +974,7 @@ public static class InitialSeeding
         Quantity = 2,
         ShipmentCode = "ORDCHD125FG8G2_Delivery",
         //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-        DeliveryTime = DateTime.UtcNow.AddDays(7),
+        DeliveryTime = 7,
         CurrentSketchRevision = 1,
         Stage = OrderStage.Shipping,
         Status = OrderStatus.Pending,
@@ -986,7 +986,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
-       
+
         OrderInformations = new List<OrderInformation>
         {
             new OrderInformation
@@ -1020,7 +1020,7 @@ public static class InitialSeeding
         Quantity = 1,
         ShipmentCode = "ORDCHD125FG8G1_Delivery",
         //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-        DeliveryTime = DateTime.UtcNow.AddDays(7),
+        DeliveryTime = 7,
         CurrentSketchRevision = 1,
         Stage = OrderStage.Shipping,
         Status = OrderStatus.Pending,
@@ -1032,7 +1032,7 @@ public static class InitialSeeding
         VoucherCost = 0,
         PackageId = Packages[0].Id,
         CreatedById = Accounts[0].Id,
-       
+
         OrderInformations = new List<OrderInformation>
         {
             new OrderInformation
@@ -1055,7 +1055,7 @@ public static class InitialSeeding
     }
     };
 
-// This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
+    // This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
 
     /// <summary>
     /// Initialize and seed the database with roles, categories, and subcategories.

@@ -9,7 +9,6 @@ using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -36,7 +35,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                string[] fieldsToCheck = { packageUpdateModel.Name, packageUpdateModel.Description };
+                string[] fieldsToCheck = { packageUpdateModel.Description };
 
                 foreach (var field in fieldsToCheck)
                 {
@@ -119,6 +118,7 @@ namespace Chillde.Services.Services
                     _unitOfWork.PackageRepository.SoftRemove(package);
                     Package newPackage = _mapper.Map<Package>(packageUpdateModel);
                     newPackage.ServiceId = package.ServiceId;
+                    newPackage.Name = package.Name;
                     await _unitOfWork.PackageRepository.AddAsync(newPackage);
                 }
 
@@ -327,6 +327,17 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var numberOfExistedPackageFeature = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(package.Id);
+                var maximumPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageFeatureOfOnePackage).Result;
+                if (numberOfExistedPackageFeature >= int.Parse(maximumPackageFeature!))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Number of package features cannot exceed {maximumPackageFeature}."
+                    };
+                }
+
                 //await _unitOfWork.BeginTransactionAsync();
                 //var fieldsToTranslate = new Dictionary<string, string>
                 //{
@@ -340,26 +351,6 @@ namespace Chillde.Services.Services
                 //}
 
                 //string translatedName = translationResponse.TranslatedFields["Name"];
-
-                Expression<Func<PackageFeature, bool>> filter = _ =>
-                _.FeatureId == packageFeatureAddModel.FeatureId &&
-                   _.IsDeleted == false;
-
-                var numberOfExistedPackageFeature = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
-                    filter: filter,
-                    include: null
-                );
-
-                //var numberOfExistedPackageFeature = _unitOfWork.PackageRepository.GetAllPackageFromService(packageId).Result.Count();
-                var maxPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumFeatureOfOnePackage).Result;
-                if (numberOfExistedPackageFeature.TotalCount > int.Parse(maxPackageFeature!))
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status422UnprocessableEntity,
-                        Message = $"Number of package cannot exceed {maxPackageFeature}."
-                    };
-                }
 
                 var newPackageFeature = new PackageFeature
                 {

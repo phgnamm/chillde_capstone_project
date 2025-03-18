@@ -70,7 +70,7 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
-                    Message = "Feature successfully updated.",
+                    Message = "Package feature successfully updated.",
                 };
             }
             catch (Exception ex)
@@ -112,7 +112,7 @@ namespace Chillde.Services.Services
                 if (!anyOrder.Result)
                 {
                     _unitOfWork.PackageFeatureRepository.HardRemove(packageFeature);
-                    int availablePackageFeatures = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeatures(packageFeature.FeatureId);
+                    int availablePackageFeatures = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByFeature(packageFeature.FeatureId);
                     if (availablePackageFeatures == 1)
                     {
                         await _unitOfWork.FeatureRepository.GetAsync(packageFeature.FeatureId);

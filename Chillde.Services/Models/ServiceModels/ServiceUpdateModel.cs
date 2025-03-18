@@ -12,7 +12,10 @@ namespace Chillde.Services.Models.ServiceModels
         public string Description { get; set; }
         public bool IsOffer { get; set; }
         public ServiceStatus Status { get; set; }
+        public float? MinWeight { get; set; }
+        public float? MaxWeight { get; set; }
+
         //public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
-        
+
     }
 }

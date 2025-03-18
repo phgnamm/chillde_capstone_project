@@ -24,9 +24,14 @@ namespace Chillde.Repositories.Repositories
             return (decimal)await _dbSet.Where(_ => ids.Contains(_.Id) && _.IsExtra == true).SumAsync(_ => _.AdditionalCost);
         }
 
-        public int CountAvailablePackageFeatures(Guid featureId)
+        public int CountAvailablePackageFeaturesByFeature(Guid featureId)
         {
             return _dbSet.Where(_ => _.FeatureId == featureId && _.IsDeleted == false).Count();
+        }
+
+        public int CountAvailablePackageFeaturesByPackage(Guid packageId)
+        {
+            return _dbSet.Where(_ => _.PackageId == packageId && _.IsDeleted == false).Count();
         }
     }
 }
