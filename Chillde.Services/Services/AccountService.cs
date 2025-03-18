@@ -239,7 +239,6 @@ public class AccountService : IAccountService
         account.Wallet = new Wallet
         {
             Balance = 0,
-            CreatedById = account.Id
         };
         await _unitOfWork.AccountRepository.AddAsync(account);
 
