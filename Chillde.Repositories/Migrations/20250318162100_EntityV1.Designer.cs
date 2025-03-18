@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250318144549_EntityV8")]
-    partial class EntityV8
+    [Migration("20250318162100_EntityV1")]
+    partial class EntityV1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -866,8 +866,8 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("DeliveryTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int?>("DeliveryTime")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1150,8 +1150,8 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("DeliveryTime")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int?>("DeliveryTime")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");

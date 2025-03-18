@@ -1077,7 +1077,6 @@ namespace Chillde.Repositories.Migrations
                     ShippingPrice = table.Column<decimal>(type: "numeric", nullable: true),
                     Quantity = table.Column<int>(type: "integer", nullable: true),
                     ShipmentCode = table.Column<string>(type: "text", nullable: true),
-                    CancleOrderReason = table.Column<int>(type: "integer", nullable: true),
                     DeliveryTime = table.Column<int>(type: "integer", nullable: true),
                     CurrentSketchRevision = table.Column<int>(type: "integer", nullable: true),
                     Stage = table.Column<int>(type: "integer", nullable: false),
@@ -1089,7 +1088,7 @@ namespace Chillde.Repositories.Migrations
                     ArtistRevenue = table.Column<decimal>(type: "numeric", nullable: true),
                     VoucherCost = table.Column<decimal>(type: "numeric", nullable: true),
                     PackageId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CancellationReasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CancellationReasonId = table.Column<Guid>(type: "uuid", nullable: true),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedById = table.Column<Guid>(type: "uuid", nullable: false),
                     ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -1111,8 +1110,7 @@ namespace Chillde.Repositories.Migrations
                         name: "FK_Orders_CancellationReasons_CancellationReasonId",
                         column: x => x.CancellationReasonId,
                         principalTable: "CancellationReasons",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Orders_Packages_PackageId",
                         column: x => x.PackageId,
@@ -1189,34 +1187,6 @@ namespace Chillde.Repositories.Migrations
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_OrderTrackings_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Payments",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    OrderId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PaymentType = table.Column<int>(type: "integer", nullable: false),
-                    Amount = table.Column<decimal>(type: "numeric", nullable: false),
-                    PaymentStatus = table.Column<int>(type: "integer", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    ModificationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ModifiedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    DeletionDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uuid", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Payments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Payments_Orders_OrderId",
                         column: x => x.OrderId,
                         principalTable: "Orders",
                         principalColumn: "Id",
@@ -1664,11 +1634,6 @@ namespace Chillde.Repositories.Migrations
                 column: "ServiceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payments_OrderId",
-                table: "Payments",
-                column: "OrderId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ProductShipment_ShipmentId",
                 table: "ProductShipment",
                 column: "ShipmentId");
@@ -1826,9 +1791,6 @@ namespace Chillde.Repositories.Migrations
 
             migrationBuilder.DropTable(
                 name: "OrderTrackingAttachments");
-
-            migrationBuilder.DropTable(
-                name: "Payments");
 
             migrationBuilder.DropTable(
                 name: "ProductShipment");
