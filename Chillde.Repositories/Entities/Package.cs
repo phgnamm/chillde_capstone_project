@@ -9,7 +9,7 @@ public class Package : BaseEntity
     public decimal? Price { get; set; }
 
     #region new fields
-    public DateTime? DeliveryTime { get; set; }
+    public int? DeliveryTime { get; set; }
     public int? SketchRevision { get; set; }
     public float ResponseTime { get; set; }
 

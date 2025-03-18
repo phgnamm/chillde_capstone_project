@@ -1138,7 +1138,7 @@ public class AccountService : IAccountService
         if (!searchHistories.Data.Any()) {
             return new ResponseModel { Message = "Not found.", Code = StatusCodes.Status400BadRequest };     
         }
-        var searchHistoryModels = searchHistories.Data.Select(_ => new SearchModel
+        var searchHistoryModels = searchHistories.Data.OrderByDescending(_ => _.CreationDate).Select(_ => new SearchModel
         {
             Id = _.Id,
             SearchText = _.SearchText

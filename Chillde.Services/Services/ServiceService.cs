@@ -270,7 +270,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel, string sourceLanguageCode)
+        public async Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -296,21 +296,25 @@ namespace Chillde.Services.Services
                     };
                 }
                 var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
-                // var item = await _unitOfWork.ItemRepository.GetAsync(serviceAddModel.ItemId);
-                // if (item == null)
-                // {
-                //     return new ResponseModel
-                //     {
-                //         Code = StatusCodes.Status404NotFound,
-                //         Message = "Item not found."
-                //     };
-                // }
+
+                var category = await _unitOfWork.CategoryRepository.GetAsync(serviceAddModel.CategoryId);
+                if (category == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Category not found."
+                    };
+                }
 
                 var service = new Service
                 {
                     Name = serviceAddModel.Name,
                     Description = serviceAddModel.Description,
                     Status = ServiceStatus.Inactive,
+                    MinWeight = serviceAddModel.MinWeight,
+                    MaxWeight = serviceAddModel.MaxWeight,
+                    CategoryId = serviceAddModel.CategoryId,
                     EmbeddingVector = embeddingVector
                 };
 
@@ -341,7 +345,7 @@ namespace Chillde.Services.Services
                     for (int i = 0; i < attachmentModel!.Count; i++)
                     {
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
-                        var attachmentUrl = attachmentModel[i].AttachmentUrls;
+                        var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
                         string? path = null;
                         if (attachmentUrl != null)
@@ -391,7 +395,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id, string sourceLanguageCode)
+        public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -427,9 +431,9 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
+                var anyOrderOfService = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
 
-                if (!anyOrder.Result)
+                if (!anyOrderOfService.Result)
                 {
                     _mapper.Map(serviceUpdateModel, service);
                     _unitOfWork.ServiceRepository.Update(service);
@@ -438,7 +442,8 @@ namespace Chillde.Services.Services
                 {
                     _unitOfWork.ServiceRepository.SoftRemove(service);
                     Service newService = _mapper.Map<Service>(serviceUpdateModel);
-                    newService.CreatedById = currentUserId;
+                    newService.CreatedById = service.CreatedById;
+                    newService.CategoryId = service.CategoryId;
                     await _unitOfWork.ServiceRepository.AddAsync(newService);
                 }
 
@@ -546,7 +551,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                string[] fieldsToCheck = { packageAddModel.Name, packageAddModel.Description };
+                string[] fieldsToCheck = { packageAddModel.Description };
 
                 foreach (var field in fieldsToCheck)
                 {
@@ -596,12 +601,13 @@ namespace Chillde.Services.Services
                 {
                     //Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
                     //Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
-                    //Name = (++numberOfExistedPackage).ToString(),
+                    Name = (PackageName)(++numberOfExistedPackage),
                     Description = packageAddModel.Description,
                     Price = packageAddModel.Price,
                     ServiceId = serviceId,
                     DeliveryTime = packageAddModel.DeliveryTime,
                     SketchRevision = packageAddModel.SketchRevision,
+                    ResponseTime = packageAddModel.ResponseTime
                 };
 
                 await _unitOfWork.PackageRepository.AddAsync(package);

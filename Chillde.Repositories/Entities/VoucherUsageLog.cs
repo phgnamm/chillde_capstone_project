@@ -18,7 +18,7 @@ namespace Chillde.Repositories.Entities
         public Order Order { get; set; }
         public decimal DiscountValue { get; set; } // giá giảm quy ra tiền 
         public decimal DiscountValueOrigin { get; set; } // phần trăm giảm ban đầu
-        public UsageStatus UsageStatus { get; set; }
+        public UsageStatus UsageStatus { get; set; } = UsageStatus.Pending;
 
     }
 }

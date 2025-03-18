@@ -21,6 +21,7 @@ namespace Chillde.Repositories.Enums
         DefaultAbsoluteExpiration,
         DefaultSlidingExpiration,
         MaximumPackageOfOneService,
+        MaximumPackageFeatureOfOnePackage,
         MaximumFeatureOfOnePackage,
 
         // related to search history

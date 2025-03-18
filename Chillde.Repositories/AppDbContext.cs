@@ -187,7 +187,7 @@ public class AppDbContext : DbContext
     public DbSet<MessageRecipient> MessageRecipients { get; set; }
     public DbSet<Offer> Offers { get; set; }
     public DbSet<Order> Orders { get; set; }
-    public DbSet<Payment> Payments { get; set; }
+    //public DbSet<Payment> Payments { get; set; }
     public DbSet<OrderInformation> OrderInformation { get; set; }
     public DbSet<OrderInformationAttachment> OrderInformationAttachments { get; set; }
     public DbSet<OrderTracking> OrderTrackings { get; set; }

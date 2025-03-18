@@ -145,8 +145,9 @@ namespace Chillde.API.Controllers
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
-                var result = await _serviceService.AddAsync(serviceAddModel, sourceLanguageCode);
+                var result = await _serviceService.AddAsync(serviceAddModel, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -167,8 +168,9 @@ namespace Chillde.API.Controllers
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
-                var result = await _serviceService.UpdateAsync(serviceUpdateModel, id, sourceLanguageCode);
+                var result = await _serviceService.UpdateAsync(serviceUpdateModel, id, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

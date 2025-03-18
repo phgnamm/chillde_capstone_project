@@ -37,7 +37,7 @@ public class UnitOfWork : IUnitOfWork
         IServiceCollectionRepository serviceCollectionRepository,
         IServiceWishlistRepository serviceWishlistRepository,
         IShipmentRepository shipmentRepository,
-        IPaymentRepository paymentRepository,
+        //IPaymentRepository paymentRepository,
         IUserActivityLogRepository userActivityLogRepository,
         ISystemConfigRepository systemConfigRepository,
         ISearchHistoryRepository searchHistoryRepository,
@@ -78,7 +78,7 @@ public class UnitOfWork : IUnitOfWork
         ServiceCollectionRepository = serviceCollectionRepository;
         ServiceWishlistRepository = serviceWishlistRepository;
         ShipmentRepository = shipmentRepository;
-        PaymentRepository = paymentRepository;
+        //PaymentRepository = paymentRepository;
         UserActivityLogRepository = userActivityLogRepository;
         SearchHistoryRepository = searchHistoryRepository;
         SystemConfigRepository = systemConfigRepository;
@@ -115,7 +115,7 @@ public class UnitOfWork : IUnitOfWork
     public IFeatureRepository FeatureRepository { get; }
     public IPackageFeatureRepository PackageFeatureRepository { get; }
     public IShipmentRepository ShipmentRepository { get; }
-    public IPaymentRepository PaymentRepository { get; }
+    //public IPaymentRepository PaymentRepository { get; }
     public IUserActivityLogRepository UserActivityLogRepository { get; }
     public ISystemConfigRepository SystemConfigRepository { get; }
 

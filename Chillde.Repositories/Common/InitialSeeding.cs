@@ -153,15 +153,15 @@ public static class InitialSeeding
         },
     };
 
-//private static readonly List<C> SubCategories = new()
-//{
+    //private static readonly List<C> SubCategories = new()
+    //{
 
-//        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
-//        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
-//        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
+    //        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
+    //        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
+    //        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
 
-//        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
-//};
+    //        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
+    //};
     private static readonly List<SystemConfig> SystemConfigs = new()
     {
         new()
@@ -963,119 +963,99 @@ public static class InitialSeeding
     {
         new()
         {
-            Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
-            Code = "ORDCHD125FG8G1",
-            Phone = "0912345678",
-            Address = "123 Fake Street, City, Country",
-            ToWard = "20308",
-            ToDistrict = 1444,
-            ToProvince = "HCM",
-            OriginPrice = 2500000,
-            Quantity = 2,
-            ShipmentCode = "ORDCHD125FG8G1_Delivery",
-            CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-            DeliveryTime = DateTime.UtcNow.AddDays(7),
-            CurrentSketchRevision = 1,
-            Stage = OrderStage.Shipping,
-            Status = OrderStatus.Pending,
-            TotalPrice = 2500000,
-            AfterApplyVoucherPrice = 2500000,
-            AdminCommDefault = 200000,
-            AdminCommUsedVch = null,
-            ArtistRevenue = 2000000,
-            VoucherCost = 0,
-            PackageId = Packages[0].Id,
-            CreatedById = Accounts[0].Id,
-            CancellationReasonId = CancellationReasons[0].Id,
-            Payments = new List<Payment>
-            {
-                new Payment
-                {
-                    Id = Guid.Parse("f07caba7-842c-46be-acef-fcb6a5d20fd0"),
-                    PaymentType = PaymentType.VnPay,
-                    Amount = 2500000,
-                    PaymentStatus = PaymentStatus.Success
-                }
-            },
-            OrderInformations = new List<OrderInformation>
-            {
-                new OrderInformation
-                {
-                    Id = Guid.Parse("d082cfcd-b5d9-4c1a-9f18-d8a0a6113bcc"),
-                    Description = "Order Information for Product A",
-                    Price = 2500000,
-                    PackageFeatureId = PackageFeatures[0].Id,
-                    OrderInformationAttachments = new List<OrderInformationAttachment>
-                    {
-                        new OrderInformationAttachment
-                        {
-                            Id = Guid.Parse("d4675207-1a94-4493-8e5f-f2672d31dd52"),
-                            AttachmentUrl = "path/to/file.jpg",
-                            AttachmentAlt = "image",
-                        }
-                    }
-                }
-            }
-        },
-        new()
+        Id = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
+        Code = "ORDCHD125FG8G1",
+        Phone = "0912345678",
+        Address = "123 Fake Street, City, Country",
+        ToWard = "20308",
+        ToDistrict = 1444,
+        ToProvince = "HCM",
+        OriginPrice = 2500000,
+        Quantity = 2,
+        ShipmentCode = "ORDCHD125FG8G2_Delivery",
+        //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
+        DeliveryTime = 7,
+        CurrentSketchRevision = 1,
+        Stage = OrderStage.Shipping,
+        Status = OrderStatus.Pending,
+        TotalPrice = 2500000,
+        AfterApplyVoucherPrice = 2500000,
+        AdminCommDefault = 200000,
+        AdminCommUsedVch = null,
+        ArtistRevenue = 2000000,
+        VoucherCost = 0,
+        PackageId = Packages[0].Id,
+        CreatedById = Accounts[0].Id,
+
+        OrderInformations = new List<OrderInformation>
         {
-            Id = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
-            Phone = "0987654321",
-            Code = "ORDCHD126FG8G2",
-            Address = "456 Another Street, City, Country",
-            ToWard = "20308",
-            ToDistrict = 1444,
-            ToProvince = "HCM",
-            OriginPrice = 2500000,
-            Quantity = 1,
-            ShipmentCode = "ORDCHD125FG8G1_Return",
-            CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
-            DeliveryTime = DateTime.UtcNow.AddDays(7),
-            CurrentSketchRevision = 1,
-            Stage = OrderStage.Shipping,
-            Status = OrderStatus.Pending,
-            TotalPrice = 2500000,
-            AfterApplyVoucherPrice = 2500000,
-            AdminCommDefault = 200000,
-            AdminCommUsedVch = null,
-            ArtistRevenue = 2000000,
-            VoucherCost = 0,
-            PackageId = Packages[0].Id,
-            CreatedById = Accounts[0].Id,
-            CancellationReasonId = CancellationReasons[0].Id,
-            Payments = new List<Payment>
+            new OrderInformation
             {
-                new Payment
+                Id = Guid.Parse("d082cfcd-b5d9-4c1a-9f18-d8a0a6113bcc"),
+                Description = "Order Information for Product A",
+                Price = 2500000,
+                PackageFeatureId = PackageFeatures[0].Id,
+                OrderInformationAttachments = new List<OrderInformationAttachment>
                 {
-                    Id = Guid.Parse("7604cdf4-3fa1-464c-824d-9b89e567ee8c"),
-                    PaymentType = PaymentType.VnPay,
-                    Amount = 100.75m,
-                    PaymentStatus = PaymentStatus.Success
-                }
-            },
-            OrderInformations = new List<OrderInformation>
-            {
-                new OrderInformation
-                {
-                    Id = Guid.Parse("753a3b34-d33e-479b-8940-da24f2a5bacd"),
-                    Description = "Order Information for Product B",
-                    PackageFeatureId = PackageFeatures[1].Id,
-                    Price = 2500000,
-                    OrderInformationAttachments = new List<OrderInformationAttachment>
+                    new OrderInformationAttachment
                     {
-                        new OrderInformationAttachment
-                        {
-                            Id = Guid.Parse("dca69da4-8772-4d70-9736-a59e49a61e5f"),
-                            AttachmentUrl = "path/to/attachment.pdf",
-                            AttachmentAlt = "pdf",
-                        }
+                        Id = Guid.Parse("d4675207-1a94-4493-8e5f-f2672d31dd52"),
+                        AttachmentUrl = "path/to/file.jpg",
+                        AttachmentAlt = "image",
                     }
                 }
             }
         }
+    },
+    new()
+    {
+        Id = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
+        Phone = "0987654321",
+        Code = "ORDCHD126FG8G2",
+        Address = "456 Another Street, City, Country",
+        ToWard = "20308",
+        ToDistrict = 1444,
+        ToProvince = "HCM",
+        OriginPrice = 2500000,
+        Quantity = 1,
+        ShipmentCode = "ORDCHD125FG8G1_Delivery",
+        //CancleOrderReason = CancleOrderReason.ChangeShipmentAddress,
+        DeliveryTime = 7,
+        CurrentSketchRevision = 1,
+        Stage = OrderStage.Shipping,
+        Status = OrderStatus.Pending,
+        TotalPrice = 2500000,
+        AfterApplyVoucherPrice = 2500000,
+        AdminCommDefault = 200000,
+        AdminCommUsedVch = null,
+        ArtistRevenue = 2000000,
+        VoucherCost = 0,
+        PackageId = Packages[0].Id,
+        CreatedById = Accounts[0].Id,
+
+        OrderInformations = new List<OrderInformation>
+        {
+            new OrderInformation
+            {
+                Id = Guid.Parse("753a3b34-d33e-479b-8940-da24f2a5bacd"),
+                Description = "Order Information for Product B",
+                PackageFeatureId = PackageFeatures[1].Id,
+                Price = 2500000,
+                OrderInformationAttachments = new List<OrderInformationAttachment>
+                {
+                    new OrderInformationAttachment
+                    {
+                        Id = Guid.Parse("dca69da4-8772-4d70-9736-a59e49a61e5f"),
+                        AttachmentUrl = "path/to/attachment.pdf",
+                        AttachmentAlt = "pdf",
+                    }
+                }
+      }
+    }
+    }
     };
 
-// This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
+    // This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
 
     /// <summary>
     /// Initialize and seed the database with roles, categories, and subcategories.
