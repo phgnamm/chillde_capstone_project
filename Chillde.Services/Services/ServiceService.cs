@@ -68,7 +68,7 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel, string sourceLanguageCode)
         {
-            string[] fieldsToCheck = { feedbackAddModel.Description };
+            string[] fieldsToCheck = { feedbackAddModel.Description! };
 
             foreach (var field in fieldsToCheck)
             {
@@ -1002,7 +1002,7 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                filter: _ => !_.IsDeleted && _.Name.ToLower().Trim().Contains(serviceFilterModel.Search.ToLower().Trim()),
+                filter: _ => !_.IsDeleted && _.Name!.ToLower().Trim().Contains(serviceFilterModel.Search!.ToLower().Trim()),
                 include: _ => _.Include(_ => _.Packages)
                               .Include(_ => _.ServiceAttachments)
                               .Include(_ => _.CreatedBy),
@@ -1073,15 +1073,6 @@ namespace Chillde.Services.Services
                     }
 
                     var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
-                    if (averageEmbedding == null)
-                    {
-                        return new ResponseModel
-                        {
-                            Message = "No embedding data available for recommendations.",
-                            Code = StatusCodes.Status400BadRequest,
-                            Data = null
-                        };
-                    }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
@@ -1091,7 +1082,7 @@ namespace Chillde.Services.Services
 
                     var threshold = 0.8;
                     var results = services.Data
-                        .Where(s => s.EmbeddingVector != null && CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
+                        .Where(s => CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
                         {
                             Id = s.Id,
@@ -1148,7 +1139,7 @@ namespace Chillde.Services.Services
 
                     var threshold = 0.8;
                     var results = services.Data
-                        .Where(s => s.EmbeddingVector != null && CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
+                        .Where(s => CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
                         {
                             Id = s.Id,
@@ -1169,7 +1160,11 @@ namespace Chillde.Services.Services
                         {
                             Message = "No matching services found for the event.",
                             Code = StatusCodes.Status404NotFound,
-                            Data = null
+                            Data = new
+                            {
+                                EventName = eventDetails.Message,
+                                Services = results
+                            }
                         };
                     }
                     var paginatedResult = new Pagination<ServiceModel>(
@@ -1273,7 +1268,7 @@ namespace Chillde.Services.Services
 
         private float[] ComputeAverageEmbedding(List<float[]> embeddings)
         {
-            if (embeddings == null || embeddings.Count == 0) return new float[0];
+            if (embeddings.Count == 0) return new float[0];
 
             int dimension = embeddings[0].Length;
             float[] averageEmbedding = new float[dimension];
