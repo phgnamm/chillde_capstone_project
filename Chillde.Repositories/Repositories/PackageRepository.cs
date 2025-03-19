@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -26,6 +27,10 @@ namespace Chillde.Repositories.Repositories
             return result;
         }
 
-       
+        public bool GetPackageByNameAsync(PackageName name, Guid serviceId)
+        {
+            var result =  _dbSet.Where(_ => _.ServiceId == serviceId && _.Name == name).Any();
+            return result;
+        }
     }
 }
