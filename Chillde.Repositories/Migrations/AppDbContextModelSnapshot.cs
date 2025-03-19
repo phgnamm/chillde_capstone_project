@@ -2700,7 +2700,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Package", "Package")
                         .WithMany("PackageFeatures")
-                        .HasForeignKey("PackageId");
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Feature");
 

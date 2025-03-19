@@ -38,12 +38,13 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update([FromBody] SystemConfigAddModel model)
+        //[Authorize("Admin")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id,[FromBody] SystemConfigUpdateModel model)
         {
             try
             {
-                var result = await _systemConfigService.Update(model);
+                var result = await _systemConfigService.Update(id, model);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
