@@ -167,14 +167,14 @@ public static class InitialSeeding
         Id = Guid.Parse("f335111a-1b3c-485f-aa87-ebbf689dbd4c"),
         Name = "Baby Carriers & Wraps",
         ParentId = Guid.Parse("e51ae29b-e048-4db0-89a2-670a44e6eea7"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1663133440874-586ef3c834e1?q=80&w=2098&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1480985041486-c65b20c01d1f?q=80&w=2076&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
         Name = "Children's Photo Props",
         ParentId = Guid.Parse("e51ae29b-e048-4db0-89a2-670a44e6eea7"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1696408290876-4c8b13a921c4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1509163245925-f4255dea7727?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
 
     // Level 1: Belts & Suspenders (đã có trong dữ liệu cũ, thêm subcategories mới nếu cần)
@@ -213,7 +213,7 @@ public static class InitialSeeding
         Id = Guid.Parse("3ee74bb9-f578-42cd-b214-eca534f3a89b"),
         Name = "Boutonnières",
         ParentId = Guid.Parse("f576216f-b84c-4b71-adff-0d67f21ae7a3"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1672883552124-5353ca268f32?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1533716471059-d428c5a9b1ad?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -229,7 +229,7 @@ public static class InitialSeeding
         Id = Guid.Parse("59a5fa0a-9cb9-44c5-95e5-b55395584e89"),
         Name = "Costume Accessories",
         ParentId = Guid.Parse("da08e1e1-7f54-4e7a-956c-80bf0632013b"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1675186049530-33e9479f0298?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1627910002409-b90bb356ff4e?q=80&w=2016&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -264,14 +264,14 @@ public static class InitialSeeding
         Id = Guid.Parse("4871b8c7-af47-4bb6-8fad-226fb5e84d2e"),
         Name = "Costume Ears",
         ParentId = Guid.Parse("fbfd784f-bfe3-49ed-99b5-19c46c19b6f1"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1723867346889-b3e4b1de84a0?q=80&w=2006&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1728935367997-d9dd04a4d447?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("a03772d4-9c79-406c-8b1a-6c586df22b15"),
         Name = "Costume Tails",
         ParentId = Guid.Parse("fbfd784f-bfe3-49ed-99b5-19c46c19b6f1"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1693679488761-57f029a69cfb?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1542000551557-3fd0ad0eb15f?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -306,28 +306,28 @@ public static class InitialSeeding
         Id = Guid.Parse("4e078d74-5d79-4066-802a-87dfbf163ffe"),
         Name = "Masks",
         ParentId = Guid.Parse("50da6db7-f16a-4409-ba94-7e9194bb9204"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1677354136477-6c9f75f65038?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1533022586528-2e09bde0959b?q=80&w=2061&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("179bf376-c57c-4037-aac6-773b109cbaa6"),
         Name = "Prosthetics",
         ParentId = Guid.Parse("50da6db7-f16a-4409-ba94-7e9194bb9204"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1682096969085-3eaa044fe3c1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("071908d8-2dcd-4bb0-a986-4db68d937890"),
         Name = "Wands",
         ParentId = Guid.Parse("59a5fa0a-9cb9-44c5-95e5-b55395584e89"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1665949503036-786df9fbc7b8?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1608738781177-d0072141bb23?q=80&w=1965&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("5b05f3e6-1565-4a42-b515-8b5fff359546"),
         Name = "Wings",
         ParentId = Guid.Parse("59a5fa0a-9cb9-44c5-95e5-b55395584e89"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1683930387499-f432c92ab4d8?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1494631781929-c23495644b46?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
 
     // Level 1: Gloves & Mittens
@@ -343,14 +343,14 @@ public static class InitialSeeding
         Id = Guid.Parse("5d44a142-80af-4054-8e7d-ef440181dda3"),
         Name = "Arm Warmers",
         ParentId = Guid.Parse("92c60a43-88d5-48e6-bc24-4e87a12dec37"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1695604460925-4fc8f2722362?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1641597781273-f12e36fbb7c0?q=80&w=1947&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("947d3c1d-2e29-45ea-a965-d6dbc9d5a503"),
         Name = "Costume Gloves",
         ParentId = Guid.Parse("92c60a43-88d5-48e6-bc24-4e87a12dec37"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1677110758452-70a02d403bbf?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1545175928-65a104e66691?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -364,21 +364,21 @@ public static class InitialSeeding
         Id = Guid.Parse("d4ed5890-9abd-453a-8adc-e43148864ee9"),
         Name = "Evening & Formal Gloves",
         ParentId = Guid.Parse("92c60a43-88d5-48e6-bc24-4e87a12dec37"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1678457828662-f9cb76b76ea1?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1516579486067-6d7ef4d67c1e?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("5e34916e-8cca-45a2-b922-c98db668549f"),
         Name = "Gardening & Work Gloves",
         ParentId = Guid.Parse("92c60a43-88d5-48e6-bc24-4e87a12dec37"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1679446269688-3a2576ca02c9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1665395131262-c2df665c2cbe?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("03a5408f-56b0-4a24-9884-ae32bb4b33a0"),
         Name = "Gardening Gloves",
         ParentId = Guid.Parse("5e34916e-8cca-45a2-b922-c98db668549f"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1678723981909-b3a9f3f3c34d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1599778150914-88e98e0c3a3e?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -406,7 +406,7 @@ public static class InitialSeeding
         Id = Guid.Parse("02ecd8e3-8410-43d9-bdc5-3701dfa2109d"),
         Name = "Muffs",
         ParentId = Guid.Parse("46337b72-992b-4e80-9828-d07386afb141"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1672078159323-4d09f719d3af?q=80&w=1972&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1513925793929-15044b9e9554?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -420,13 +420,13 @@ public static class InitialSeeding
         Id = Guid.Parse("a1a6fdd8-c19a-43c4-99a9-6c6b424e9e36"),
         Name = "Winter Gloves",
         ParentId = Guid.Parse("92c60a43-88d5-48e6-bc24-4e87a12dec37"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1671003995983-e72fabf7f183?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1611690889004-c009a7e03712?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("c1e2f3d4-5678-9abc-def0-1234567890ab"),
         Name = "Clothing",
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1679056835084-7f21e64a3402?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1525562723836-dca67a71d5f1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     
     // Level 1: Boys' Clothing
@@ -463,28 +463,28 @@ public static class InitialSeeding
         Id = Guid.Parse("c6e7f8d9-abcd-ef01-2345-67890abcdef0"),
         Name = "Diaper Covers",
         ParentId = Guid.Parse("c4e5f6d7-89ab-cdef-0123-4567890abcde"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1723563578392-d38fed807512?q=80&w=1956&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1695066121571-da11b5d548cc?q=80&w=2088&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("c7e8f9da-bcde-f012-3456-7890abcdef01"),
         Name = "Underwear",
         ParentId = Guid.Parse("c4e5f6d7-89ab-cdef-0123-4567890abcde"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1671717726282-7f2f479f0c87?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1628519555279-3eada894828b?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("c8e9fadb-cdef-0123-4567-890abcdef012"),
         Name = "Bodysuits",
         ParentId = Guid.Parse("c3e4f5d6-789a-bcde-f012-34567890abcd"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1671641797833-f0b00d133830?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1668895048405-79d75cd3f69a?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("c9eafbcd-def0-1234-5678-90abcdef0123"),
         Name = "Clothing Sets",
         ParentId = Guid.Parse("c3e4f5d6-789a-bcde-f012-34567890abcd"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1723553201287-ab9a8fbe57d1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1589083133356-aa13ceaef7fd?q=80&w=2126&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -533,7 +533,7 @@ public static class InitialSeeding
         Id = Guid.Parse("cf012345-4567-890a-bcde-f01234567890"),
         Name = "Leg Warmers",
         ParentId = Guid.Parse("cef01234-3456-7890-abcd-ef0123456789"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1729188135022-9f4c75716298?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1485842612006-6c50e8bf2576?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -577,7 +577,7 @@ public static class InitialSeeding
         Id = Guid.Parse("d90abcde-ef01-2345-6789-0abcdef01234"),
         Name = "Leggings",
         ParentId = Guid.Parse("d1234567-6789-0abc-def0-123456789abc"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1665664652383-2308d742943c?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1606902965551-dce093cda6e7?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -615,7 +615,7 @@ public static class InitialSeeding
         Id = Guid.Parse("a5b6c7d8-9abc-def0-1234-567890abcdef"),
         Name = "Coins & Money",
         ParentId = Guid.Parse("a3b4c5d6-789a-bcde-f012-34567890abcd"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1671803954021-a203ec6d675a?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1599690925058-90e1a0b56154?q=80&w=1965&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     // Level 1: Dolls & Miniatures
     new()
@@ -637,7 +637,7 @@ public static class InitialSeeding
         Id = Guid.Parse("a8b9cdab-cdef-0123-4567-890abcdef012"),
         Name = "Goth & Horror Dolls",
         ParentId = Guid.Parse("a6b7c8d9-abcd-ef01-2345-67890abcdef0"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1698279879712-0dbd1df2dd5a?q=80&w=2002&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1601513445506-2ab0d4fb4229?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -682,7 +682,7 @@ public static class InitialSeeding
         Id = Guid.Parse("b4c5d6e7-89ab-cdef-0123-4567890abcde"),
         Name = "Fiber Arts",
         ParentId = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1669844483981-42471e3ec732?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1720184734699-b68794ffff95?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -696,14 +696,14 @@ public static class InitialSeeding
         Id = Guid.Parse("b6c7d8e9-abcd-ef01-2345-67890abcdef0"),
         Name = "Crewel",
         ParentId = Guid.Parse("b4c5d6e7-89ab-cdef-0123-4567890abcde"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1692650759832-4d674420e5e7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1622378158084-f2221260e688?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("b7c8d9ea-bcde-f012-3456-7890abcdef01"),
         Name = "Crochet",
         ParentId = Guid.Parse("b4c5d6e7-89ab-cdef-0123-4567890abcde"),
-        AttachmentUrl = "https://images.unsplash.com/photo-1519412849983-957822373d02?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1470049384172-927891aad5e9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     // Level 1: Fine Art Ceramics
     new()
@@ -711,7 +711,7 @@ public static class InitialSeeding
         Id = Guid.Parse("b8c9deab-cdef-0123-4567-890abcdef012"),
         Name = "Fine Art Ceramics",
         ParentId = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1682147026652-d4ea9fb76efd?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?q=80&w=1940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
 
     // Level 1: Glass Art
@@ -752,7 +752,7 @@ public static class InitialSeeding
         Id = Guid.Parse("c3d4e5f6-789a-bcde-f012-34567890abcd"),
         Name = "Acrylic",
         ParentId = Guid.Parse("c2d3e4f5-6789-abcd-ef01-234567890abc"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1672329273339-350b22ab1f95?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1597423244036-ef5020e83f3c?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
@@ -804,7 +804,7 @@ public static class InitialSeeding
         Id = Guid.Parse("cdefabcd-ef01-2345-6789-0abcdef01234"),
         Name = "Cigarette Cases",
         ParentId = Guid.Parse("c8d9efab-cdef-0123-4567-890abcdef012"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1664392091988-dfc50fac7ab6?q=80&w=1962&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1606050426913-b2553bc1e1d6?q=80&w=2073&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     // Body Jewelry (Cấp 1)
     new()
@@ -812,22 +812,462 @@ public static class InitialSeeding
         Id = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
         Name = "Body Jewelry",
         ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1709033404514-c3953af680b4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1739524553678-d05a2de11588?q=80&w=1998&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("3f8c0d2a-4b56-4e3e-9c8b-8d5e6f7a9012"),
         Name = "Anklets",
         ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1673896633781-f7c5920870e0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1548790176-f46bb4d5ef7f?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     new()
     {
         Id = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"),
         Name = "Arm Bands",
         ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
-        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1717529138029-ed06be3c61c3?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        AttachmentUrl = "https://images.unsplash.com/photo-1695634707117-46345dcc4ceb?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
+    new()
+    {
+        Id = Guid.Parse("5b0e2f4c-6d78-4c5d-be0d-af7a8b9c1234"),
+        Name = "Barbells",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1620188526357-ff08e03da266?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("6c1f3a5d-7e89-4b6e-cf1e-b08c9d0e2345"),
+        Name = "Belly Chains",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1579071072964-395e8239d579?q=80&w=2074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("7d2a4b6e-8f90-4a7f-d02f-c19d0e1f3456"),
+        Name = "Belly Rings",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1622398925373-3f91b1e275f5?q=80&w=2074&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("8e3b5c7f-9a01-498a-e13a-d20e1f2a4567"),
+        Name = "Bindis",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1664896291033-0509a0adf4f6?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("9f4c6d8a-0b12-489b-f24b-e31f2a3b5678"),
+        Name = "Hair Jewelry",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1708308721254-1682550c34e4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("0a5d7e9b-1c23-47ac-a35c-f42a3b4c6789"),
+        Name = "Lip Rings",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1623184570019-a5caa778f0a1?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("1b6e8f0c-2d34-46bd-b46d-053b4c5d7890"),
+        Name = "Nipple Jewelry",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1685773937991-7b8d2e93e486?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("2c7f9a1d-3e45-45ce-c57e-164c5d6e8901"),
+        Name = "Nose Rings & Studs",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1515626553181-0f218cb03f14?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Bracelets (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        Name = "Bracelets",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("4e9b1c3f-5a67-43ea-e79a-386e7f8a0123"),
+        Name = "Bangles",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1601482438629-346a273776af?q=80&w=2022&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("5f0c2d4a-6b78-42fb-f80b-497f8a9b1234"),
+        Name = "Bridal Churas",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1481068164146-e8beb686f4d2?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("6a1d3e5b-7c89-41ac-a91c-5a8a9b0c2345"),
+        Name = "Kadas",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1728647771886-bf66e49a0af6?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("8c3f5a7d-9e01-4fce-c13e-7c0c1d2e4567"),
+        Name = "Beaded Bracelets",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1647065201693-b7a7be997626?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("9d4a6b8e-0f12-4edf-d24f-8d1d2e3f5678"),
+        Name = "Chain & Link Bracelets",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1453683685760-b8db0bbb8dc2?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("0e5b7c9f-1a23-4cea-e35a-9e2e3f4a6789"),
+        Name = "Charm Bracelets",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1556228578-dd539282b964?q=80&w=2022&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("1f6c8d0a-2b34-4bfb-f46b-0f3f4a5b7890"),
+        Name = "Cuff Bracelets",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1735810918616-5cdfe0aaeb83?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("2a7d9e1b-3c45-4aac-a57c-1a4a5b6c8901"),
+        Name = "Hand Chains",
+        ParentId = Guid.Parse("3d8a0b2e-4f56-44df-d68f-275d6e7f9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1529986791692-bf14db692256?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Brooches, Pins & Clips (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        Name = "Brooches, Pins & Clips",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1512178122500-a56b38e791f0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("4c9f1a3d-5e67-48ce-c79e-3c6c7d8e0123"),
+        Name = "Brooches",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1693212793367-60001caf3b5e?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("5d0a2b4e-6f78-47df-d80f-4d7d8e9f1234"),
+        Name = "Clothing & Shoe Clips",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1495121605193-b116b5b9c5fe?q=80&w=1976&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("6e1b3c5f-7a89-46ea-e91a-5e8e9f0a2345"),
+        Name = "Dress Clips",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1610653093036-884c3f867fe3?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("7f2c4d6a-8b90-45fb-f02b-6f9f0a1b3456"),
+        Name = "Shoe Clips",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1580387084150-1c49cba15579?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("8a3d5e7b-9c01-44ac-a13c-7a0a1b2c4567"),
+        Name = "Sweater Clips",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1663610600030-b78d3b21905b?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("0c5f7a9d-1e23-42ce-c35e-9c2c3d4e6789"),
+        Name = "Pins & Badges",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1522097191880-ae2a4e8b0a4d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("1d6a8b0e-2f34-41df-d46f-0d3d4e5f7890"),
+        Name = "Shawl Pins",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-49bd-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1508881136857-d1781947f4d6?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Cremation & Memorial Jewelry (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("2e7b9c1f-3a45-40ea-e57a-1e4e5f6a8901"),
+        Name = "Cremation & Memorial Jewelry",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
+    // Earrings (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("4a9d1e3b-5c67-4eac-a79c-3a6a7b8c0123"),
+        Name = "Chandelier Earrings",
+        ParentId = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1648224772802-32a401888ed4?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("5b0e2f4c-6d78-4dbd-b80d-4b7b8c9d1234"),
+        Name = "Clip-On Earrings",
+        ParentId = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1609536834325-f9ecf43992f6?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("6c1f3a5d-7e89-4cce-c91e-5c8c9d0e2345"),
+        Name = "Cluster Earrings",
+        ParentId = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1660860550186-f9d77bdcf198?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
+    // Jewelry Sets (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("7d2a4b6e-8f90-4bdf-d02f-6d9d0e1f3456"),
+        Name = "Jewelry Sets",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1685550442243-783aad594db4?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Jewelry Storage (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("8e3b5c7f-9a01-4ace-e13a-7e0e1f2a4567"),
+        Name = "Jewelry Storage",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1561828995-aa79a2db86dd?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("9f4c6d8a-0b12-49df-f24b-8f1f2a3b5678"),
+        Name = "Jewelry Boxes",
+        ParentId = Guid.Parse("8e3b5c7f-9a01-4ace-e13a-7e0e1f2a4567"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1505686183080-0020a5979305?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("0a5d7e9b-1c23-48ea-a35c-9a2a3b4c6789"),
+        Name = "Ring Dishes",
+        ParentId = Guid.Parse("8e3b5c7f-9a01-4ace-e13a-7e0e1f2a4567"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1518370265276-f22b706aeac8?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("1b6e8f0c-2d34-47fb-b46d-0b3b4c5d7890"),
+        Name = "Ring Trees",
+        ParentId = Guid.Parse("8e3b5c7f-9a01-4ace-e13a-7e0e1f2a4567"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1703236068979-6dcaf02f1aba?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
+    // Necklaces (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        Name = "Necklaces",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1631965004544-1762fc696476?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("3d8a0b2e-4f56-45bd-d68f-2d5d6e7f9012"),
+        Name = "Beaded Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1521120098171-0400b4ec1319?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("4e9b1c3f-5a67-44ce-e79a-3e6e7f8a0123"),
+        Name = "Bib Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1610702422639-102e738549fd?q=80&w=2008&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("5f0c2d4a-6b78-43df-f80b-4f7f8a9b1234"),
+        Name = "Cameo Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1729518968988-7d79b9d8719c?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("7b2e4f6c-8d90-41fb-b02d-6b9b0c1d3456"),
+        Name = "Charm Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1631965004544-1762fc696476?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("8c3f5a7d-9e01-40ac-c13e-7c0c1d2e4567"),
+        Name = "Choker Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1489673446964-e1f989187ddc?q=80&w=2010&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("9d4a6b8e-0f12-4fbd-d24f-8d1d2e3f5678"),
+        Name = "Crystal Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1605235744170-f95566b5964e?q=80&w=2137&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("0e5b7c9f-1a23-4ece-e35a-9e2e3f4a6789"),
+        Name = "Lariat & Y Necklaces",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1708794368171-2166674159f6?q=80&w=1928&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("1f6c8d0a-2b34-4ddf-f46b-0f3f4a5b7890"),
+        Name = "Lockets",
+        ParentId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1705326455036-0fab8ecba04d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Rings (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        Name = "Rings",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1550368566-f9cc32d7392d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("5d0a2b4e-6f78-49bd-d80f-4d7d8e9f1234"),
+        Name = "Fraternal & Class Rings",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1501046791521-e24baf06e55b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("6e1b3c5f-7a89-48ce-e91a-5e8e9f0a2345"),
+        Name = "Midi Rings",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1543294001-f7cd5d7fb516?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("7f2c4d6a-8b90-47df-f02b-6f9f0a1b3456"),
+        Name = "Multi-Stone Rings",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1512163143273-bde0e3cc7407?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("8a3d5e7b-9c01-46ea-a13c-7a0a1b2c4567"),
+        Name = "Ring Guards & Spacers",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1517348663636-31103cb49587?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("9b4e6f8c-0d12-45fb-b24d-8b1b2c3d5678"),
+        Name = "Signet Rings",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1515396950203-9d2889e0015f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("0c5f7a9d-1e23-44ac-c35e-9c2c3d4e6789"),
+        Name = "Solitaire Rings",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1508801283163-8e6e3090b523?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("1d6a8b0e-2f34-43bd-d46f-0d3d4e5f7890"),
+        Name = "Stackable Rings",
+        ParentId = Guid.Parse("3b8e0f2c-4d56-4bfb-b68d-2b5b6c7d9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1594300788674-7ed656a8d6d7?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Watches (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("3f8c0d2a-4b56-41df-f68b-2f5f6a7b9012"),
+        Name = "Watches",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("4a9d1e3b-5c67-40ea-a79c-3a6a7b8c0123"),
+        Name = "Pocket Watches",
+        ParentId = Guid.Parse("3f8c0d2a-4b56-41df-f68b-2f5f6a7b9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1493662042295-319935c83112?q=80&w=2076&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("5b0e2f4c-6d78-4ffb-b80d-4b7b8c9d1234"),
+        Name = "Watch Bands & Straps",
+        ParentId = Guid.Parse("3f8c0d2a-4b56-41df-f68b-2f5f6a7b9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1506193095-80bc749473f2?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("6c1f3a5d-7e89-4eac-c91e-5c8c9d0e2345"),
+        Name = "Watch Necklaces",
+        ParentId = Guid.Parse("3f8c0d2a-4b56-41df-f68b-2f5f6a7b9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1721103418218-416182aca079?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("7d2a4b6e-8f90-4dbd-d02f-6d9d0e1f3456"),
+        Name = "Watch Rings",
+        ParentId = Guid.Parse("3f8c0d2a-4b56-41df-f68b-2f5f6a7b9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1482954363933-4bed6bbea570?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    // Wallets & Money Clips (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("8f3b2c1d-4e56-4a9b-b78c-2d5e6f7a9012"),
+        Name = "Wallets & Money Clips",
+        ParentId = Guid.Parse("1ac6acb2-dadc-4882-8561-1716ef2d5c52"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1512358958014-b651a7ee1773?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
+    // Business Card Cases (Cấp 2)
+    new()
+    {
+        Id = Guid.Parse("9a4c3d2e-5f67-4b0c-c89d-3e6f7a8b0123"),
+        Name = "Business Card Cases",
+        ParentId = Guid.Parse("8f3b2c1d-4e56-4a9b-b78c-2d5e6f7a9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1624567881801-a5a85867d990?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
+    // Chain Wallets (Cấp 2)
+    new()
+    {
+        Id = Guid.Parse("0b5d4e3f-6a78-4c1d-d90e-4f7a8b9c1234"),
+        Name = "Chain Wallets",
+        ParentId = Guid.Parse("8f3b2c1d-4e56-4a9b-b78c-2d5e6f7a9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1517254797898-04edd251bfb3?q=80&w=1936&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
+    // Checkbook Covers (Cấp 2)
+    new()
+    {
+        Id = Guid.Parse("1c6e5f4a-7b89-4d2e-e01f-5a8b9c0d2345"),
+        Name = "Checkbook Covers",
+        ParentId = Guid.Parse("8f3b2c1d-4e56-4a9b-b78c-2d5e6f7a9012"),
+        AttachmentUrl = "https://images.unsplash.com/photo-1533678316395-13b6b41bf542?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+
     };
 
     //private static readonly List<C> SubCategories = new()
