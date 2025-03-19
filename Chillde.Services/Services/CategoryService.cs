@@ -299,19 +299,47 @@ namespace Chillde.Services.Services
             try
             {
                 Expression<Func<Category, bool>> filter = category =>
-                    category.IsDeleted == categoryFilterModel.IsDeleted &&
+                    (category.IsDeleted == categoryFilterModel.IsDeleted) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-                     (category.Name != null && category.Name.Contains(categoryFilterModel.Search, StringComparison.OrdinalIgnoreCase)) ||
-                     (category.Slug != null && category.Slug.Contains(categoryFilterModel.Search, StringComparison.OrdinalIgnoreCase))) &&
-                    (string.IsNullOrEmpty(categoryFilterModel.Slug) || category.Slug == categoryFilterModel.Slug) &&
+                     (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
+                     (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
+                    (string.IsNullOrEmpty(categoryFilterModel.Slug) || (category.Slug != null && category.Slug == categoryFilterModel.Slug)) &&
                     (!categoryFilterModel.ParentId.HasValue || category.ParentId == categoryFilterModel.ParentId);
 
                 var allCategoriesResult = await _unitOfWork.CategoryRepository.GetAllAsync(filter: filter);
-                var allCategories = allCategoriesResult.Data.ToList();
+                var allCategories = allCategoriesResult.Data;
 
-                if (!categoryFilterModel.IncludeChildren)
+                if (categoryFilterModel.IncludeChildren)
+                {
+                    var rootCategories = allCategories
+                        .Where(c => c.ParentId == categoryFilterModel.ParentId)
+                        .Select(c => BuildCategoryTree(c, allCategories))
+                        .ToList();
+
+                    var totalCount = rootCategories.Count;
+                    var pagedRootCategories = rootCategories
+                        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
+                        .Take(categoryFilterModel.PageSize)
+                        .ToList();
+
+                    var result = new Pagination<CategoryTreeModel>(
+                        pagedRootCategories,
+                        categoryFilterModel.PageIndex,
+                        categoryFilterModel.PageSize,
+                        totalCount
+                    );
+
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Get all categories with tree successfully",
+                        Data = result
+                    };
+                }
+                else
                 {
                     var flatCategories = allCategories
+                        .Where(c => c.ParentId == categoryFilterModel.ParentId)
                         .Select(category => new CategoryTreeModel
                         {
                             Id = category.Id,
@@ -348,34 +376,6 @@ namespace Chillde.Services.Services
                         Data = result
                     };
                 }
-                else
-                {
-                    var rootCategories = allCategories
-                        .Where(c => (string.IsNullOrEmpty(categoryFilterModel.Slug) && c.ParentId == categoryFilterModel.ParentId) ||
-                                    (c.Slug == categoryFilterModel.Slug))
-                        .Select(c => BuildCategoryTree(c, allCategories))
-                        .ToList();
-
-                    var totalCount = rootCategories.Count;
-                    var pagedRootCategories = rootCategories
-                        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
-                        .Take(categoryFilterModel.PageSize)
-                        .ToList();
-
-                    var result = new Pagination<CategoryTreeModel>(
-                        pagedRootCategories,
-                        categoryFilterModel.PageIndex,
-                        categoryFilterModel.PageSize,
-                        totalCount
-                    );
-
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Get all categories with tree successfully",
-                        Data = result
-                    };
-                }
             }
             catch (Exception ex)
             {
@@ -385,6 +385,7 @@ namespace Chillde.Services.Services
                     Message = $"An error occurred while retrieving categories: {ex.Message}"
                 };
             }
+
         }
 
         private CategoryTreeModel BuildCategoryTree(Category category, IEnumerable<Category> allCategories)

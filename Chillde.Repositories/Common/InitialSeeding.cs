@@ -806,7 +806,28 @@ public static class InitialSeeding
         ParentId = Guid.Parse("c8d9efab-cdef-0123-4567-890abcdef012"),
         AttachmentUrl = "https://plus.unsplash.com/premium_photo-1664392091988-dfc50fac7ab6?q=80&w=1962&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
-
+    // Body Jewelry (Cấp 1)
+    new()
+    {
+        Id = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        Name = "Body Jewelry",
+        ParentId = Guid.Parse("b698f941-943c-47d1-88fd-9e0e05f6e15a"),
+        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1709033404514-c3953af680b4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("3f8c0d2a-4b56-4e3e-9c8b-8d5e6f7a9012"),
+        Name = "Anklets",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1673896633781-f7c5920870e0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
+    new()
+    {
+        Id = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"),
+        Name = "Arm Bands",
+        ParentId = Guid.Parse("2e7b9c1f-3a45-4f2d-8b9a-7c4d5e6f7890"),
+        AttachmentUrl = "https://plus.unsplash.com/premium_photo-1717529138029-ed06be3c61c3?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+    },
     };
 
     //private static readonly List<C> SubCategories = new()
