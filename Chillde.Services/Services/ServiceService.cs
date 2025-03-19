@@ -454,6 +454,7 @@ namespace Chillde.Services.Services
                     var serviceAttachmentWithNewService = new List<ServiceAttachment>();
                     foreach (var serviceAttachment in serviceAttachments.Data)
                     {
+                        serviceAttachment.Id = new Guid();
                         serviceAttachment.ServiceId = newService.Id;
                         serviceAttachmentWithNewService.Add(serviceAttachment);
                     }
