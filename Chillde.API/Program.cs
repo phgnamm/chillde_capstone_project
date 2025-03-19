@@ -5,6 +5,7 @@ using Chillde.API.Middlewares;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Services.Hubs;
+using Chillde.Services.Services;
 using Elasticsearch.Net;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Localization;
@@ -73,6 +74,7 @@ builder.Services.AddApiConfiguration(builder.Configuration);
 //        options.JsonSerializerOptions.MaxDepth = 64; // optional: to avoid issues with deeply nested objects
 //    });
 
+builder.Services.AddHostedService<WorkerService>();
 var app = builder.Build();
 
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);

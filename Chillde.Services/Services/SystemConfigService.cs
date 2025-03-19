@@ -66,11 +66,11 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> Update(SystemConfigAddModel model)
+        public async Task<ResponseModel> Update(Guid id, SystemConfigUpdateModel model)
         {
             try
             {
-                var config = await _unitOfWork.SystemConfigRepository.GetByEntityTypeAsync(model.FieldName);
+                var config = await _unitOfWork.SystemConfigRepository.GetAsync(id);
                 if (config == null)
                 {
                     return new ResponseModel
@@ -115,7 +115,7 @@ namespace Chillde.Services.Services
                 model.PageSize
             );
 
-            if (configList == null || !configList.Data.Any())
+            if (!configList.Data.Any())
             {
                 return new ResponseModel
                 {
@@ -154,7 +154,7 @@ namespace Chillde.Services.Services
                 };
             }
             string? value;
-            if (config.Value is JsonDocument jsonDoc)
+            if (config.Value is { } jsonDoc)
             {
                 value = jsonDoc.RootElement.ToString();
             }
