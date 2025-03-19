@@ -68,7 +68,7 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel, string sourceLanguageCode)
         {
-            string[] fieldsToCheck = { feedbackAddModel.Description };
+            string[] fieldsToCheck = { feedbackAddModel.Description! };
 
             foreach (var field in fieldsToCheck)
             {
@@ -1002,7 +1002,7 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                filter: _ => !_.IsDeleted && _.Name.ToLower().Trim().Contains(serviceFilterModel.Search.ToLower().Trim()),
+                filter: _ => !_.IsDeleted && _.Name!.ToLower().Trim().Contains(serviceFilterModel.Search!.ToLower().Trim()),
                 include: _ => _.Include(_ => _.Packages)
                               .Include(_ => _.ServiceAttachments)
                               .Include(_ => _.CreatedBy),
@@ -1160,7 +1160,11 @@ namespace Chillde.Services.Services
                         {
                             Message = "No matching services found for the event.",
                             Code = StatusCodes.Status404NotFound,
-                            Data = null
+                            Data = new
+                            {
+                                EventName = eventDetails.Message,
+                                Services = results
+                            }
                         };
                     }
                     var paginatedResult = new Pagination<ServiceModel>(
