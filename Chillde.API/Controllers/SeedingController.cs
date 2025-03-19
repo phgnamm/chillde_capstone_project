@@ -34,8 +34,8 @@ namespace Chillde.API.Controllers
                         {
                             new ServiceAttachmentAddModel
                             {
-                                AttachmentUrl = null,
-                                AttachmentAlt = ""
+                                AttachmentUrl = CreateFormFileFromPath("C:\\Users\\PC\\Downloads\\ethan-rougon-oIlix2slmsI-unsplash.jpg"),
+                                AttachmentAlt = "vida"
                             }
                         }
                     },
@@ -63,5 +63,20 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        private static IFormFile CreateFormFileFromPath(string filePath)
+        {
+            if (!System.IO.File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"File không tồn tại: {filePath}");
+            }
+
+            var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            return new FormFile(fileStream, 0, fileStream.Length, "AttachmentUrl", Path.GetFileName(filePath))
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = "image/jpeg" 
+            };
+        }
     }
+
 }
