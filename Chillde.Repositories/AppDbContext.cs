@@ -60,9 +60,10 @@ public class AppDbContext : DbContext
             entity.Property(conversation => conversation.Name).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<Category>(entity => {
+        modelBuilder.Entity<Category>(entity =>
+        {
             entity.HasIndex(voucher => voucher.Slug).IsUnique();
-            entity.Property(category => category.Name).HasMaxLength(100); 
+            entity.Property(category => category.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
@@ -132,7 +133,7 @@ public class AppDbContext : DbContext
             .HasForeignKey(v => v.CreatedById)
             .OnDelete(DeleteBehavior.Cascade);
         });
-            
+
 
         modelBuilder.Entity<Voucher>()
             .HasOne(v => v.Receiver)
@@ -164,6 +165,16 @@ public class AppDbContext : DbContext
                 .HasForeignKey(c => c.ParentId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        modelBuilder.Entity<PackageFeature>(entity =>
+        {
+            entity.HasOne(pf => pf.Package)
+    .WithMany(p => p.PackageFeatures)
+    .HasForeignKey(pf => pf.PackageId)
+    .OnDelete(DeleteBehavior.Cascade);
+        });
+    
+
 
         #endregion
     }

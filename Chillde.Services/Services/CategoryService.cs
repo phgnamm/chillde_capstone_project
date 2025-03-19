@@ -217,7 +217,6 @@ namespace Chillde.Services.Services
             }
         }
 
-
         public async Task<ResponseModel> Delete(Guid id)
         {
             if (id == Guid.Empty)

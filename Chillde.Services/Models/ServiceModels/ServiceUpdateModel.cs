@@ -15,7 +15,7 @@ namespace Chillde.Services.Models.ServiceModels
         public float? MinWeight { get; set; }
         public float? MaxWeight { get; set; }
 
-        //public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
+        public List<ServiceAttachmentAddModel>? ServiceAttachments { get; set; }
 
     }
 }
