@@ -29,4 +29,16 @@ public class CloudinaryHelper : ICloudinaryHelper
         var result = await _cloudinary.UploadAsync(parameters);
         return result.SecureUrl.ToString();
     }
+
+    public async Task<string> RemoveImagesAsync(List<string> publicIds)
+    {
+        if (publicIds == null || publicIds.Count == 0)
+        {
+            var result = await _cloudinary.DeleteResourcesAsync(publicIds.ToArray());
+
+            return "Deleted {result.Deleted.Count} images successfully.";
+        }
+       return "Failed to delete images.";
+    }
+
 }

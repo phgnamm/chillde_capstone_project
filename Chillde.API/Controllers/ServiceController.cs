@@ -5,6 +5,7 @@ using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.FeedbackModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.SuggestModels;
 using Chillde.Services.Services;
@@ -209,6 +210,25 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _serviceService.GetServiceAttachmentssAsync(serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize("Artisan")]
+        [HttpPost("{serviceId}/service-attachments")]
+        public async Task<IActionResult> AddListServiceAttachmentAsync([FromForm] List<ServiceAttachmentAddModel> attachmentModels, Guid serviceId)
+        {
+            try
+            { 
+                var result = await _serviceService.AddListServiceAttachmentAsync(attachmentModels, serviceId);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
