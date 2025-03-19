@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -51,7 +52,7 @@ namespace Chillde.Services.Models.OrderModels
 
         public bool? WithBalance { get; set; } = false;
 
-        public ICollection<OrderInformationAddModel>? OrderInformationAddModels { get; set; } 
+        public ICollection<OrderInformationAddModel>? OrderInformationAddModels { get; set; } = new List<OrderInformationAddModel>();
         public ICollection<Guid>? VoucherId { get; set; }
     }
 
@@ -64,7 +65,7 @@ namespace Chillde.Services.Models.OrderModels
 
         [Required]
         public Guid PackageFeatureId { get; set; }
-        public ICollection<OrderInformationAttachmentAddModel>? OrderInformationAttachmentAddModels { get; set; }
+        public ICollection<OrderInformationAttachmentAddModel>? OrderInformationAttachmentAddModels { get; set; } = new List<OrderInformationAttachmentAddModel>();
 
     }
     public class OrderInformationAttachmentAddModel

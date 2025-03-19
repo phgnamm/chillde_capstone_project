@@ -21,6 +21,7 @@ using Nest;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.SystemConfigModel;
 using Chillde.Services.Models.ServiceAttachmentModels;
+using Chillde.Repositories.Models.AccountModels;
 
 namespace Chillde.Services.Services
 {
@@ -926,14 +927,6 @@ namespace Chillde.Services.Services
             int pageSize = serviceFilterModel.PageSize;
             var result = new Pagination<ServiceModel>(null!, pageIndex, pageSize, 0);
             var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized."
-                };
-            }
             if (currentUserId.HasValue)
             {
                 await SaveSearchHistoryAsync(serviceFilterModel.Search, currentUserId.Value);
@@ -1009,30 +1002,47 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                   filter: _ => _.IsDeleted == false,
-                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
-                   pageIndex: serviceFilterModel.PageIndex,
-                   pageSize: serviceFilterModel.PageSize
-                   );
+                filter: _ => !_.IsDeleted && _.Name.ToLower().Trim().Contains(serviceFilterModel.Search.ToLower().Trim()),
+                include: _ => _.Include(_ => _.Packages)
+                              .Include(_ => _.ServiceAttachments)
+                              .Include(_ => _.CreatedBy),
+                pageIndex: serviceFilterModel.PageIndex,
+                pageSize: serviceFilterModel.PageSize
+            );
+
             var serviceModels = services.Data.Select(_ => new ServiceModel
             {
                 Id = _.Id,
                 Name = _.Name!,
-                Description = _.Description!,
-                ServiceAttachments = _.ServiceAttachments.ToList()
+                ServiceImage = _.ServiceAttachments.Select(_ => _.AttachmentUrl).FirstOrDefault() ?? "Unknown",             
+                Description = _.Description ?? "",
+                FeedbackCount = 1000,
+                Rate = 4.9,
+                ServiceAttachments = _.ServiceAttachments.ToList(),
+                Artisan = _.CreatedBy == null ? null : new AccountLiteModel
+                {
+                    FirstName = _.CreatedBy.FirstName ?? "Unknown",
+                    LastName = _.CreatedBy.LastName ?? "Unknown",
+                    Username = _.CreatedBy.Username ?? "Unknown",
+                    Email = _.CreatedBy.Email ?? "Unknown",
+                    Image = _.CreatedBy.Image ?? "Unknown"
+                }
             }).ToList();
+
             var result = new Pagination<ServiceModel>(
-               serviceModels,
-               serviceFilterModel.PageIndex,
-               serviceFilterModel.PageSize,
-               serviceModels.Count);
+                serviceModels,
+                serviceFilterModel.PageIndex,
+                serviceFilterModel.PageSize,
+                serviceModels.Count
+            );
 
             return new ResponseModel
             {
-                Message = "Get all services successfully",
+                Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
                 Data = result
             };
         }
+
 
         public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode)
         {
