@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.AccountModels;
 
 namespace Chillde.Repositories.Models.ServiceModels
 {
@@ -7,8 +8,6 @@ namespace Chillde.Repositories.Models.ServiceModels
     {
         public string Name { get; set; } = string.Empty;
         public string? ServiceImage { get; set; } = string.Empty;
-        public string? ArtisanImage { get; set; } = string.Empty;
-        public string? ArtisanName { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public double? Similarity { get; set; }
         public bool? IsOffer { get; set; }
@@ -17,6 +16,7 @@ namespace Chillde.Repositories.Models.ServiceModels
         public double? Rate { get; set; }
         public int? FeedbackCount { get; set; }
         public decimal? Price { get; set; }
+        public AccountLiteModel? Artisan { get; set; }
     }
  
 }
