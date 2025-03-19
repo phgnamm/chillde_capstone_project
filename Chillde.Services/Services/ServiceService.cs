@@ -982,15 +982,6 @@ namespace Chillde.Services.Services
                     }
 
                     var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
-                    if (averageEmbedding == null)
-                    {
-                        return new ResponseModel
-                        {
-                            Message = "No embedding data available for recommendations.",
-                            Code = StatusCodes.Status400BadRequest,
-                            Data = null
-                        };
-                    }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
@@ -1000,7 +991,7 @@ namespace Chillde.Services.Services
 
                     var threshold = 0.8;
                     var results = services.Data
-                        .Where(s => s.EmbeddingVector != null && CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
+                        .Where(s => CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
                         {
                             Id = s.Id,
@@ -1057,7 +1048,7 @@ namespace Chillde.Services.Services
 
                     var threshold = 0.8;
                     var results = services.Data
-                        .Where(s => s.EmbeddingVector != null && CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
+                        .Where(s => CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
                         {
                             Id = s.Id,
@@ -1182,7 +1173,7 @@ namespace Chillde.Services.Services
 
         private float[] ComputeAverageEmbedding(List<float[]> embeddings)
         {
-            if (embeddings == null || embeddings.Count == 0) return new float[0];
+            if (embeddings.Count == 0) return new float[0];
 
             int dimension = embeddings[0].Length;
             float[] averageEmbedding = new float[dimension];
