@@ -60,7 +60,6 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Unauthorized"
                 };
-            // lấy package
             var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId,
                 include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request));
             if (package == null)
@@ -69,7 +68,6 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status401Unauthorized,
                     Message = "Package not found"
                 };
-            // tạo order 
             var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
 
             if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
@@ -127,71 +125,78 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> CreatePaymentUrl(OrderAddModel orderAddModel, string ipAddress)
         {
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
+            try
             {
-                return new ResponseModel
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
                 {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized"
-                };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
+
+                var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId,
+                    include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request));
+                if (package == null)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Package not found."
+                    };
+
+
+                var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
+                decimal remainingAmount = 0;
+
+                if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
+                    await ProcessExtraFeatures(orderAddModel, newOrder);
+                if (orderAddModel.VoucherId != null)
+                {
+                    await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder);
+                }
+                if ((bool)orderAddModel.WithBalance)
+                {
+                    var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
+                    var wallet = account?.Wallet;
+                    var response = await ProcessWalletPayment(wallet, newOrder, currentUserId.Value);
+                    if (response != null) return response;
+                    remainingAmount = (decimal)response.Data;
+                }
+                if (!(bool)orderAddModel.WithBalance)
+                {
+                    newOrder.Transactions.Add(new Transaction
+                    {
+                        Amount = newOrder.TotalPrice,
+                        Type = TransactionType.Deposit,
+                        CreatedById = currentUserId.Value,
+                        Status = TransactionStatus.Pending
+                    });
+                    newOrder.Transactions.Add(new Transaction
+                    {
+                        Amount = newOrder.TotalPrice,
+                        Type = TransactionType.TransferOut,
+                        CreatedById = currentUserId.Value,
+                        Status = TransactionStatus.Pending
+                    });
+                }
+                await _unitOfWork.OrderRepository.AddAsync(newOrder);
+                if (await _unitOfWork.SaveChangeAsync() < 0)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Fail to save order"
+                    };
+
+                var paymentUrl = await GenerateVnPayUrl(newOrder, ipAddress, (decimal)remainingAmount);
+
+                return new ResponseModel { Data = paymentUrl, Message = "Created paymentUrl successfully" };
             }
-
-            var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId, 
-                include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature) .Include(_ => _.Offer).ThenInclude(_ => _.Request));
-            if (package == null)
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Package not found."
-                };
-
-
-            var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
-            decimal remainingAmount = 0;
-
-            if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
-                await ProcessExtraFeatures(orderAddModel, newOrder);
-            if (orderAddModel.VoucherId != null)
+            catch (Exception ex)
             {
-                await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder);
+                throw new Exception(ex.Message);
             }
-            if ((bool)orderAddModel.WithBalance)
-            {
-                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
-                var wallet = account?.Wallet;
-                var response = await ProcessWalletPayment(wallet, newOrder, currentUserId.Value);
-                if (response != null) return response;
-                remainingAmount = (decimal)response.Data;
-            }
-            if (!(bool)orderAddModel.WithBalance)
-            {
-                newOrder.Transactions.Add(new Transaction
-                {
-                    Amount = newOrder.TotalPrice,
-                    Type = TransactionType.Deposit,
-                    CreatedById = currentUserId.Value,
-                    Status = TransactionStatus.Pending
-                });
-                newOrder.Transactions.Add(new Transaction
-                {
-                    Amount = newOrder.TotalPrice,
-                    Type = TransactionType.TransferOut,
-                    CreatedById = currentUserId.Value,
-                    Status = TransactionStatus.Pending
-                });
-            }
-            await _unitOfWork.OrderRepository.AddAsync(newOrder);
-            if (await _unitOfWork.SaveChangeAsync() < 0)
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status400BadRequest,
-                    Message = "Fail to save order"
-                };
-
-            var paymentUrl = await GenerateVnPayUrl(newOrder, ipAddress, (decimal)remainingAmount);
-
-            return new ResponseModel { Data = paymentUrl, Message = "Created paymentUrl successfully" };
         }
         private async Task<Repositories.Entities.Order> InitializeOrder(OrderAddModel orderAddModel, Package package, Guid userId)
         {

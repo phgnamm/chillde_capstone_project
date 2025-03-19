@@ -926,14 +926,6 @@ namespace Chillde.Services.Services
             int pageSize = serviceFilterModel.PageSize;
             var result = new Pagination<ServiceModel>(null!, pageIndex, pageSize, 0);
             var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized."
-                };
-            }
             if (currentUserId.HasValue)
             {
                 await SaveSearchHistoryAsync(serviceFilterModel.Search, currentUserId.Value);
@@ -1009,8 +1001,8 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                   filter: _ => _.IsDeleted == false,
-                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                   filter: _ => _.IsDeleted == false && _.Name.ToLower().Trim().Contains(serviceFilterModel.Search.ToLower().Trim()),
+                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy),
                    pageIndex: serviceFilterModel.PageIndex,
                    pageSize: serviceFilterModel.PageSize
                    );
@@ -1018,7 +1010,12 @@ namespace Chillde.Services.Services
             {
                 Id = _.Id,
                 Name = _.Name!,
+                ServiceImage = _.ServiceAttachments.Select(_ => _.AttachmentUrl).First(),
+                ArtisanName = _.CreatedBy?.FirstName + " " + _.CreatedBy?.LastName ?? "Unknown",
+                ArtisanImage = _.CreatedBy?.Image ?? "Unknown",
                 Description = _.Description!,
+                FeedbackCount = 1000,
+                Rate = 4.9,
                 ServiceAttachments = _.ServiceAttachments.ToList()
             }).ToList();
             var result = new Pagination<ServiceModel>(
