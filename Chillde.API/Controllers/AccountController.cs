@@ -89,7 +89,7 @@ public class AccountController : ControllerBase
             });
         }
     }
-    [Authorize(Roles = "Artisan")]
+    [Authorize]
     [HttpGet("admin-vouchers")]
     public async Task<IActionResult> GetVoucherAdmin(Guid orderId)
     {
