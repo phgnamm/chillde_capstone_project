@@ -73,7 +73,7 @@ public class AccountController : ControllerBase
     }
     [Authorize(Roles = "Customer")]
     [HttpGet("vouchers")]
-    public async Task<IActionResult> GetVoucher([FromQuery] Guid packageId, [FromBody] decimal totalPriceOfOrder)
+    public async Task<IActionResult> GetVoucher([FromQuery] Guid packageId, [FromQuery] decimal totalPriceOfOrder)
     {
         try
         {

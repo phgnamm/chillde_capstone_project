@@ -217,7 +217,6 @@ namespace Chillde.Services.Services
             }
         }
 
-
         public async Task<ResponseModel> Delete(Guid id)
         {
             if (id == Guid.Empty)
@@ -589,7 +588,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var categoryModel = new CategoryModel  
+                var categoryModel = new CategoryModel
                 {
                     Id = category.Id,
                     Name = category.Name,

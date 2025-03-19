@@ -5,6 +5,6 @@ namespace Chillde.Services.Interfaces
 {
     public interface IServiceAttachmentService
     {
-        Task<ResponseModel> AddRangeAsync(Guid serviceId, ServiceAttachmentAddModel model);
+        Task<ResponseModel> DeleteServiceAttachmentAsync(List<Guid> serviceAttacchmentIds);
     }
 }

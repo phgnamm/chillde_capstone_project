@@ -21,54 +21,38 @@ namespace Chillde.Services.Services
             _mapper = mapper;
         }
 
-        public async Task<ResponseModel> AddRangeAsync(Guid serviceId, ServiceAttachmentAddModel model)
+        public async Task<ResponseModel> DeleteServiceAttachmentAsync(List<Guid> serviceAttacchmentIds)
         {
             try
             {
-                //if (model.AttachmentAlt.Count != model.AttachmentUrls!.Count)
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status400BadRequest,
-                //        Message = "The number of attachments and images must match."
-                //    };
-                //}
+                var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
+                    filter: _ => serviceAttacchmentIds.Contains(_.Id)
+                    );
 
-                //var newServiceAttachment = new List<ServiceAttachment>();
+                var a = serviceAttachments.Data;
 
-                //for (int i = 0; i < model.AttachmentAlt.Count; i++)
-                //{
-                //    var attachmentAlt = model.AttachmentAlt[i];
-                //    var attachmentUrl = model.AttachmentUrls[i];
+                if (serviceAttachments == null || !serviceAttachments.Data.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Attachments not found."
+                    };
+                }
 
-                //    string? path = null;
-                //    if (attachmentUrl != null)
-                //    {
-                //        path = await _cloudinaryHelper.UploadImageAsync(
-                //            attachmentUrl,
-                //            "serviceAttachments",
-                //            Guid.NewGuid().ToString()
-                //        );
-                //    }
+                var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
 
-                //    newServiceAttachment.Add(new ServiceAttachment
-                //    {
-                //        AttachmentAlt = attachmentAlt,
-                //        AttachmentUrl = path,
-                //        ServiceId = serviceId,
-                //    });
-                //}
+                await _cloudinaryHelper.RemoveImagesAsync(serviceAttacchmentIds.Select(id => id.ToString()).ToList());
 
-
-                //await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
-                //await _unitOfWork.SaveChangeAsync();
+                _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
+                await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Successfully.",
-                    //Data = newServiceAttachment
+                    Message = "Success"
                 };
+
             }
             catch (Exception ex)
             {

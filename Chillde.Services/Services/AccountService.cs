@@ -1056,11 +1056,23 @@ public class AccountService : IAccountService
         var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles));
         var customerReputation = customer?.AccountRoles?.Select(_ => _.TotalReputation).FirstOrDefault() ?? 0;
         var showVoucher = vouchersByArtisan.Data.Where(_ =>
-            (!_.MinOrderRequired.HasValue || orderedQuantity >= _.MinOrderRequired) &&
-            (!_.MinReputation.HasValue || customerReputation >= _.MinReputation) &&
-            (!_.MinOrderValue.HasValue || totalPriceOfOrder >= _.MinOrderValue) &&
-            (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0)
-        ).ToList();
+        {
+            bool isValid = true;
+
+            if (_.MinOrderRequired.HasValue)
+                isValid &= orderedQuantity >= _.MinOrderRequired;
+
+            if (_.MinReputation.HasValue)
+                isValid &= customerReputation >= _.MinReputation;
+
+            if (_.MinOrderValue.HasValue)
+                isValid &= totalPriceOfOrder >= _.MinOrderValue;
+
+            if (_.RemainingQuantity.HasValue)
+                isValid &= _.RemainingQuantity > 0;
+
+            return isValid;
+        }).ToList();
 
         var voucherModelLists = showVoucher.Select(voucher => new VoucherModel
         {

@@ -20,6 +20,7 @@ using Chillde.Services.Utils;
 using Nest;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.SystemConfigModel;
+using Chillde.Services.Models.ServiceAttachmentModels;
 
 namespace Chillde.Services.Services
 {
@@ -352,7 +353,7 @@ namespace Chillde.Services.Services
                         {
                             path = await _cloudinaryHelper.UploadImageAsync(
                                 attachmentUrl,
-                                "serviceAttachments",
+                                attachmentAlt,
                                 Guid.NewGuid().ToString()
                             );
                         }
@@ -445,6 +446,19 @@ namespace Chillde.Services.Services
                     newService.CreatedById = service.CreatedById;
                     newService.CategoryId = service.CategoryId;
                     await _unitOfWork.ServiceRepository.AddAsync(newService);
+
+                    var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
+                        filter: sa => sa.ServiceId == id
+                    );
+
+                    var serviceAttachmentWithNewService = new List<ServiceAttachment>();
+                    foreach (var serviceAttachment in serviceAttachments.Data)
+                    {
+                        serviceAttachment.Id = new Guid();
+                        serviceAttachment.ServiceId = newService.Id;
+                        serviceAttachmentWithNewService.Add(serviceAttachment);
+                    }
+                    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentWithNewService);
                 }
 
                 await _unitOfWork.SaveChangeAsync();
@@ -547,6 +561,65 @@ namespace Chillde.Services.Services
             }
         }
 
+        public async Task<ResponseModel> AddListServiceAttachmentAsync(List<ServiceAttachmentAddModel> attachmentModel, Guid serviceId)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                var newServiceAttachment = new List<ServiceAttachment>();
+
+                for (int i = 0; i < attachmentModel.Count; i++)
+                {
+                    var attachmentAlt = attachmentModel[i].AttachmentAlt;
+                    var attachmentUrl = attachmentModel[i].AttachmentUrl;
+
+                    string? path = null;
+                    if (attachmentUrl != null)
+                    {
+                        path = await _cloudinaryHelper.UploadImageAsync(
+                            attachmentUrl,
+                            attachmentAlt,
+                            Guid.NewGuid().ToString()
+                        );
+                    }
+
+                    newServiceAttachment.Add(new ServiceAttachment
+                    {
+                        AttachmentAlt = attachmentAlt,
+                        AttachmentUrl = path,
+                        ServiceId = service.Id
+                    });
+                }
+
+                await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Success"
+                };
+
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
         public async Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId, string sourceLanguageCode, string targetLanguageCode)
         {
             try
@@ -572,7 +645,17 @@ namespace Chillde.Services.Services
                         Message = "Service not found."
                     };
                 }
-                await _unitOfWork.BeginTransactionAsync();
+
+                var packageWithSameName = _unitOfWork.PackageRepository.GetPackageByNameAsync(packageAddModel.Name, serviceId);
+                if (packageWithSameName)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Service already has this package's name."
+                    };
+                }
+                //await _unitOfWork.BeginTransactionAsync();
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
@@ -601,7 +684,7 @@ namespace Chillde.Services.Services
                 {
                     //Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
                     //Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
-                    Name = (PackageName)(++numberOfExistedPackage),
+                    Name = packageAddModel.Name,
                     Description = packageAddModel.Description,
                     Price = packageAddModel.Price,
                     ServiceId = serviceId,
@@ -843,14 +926,6 @@ namespace Chillde.Services.Services
             int pageSize = serviceFilterModel.PageSize;
             var result = new Pagination<ServiceModel>(null!, pageIndex, pageSize, 0);
             var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
-            {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized."
-                };
-            }
             if (currentUserId.HasValue)
             {
                 await SaveSearchHistoryAsync(serviceFilterModel.Search, currentUserId.Value);
@@ -923,13 +998,11 @@ namespace Chillde.Services.Services
             };
         }
 
-
-
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                   filter: _ => _.IsDeleted == false,
-                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                   filter: _ => _.IsDeleted == false && _.Name.ToLower().Trim().Contains(serviceFilterModel.Search.ToLower().Trim()),
+                   include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy),
                    pageIndex: serviceFilterModel.PageIndex,
                    pageSize: serviceFilterModel.PageSize
                    );
@@ -937,7 +1010,12 @@ namespace Chillde.Services.Services
             {
                 Id = _.Id,
                 Name = _.Name!,
+                ServiceImage = _.ServiceAttachments.Select(_ => _.AttachmentUrl).First(),
+                ArtisanName = _.CreatedBy?.FirstName + " " + _.CreatedBy?.LastName ?? "Unknown",
+                ArtisanImage = _.CreatedBy?.Image ?? "Unknown",
                 Description = _.Description!,
+                FeedbackCount = 1000,
+                Rate = 4.9,
                 ServiceAttachments = _.ServiceAttachments.ToList()
             }).ToList();
             var result = new Pagination<ServiceModel>(
@@ -1223,7 +1301,7 @@ namespace Chillde.Services.Services
             var config = maxSearchHistoryResponse.Data as SystemConfigModel;
 
             int maxSearchHistoryValue = 0;
-           
+
 
             var existingSearchHistory = searchHistories.Data
                 .FirstOrDefault(_ => _.SearchText!.Equals(searchText, StringComparison.OrdinalIgnoreCase));
