@@ -906,6 +906,10 @@ namespace Chillde.Services.Services
                         {
                             Id = g.First().FeatureId,
                             Name = g.Key,
+                            Question = g.First().Feature.Question,
+                            QuestionType = g.First().Feature.QuestionType,
+                            IsInformationRequired = g.First().Feature.IsInformationRequired,
+                            IsQuantity = g.First().Feature.IsQuantity,
                             PackageFeatures = g.ToList()
                         }).ToList()
                 }).ToList();
