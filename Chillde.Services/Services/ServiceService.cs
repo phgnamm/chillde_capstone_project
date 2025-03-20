@@ -904,6 +904,7 @@ namespace Chillde.Services.Services
                         .GroupBy(pf => pf.Feature.Name) // Group by Feature Name
                         .Select(g => new FeatureModel
                         {
+                            Id = g.First().FeatureId,
                             Name = g.Key,
                             PackageFeatures = g.ToList()
                         }).ToList()
@@ -1014,7 +1015,8 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                filter: _ => !_.IsDeleted && _.Name!.ToLower().Trim().Contains(serviceFilterModel.Search!.ToLower().Trim()),
+                filter: _ => !_.IsDeleted &&
+                                (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
                 include: _ => _.Include(_ => _.Packages)
                               .Include(_ => _.ServiceAttachments)
                               .Include(_ => _.CreatedBy),
@@ -1028,8 +1030,10 @@ namespace Chillde.Services.Services
                 Name = _.Name!,
                 ServiceImage = _.ServiceAttachments.Select(_ => _.AttachmentUrl).FirstOrDefault() ?? "Unknown",             
                 Description = _.Description ?? "",
-                FeedbackCount = 1000,
-                Rate = 4.9,
+                FeedbackCount = _.FeedbackCount,
+                Rate = _.Rate,
+                MinWeight = _.MinWeight,
+                MaxWeight = _.MaxWeight,
                 ServiceAttachments = _.ServiceAttachments.ToList(),
                 Artisan = _.CreatedBy == null ? null : new AccountLiteModel
                 {
