@@ -287,11 +287,12 @@ namespace Chillde.Services.Services
             {
                 foreach (var info in orderInformationAddModels)
                 {
+                    var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(info.PackageFeatureId);
                     var orderInfo = new OrderInformation
                     {
-                        Quantity = info.Quantity,
-                        Price = info.Price,
-                        Description = info.Description,
+                        Quantity = info.Quantity ?? 1,
+                        Price = packageFeature.AdditionalCost ?? 0,
+                        Description = info.Description ?? "",
                         PackageFeatureId = info.PackageFeatureId,
                         OrderInformationAttachments = new List<OrderInformationAttachment>()
                     };
@@ -310,8 +311,8 @@ namespace Chillde.Services.Services
 
                                 orderInfo.OrderInformationAttachments.Add(new OrderInformationAttachment
                                 {
-                                    AttachmentUrl = attachmentPath,
-                                    AttachmentAlt = attachment.AttachmentAlt
+                                    AttachmentUrl = attachmentPath ?? "Unknown",
+                                    AttachmentAlt = attachment.AttachmentAlt ?? "Unknown"
                                 });
                             }
                         }
@@ -353,15 +354,26 @@ namespace Chillde.Services.Services
             {
                 return;
             }
+            var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
+                orderAddModel.OrderInformationAddModels!
+                    .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
+            if (checkMaxQuantity != null)
+            {
+                throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
+            }
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
                     .Where(_ => _.PackageFeatureId == pf.Id)
-                    .Sum(_ => (_.Quantity ?? 1) * (_.Price ?? 0))
+                    .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
             );
-
+            var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
+                orderAddModel.OrderInformationAddModels!
+                    .Where(_ => _.PackageFeatureId == pf.Id)
+                    .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalDay ?? 0))
+            );
             if (extraFeatureCost > 0)
             {
-
+                newOrder.DeliveryTime += extraFeatureDeliveryTime;
                 newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
                 newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
                 var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
