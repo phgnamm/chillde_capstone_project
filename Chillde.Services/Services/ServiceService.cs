@@ -894,6 +894,7 @@ namespace Chillde.Services.Services
                 var packageModels = packages.Data.Select(package => new PackageModel
                 {
                     Id = package.Id,
+                    Name = package.Name,
                     Description = package.Description,
                     Price = package.Price,
                     ServiceId = package.ServiceId,
