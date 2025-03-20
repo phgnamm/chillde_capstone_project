@@ -34,7 +34,7 @@ namespace Chillde.API.Controllers
                             {
                                 new ServiceAttachmentAddModel
                                 {
-                                    AttachmentUrl = CreateFormFileFromPath("Images\\Screenshot 2025-03-19 213306.png"),
+                                    AttachmentUrl = CreateFormFileFromPath("Screenshot 2025-03-19 213306.png"),
                                     AttachmentAlt = "vida"
                                 }
                             }
@@ -202,23 +202,24 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        private static IFormFile CreateFormFileFromPath(string relativePath)
+        private static IFormFile CreateFormFileFromPath(string fileName)
         {
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string fullPath = Path.Combine(baseDirectory, relativePath.TrimStart('\\', '/'));
+            string rootPath = Directory.GetCurrentDirectory(); // Lấy thư mục gốc của API
+            string filePath = Path.Combine(rootPath, "Images", fileName); // Đường dẫn đầy đủ
 
-            if (!System.IO.File.Exists(fullPath))
+            if (!System.IO.File.Exists(filePath))
             {
-                throw new FileNotFoundException($"File không tồn tại: {fullPath}");
+                throw new FileNotFoundException($"File không tồn tại: {filePath}");
             }
 
-            var fileStream = new FileStream(fullPath, FileMode.Open, FileAccess.Read);
-            return new FormFile(fileStream, 0, fileStream.Length, "AttachmentUrl", Path.GetFileName(fullPath))
+            var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            return new FormFile(fileStream, 0, fileStream.Length, "AttachmentUrl", Path.GetFileName(filePath))
             {
                 Headers = new HeaderDictionary(),
-                ContentType = "image/jpeg"
+                ContentType = "image/png"
             };
         }
+
 
     }
 
