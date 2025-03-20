@@ -1270,15 +1270,6 @@ public static class InitialSeeding
 
     };
 
-    //private static readonly List<C> SubCategories = new()
-    //{
-
-    //        new() { Id = Guid.Parse("19001a42-5d0b-49f1-be6a-d975145d2c48"), Code = "SC05", Name = "Sculpture", CategoryId = Categories[1].Id},
-    //        new() { Id = Guid.Parse("e90ad4b0-2c62-4614-9a8f-307371d8420e"), Code = "SC06", Name = "Painting", CategoryId = Categories[1].Id},
-    //        new() { Id = Guid.Parse("f48bec9d-c653-4952-973a-72c20e07341d"), Code = "SC07", Name = "Necklaces", CategoryId = Categories[2].Id},
-
-    //        new() { Id = Guid.Parse("ec15a653-a1d9-4926-b8b5-79b556350928"), Code = "SC09", Name = "Rings", CategoryId = Categories[2].Id},
-    //};
     private static readonly List<SystemConfig> SystemConfigs = new()
     {
         new()
@@ -1375,6 +1366,12 @@ public static class InitialSeeding
             EntityType = ConfigType.Reputation, FieldName = "MinReputationToAvoidBan", Value = JsonDocument.Parse("3")
         },
         new() { EntityType = ConfigType.Commission, FieldName = "Commission", Value = JsonDocument.Parse("20") },
+        new()
+        {
+            EntityType = ConfigType.Package, 
+            FieldName = "MaxPriceOfPackage", 
+            Value = JsonDocument.Parse("10000000")
+        },
     };
 
     private static readonly List<Service> Services = new()
