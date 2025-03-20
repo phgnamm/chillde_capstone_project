@@ -656,6 +656,17 @@ namespace Chillde.Services.Services
                         Message = "Service already has this package's name."
                     };
                 }
+
+                var maxPriceOfPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaxPriceOfPackage).Result;
+                if (packageAddModel.Price <= 0 && packageAddModel.Price > int.Parse(maxPriceOfPackage!))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Price must be greater than 0 and less than 10,000,000."
+                    };
+                }
+
                 //await _unitOfWork.BeginTransactionAsync();
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
