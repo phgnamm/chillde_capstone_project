@@ -32,7 +32,7 @@ namespace Chillde.Repositories.Repositories
                             Id = offer.Id,
                             Status = offer.Status,
                             Message = translation != null ? translation.TranslationText : offer.Message,
-                            RequestId = offer.RequestId,
+                            RequestId = (Guid)offer.RequestId,
                             ServiceId = offer.ServiceId ?? Guid.Empty,
                             CreatedById = offer.CreatedById,
                             CreationDate = offer.CreationDate

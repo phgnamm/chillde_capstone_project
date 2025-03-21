@@ -295,6 +295,10 @@ public static class Configuration
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderService, OrderService>();
 
+        //OrderTracking
+        services.AddScoped<IOrderTrackingRepository, OrderTrackingRepository>();
+        services.AddScoped<IOrderTrackingService, OrderTrackingService>();
+
         //ShippingAddress
         services.AddScoped<IShippingAddressRepository, ShippingAddressRepository>();
         services.AddScoped<IShippingAddressService, ShippingAddressService>();

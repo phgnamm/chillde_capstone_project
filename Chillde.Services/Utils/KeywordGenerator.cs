@@ -32,30 +32,32 @@ namespace Chillde.Services.Utils
             if (string.IsNullOrWhiteSpace(productName))
                 return new List<string>();
 
-            string cleanedName = Regex.Replace(productName.ToLower(), @"[^a-z0-9\s]", "");
+            string cleanedName = Regex.Replace(productName.ToLower(), @"[^a-z0-9\s]", "").Trim();
+
             var words = cleanedName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                                    .Where(w => !_stopwords.Contains(w))
                                    .ToList();
 
-            var keywords = new HashSet<string>(words);
+            var keywords = new HashSet<string>();
 
-            // Tạo từ viết tắt
+            keywords.Add(cleanedName);
+
             if (words.Count > 1)
             {
                 var abbreviation = string.Concat(words.Select(w => w[0]));
                 keywords.Add(abbreviation);
             }
 
-            // Kết hợp từ thành cụm
-            for (int i = 0; i < words.Count; i++)
+            for (int len = 1; len <= words.Count; len++)
             {
-                for (int j = i + 1; j < words.Count; j++)
+                for (int i = 0; i <= words.Count - len; i++)
                 {
-                    keywords.Add($"{words[i]} {words[j]}");
+                    keywords.Add(string.Join(" ", words.Skip(i).Take(len)));
                 }
             }
 
             return keywords.ToList();
         }
+
     }
 }
