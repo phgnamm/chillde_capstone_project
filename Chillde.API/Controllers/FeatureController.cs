@@ -4,6 +4,7 @@ using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -50,6 +51,7 @@ namespace Chillde.API.Controllers
             {
                 var acceptLanguage = Request.Headers["Accept-Language"].ToString();
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
 
                 if (!ModelState.IsValid)
                 {
@@ -59,7 +61,26 @@ namespace Chillde.API.Controllers
                         Message = "Invalid model."
                     });
                 }
-                var result = await _featureService.UpdateAsync(featureUpdateModel, id, sourceLanguageCode);
+                var result = await _featureService.UpdateAsync(featureUpdateModel, id, sourceLanguageCode, targetLanguageCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize(Roles = "Artisan, Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var result = await _featureService.DeleteAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

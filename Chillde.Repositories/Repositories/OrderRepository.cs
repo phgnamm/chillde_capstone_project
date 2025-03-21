@@ -32,6 +32,16 @@ namespace Chillde.Repositories.Repositories
             return hasCompletedOrder;
         }
 
+        public async Task<bool> HasAnyOrderByFeature(Guid featureId)
+        {
+            //var hasCompletedOrder = _dbSet
+            //    .Where(order => order.Package.PackageFeatures
+            //    .Any(pf => pf.FeatureId == featureId))
+            //    .Any();
+            var hasCompletedOrder = _dbSet.Any(order => order.Package.PackageFeatures.Any(_ => _.FeatureId == featureId));
+            return hasCompletedOrder;
+        }
+
         public async Task<int> NumberCompletedOrder(Guid accountId, Guid artistId)
         {
             var orders = _dbSet.Where(_ => _.CreatedById == accountId && _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Success).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
