@@ -6,6 +6,7 @@ namespace Chillde.Services.Interfaces
     public interface IFeatureService
     {
         Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, string sourceLanguageCode, string targetLanguageCode);
-        Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id, string sourceLanguageCode);
+        Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode);
+        Task<ResponseModel> DeleteAsync(Guid id);
     }
 }

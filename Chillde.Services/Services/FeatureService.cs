@@ -180,7 +180,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id, string sourceLanguageCode)
+        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -218,15 +218,107 @@ namespace Chillde.Services.Services
                     _unitOfWork.FeatureRepository.SoftRemove(feature);
                     Feature newFeature = _mapper.Map<Feature>(featureUpdateModel);
                     await _unitOfWork.FeatureRepository.AddAsync(newFeature);
-                }
 
-                _unitOfWork.FeatureRepository.Update(feature);
+                    var packageFeatures = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                        filter: _ => _.FeatureId == feature.Id && _.IsDeleted == false
+                        );
+
+                    foreach (var packageFeature in packageFeatures.Data)
+                    {
+                        packageFeature.IsDeleted = true;
+                    }
+                    _unitOfWork.PackageFeatureRepository.UpdateRange(packageFeatures.Data);
+                    await _unitOfWork.SaveChangeAsync();
+
+                    foreach (var packageFeature in packageFeatures.Data)
+                    {
+                        packageFeature.Id = Guid.NewGuid();
+                        packageFeature.IsDeleted = false;
+                        packageFeature.FeatureId = newFeature.Id;
+                    }
+                    await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures.Data);
+
+                    
+                    //for (int i = 0; i < packageFeatures.TotalCount; i++)
+                    //{
+                    //    var packageFeature = featureUpdateModel.PackageFeatureAddModels[i];
+                    //    //string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
+                    //    var newPackageFeature = new PackageFeature
+                    //    {
+                    //        //Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
+                    //        Name = packageFeature.Name,
+                    //        AdditionalCost = packageFeature.AdditionalCost,
+                    //        AdditionalDay = packageFeature.AdditionalDay,
+                    //        IsExtra = packageFeature.IsExtra,
+                    //        IsChecked = packageFeature.IsChecked,
+                    //        MaxQuantity = packageFeature.MaxQuantity,
+                    //        FeatureId = feature.Id,
+                    //        PackageId = package.Id
+                    //    };
+                    //    packageFeatures.Add(newPackageFeature);
+                    //}
+
+                }
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Feature successfully updated.",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> DeleteAsync(Guid id)
+        {
+            try
+            {
+                var feature = await _unitOfWork.FeatureRepository.GetAsync(id);
+                if (feature == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Feature not found."
+                    };
+                }
+
+                var packageFeatures = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                        filter: _ => _.FeatureId == feature.Id && _.IsDeleted == false
+                        );
+
+                var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByFeature(id);
+
+                if (!anyOrder.Result)
+                {
+                    _unitOfWork.PackageFeatureRepository.HardRemoveRange(packageFeatures.Data);
+                    _unitOfWork.FeatureRepository.HardRemove(feature);
+                }
+                else
+                {
+                    _unitOfWork.FeatureRepository.SoftRemove(feature);
+
+                    foreach (var packageFeature in packageFeatures.Data)
+                    {
+                        packageFeature.IsDeleted = true;
+                    }
+                    _unitOfWork.PackageFeatureRepository.UpdateRange(packageFeatures.Data);
+                }
+
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully delete."
                 };
             }
             catch (Exception ex)
