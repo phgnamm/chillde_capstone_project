@@ -105,7 +105,7 @@ namespace Chillde.Services.Services
                         Id = offer.Id,
                         Status = _localizer[offer.Status.ToString()],
                         Message = offer.Message,
-                        RequestId = offer.RequestId,
+                        RequestId = (Guid)offer.RequestId,
                         ServiceId = offer.ServiceId ?? Guid.Empty,
                         CreatedById = offer.CreatedById,
                         CreationDate = offer.CreationDate

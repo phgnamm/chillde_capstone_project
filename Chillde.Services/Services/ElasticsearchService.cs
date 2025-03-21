@@ -24,24 +24,36 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> SuggestKeywordsAsync(string indexName, string query)
         {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return new ResponseModel { Data = null };
+            }
+
             var searchResponse = await _client.SearchAsync<object>(s => s
-             .Index(indexName)
-             .Suggest(su => su
-                 .Completion("keyword_suggestion", c => c
-                     .Field("suggest")
-                     .Prefix(query.ToLower()) 
-                     .Size(8)
-                 )
-             )
-         );
-            var result = new List<string>();
-            result = searchResponse.Suggest["keyword_suggestion"]
+                .Index(indexName)
+                .Suggest(su => su
+                    .Completion("keyword_suggestion", c => c
+                        .Field("suggest")
+                        .Prefix(query.ToLower())
+                        .Size(10)
+                    )
+                )
+            );
+
+            if (searchResponse.Suggest == null || !searchResponse.Suggest.ContainsKey("keyword_suggestion"))
+            {
+                return new ResponseModel { Data = null };
+            }
+
+            var result = searchResponse.Suggest["keyword_suggestion"]
                 .SelectMany(x => x.Options)
                 .Select(o => o.Text)
+                .Distinct()
                 .ToList();
-            return new ResponseModel { Data = result ?? null };
+
+            return new ResponseModel { Data = result.Any() ? result : null };
         }
 
-       
+
     }
 }

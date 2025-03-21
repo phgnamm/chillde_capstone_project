@@ -42,7 +42,8 @@ public class UnitOfWork : IUnitOfWork
         ISystemConfigRepository systemConfigRepository,
         ISearchHistoryRepository searchHistoryRepository,
         IVoucherRepository voucherRepository,
-        IVoucherUsageLogRepository voucherUsageLogRepository
+        IVoucherUsageLogRepository voucherUsageLogRepository,
+        IOrderTrackingRepository orderTrackingRepository
         )
     {
         Context = context;
@@ -84,6 +85,7 @@ public class UnitOfWork : IUnitOfWork
         SystemConfigRepository = systemConfigRepository;
         VoucherRepository = voucherRepository;
         VoucherUsageLogRepository = voucherUsageLogRepository;
+        OrderTrackingRepository = orderTrackingRepository;
     }
 
     public AppDbContext Context { get; }
@@ -132,6 +134,8 @@ public class UnitOfWork : IUnitOfWork
     public IVoucherRepository VoucherRepository { get; }
 
     public IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
+
+    public IOrderTrackingRepository OrderTrackingRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

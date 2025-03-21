@@ -22,6 +22,7 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.SystemConfigModel;
 using Chillde.Services.Models.ServiceAttachmentModels;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.ServiceAttachmentModels;
 
 namespace Chillde.Services.Services
 {
@@ -276,18 +277,10 @@ namespace Chillde.Services.Services
         {
             try
             {
-                string[] fieldsToCheck = { serviceAddModel.Name, serviceAddModel.Description };
-
-                foreach (var field in fieldsToCheck)
-                {
-                    ResponseModel response = sourceLanguageCode == "vi"
-                        ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
-                        : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
-
-                    if (response.Code == StatusCodes.Status422UnprocessableEntity)
-                        return response;
-                }
-
+                var validationResult = await ValidateServiceAsync(serviceAddModel, sourceLanguageCode);
+                if (validationResult != null)
+                    return validationResult;
+                    
                 var currentUserId = _claimService.GetCurrentUserId;
                 if (!currentUserId.HasValue)
                 {
@@ -321,25 +314,23 @@ namespace Chillde.Services.Services
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
-                var keywords = _keywordGenerator.GenerateKeywords(service.Name);
-                var suggest = new { input = keywords.ToArray(), weight = 1 };
-                var serviceData = new
-                {
-                    id = service.Id,
-                    keyword = keywords,
-                    suggest
-                };
-                var embeddingData = new
-                {
-                    id = service.Id,
-                    embeddingVector = service.EmbeddingVector
-                };
+                await EnsureElasticsearchIndexExistsAsync("test_keywords");
 
-                var indexTasks = new List<Task>
+                var keywords = _keywordGenerator.GenerateKeywords(service.Name.ToLower());
+                service.Keywords = keywords;
+                var elasticResult = await IndexKeywordsAsync("test_keywords", keywords);
+                if (!elasticResult)
+                    return new ResponseModel {Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
+                //await _client.IndexAsync(new { id = service.Id, embeddingVector = service.EmbeddingVector }, i => i.Index("test_embedding"));
+                var serviceResult = await IndexServiceAsync("test_service", service);
+                if (!serviceResult)
                 {
-                    _client.IndexAsync(serviceData, i => i.Index("products")),
-                    _client.IndexAsync(embeddingData, i => i.Index("product_embeddings"))
-                };
+                    return new ResponseModel
+                    {
+                        Message = "Failed to insert service into Elasticsearch.",
+                        Code = StatusCodes.Status500InternalServerError
+                    };
+                }
                 var newServiceAttachment = new List<ServiceAttachment>();
                 var attachmentModel = serviceAddModel.ServiceAttachments;
                 if (serviceAddModel.ServiceAttachments != null)
@@ -396,7 +387,75 @@ namespace Chillde.Services.Services
                 };
             }
         }
+        private async Task<ResponseModel> ValidateServiceAsync(ServiceAddModel model, string sourceLang)
+        {
+            var fields = new[] { model.Name, model.Description };
+            foreach (var field in fields)
+            {
+                var response = sourceLang == "vi"
+                    ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                    : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
 
+                if (response.Code == StatusCodes.Status422UnprocessableEntity)
+                    return response;
+            }
+            return null;
+        }
+
+        private async Task EnsureElasticsearchIndexExistsAsync(string indexName)
+        {
+            var exists = await _client.Indices.ExistsAsync(indexName);
+            if (exists.Exists)
+                return;
+
+            await _client.Indices.CreateAsync(indexName, c => c
+                .Settings(s => s.Analysis(a => a
+                    .Tokenizers(t => t.EdgeNGram("edge_ngram_tokenizer", e => e
+                        .MinGram(1).MaxGram(20)
+                        .TokenChars(TokenChar.Letter, TokenChar.Digit)))
+                    .Analyzers(an => an.Custom("edge_ngram_analyzer", ca => ca
+                        .Tokenizer("edge_ngram_tokenizer")
+                        .Filters("lowercase")))))
+                .Map<object>(m => m.Properties(p => p
+                    .Text(t => t.Name("keyword")
+                        .Analyzer("edge_ngram_analyzer")
+                        .SearchAnalyzer("standard"))
+                    .Completion(c => c.Name("suggest")))));
+        }
+
+        private async Task<bool> IndexKeywordsAsync( string indexName, IEnumerable<string> keywords)
+        {
+            var bulkOps = keywords.Select(keyword => new
+            {
+                id = Guid.NewGuid(),
+                keyword,
+                suggest = new { input = new[] { keyword }, weight = 1 }
+            });
+
+            var bulkResponse = await _client.BulkAsync(b => b
+                .Index(indexName)
+                .IndexMany(bulkOps));
+
+            return !bulkResponse.Errors;
+        }
+        private async Task<bool> IndexServiceAsync(string indexName, Service service)
+        {
+            var serviceDocument = new
+            {
+                id = service.Id,
+                name = service.Name,
+                description = service.Description,
+                keywords = service.Keywords,
+                embeddingVector = service.EmbeddingVector,
+                categoryId = service.CategoryId,
+                minWeight = service.MinWeight,
+                maxWeight = service.MaxWeight,
+                status = service.Status
+            };
+
+            var response = await _client.IndexAsync(serviceDocument, i => i.Index(indexName));
+            return response.IsValid;
+        }
         public async Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             try
@@ -901,7 +960,7 @@ namespace Chillde.Services.Services
                     IsDeleted = package.IsDeleted,
                     CreationDate = package.CreationDate,
                     Features = package.PackageFeatures
-                        .GroupBy(pf => pf.Feature.Name) // Group by Feature Name
+                        .GroupBy(pf => pf.Feature.Name) 
                         .Select(g => new FeatureModel
                         {
                             Id = g.First().FeatureId,
@@ -940,80 +999,238 @@ namespace Chillde.Services.Services
             {
                 return new ResponseModel { Message = "Search term is required.", Data = null };
             }
+
             int pageIndex = serviceFilterModel.PageIndex;
             int pageSize = serviceFilterModel.PageSize;
+
             var result = new Pagination<ServiceModel>(null!, pageIndex, pageSize, 0);
+
             var currentUserId = _claimService.GetCurrentUserId;
+
             if (currentUserId.HasValue)
             {
                 await SaveSearchHistoryAsync(serviceFilterModel.Search, currentUserId.Value);
             }
 
-            var keywordSearchResponse = await _client.SearchAsync<Service>(s => s
-                .Index("products")
-                .Query(q => q
-                    .MultiMatch(m => m
-                        .Fields(f => f.Field(p => p.Name).Field(p => p.Description))
-                        .Query(serviceFilterModel.Search)
-                        .Fuzziness(Fuzziness.Auto)
-                    )
-                )
-            );
-
-            if (keywordSearchResponse.Documents.Any())
+            var exactMatchResults = await SearchExactMatch(serviceFilterModel, pageIndex, pageSize);
+            if (exactMatchResults != null)
             {
-                var keywordResults = keywordSearchResponse.Documents
-                    .Select(_ => new ServiceModel
-                    {
-                        Id = _.Id,
-                        Name = _.Name!,
-                        Description = _.Description!
-                    })
-                    .Skip((pageIndex - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToList();
-                result = new Pagination<ServiceModel>(keywordResults, pageIndex, pageSize, keywordSearchResponse.Documents.Count);
                 return new ResponseModel
                 {
-                    Message = "Search results found by keyword",
-                    Data = result
+                    Message = "Search results found by exact keyword match.",
+                    Data = exactMatchResults
+                };
+            }        
+            var embeddingResults = await SearchByEmbedding(serviceFilterModel, pageIndex, pageSize);
+            if (embeddingResults != null)
+            {
+                return new ResponseModel
+                {
+                    Message = "Search results found.",
+                    Data = embeddingResults
                 };
             }
-
-            var inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
-
-            var embeddingSearchResponse = await _client.SearchAsync<Service>(s => s
-                .Index("product_embeddings")
+            var fuzzyMatchResults = await SearchFuzzyMatch(serviceFilterModel, pageIndex, pageSize);
+            if (fuzzyMatchResults != null)
+            {
+                return new ResponseModel
+                {
+                    Message = "Search results found by fuzzy match.",
+                    Data = fuzzyMatchResults
+                };
+            }
+            return new ResponseModel
+            {
+                Message = "No results found for the given query.",
+                Data = null
+            };
+        }
+        private async Task<Pagination<ServiceModel>?> SearchFuzzyMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
+        {
+            var fuzzySearchResponse = await _client.SearchAsync<Service>(s => s
+                .Index("test_service")
                 .Query(q => q
-                    .ScriptScore(ss => ss
-                        .Query(qq => qq.MatchAll())
-                        .Script(script => script
-                            .Source("cosineSimilarity(params.query_vector, 'embedding') + 1.0")
-                            .Params(p => p.Add("query_vector", inputEmbedding))
+                    .Bool(b => b
+                        .Should(
+                            bs => bs.MultiMatch(m => m
+                                .Fields(f => f
+                                    .Field(p => p.Name, 2.0)
+                                    .Field(p => p.Description)
+                                    .Field(p => p.Keywords))
+                                .Query(serviceFilterModel.Search)
+                                .Fuzziness(Fuzziness.EditDistance(2))
+                            )
                         )
                     )
                 )
+                .From((pageIndex - 1) * pageSize)
+                .Size(pageSize)
             );
 
-            var embeddingResults = embeddingSearchResponse.Documents
-                .Select(_ => new ServiceModel
-                {
-                    Id = _.Id,
-                    Name = _.Name!,
-                    Description = _.Description!,
-                    Similarity = 1.0
-                })
-                .Where(_ => _.Similarity >= 0.8)
-                .OrderByDescending(_ => _.Similarity)
-                .Skip((pageIndex - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-            result = new Pagination<ServiceModel>(embeddingResults, pageIndex, pageSize, embeddingResults.Count);
-            return new ResponseModel
+            if (!fuzzySearchResponse.Documents.Any()) return null;
+
+            var serviceIds = fuzzySearchResponse.Documents.Select(doc => doc.Id).ToList();
+
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+
+            var serviceModels = dbServices.Data.Select(dbService =>
             {
-                Message = "Get all services successfully",
-                Data = result
-            };
+                var esDocument = fuzzySearchResponse.Documents.FirstOrDefault(_ => _.Id == dbService.Id);
+
+                return new ServiceModel
+                {
+                    Id = dbService.Id,
+                    Name = esDocument?.Name ?? dbService.Name ?? "Unknown",
+                    Description = esDocument?.Description ?? dbService.Description ?? "No description available",
+                    FeedbackCount = dbService.FeedbackCount,
+                    Rate = dbService.Rate,
+                    MinWeight = dbService.MinWeight,
+                    MaxWeight = dbService.MaxWeight,
+                    ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
+                        LastName = dbService.CreatedBy.LastName ?? "Unknown",
+                        Username = dbService.CreatedBy.Username ?? "Unknown",
+                        Email = dbService.CreatedBy.Email ?? "Unknown",
+                        Image = dbService.CreatedBy.Image ?? "Unknown"
+                    }
+                };
+            }).ToList();
+
+            return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)fuzzySearchResponse.Total);
+        }
+
+        private async Task<Pagination<ServiceModel>?> SearchExactMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
+        {
+            var exactMatchResponse = await _client.SearchAsync<Service>(s => s
+                .Index("test_service")
+                .Query(q => q
+                    .Terms(t => t
+                        .Field(p => p.Keywords.Suffix("keyword"))
+                        .Terms(serviceFilterModel.Search.ToLower().Trim())
+                    )
+                )
+                .From((pageIndex - 1) * pageSize)
+                .Size(pageSize)
+            );
+
+            if (!exactMatchResponse.Documents.Any()) return null;
+
+            var serviceIds = exactMatchResponse.Documents.Select(doc => doc.Id).ToList();
+
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+
+            var serviceModels = dbServices.Data.Select(dbService =>
+            {
+                var esDocument = exactMatchResponse.Documents.FirstOrDefault(_ => _.Id == dbService.Id);
+
+                return new ServiceModel
+                {
+                    Id = dbService.Id,
+                    Name = esDocument?.Name ?? dbService.Name ?? "Unknown",
+                    Description = esDocument?.Description ?? dbService.Description ?? "No description available",
+                    FeedbackCount = dbService.FeedbackCount,
+                    Rate = dbService.Rate,
+                    MinWeight = dbService.MinWeight,
+                    MaxWeight = dbService.MaxWeight,
+                    ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
+                        LastName = dbService.CreatedBy.LastName ?? "Unknown",
+                        Username = dbService.CreatedBy.Username ?? "Unknown",
+                        Email = dbService.CreatedBy.Email ?? "Unknown",
+                        Image = dbService.CreatedBy.Image ?? "Unknown"
+                    }
+                };
+            }).ToList();
+
+            return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)exactMatchResponse.Total);
+        }
+
+
+
+        private async Task<Pagination<ServiceModel>?> SearchByEmbedding(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
+        {
+            float[] inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
+
+            if (inputEmbedding == null || inputEmbedding.Length == 0)
+            {
+                return null;
+            }
+
+            var magnitude = Math.Sqrt(inputEmbedding.Sum(x => x * x));
+            if (magnitude == 0)
+            {
+                return null;
+            }
+
+            var normalizedEmbedding = inputEmbedding.Select(x => (float)(x / magnitude)).ToArray();
+
+            var embeddingSearchResponse = await _client.SearchAsync<Service>(s => s
+                .Index("test_service")
+                .Query(q => q
+                    .Bool(b => b
+                        .Should(
+                            bs => bs.ScriptScore(ss => ss
+                                .Query(qq => qq.MatchAll())
+                                .Script(script => script
+                                    .Source("doc['embeddingVector'] != null ? cosineSimilarity(params.query_vector, doc['embeddingVector']) + 1.0 : 0")
+                                    .Params(p => p.Add("query_vector", normalizedEmbedding))
+                                )
+                            ),
+                            bs => bs.MultiMatch(m => m
+                                .Fields(f => f
+                                    .Field(p => p.Name, 2.0)
+                                    .Field(p => p.Description)
+                                    .Field(p => p.Keywords))
+                                .Query(serviceFilterModel.Search)
+                                .Fuzziness(Fuzziness.EditDistance(2))
+                            )
+                        )
+                        .MinimumShouldMatch(1)
+                    )
+                )
+                .Sort(s => s.Descending(SortSpecialField.Score))
+                .From((pageIndex - 1) * pageSize)
+                .Size(pageSize)
+            );
+
+            if (!embeddingSearchResponse.Documents.Any())
+            {
+                return null;
+            }
+            var serviceIds = embeddingSearchResponse.Documents.Select(doc => doc.Id).ToList();
+
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+
+            var serviceModels = dbServices.Data.Select(dbService =>
+            {
+                var esDocument = embeddingSearchResponse.Documents.FirstOrDefault(doc => doc.Id == dbService.Id);
+
+                return new ServiceModel
+                {
+                    Id = dbService.Id,
+                    Name = esDocument?.Name ?? dbService.Name ?? "Unknown",
+                    Description = esDocument?.Description ?? dbService.Description ?? "No description available",
+                    FeedbackCount = dbService.FeedbackCount,
+                    Rate = dbService.Rate,
+                    MinWeight = dbService.MinWeight,
+                    MaxWeight = dbService.MaxWeight,
+                    ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
+                        LastName = dbService.CreatedBy.LastName ?? "Unknown",
+                        Username = dbService.CreatedBy.Username ?? "Unknown",
+                        Email = dbService.CreatedBy.Email ?? "Unknown",
+                        Image = dbService.CreatedBy.Image ?? "Unknown"
+                    }
+                };
+            }).ToList();
+
+            return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)embeddingSearchResponse.Total);
         }
 
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)

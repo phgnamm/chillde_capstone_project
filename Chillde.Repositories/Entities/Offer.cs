@@ -10,12 +10,12 @@ public class Offer : BaseEntity
     public float? MaxWeight { get; set; }
 
     // Foreign key
-    public Guid RequestId { get; set; }
+    public Guid? RequestId { get; set; }
     public Guid? ServiceId { get; set; }
 
     // Relationship
     public Account CreatedBy { get; set; } = null!;
-    public Request Request { get; set; } = null!;
+    public Request? Request { get; set; }
     public Service? Service { get; set; }
     public virtual ICollection<OfferAttachment> OfferAttachments { get; set; } = new List<OfferAttachment>();
 }

@@ -369,7 +369,7 @@ namespace Chillde.Services.Services
             var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
                     .Where(_ => _.PackageFeatureId == pf.Id)
-                    .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalDay ?? 0))
+                    .Sum(_ => (pf.AdditionalDay ?? 0))
             );
             if (extraFeatureCost > 0)
             {
