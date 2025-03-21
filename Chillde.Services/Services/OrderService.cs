@@ -74,7 +74,7 @@ namespace Chillde.Services.Services
                 await ProcessExtraFeatures(orderAddModel, newOrder);
             if(orderAddModel.VoucherId != null && orderAddModel.VoucherId is List<Guid> voucherIds)
             {
-                await ApplyVoucher(voucherIds, newOrder);
+                await ApplyVoucher(voucherIds, newOrder, PaymentType.Balance);
                 foreach(var voucherUsageLog in newOrder.VoucherUsageLogs)
                 {
                     voucherUsageLog.UsageStatus = UsageStatus.Used;
@@ -106,7 +106,7 @@ namespace Chillde.Services.Services
                 Status = TransactionStatus.Completed,
                 CreatedById = currentUserId.Value
             });
-            
+            newOrder.Status = OrderStatus.Success;
             _unitOfWork.WalletRepository.Update(wallet);
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -154,15 +154,16 @@ namespace Chillde.Services.Services
                     await ProcessExtraFeatures(orderAddModel, newOrder);
                 if (orderAddModel.VoucherId != null)
                 {
-                    await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder);
+                    await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder, PaymentType.VnPay);
                 }
+                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
+                var wallet = account?.Wallet;
                 if ((bool)orderAddModel.WithBalance)
                 {
-                    var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
-                    var wallet = account?.Wallet;
-                    var response = await ProcessWalletPayment(wallet, newOrder, currentUserId.Value);
-                    if (response != null) return response;
-                    remainingAmount = (decimal)response.Data;
+                    var response = await ProcessWalletPayment(wallet, newOrder, currentUserId.Value, wallet.Id);
+                    if (response.Data != null)
+                        remainingAmount = (decimal)response.Data;
+                    else return response;
                 }
                 if (!(bool)orderAddModel.WithBalance)
                 {
@@ -171,15 +172,20 @@ namespace Chillde.Services.Services
                         Amount = newOrder.TotalPrice,
                         Type = TransactionType.Deposit,
                         CreatedById = currentUserId.Value,
+                        WalletId = wallet.Id,
                         Status = TransactionStatus.Pending
                     });
+                    wallet.Balance += (decimal)newOrder.TotalPrice;
                     newOrder.Transactions.Add(new Transaction
                     {
                         Amount = newOrder.TotalPrice,
                         Type = TransactionType.TransferOut,
                         CreatedById = currentUserId.Value,
-                        Status = TransactionStatus.Pending
+                        Status = TransactionStatus.Pending,
+                        WalletId = wallet.Id,
                     });
+                    wallet.Balance -= (decimal)newOrder.TotalPrice;
+                    _unitOfWork.WalletRepository.Update(wallet);
                 }
                 await _unitOfWork.OrderRepository.AddAsync(newOrder);
                 if (await _unitOfWork.SaveChangeAsync() < 0)
@@ -281,11 +287,12 @@ namespace Chillde.Services.Services
             {
                 foreach (var info in orderInformationAddModels)
                 {
+                    var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(info.PackageFeatureId);
                     var orderInfo = new OrderInformation
                     {
-                        Quantity = info.Quantity,
-                        Price = info.Price,
-                        Description = info.Description,
+                        Quantity = info.Quantity ?? 1,
+                        Price = packageFeature.AdditionalCost ?? 0,
+                        Description = info.Description ?? "",
                         PackageFeatureId = info.PackageFeatureId,
                         OrderInformationAttachments = new List<OrderInformationAttachment>()
                     };
@@ -304,8 +311,8 @@ namespace Chillde.Services.Services
 
                                 orderInfo.OrderInformationAttachments.Add(new OrderInformationAttachment
                                 {
-                                    AttachmentUrl = attachmentPath,
-                                    AttachmentAlt = attachment.AttachmentAlt
+                                    AttachmentUrl = attachmentPath ?? "Unknown",
+                                    AttachmentAlt = attachment.AttachmentAlt ?? "Unknown"
                                 });
                             }
                         }
@@ -347,15 +354,26 @@ namespace Chillde.Services.Services
             {
                 return;
             }
+            var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
+                orderAddModel.OrderInformationAddModels!
+                    .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
+            if (checkMaxQuantity != null)
+            {
+                throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
+            }
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
                     .Where(_ => _.PackageFeatureId == pf.Id)
-                    .Sum(_ => (_.Quantity ?? 1) * (_.Price ?? 0))
+                    .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
             );
-
+            var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
+                orderAddModel.OrderInformationAddModels!
+                    .Where(_ => _.PackageFeatureId == pf.Id)
+                    .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalDay ?? 0))
+            );
             if (extraFeatureCost > 0)
             {
-
+                newOrder.DeliveryTime += extraFeatureDeliveryTime;
                 newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
                 newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
                 var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
@@ -363,7 +381,7 @@ namespace Chillde.Services.Services
                 newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
             }
         }
-        private async Task ApplyVoucher(List<Guid> voucherIds, Repositories.Entities.Order order)
+        private async Task ApplyVoucher(List<Guid> voucherIds, Repositories.Entities.Order order, PaymentType? paymentType)
         {
             var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                 filter: _ => voucherIds.Contains(_.Id)
@@ -413,10 +431,12 @@ namespace Chillde.Services.Services
                     DiscountValue = discount,
                     DiscountValueOrigin = voucher.DiscountValue,
                 });
-
-                if (voucher.TotalQuantity.HasValue)
+                if (paymentType == PaymentType.Balance)
                 {
-                    voucher.RemainingQuantity -= 1;
+                    if (voucher.TotalQuantity.HasValue)
+                    {
+                        voucher.RemainingQuantity -= 1;
+                    }
                 }
                 order.AfterApplyVoucherPrice = remainingOrderPrice;
                 order.VoucherCost = totalVoucherCost;
@@ -429,7 +449,7 @@ namespace Chillde.Services.Services
 
          
         }
-        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, Repositories.Entities.Order order, Guid accountId)
+        private async Task<ResponseModel> ProcessWalletPayment(Wallet wallet, Repositories.Entities.Order order, Guid accountId, Guid walletId)
         {
             var balance = wallet.Balance;
 
@@ -459,14 +479,17 @@ namespace Chillde.Services.Services
                 Amount = remainingAmount,
                 Type = TransactionType.Deposit,
                 CreatedById = accountId,
-                Status = TransactionStatus.Pending
+                Status = TransactionStatus.Pending,
+                WalletId = walletId
             });
             order.Transactions.Add(new Transaction
             {
                 Amount = remainingAmount + balance,
                 Type = TransactionType.TransferOut,
                 CreatedById = accountId,
-                Status = TransactionStatus.Pending
+                Status = TransactionStatus.Pending,
+                WalletId = walletId
+
             });
 
             return new ResponseModel { Data = remainingAmount };
@@ -494,7 +517,7 @@ namespace Chillde.Services.Services
                 _ => _.Include(_ => _.CreatedBy)
                       .ThenInclude(_ => _.Wallet)
                       .Include(_ => _.Transactions)
-                      .Include(_ => _.VoucherUsageLogs)
+                      .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher)
             );
 
             if (order == null)
@@ -513,6 +536,7 @@ namespace Chillde.Services.Services
 
             foreach (var voucherUsageLog in order.VoucherUsageLogs)
             {
+                voucherUsageLog.Voucher.RemainingQuantity -= 1;
                 voucherUsageLog.UsageStatus = UsageStatus.Used;
             }
 
@@ -890,11 +914,11 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (order.Status != OrderStatus.Pending)
+            if (order.Status != OrderStatus.Success)
             {
                 return new ResponseModel
                 {
-                    Message = "Voucher can only be applied to orders in pending status.",
+                    Message = "Voucher can only be applied to orders in success status.",
                     Code = StatusCodes.Status400BadRequest
                 };
             }
@@ -917,16 +941,16 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest
                 };
             }
-
             var totalPriceOrder = order.TotalPrice - order.ShippingPrice ?? 0;
 
-            var voucherDiscountValue = voucher.DiscountValue;
+            var voucherDiscountValue = voucher?.DiscountValue ?? 0; 
             var adminCommAfterUsed = await AdminCommission(totalPriceOrder, voucherDiscountValue);
 
-            if (voucher.MaxDiscountValue.HasValue && adminCommAfterUsed > voucher.MaxDiscountValue.Value)
+            if (voucher?.MaxDiscountValue != null && adminCommAfterUsed > voucher.MaxDiscountValue.Value)
             {
                 adminCommAfterUsed = voucher.MaxDiscountValue.Value;
             }
+
 
             order.AdminCommUsedVch = adminCommAfterUsed;
             order.ArtistRevenue = totalPriceOrder - adminCommAfterUsed;

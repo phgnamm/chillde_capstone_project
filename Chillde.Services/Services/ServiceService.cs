@@ -656,6 +656,17 @@ namespace Chillde.Services.Services
                         Message = "Service already has this package's name."
                     };
                 }
+
+                var maxPriceOfPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaxPriceOfPackage).Result;
+                if (packageAddModel.Price <= 0 && packageAddModel.Price > int.Parse(maxPriceOfPackage!))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Price must be greater than 0 and less than 10,000,000."
+                    };
+                }
+
                 //await _unitOfWork.BeginTransactionAsync();
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
@@ -883,6 +894,7 @@ namespace Chillde.Services.Services
                 var packageModels = packages.Data.Select(package => new PackageModel
                 {
                     Id = package.Id,
+                    Name = package.Name,
                     Description = package.Description,
                     Price = package.Price,
                     ServiceId = package.ServiceId,
@@ -892,7 +904,12 @@ namespace Chillde.Services.Services
                         .GroupBy(pf => pf.Feature.Name) // Group by Feature Name
                         .Select(g => new FeatureModel
                         {
+                            Id = g.First().FeatureId,
                             Name = g.Key,
+                            Question = g.First().Feature.Question,
+                            QuestionType = g.First().Feature.QuestionType,
+                            IsInformationRequired = g.First().Feature.IsInformationRequired,
+                            IsQuantity = g.First().Feature.IsQuantity,
                             PackageFeatures = g.ToList()
                         }).ToList()
                 }).ToList();
@@ -1002,7 +1019,8 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                filter: _ => !_.IsDeleted && _.Name!.ToLower().Trim().Contains(serviceFilterModel.Search!.ToLower().Trim()),
+                filter: _ => !_.IsDeleted &&
+                                (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
                 include: _ => _.Include(_ => _.Packages)
                               .Include(_ => _.ServiceAttachments)
                               .Include(_ => _.CreatedBy),
@@ -1015,8 +1033,10 @@ namespace Chillde.Services.Services
                 Id = _.Id,
                 Name = _.Name!,
                 Description = _.Description ?? "",
-                FeedbackCount = 1000,
-                Rate = 4.9,
+                FeedbackCount = _.FeedbackCount,
+                Rate = _.Rate,
+                MinWeight = _.MinWeight,
+                MaxWeight = _.MaxWeight,
                 ServiceAttachments = _.ServiceAttachments.ToList(),
                 Artisan = _.CreatedBy == null ? null : new AccountLiteModel
                 {

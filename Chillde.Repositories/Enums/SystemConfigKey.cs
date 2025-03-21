@@ -59,5 +59,6 @@ namespace Chillde.Repositories.Enums
         MaxCustomerOrdersPerMonth,
         ReputationIncreaseOnSuccess,
         MinReputationToAvoidBan,
+        MaxPriceOfPackage
     }
 }

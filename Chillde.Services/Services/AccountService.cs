@@ -83,6 +83,7 @@ public class AccountService : IAccountService
             Balance = 0,
         };
         await _unitOfWork.AccountRepository.AddAsync(account);
+        account.Wallet.CreatedById = account.Id;
 
         // Add "user" role as default
         var role = await _unitOfWork.RoleRepository.FindByNameAsync(Role.Customer.ToString());
@@ -241,6 +242,7 @@ public class AccountService : IAccountService
             Balance = 0,
         };
         await _unitOfWork.AccountRepository.AddAsync(account);
+        account.Wallet.CreatedById = account.Id;
 
         // Add "user" role as default
         var role = await _unitOfWork.RoleRepository.FindByNameAsync(Role.Customer.ToString());
@@ -584,6 +586,7 @@ public class AccountService : IAccountService
         }
 
         await _unitOfWork.AccountRepository.AddRangeAsync(accounts);
+        accounts.ForEach(_ => _.Wallet.Id = _.Id);
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
             await _redisHelper.InvalidateCacheByPatternAsync("accounts_*");
