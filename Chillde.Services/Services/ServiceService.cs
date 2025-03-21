@@ -1032,7 +1032,6 @@ namespace Chillde.Services.Services
             {
                 Id = _.Id,
                 Name = _.Name!,
-                ServiceImage = _.ServiceAttachments.Select(_ => _.AttachmentUrl).FirstOrDefault() ?? "Unknown",             
                 Description = _.Description ?? "",
                 FeedbackCount = _.FeedbackCount,
                 Rate = _.Rate,
@@ -1095,7 +1094,7 @@ namespace Chillde.Services.Services
                     var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
-                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy),
                         pageIndex: serviceFilterModel.PageIndex,
                         pageSize: 1000
                      );
@@ -1112,7 +1111,15 @@ namespace Chillde.Services.Services
                             ServiceAttachments = s.ServiceAttachments.ToList(),
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
-                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0
+                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            Artisan = new AccountLiteModel()
+                            {
+                                FirstName = s.CreatedBy.FirstName,
+                                LastName = s.CreatedBy.LastName,
+                                Username = s.CreatedBy.Username,
+                                Email = s.CreatedBy.Email,
+                                Image = s.CreatedBy.Image
+                            }
                         })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
@@ -1152,7 +1159,7 @@ namespace Chillde.Services.Services
                 {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
-                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments),
+                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy),
                         pageIndex: serviceFilterModel.PageIndex,
                         pageSize: 1000
                      );
@@ -1169,7 +1176,15 @@ namespace Chillde.Services.Services
                             ServiceAttachments = s.ServiceAttachments.ToList(),
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
-                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0
+                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            Artisan = new AccountLiteModel()
+                            {
+                                FirstName = s.CreatedBy.FirstName,
+                                LastName = s.CreatedBy.LastName,
+                                Username = s.CreatedBy.Username,
+                                Email = s.CreatedBy.Email,
+                                Image = s.CreatedBy.Image
+                            }
                         })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
@@ -1255,6 +1270,7 @@ namespace Chillde.Services.Services
                                        .ThenInclude(p => p.Orders)
                                        .Include(a => a.ServiceAttachments)
                                        .Include(su => su.Category)
+                                       .Include(a=> a.CreatedBy)
                     );
 
                     var serviceModels = services.Data.Select(s => new ServiceModel
@@ -1265,7 +1281,15 @@ namespace Chillde.Services.Services
                         ServiceAttachments = s.ServiceAttachments.ToList(),
                         Rate = s.Rate,
                         FeedbackCount = s.FeedbackCount,
-                        Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0
+                        Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                        Artisan = new AccountLiteModel()
+                        {
+                            FirstName = s.CreatedBy.FirstName,
+                            LastName = s.CreatedBy.LastName,
+                            Username = s.CreatedBy.Username,
+                            Email = s.CreatedBy.Email,
+                            Image = s.CreatedBy.Image,
+                        }
                     }).ToList();
 
                     var paginatedResult = new Pagination<ServiceModel>(
