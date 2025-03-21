@@ -1045,6 +1045,61 @@ namespace Chillde.Services.Services
                 Data = null
             };
         }
+        private async Task<Pagination<ServiceModel>?> SearchFuzzyMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
+        {
+            var fuzzySearchResponse = await _client.SearchAsync<Service>(s => s
+                .Index("test_service")
+                .Query(q => q
+                    .Bool(b => b
+                        .Should(
+                            bs => bs.MultiMatch(m => m
+                                .Fields(f => f
+                                    .Field(p => p.Name, 2.0)
+                                    .Field(p => p.Description)
+                                    .Field(p => p.Keywords))
+                                .Query(serviceFilterModel.Search)
+                                .Fuzziness(Fuzziness.EditDistance(2))
+                            )
+                        )
+                    )
+                )
+                .From((pageIndex - 1) * pageSize)
+                .Size(pageSize)
+            );
+
+            if (!fuzzySearchResponse.Documents.Any()) return null;
+
+            var serviceIds = fuzzySearchResponse.Documents.Select(doc => doc.Id).ToList();
+
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+
+            var serviceModels = dbServices.Data.Select(dbService =>
+            {
+                var esDocument = fuzzySearchResponse.Documents.FirstOrDefault(_ => _.Id == dbService.Id);
+
+                return new ServiceModel
+                {
+                    Id = dbService.Id,
+                    Name = esDocument?.Name ?? dbService.Name ?? "Unknown",
+                    Description = esDocument?.Description ?? dbService.Description ?? "No description available",
+                    FeedbackCount = dbService.FeedbackCount,
+                    Rate = dbService.Rate,
+                    MinWeight = dbService.MinWeight,
+                    MaxWeight = dbService.MaxWeight,
+                    ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
+                        LastName = dbService.CreatedBy.LastName ?? "Unknown",
+                        Username = dbService.CreatedBy.Username ?? "Unknown",
+                        Email = dbService.CreatedBy.Email ?? "Unknown",
+                        Image = dbService.CreatedBy.Image ?? "Unknown"
+                    }
+                };
+            }).ToList();
+
+            return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)fuzzySearchResponse.Total);
+        }
 
         private async Task<Pagination<ServiceModel>?> SearchExactMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
@@ -1062,53 +1117,39 @@ namespace Chillde.Services.Services
 
             if (!exactMatchResponse.Documents.Any()) return null;
 
-            var exactMatchResults = exactMatchResponse.Documents
-                .Select(doc => new ServiceModel
-                {
-                    Id = doc.Id,
-                    Name = doc.Name!,
-                    Description = doc.Description!
-                })
-                .ToList();
+            var serviceIds = exactMatchResponse.Documents.Select(doc => doc.Id).ToList();
 
-            return new Pagination<ServiceModel>(exactMatchResults, pageIndex, pageSize, exactMatchResponse.Documents.Count);
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+
+            var serviceModels = dbServices.Data.Select(dbService =>
+            {
+                var esDocument = exactMatchResponse.Documents.FirstOrDefault(_ => _.Id == dbService.Id);
+
+                return new ServiceModel
+                {
+                    Id = dbService.Id,
+                    Name = esDocument?.Name ?? dbService.Name ?? "Unknown",
+                    Description = esDocument?.Description ?? dbService.Description ?? "No description available",
+                    FeedbackCount = dbService.FeedbackCount,
+                    Rate = dbService.Rate,
+                    MinWeight = dbService.MinWeight,
+                    MaxWeight = dbService.MaxWeight,
+                    ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
+                        LastName = dbService.CreatedBy.LastName ?? "Unknown",
+                        Username = dbService.CreatedBy.Username ?? "Unknown",
+                        Email = dbService.CreatedBy.Email ?? "Unknown",
+                        Image = dbService.CreatedBy.Image ?? "Unknown"
+                    }
+                };
+            }).ToList();
+
+            return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)exactMatchResponse.Total);
         }
 
-        private async Task<Pagination<ServiceModel>?> SearchFuzzyMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
-        {
-            var fuzzySearchResponse = await _client.SearchAsync<Service>(s => s
-                .Index("test_service")
-                .Query(q => q
-                    .Bool(b => b
-                        .Should(
-                            bs => bs.MultiMatch(m => m
-                                .Fields(f => f
-                                    .Field(p => p.Name)
-                                    .Field(p => p.Description)
-                                    .Field(p => p.Keywords))
-                                .Query(serviceFilterModel.Search)
-                                .Fuzziness(Fuzziness.EditDistance(2))
-                            )
-                        )
-                    )
-                )
-                .From((pageIndex - 1) * pageSize)
-                .Size(pageSize)
-            );
 
-            if (!fuzzySearchResponse.Documents.Any()) return null;
-
-            var fuzzyResults = fuzzySearchResponse.Documents
-                .Select(doc => new ServiceModel
-                {
-                    Id = doc.Id,
-                    Name = doc.Name!,
-                    Description = doc.Description!
-                })
-                .ToList();
-
-            return new Pagination<ServiceModel>(fuzzyResults, pageIndex, pageSize, fuzzySearchResponse.Documents.Count);
-        }
 
         private async Task<Pagination<ServiceModel>?> SearchByEmbedding(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
@@ -1141,7 +1182,7 @@ namespace Chillde.Services.Services
                             ),
                             bs => bs.MultiMatch(m => m
                                 .Fields(f => f
-                                    .Field(p => p.Name)
+                                    .Field(p => p.Name, 2.0)
                                     .Field(p => p.Description)
                                     .Field(p => p.Keywords))
                                 .Query(serviceFilterModel.Search)
@@ -1156,35 +1197,41 @@ namespace Chillde.Services.Services
                 .Size(pageSize)
             );
 
-
             if (!embeddingSearchResponse.Documents.Any())
             {
                 return null;
             }
+            var serviceIds = embeddingSearchResponse.Documents.Select(doc => doc.Id).ToList();
 
-            var results = embeddingSearchResponse.Hits
-                .Where(hit => hit.Score.HasValue && hit.Score.Value > 0.5) 
-                .Select(hit => new
-                {
-                    Id = hit.Source.Id,
-                    Name = hit.Source.Name,
-                    Description = hit.Source.Description,
-                    Score = hit.Score
-                }).ToList();
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
 
-
-            var serviceModels = results.Select(r => new ServiceModel
+            var serviceModels = dbServices.Data.Select(dbService =>
             {
-                Id = r.Id,
-                Name = r.Name!,
-                Description = r.Description!
+                var esDocument = embeddingSearchResponse.Documents.FirstOrDefault(doc => doc.Id == dbService.Id);
+
+                return new ServiceModel
+                {
+                    Id = dbService.Id,
+                    Name = esDocument?.Name ?? dbService.Name ?? "Unknown",
+                    Description = esDocument?.Description ?? dbService.Description ?? "No description available",
+                    FeedbackCount = dbService.FeedbackCount,
+                    Rate = dbService.Rate,
+                    MinWeight = dbService.MinWeight,
+                    MaxWeight = dbService.MaxWeight,
+                    ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
+                        LastName = dbService.CreatedBy.LastName ?? "Unknown",
+                        Username = dbService.CreatedBy.Username ?? "Unknown",
+                        Email = dbService.CreatedBy.Email ?? "Unknown",
+                        Image = dbService.CreatedBy.Image ?? "Unknown"
+                    }
+                };
             }).ToList();
 
             return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)embeddingSearchResponse.Total);
         }
-
-
-
 
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
