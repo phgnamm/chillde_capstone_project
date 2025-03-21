@@ -960,7 +960,7 @@ namespace Chillde.Services.Services
                     IsDeleted = package.IsDeleted,
                     CreationDate = package.CreationDate,
                     Features = package.PackageFeatures
-                        .GroupBy(pf => pf.Feature.Name) // Group by Feature Name
+                        .GroupBy(pf => pf.Feature.Name) 
                         .Select(g => new FeatureModel
                         {
                             Id = g.First().FeatureId,
