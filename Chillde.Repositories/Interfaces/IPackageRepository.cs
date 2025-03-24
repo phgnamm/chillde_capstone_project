@@ -13,7 +13,7 @@ namespace Chillde.Repositories.Interfaces
         Task<List<Package>> GetAllPackageFromService(Guid serviceId);
         Task<Package> Get(Guid id);
         bool GetPackageByNameAsync(PackageName name, Guid serviceId);
-        //Task<Guid> GetArtist(Guid packageId);
+        Task<List<Feature>> GetAllFeatureByService(Guid serviceId);
 
     }
 }

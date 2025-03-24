@@ -935,8 +935,7 @@ namespace Chillde.Services.Services
                 Expression<Func<Package, bool>> filter = package =>
                      package.ServiceId == serviceId &&
                      package.IsDeleted == packageFilterModel.IsDeleted &&
-                     (string.IsNullOrEmpty(packageFilterModel.Search) //||
-                                                                      //package.Name!.Contains(packageFilterModel.Search)
+                     (string.IsNullOrEmpty(packageFilterModel.Search)
                      );
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
@@ -960,7 +959,7 @@ namespace Chillde.Services.Services
                     IsDeleted = package.IsDeleted,
                     CreationDate = package.CreationDate,
                     Features = package.PackageFeatures
-                        .GroupBy(pf => pf.Feature.Name) 
+                        .GroupBy(pf => pf.Feature.Name)
                         .Select(g => new FeatureModel
                         {
                             Id = g.First().FeatureId,
@@ -971,7 +970,7 @@ namespace Chillde.Services.Services
                             IsQuantity = g.First().Feature.IsQuantity,
                             PackageFeatures = g.ToList()
                         }).ToList()
-                }).ToList();
+                }).OrderBy(_ => _.Name).ToList();
 
                 var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
                   packageFilterModel.PageSize, packages.TotalCount);
@@ -981,6 +980,39 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status200OK,
                     Message = "Successfully.",
                     Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> GetAllFeaturesByServiceAsync(Guid serviceId)
+        {
+            try
+            {
+                var service = await _unitOfWork.ServiceRepository.GetAsync(serviceId);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Service not found."
+                    };
+                }
+
+                var feature = await _unitOfWork.PackageRepository.GetAllFeatureByService(serviceId);
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully.",
+                    Data = feature
                 };
             }
             catch (Exception ex)
