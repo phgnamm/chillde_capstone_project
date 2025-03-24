@@ -20,7 +20,7 @@ namespace Chillde.API.Controllers
             _featureService = featureService;
         }
 
-        //[Authorize("Artisan")]
+        //[Authorize(Roles = "Artisan")]
         [HttpPost()]
         public async Task<IActionResult> AddFeatureAsync([FromBody] FeatureAddModel featureAddModel)
         {
@@ -43,7 +43,7 @@ namespace Chillde.API.Controllers
         }
 
 
-        //[Authorize("Artisan")]
+        //[Authorize(Roles = "Artisan")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] FeatureUpdateModel featureUpdateModel, Guid id)
         {
