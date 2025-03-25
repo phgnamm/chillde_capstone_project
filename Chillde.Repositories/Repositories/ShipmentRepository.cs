@@ -11,9 +11,15 @@ public class ShipmentRepository : GenericRepository<Shipment>, IShipmentReposito
     {
     }
 
-    public async Task<bool> HasAvalaibleShipment(Guid orderId, string partnerId)
+    public bool HasAvalaibleShipment(Guid orderId, string partnerId)
     {
-        var hasAvailableShipment = _dbSet.Any(_ => _.OrderId == orderId && (_.PartnerId == partnerId));
+        var hasAvailableShipment =  _dbSet.Any(_ => _.OrderId == orderId && (_.PartnerId!.StartsWith(partnerId)));
         return hasAvailableShipment;
+    }
+
+    public Shipment? GetShipmentByPartnerIdOrLabel(string trackingOrder)
+    {
+        var shipment = _dbSet.Where(_ => _.PartnerId == trackingOrder || _.Label == trackingOrder).FirstOrDefault();
+        return shipment;
     }
 }

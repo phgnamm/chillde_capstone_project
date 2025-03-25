@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
@@ -11,6 +12,7 @@ using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Nest;
 using System.Globalization;
 using System.Linq.Expressions;
 
@@ -156,14 +158,20 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var packageFeatures = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                    filter: packageFeature => packageFeature.PackageId == id
+                    );
+
                 var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(id);
 
                 if (!anyOrder.Result)
                 {
+                    _unitOfWork.PackageFeatureRepository.HardRemoveRange(packageFeatures.Data);
                     _unitOfWork.PackageRepository.HardRemove(package);
                 }
                 else
                 {
+                    _unitOfWork.PackageFeatureRepository.SoftRemoveRange(packageFeatures.Data);
                     _unitOfWork.PackageRepository.SoftRemove(package);
                 }
                     

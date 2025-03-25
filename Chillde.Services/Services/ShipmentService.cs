@@ -1,10 +1,12 @@
-﻿using Chillde.Repositories.Interfaces;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 namespace Chillde.Services.Services
@@ -13,16 +15,18 @@ namespace Chillde.Services.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly string _ghtkUrl;
 
-        public ShipmentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork)
+        public ShipmentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
             _unitOfWork = unitOfWork;
+            _ghtkUrl = configuration["GhtkSettings:BaseUrl"];
         }
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
-            var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
+            var url = $"{_ghtkUrl}/shipment/fee?" +
                       $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
                       $"province={Uri.EscapeDataString(requestModel.Province)}&" +
                       $"district={Uri.EscapeDataString(requestModel.District)}&" +
@@ -64,16 +68,22 @@ namespace Chillde.Services.Services
 
         public async Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder)
         {
-            var url = $"https://services.giaohangtietkiem.vn/services/shipment/cancel/{trackingOrder}";
+            var url = $"{_ghtkUrl}/shipment/cancel/{trackingOrder}";
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
+                //response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
+
+                var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+                shipment!.StatusId = ShipmentStatus.Cancelled;
+
+                _unitOfWork.ShipmentRepository.Update(shipment);
+                await _unitOfWork.SaveChangeAsync();
 
                 if (cancelResponse != null) return cancelResponse;
             }
@@ -102,7 +112,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var url = $"https://services.giaohangtietkiem.vn/services/shipment/v2/{trackingOrder}";
+            var url = $"{_ghtkUrl}/shipment/v2/{trackingOrder}";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             try
@@ -146,7 +156,7 @@ namespace Chillde.Services.Services
 
         public async Task<byte[]> GetShippingLabelAsync(string trackingOrder)
         {
-            string url = $"https://services.giaohangtietkiem.vn/services/services/label/{trackingOrder}";
+            string url = $"{_ghtkUrl}/label/{trackingOrder}";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             var response = await _httpClient.SendAsync(requestMessage);
