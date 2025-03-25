@@ -50,11 +50,7 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-
-                var result = await _offerService.UpdateAsync(id, model, sourceLanguageCode, targetLanguageCode);
+                var result = await _offerService.UpdateAsync(id, model);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
