@@ -57,9 +57,6 @@ namespace Chillde.Services.Services
             }
 
             var roles = await _unitOfWork.AccountRoleRepository.GetAllAsync(filter: _ => _.AccountId == currentUserId.Value, include: _ => _.Include(_ => _.Role));
-            //var isArtisan = roles.Data.Any(role => role.Role.Name == "Artisan");
-            //var isCustomer = roles.Data.Any(role => role.Role.Name == "Customer");
-
                     var uploadedAttachments = await UploadAttachments(orderTrackingAddModel.OrderTrackingAttachmentAddModels, order.Code, FolderAttachment.TRACKINGSKETCH);
                     var orderTracking = new OrderTracking
                     {
@@ -73,7 +70,6 @@ namespace Chillde.Services.Services
       
                     await _unitOfWork.SaveChangeAsync();
 
-                    //await _emailService.SendSketchNotification(order.CustomerEmail, order.Id, orderTracking.Name);
 
                     return new ResponseModel
                     {
@@ -86,7 +82,6 @@ namespace Chillde.Services.Services
       
         }
 
-        // Helper method to upload attachments
         private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<OrderTrackingAttachmentAddModel> attachments, string orderCode, string folderName)
         {
             var uploadedAttachments = new List<OrderTrackingAttachment>();
@@ -98,7 +93,7 @@ namespace Chillde.Services.Services
                     var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
                         attachment.AttachmentUrl,
                         orderCode,
-                        folderName
+                        folderName: FolderAttachment.TRACKINGSKETCH
                     );
 
                     uploadedAttachments.Add(new OrderTrackingAttachment
@@ -268,26 +263,26 @@ namespace Chillde.Services.Services
             }
 
             var filteredTrackings = order.OrderTrackings
-                .Where(t => !orderStage.HasValue || t.Stage == orderStage)
-                .Select(t => new OrderTrackingModel
+                .Where(_ => !orderStage.HasValue || _.Stage == orderStage)
+                .Select(_ => new OrderTrackingModel
                 {
-                    Id = t.Id,
-                    CreatedBy = $"{t.CreatedBy.FirstName} {t.CreatedBy.LastName}",
-                    DeletedById = t.CreatedById,
-                    CreatedRole = t.CreatedBy.AccountRoles.FirstOrDefault()?.Role?.Name ?? "Unknown",
+                    Id = _.Id,
+                    CreatedBy = $"{_.CreatedBy.FirstName} {_.CreatedBy.LastName}",
+                    DeletedById = _.CreatedById,
+                    CreatedRole = _.CreatedBy.AccountRoles.FirstOrDefault()?.Role?.Name ?? "Unknown",
                     CurrentSketchRevision = order.CurrentSketchRevision, 
-                    Name = t.Name,
-                    Description = t.Description,
-                    IsAccepted = t.IsAccepted,
-                    Stage = t.Stage,
-                    Type = t.Type,
-                    CreationDate = t.CreationDate,
-                    OrderTrackingAttachmentModels = t.OrderTrackingAttachments?
-                        .Select(a => new OrderTrackingAttachmentModel
+                    Name = _.Name,
+                    Description = _.Description,
+                    IsAccepted = _.IsAccepted,
+                    Stage = _.Stage,
+                    Type = _.Type,
+                    CreationDate = _.CreationDate,
+                    OrderTrackingAttachmentModels = _.OrderTrackingAttachments?
+                        .Select(_ => new OrderTrackingAttachmentModel
                         {
-                            Id = a.Id,
-                            AttachmentUrl = a.AttachmentUrl,
-                            AttachmentAlt = a.AttachmentAlt
+                            Id = _.Id,
+                            AttachmentUrl = _.AttachmentUrl,
+                            AttachmentAlt = _.AttachmentAlt
                         }).ToList()
                 })
                 .ToList();

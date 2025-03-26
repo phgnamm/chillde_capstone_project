@@ -3,6 +3,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CancellationReasonModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ namespace Chillde.API.Controllers
         {
             _cancellationReasonService = cancellationReasonService;
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AddAsync([FromBody] CancellationReasonAddModel cancellationReasonAddModel)
         {
@@ -35,6 +37,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public async Task<IActionResult> Delete([FromQuery] Guid id)
         {
@@ -52,6 +55,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
@@ -69,6 +73,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpPut("update")]
         public async Task<IActionResult> Add([FromQuery] Guid id, [FromBody] CancellationReasonAddModel cancellationReasonAddModel)
         {
