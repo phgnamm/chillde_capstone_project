@@ -1,14 +1,17 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
+using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq.Expressions;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -326,6 +329,82 @@ namespace Chillde.Services.Services
         //        };
         //    }
         //}
+
+        public async Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus)
+        {
+            try
+            {
+                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
+                if (shipment == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Shipment not found."
+                    };
+                }
+
+                if (shipment.StatusId == newStatus)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Shipment status is already up-to-date."
+                    };
+                }
+
+                shipment.StatusId = newStatus;
+
+                _unitOfWork.ShipmentRepository.Update(shipment);
+                var updateResult = await _unitOfWork.SaveChangeAsync();
+                if (updateResult <= 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to update shipment status."
+                    };
+                }              
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment status updated ",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error updating shipment status: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model)
+        {
+            Expression<Func<Shipment, bool>> filter = s =>
+               s.IsDeleted == model.IsDeleted &&
+               (string.IsNullOrEmpty(model.Search) ||
+                s.TrackingId!.Contains(model.Search) ||
+                s.PartnerId!.Contains(model.Search) ||
+                s.Label!.Contains(model.Search) ||
+                s.Fee!.Equals(model.Search));
+
+            var shipmentdetails = await _unitOfWork.ShipmentRepository.GetAllAsync(
+            filter: filter,
+            pageIndex: model.PageIndex,
+            pageSize: model.PageSize
+        );
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Data = shipmentdetails.Data
+            };
+        }
+
 
     }
 }
