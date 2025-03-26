@@ -161,7 +161,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artisan, Admin")]
+        //[Authorize(Roles = "Artisan, Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] ServiceUpdateModel serviceUpdateModel, Guid id)
         {
@@ -184,7 +184,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artisan, Admin")]
+        //[Authorize(Roles = "Artisan, Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -222,7 +222,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artisan")]
+        //[Authorize(Roles = "Artisan")]
         [HttpPost("{serviceId}/service-attachments")]
         public async Task<IActionResult> AddListServiceAttachmentAsync([FromForm] List<ServiceAttachmentAddModel> attachmentModels, Guid serviceId)
         {
@@ -260,7 +260,26 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artisan")]
+        //[Authorize(Roles = "Artisan")]
+        [HttpGet("{serviceId}/features")]
+        public async Task<IActionResult> GetAllFeaturesByServiceAsync(Guid serviceId)
+        {
+            try
+            {
+                var result = await _serviceService.GetAllFeaturesByServiceAsync(serviceId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize(Roles = "Artisan")]
         [HttpPost("{serviceId}/packages")]
         public async Task<IActionResult> AddPackageAsync([FromBody] PackageAddModel packageAddModel, Guid serviceId)
         {
@@ -282,7 +301,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        //[Authorize("Artisan")]
+        //[Authorize(Roles = "Artisan")]
         [HttpPost("{serviceId}/faqs")]
         public async Task<IActionResult> AddFAQAsync([FromBody] FAQAddAndUpdateModel faqAddModel, Guid serviceId)
         {

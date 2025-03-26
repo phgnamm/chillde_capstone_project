@@ -19,6 +19,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> Search(ServiceFilterModel serviceFilterModel);
         Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel);
         Task<ResponseModel> GetAllPackagesByServiceAsync(PackageFilterModel packageFilterModel, Guid serviceId);
+        Task<ResponseModel> GetAllFeaturesByServiceAsync(Guid serviceId);
         Task<ResponseModel> AddPackageAsync(PackageAddModel packageAddModel, Guid serviceId,string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> GetAsync(Guid id);
         Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel, string sourceLanguageCode, string targetLanguageCode);

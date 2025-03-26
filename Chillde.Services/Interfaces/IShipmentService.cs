@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Models.ShipmentModels;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,8 @@ namespace Chillde.Services.Interfaces
         Task<byte[]> GetShippingLabelAsync(string trackingOrder);
         Task<ResponseModel> GetOrderStatusAsync(string trackingOrder);
         //Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId);
+        Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus);
+        Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model);
 
     }
 }

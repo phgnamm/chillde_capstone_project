@@ -2,11 +2,6 @@
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Repositories
 {
@@ -24,6 +19,17 @@ namespace Chillde.Repositories.Repositories
         public async Task<List<Package>> GetAllPackageFromService(Guid serviceId)
         {
             var result = await _dbSet.Where(_ => _.ServiceId == serviceId).ToListAsync();
+            return result;
+        }
+
+        public async Task<List<Feature>> GetAllFeatureByService(Guid serviceId)
+        {
+            var result = await _dbSet.Where(_ => _.ServiceId == serviceId)
+                                     .SelectMany(_ => _.PackageFeatures.Select(_ => _.Feature))
+                                     .Where(_ => _.IsDeleted == false)
+                                     .GroupBy(f => f.Name)
+                                     .Select(g => g.First())
+                                     .ToListAsync();
             return result;
         }
 

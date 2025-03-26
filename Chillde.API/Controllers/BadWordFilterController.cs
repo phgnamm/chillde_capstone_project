@@ -2,9 +2,6 @@
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.BadWordFilterModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ServiceModels;
-using Chillde.Services.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -20,7 +17,6 @@ namespace Chillde.API.Controllers
             _badWordFilterService = badWordFilterService;
         }
 
-        //[Authorize("Artisan")]
         [HttpPost]
         public async Task<IActionResult> FilterBadWordAsync([FromBody] BadWordFilterModel serviceAddModel)
         {

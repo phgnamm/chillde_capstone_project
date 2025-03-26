@@ -606,7 +606,9 @@ namespace Chillde.Services.Services
 
             string partnerId = $"{order.Code}_{order.Stage.GetStringValue()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
-            var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerId);
+            string partnerIdWithOutTime = partnerId.Substring(0, partnerId.IndexOf('_', partnerId.IndexOf('_') + 1));
+
+            var availableShipment = _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerIdWithOutTime);
 
             if (availableShipment)
             {
@@ -627,7 +629,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
+            var url = "https://services-staging.ghtklab.com/services/shipment/order";
             var jsonBody = JsonConvert.SerializeObject(new
             {
                 products = shipmentCreateModel.Products,

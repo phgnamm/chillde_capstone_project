@@ -5,6 +5,7 @@ namespace Chillde.Repositories.Interfaces;
 
 public interface IShipmentRepository : IGenericRepository<Shipment>
 {
-    Task<bool> HasAvalaibleShipment(Guid orderId, string partnerId);
+    bool HasAvalaibleShipment(Guid orderId, string partnerId);
+    Shipment? GetShipmentByPartnerIdOrLabel(string trackingOrder);
 
 }
