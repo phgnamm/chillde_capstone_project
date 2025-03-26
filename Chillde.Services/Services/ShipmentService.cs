@@ -1,14 +1,17 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
+using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq.Expressions;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -377,6 +380,29 @@ namespace Chillde.Services.Services
                     Message = $"Error updating shipment status: {ex.Message}"
                 };
             }
+        }
+
+        public async Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model)
+        {
+            Expression<Func<Shipment, bool>> filter = s =>
+               s.IsDeleted == model.IsDeleted &&
+               (string.IsNullOrEmpty(model.Search) ||
+                s.TrackingId!.Contains(model.Search) ||
+                s.PartnerId!.Contains(model.Search) ||
+                s.Label!.Contains(model.Search) ||
+                s.Fee!.Equals(model.Search));
+
+            var shipmentdetails = await _unitOfWork.ShipmentRepository.GetAllAsync(
+            filter: filter,
+            pageIndex: model.PageIndex,
+            pageSize: model.PageSize
+        );
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Data = shipmentdetails.Data
+            };
         }
 
 

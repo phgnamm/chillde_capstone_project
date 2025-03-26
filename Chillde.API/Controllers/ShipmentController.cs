@@ -117,6 +117,12 @@ namespace Chillde.API.Controllers
             var response = await _shipmentService.UpdateShipmentStatusAsync(shipmentId, newStatus);
             return StatusCode(response.Code, response);
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAll ([FromQuery] ShipmentFilterModel model)
+        {
+            var response = await _shipmentService.GetALlShipmentAsync(model);
+            return StatusCode(response.Code, response);
+        }
 
     }
 }
