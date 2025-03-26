@@ -327,5 +327,58 @@ namespace Chillde.Services.Services
         //    }
         //}
 
+        public async Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus)
+        {
+            try
+            {
+                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
+                if (shipment == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Shipment not found."
+                    };
+                }
+
+                if (shipment.StatusId == newStatus)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Shipment status is already up-to-date."
+                    };
+                }
+
+                shipment.StatusId = newStatus;
+
+                _unitOfWork.ShipmentRepository.Update(shipment);
+                var updateResult = await _unitOfWork.SaveChangeAsync();
+                if (updateResult <= 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to update shipment status."
+                    };
+                }              
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment status updated ",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error updating shipment status: {ex.Message}"
+                };
+            }
+        }
+
+
     }
 }

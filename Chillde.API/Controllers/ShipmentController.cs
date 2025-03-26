@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Mvc;
@@ -110,6 +111,12 @@ namespace Chillde.API.Controllers
         //        });
         //    }
         //}
+        [HttpPut("{shipmentId}/status")]
+        public async Task<IActionResult> UpdateShipmentStatus(Guid shipmentId, [FromBody] ShipmentStatus newStatus)
+        {
+            var response = await _shipmentService.UpdateShipmentStatusAsync(shipmentId, newStatus);
+            return StatusCode(response.Code, response);
+        }
 
     }
 }
