@@ -8,7 +8,7 @@
         DeliveryInProcess,
         ReviewDelivery,
         Late,
-        Canceled,
+        Cancelled,
         Shipping,
         Completed,
         Return

@@ -14,6 +14,7 @@ public interface IUnitOfWork
     IAccountRepository AccountRepository { get; }
     IAccountConversationRepository AccountConversationRepository { get; }
     IAccountRoleRepository AccountRoleRepository { get; }
+    ICancellationReasonRepository CancellationReasonRepository { get; }
     IConversationRepository ConversationRepository { get; }
     IMessageRepository MessageRepository { get; }
     IMessageRecipientRepository MessageRecipientRepository { get; }

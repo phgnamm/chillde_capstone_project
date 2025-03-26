@@ -10,6 +10,9 @@ namespace Chillde.Repositories.Common
     {
         public static string CATEGORY = "CATEGORIES";
         public static string REQUESTATTRIBUTE = "REQUESTATTRIBUTES";
+        public static string ORDERATTACHMENT = "ORDERATTACHMENTS";
+        public static string TRACKINGSKETCH = "TRACKINGSKETCHS";
+        public static string TRACKINGDELIVERY = "TRACKINGDELIVERIES";
         public static string REQUEST = "REQUESTS";
         public static string ACCOUNT = "ACCOUNTS";
         public static string COLLECTION = "COLLECTIONS";

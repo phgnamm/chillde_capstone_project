@@ -308,6 +308,9 @@ public static class Configuration
         //PackageFeature
         services.AddScoped<IPackageFeatureRepository, PackageFeatureRepository>();
 
+        //CancellationReason
+        services.AddScoped<ICancellationReasonRepository, CancellationReasonRepository>();
+        services.AddScoped<ICancellationReasonService, CancellationReasonService>();
 
         //Feature
         services.AddScoped<IFeatureRepository, FeatureRepository>();
