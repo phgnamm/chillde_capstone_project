@@ -22,6 +22,7 @@ using StackExchange.Redis;
 using Chillde.Repositories.Models.SystemConfigModel;
 using System.Reflection.Metadata.Ecma335;
 using CloudinaryDotNet.Core;
+using Chillde.Repositories.Common;
 
 namespace Chillde.Services.Services
 {
@@ -305,8 +306,8 @@ namespace Chillde.Services.Services
                             {
                                 var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
                                     attachment.AttachmentUrl,
-                                    "order_attachments",
-                                    order.Code
+                                    order.Code,
+                                    folderName: FolderAttachment.ORDERATTACHMENT
                                 );
 
                                 orderInfo.OrderInformationAttachments.Add(new OrderInformationAttachment
@@ -605,7 +606,9 @@ namespace Chillde.Services.Services
 
             string partnerId = $"{order.Code}_{order.Stage.GetStringValue()}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
-            var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerId);
+            string partnerIdWithOutTime = partnerId.Substring(0, partnerId.IndexOf('_', partnerId.IndexOf('_') + 1));
+
+            var availableShipment = _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId, partnerIdWithOutTime);
 
             if (availableShipment)
             {
@@ -626,7 +629,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
+            var url = "https://services-staging.ghtklab.com/services/shipment/order";
             var jsonBody = JsonConvert.SerializeObject(new
             {
                 products = shipmentCreateModel.Products,
@@ -883,7 +886,7 @@ namespace Chillde.Services.Services
 
         }
 
-        public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus orderStatus)
+        public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
             if (order == null)
@@ -894,7 +897,12 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status404NotFound
                 };
             }
-            order.Status = orderStatus;
+                order.Status = (OrderStatus)orderStatus;
+                if (orderStatus == OrderStatus.Accepted)
+                {
+                    order.Stage = OrderStage.SketchInProcess;
+                }
+            
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
             return result > 0

@@ -43,6 +43,7 @@ public class UnitOfWork : IUnitOfWork
         ISearchHistoryRepository searchHistoryRepository,
         IVoucherRepository voucherRepository,
         IVoucherUsageLogRepository voucherUsageLogRepository,
+        ICancellationReasonRepository cancellationReasonRepository,
         IOrderTrackingRepository orderTrackingRepository
         )
     {
@@ -53,6 +54,7 @@ public class UnitOfWork : IUnitOfWork
         ConversationRepository = conversationRepository;
         MessageRepository = messageRepository;
         MessageRecipientRepository = messageRecipientRepository;
+        CancellationReasonRepository = cancellationReasonRepository;
         RefreshTokenRepository = refreshTokenRepository;
         RoleRepository = roleRepository;
         RequestRepository = requestRepository;
@@ -136,6 +138,8 @@ public class UnitOfWork : IUnitOfWork
     public IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
 
     public IOrderTrackingRepository OrderTrackingRepository { get; }
+
+    public ICancellationReasonRepository CancellationReasonRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

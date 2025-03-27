@@ -2,9 +2,6 @@
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.BadWordFilterModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ServiceModels;
-using Chillde.Services.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers

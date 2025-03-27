@@ -1,28 +1,35 @@
-﻿using Chillde.Repositories.Interfaces;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
+using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
+using Chillde.Services.Models.ShippingAddressModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Linq.Expressions;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
     {
         private readonly HttpClient _httpClient;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly string _ghtkUrl;
 
-        public ShipmentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork)
+        public ShipmentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
             _unitOfWork = unitOfWork;
+            _ghtkUrl = configuration["GhtkSettings:BaseUrl"];
         }
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
-            var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
+            var url = $"{_ghtkUrl}/shipment/fee?" +
                       $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
                       $"province={Uri.EscapeDataString(requestModel.Province)}&" +
                       $"district={Uri.EscapeDataString(requestModel.District)}&" +
@@ -64,16 +71,22 @@ namespace Chillde.Services.Services
 
         public async Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder)
         {
-            var url = $"https://services.giaohangtietkiem.vn/services/shipment/cancel/{trackingOrder}";
+            var url = $"{_ghtkUrl}/shipment/cancel/{trackingOrder}";
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
+                //response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
+
+                var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+                shipment!.StatusId = ShipmentStatus.Cancelled;
+
+                _unitOfWork.ShipmentRepository.Update(shipment);
+                await _unitOfWork.SaveChangeAsync();
 
                 if (cancelResponse != null) return cancelResponse;
             }
@@ -102,7 +115,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var url = $"https://services.giaohangtietkiem.vn/services/shipment/v2/{trackingOrder}";
+            var url = $"{_ghtkUrl}/shipment/v2/{trackingOrder}";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             try
@@ -146,7 +159,7 @@ namespace Chillde.Services.Services
 
         public async Task<byte[]> GetShippingLabelAsync(string trackingOrder)
         {
-            string url = $"https://services.giaohangtietkiem.vn/services/services/label/{trackingOrder}";
+            string url = $"{_ghtkUrl}/label/{trackingOrder}";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
             var response = await _httpClient.SendAsync(requestMessage);
@@ -316,6 +329,82 @@ namespace Chillde.Services.Services
         //        };
         //    }
         //}
+
+        public async Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus)
+        {
+            try
+            {
+                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
+                if (shipment == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Shipment not found."
+                    };
+                }
+
+                if (shipment.StatusId == newStatus)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Shipment status is already up-to-date."
+                    };
+                }
+
+                shipment.StatusId = newStatus;
+
+                _unitOfWork.ShipmentRepository.Update(shipment);
+                var updateResult = await _unitOfWork.SaveChangeAsync();
+                if (updateResult <= 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to update shipment status."
+                    };
+                }              
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment status updated ",
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error updating shipment status: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model)
+        {
+            Expression<Func<Shipment, bool>> filter = s =>
+               s.IsDeleted == model.IsDeleted &&
+               (string.IsNullOrEmpty(model.Search) ||
+                s.TrackingId!.Contains(model.Search) ||
+                s.PartnerId!.Contains(model.Search) ||
+                s.Label!.Contains(model.Search) ||
+                s.Fee!.Equals(model.Search));
+
+            var shipmentdetails = await _unitOfWork.ShipmentRepository.GetAllAsync(
+            filter: filter,
+            pageIndex: model.PageIndex,
+            pageSize: model.PageSize
+        );
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Data = shipmentdetails.Data
+            };
+        }
+
 
     }
 }
