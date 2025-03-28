@@ -310,8 +310,8 @@ namespace Chillde.Services.Services
                             {
                                 var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
                                     attachment.AttachmentUrl,
-                                    "order_attachments",
-                                    order.Code
+                                    order.Code,
+                                    folderName: FolderAttachment.ORDERATTACHMENT
                                 );
 
                                 orderInfo.OrderInformationAttachments.Add(new OrderInformationAttachment
@@ -892,7 +892,7 @@ namespace Chillde.Services.Services
 
         }
 
-        public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus orderStatus)
+        public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
             if (order == null)
@@ -903,7 +903,12 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status404NotFound
                 };
             }
-            order.Status = orderStatus;
+                order.Status = (OrderStatus)orderStatus;
+                if (orderStatus == OrderStatus.Accepted)
+                {
+                    order.Stage = OrderStage.SketchInProcess;
+                }
+            
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
             return result > 0

@@ -11,10 +11,10 @@ namespace Chillde.Services.Interfaces
 {
     public interface IOrderTrackingService
     {
-        //Task<ResponseModel> GetAll(Guid orderId, OrderStage orderStage);
-        //Task<ResponseModel> Add(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
-        //Task<ResponseModel> Accepted(Guid orderTrackingId);
-        //Task<ResponseModel> Cancel(Guid orderTrackingId);
-        //Task<ResponseModel> SendReminder(Guid orderTrackingId);
+        Task<ResponseModel> GetAll(Guid orderId, OrderStage? orderStage);
+        Task<ResponseModel> Add(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
+        Task<ResponseModel> Accepted(Guid orderTrackingId);
+        Task<ResponseModel> Cancel(Guid orderId, Guid cancellationReasonId);
+        Task<ResponseModel> SendReminder(Guid orderTrackingId);
     }
 }
