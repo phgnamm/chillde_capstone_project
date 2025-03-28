@@ -1523,6 +1523,12 @@ public static class InitialSeeding
             FieldName = "MaxPriceOfPackage",
             Value = JsonDocument.Parse("10000000")
         },
+        new()
+        {
+            EntityType = ConfigType.Service,
+            FieldName = "MaximumSerivceOfOneArtisan",
+            Value = JsonDocument.Parse("5")
+        },
     };
 
     private static readonly List<Service> Services = new()

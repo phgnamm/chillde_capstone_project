@@ -13,6 +13,7 @@
         Offer,
         Order,
         Reputation,
-        Commission
+        Commission,
+        Service,
     }
 }

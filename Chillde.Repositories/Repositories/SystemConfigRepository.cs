@@ -24,7 +24,7 @@ namespace Chillde.Repositories.Repositories
             if (!SystemConfiguration.ConfigKeys.TryGetValue(key, out string? fieldName))
                 return null;
 
-            return await _dbSet.FirstOrDefaultAsync(x => x.FieldName == fieldName);
+            return await _dbSet.FirstOrDefaultAsync(x => x.FieldName!.Equals(fieldName));
         }
 
 
@@ -34,7 +34,7 @@ namespace Chillde.Repositories.Repositories
                 return null;
 
             var config = await _dbSet
-                .Where(x => x.FieldName == fieldName)
+                .Where(x => x.FieldName!.Equals(fieldName))
                 .Select(x => x.Value)
                 .FirstOrDefaultAsync();
 

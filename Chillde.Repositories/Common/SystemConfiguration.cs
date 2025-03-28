@@ -20,6 +20,7 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" },
             { SystemConfigKey.MaximumPackageOfOneService, "MaximumPackageOfOneService" },
             { SystemConfigKey.MaximumPackageFeatureOfOnePackage, "MaximumFeatureOfOnePackage" },
+            { SystemConfigKey.MaximumSerivceOfOneArtisan, "MaximumSerivceOfOneArtisan" },
             // related to search history
             { SystemConfigKey.MaxSearchHistory , "MaxSearchHistory" },
             // related to voucher
