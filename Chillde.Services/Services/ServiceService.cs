@@ -280,7 +280,7 @@ namespace Chillde.Services.Services
                 var validationResult = await ValidateServiceAsync(serviceAddModel, sourceLanguageCode);
                 if (validationResult != null)
                     return validationResult;
-                    
+
                 var currentUserId = _claimService.GetCurrentUserId;
                 if (!currentUserId.HasValue)
                 {
@@ -320,7 +320,7 @@ namespace Chillde.Services.Services
                 service.Keywords = keywords;
                 var elasticResult = await IndexKeywordsAsync("test_keywords", keywords);
                 if (!elasticResult)
-                    return new ResponseModel {Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
+                    return new ResponseModel { Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
                 //await _client.IndexAsync(new { id = service.Id, embeddingVector = service.EmbeddingVector }, i => i.Index("test_embedding"));
                 var serviceResult = await IndexServiceAsync("test_service", service);
                 if (!serviceResult)
@@ -423,7 +423,7 @@ namespace Chillde.Services.Services
                     .Completion(c => c.Name("suggest")))));
         }
 
-        private async Task<bool> IndexKeywordsAsync( string indexName, IEnumerable<string> keywords)
+        private async Task<bool> IndexKeywordsAsync(string indexName, IEnumerable<string> keywords)
         {
             var bulkOps = keywords.Select(keyword => new
             {
@@ -1052,7 +1052,7 @@ namespace Chillde.Services.Services
                     Message = "Search results found by exact keyword match.",
                     Data = exactMatchResults
                 };
-            }        
+            }
             var embeddingResults = await SearchByEmbedding(serviceFilterModel, pageIndex, pageSize);
             if (embeddingResults != null)
             {
@@ -1332,11 +1332,12 @@ namespace Chillde.Services.Services
 
                     if (!recentLogs.Data.Any())
                     {
+                        var serviceList = await GetServiceListAsync(s => s.IsDeleted == false);
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status404NotFound,
                             Message = "No recent activity found for recommendations.",
-                            Data = null
+                            Data = serviceList
                         };
                     }
 
@@ -1376,8 +1377,8 @@ namespace Chillde.Services.Services
                     {
                         return new ResponseModel
                         {
-                            Message = "No similar services found.",
                             Code = StatusCodes.Status404NotFound,
+                            Message = "No similar services found.",
                             Data = null
                         };
                     }
@@ -1401,6 +1402,17 @@ namespace Chillde.Services.Services
             else if (serviceFilterModel.IsEvent)
             {
                 var eventDetails = _openAiService.GetEvent(sourceLanguageCode);
+                if (eventDetails.Data == null)
+                {
+                    var serviceList = await GetServiceListAsync(s => s.IsDeleted == false);
+
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = eventDetails!.Message,
+                        Data = serviceList
+                    };
+                };
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetails.Message });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
@@ -1442,8 +1454,8 @@ namespace Chillde.Services.Services
                     {
                         return new ResponseModel
                         {
-                            Message = "No matching services found for the event.",
                             Code = StatusCodes.Status404NotFound,
+                            Message = "No matching services found for the event.",
                             Data = new
                             {
                                 EventName = eventDetails.Message,
@@ -1519,7 +1531,7 @@ namespace Chillde.Services.Services
                                        .ThenInclude(p => p.Orders)
                                        .Include(a => a.ServiceAttachments)
                                        .Include(su => su.Category)
-                                       .Include(a=> a.CreatedBy)
+                                       .Include(a => a.CreatedBy)
                     );
 
                     var serviceModels = services.Data.Select(s => new ServiceModel
@@ -1550,12 +1562,45 @@ namespace Chillde.Services.Services
 
                     return new ResponseModel
                     {
+                        Code = StatusCodes.Status200OK,
                         Message = "Get all services successfully",
                         Data = paginatedResult
                     };
                 });
                 return responseModel;
             }
+        }
+
+        private async Task<List<ServiceModel>> GetServiceListAsync(Expression<Func<Service, bool>> filter)
+        {
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                filter: filter,
+                order: s => s.OrderByDescending(s => s.CreationDate),
+                include: s => s.Include(p => p.Packages)
+                               .ThenInclude(p => p.Orders)
+                               .Include(a => a.ServiceAttachments)
+                               .Include(su => su.Category)
+                               .Include(a => a.CreatedBy)
+            );
+
+            return services.Data.Select(s => new ServiceModel
+            {
+                Id = s.Id,
+                Name = s.Name!,
+                Description = s.Description!,
+                ServiceAttachments = s.ServiceAttachments.ToList(),
+                Rate = s.Rate,
+                FeedbackCount = s.FeedbackCount,
+                Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                Artisan = new AccountLiteModel
+                {
+                    FirstName = s.CreatedBy.FirstName,
+                    LastName = s.CreatedBy.LastName,
+                    Username = s.CreatedBy.Username,
+                    Email = s.CreatedBy.Email,
+                    Image = s.CreatedBy.Image
+                }
+            }).ToList();
         }
 
 
