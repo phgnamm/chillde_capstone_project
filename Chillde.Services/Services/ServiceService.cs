@@ -302,6 +302,19 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var numberOfExistedService = _unitOfWork.ServiceRepository.GetAllAsync(
+                    _ => _.CreatedById == currentUserId && _.IsDeleted == false).Result.TotalCount;
+                var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumSerivceOfOneArtisan).Result;
+                var maximumService = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumSerivceOfOneArtisan).Result;
+                if (numberOfExistedService >= int.Parse(maximumPackage!))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Number of services cannot exceed {maximumService}."
+                    };
+                }
+
                 var service = new Service
                 {
                     Name = serviceAddModel.Name,
@@ -519,6 +532,60 @@ namespace Chillde.Services.Services
                         serviceAttachmentWithNewService.Add(serviceAttachment);
                     }
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentWithNewService);
+                }
+
+                if (serviceUpdateModel.ServiceAttachments != null)
+                {
+                    var newServiceAttachment = new List<ServiceAttachment>();
+
+                    for (int i = 0; i < serviceUpdateModel.ServiceAttachments.Count; i++)
+                    {
+                        var attachmentAlt = serviceUpdateModel.ServiceAttachments[i].AttachmentAlt;
+                        var attachmentUrl = serviceUpdateModel.ServiceAttachments[i].AttachmentUrl;
+
+                        string? path = null;
+                        if (attachmentUrl != null)
+                        {
+                            path = await _cloudinaryHelper.UploadImageAsync(
+                                attachmentUrl,
+                                attachmentAlt,
+                                Guid.NewGuid().ToString()
+                            );
+                        }
+
+                        newServiceAttachment.Add(new ServiceAttachment
+                        {
+                            AttachmentAlt = attachmentAlt,
+                            AttachmentUrl = path,
+                            ServiceId = service.Id
+                        });
+                    }
+
+                    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
+                }
+
+                if (serviceUpdateModel.serviceAttacchmentIdsDeleting != null)
+                {
+                    var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
+                    filter: _ => serviceUpdateModel.serviceAttacchmentIdsDeleting.Contains(_.Id)
+                    );
+
+                    var a = serviceAttachments.Data;
+
+                    if (serviceAttachments == null || !serviceAttachments.Data.Any())
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Attachments not found."
+                        };
+                    }
+
+                    var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
+
+                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.serviceAttacchmentIdsDeleting.Select(id => id.ToString()).ToList());
+
+                    _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
                 }
 
                 await _unitOfWork.SaveChangeAsync();
@@ -801,7 +868,7 @@ namespace Chillde.Services.Services
                 //}
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
-                await _unitOfWork.CommitTransactionAsync();
+                //await _unitOfWork.CommitTransactionAsync();
 
                 var packageModel = _mapper.Map<PackageModel>(package);
 
@@ -1180,9 +1247,6 @@ namespace Chillde.Services.Services
 
             return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)exactMatchResponse.Total);
         }
-
-
-
         private async Task<Pagination<ServiceModel>?> SearchByEmbedding(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
             float[] inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });

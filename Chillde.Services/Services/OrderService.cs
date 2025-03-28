@@ -22,6 +22,8 @@ using StackExchange.Redis;
 using Chillde.Repositories.Models.SystemConfigModel;
 using System.Reflection.Metadata.Ecma335;
 using CloudinaryDotNet.Core;
+using Chillde.Repositories.Models.PackageModels;
+using AutoMapper;
 
 namespace Chillde.Services.Services
 {
@@ -36,12 +38,14 @@ namespace Chillde.Services.Services
         private readonly string? _shopId;
         private readonly string? _token;
         private readonly ISystemConfigService _systemConfigService;
+        private readonly IMapper _mapper;
 
         public OrderService(ISystemConfigService systemConfigService, IUnitOfWork unitOfWork, IClaimService claimService, 
             ICloudinaryHelper cloudinaryHelper, 
             IVnpay vnpay, 
             IConfiguration configuration,
-            IHttpClientFactory httpClientFactory         
+            IHttpClientFactory httpClientFactory,
+            IMapper mapper
             )
         {
             _systemConfigService = systemConfigService;
@@ -50,6 +54,7 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
             _vnpay = vnpay;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
+            _mapper = mapper;
         }
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
@@ -706,11 +711,13 @@ namespace Chillde.Services.Services
                 await _unitOfWork.ShipmentRepository.AddAsync(shipment);
                 await _unitOfWork.SaveChangeAsync();
 
+                var shipmentModel = _mapper.Map<ShipmentModel>(shipment);
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Success",
-                    Data = shipment
+                    Data = shipmentModel
                 };
 
                 //var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.Json.Serialization;
 using Chillde.API;
 using Chillde.API.Middlewares;
@@ -74,6 +74,15 @@ builder.Services.AddApiConfiguration(builder.Configuration);
 //        options.JsonSerializerOptions.MaxDepth = 64; // optional: to avoid issues with deeply nested objects
 //    });
 
+//Session
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromDays(30); // Token GHTK có thể hết hạn sau 30 phút
+    options.Cookie.HttpOnly = true; // Bảo mật hơn
+    options.Cookie.IsEssential = true;
+});
+
 //builder.Services.AddHostedService<WorkerService>();
 var app = builder.Build();
 
@@ -85,6 +94,8 @@ app.UseMiddleware<PerformanceMiddleware>();
 
 // Allow CORS
 app.UseCors("cors");
+
+
 
 // Initial seeding
 using (var scope = app.Services.CreateScope())
@@ -105,6 +116,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<AccountStatusMiddleware>();
+
+app.UseSession();
 //app.UseStaticFiles();
 
 app.MapControllers();

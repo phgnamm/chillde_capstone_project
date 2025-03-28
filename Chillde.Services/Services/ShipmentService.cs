@@ -7,21 +7,36 @@ using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Nest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Net.NetworkInformation;
+using System.Text;
+using System.Text.Json;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HttpClient _httpClient;
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _ghtkUrl;
+        private readonly string _ghtkUsername;
+        private readonly string _ghtkPassword;
 
-        public ShipmentService(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, IConfiguration configuration)
+        public ShipmentService(IHttpClientFactory httpClientFactory,
+            IUnitOfWork unitOfWork,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor)
         {
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
             _unitOfWork = unitOfWork;
-            _ghtkUrl = configuration["GhtkSettings:BaseUrl"];
+            _ghtkUrl = configuration["GhtkSettings:BaseUrl"]!;
+            _ghtkUsername = configuration["GhtkSettings:Username"]!;
+            _ghtkPassword = configuration["GhtkSettings:Password"]!;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
@@ -100,6 +115,60 @@ namespace Chillde.Services.Services
             return null!;
         }
 
+        //public async Task<ResponseModel> GetOrderStatusAsync(string trackingOrder)
+        //{
+        //    if (string.IsNullOrEmpty(trackingOrder))
+        //    {
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status400BadRequest,
+        //            Message = "Tracking order is required.",
+        //            Data = null
+        //        };
+        //    }
+
+        //    var url = $"{_ghtkUrl}/shipment/v2/{trackingOrder}";
+        //    var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+        //    try
+        //    {
+        //        var response = await _httpClient.SendAsync(requestMessage);
+        //        response.EnsureSuccessStatusCode();
+
+        //        var content = await response.Content.ReadAsStringAsync();
+        //        var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+
+        //        if (jsonObject?["success"]?.Value<bool>() == true)
+        //        {
+        //            var orderStatusResponse = jsonObject["order"]?.ToObject<OrderStatusResponseModel>();
+        //            return new ResponseModel
+        //            {
+        //                Code = StatusCodes.Status200OK,
+        //                Message = "Success",
+        //                Data = orderStatusResponse
+        //            };
+        //        }
+        //        else
+        //        {
+        //            return new ResponseModel
+        //            {
+        //                Code = StatusCodes.Status400BadRequest,
+        //                Message = jsonObject?["message"]?.ToString() ?? "Unknown error",
+        //                Data = loginContent
+        //            };
+        //        }
+        //    }
+        //    catch (HttpRequestException ex)
+        //    {
+        //        return new ResponseModel
+        //        {
+        //            Code = StatusCodes.Status500InternalServerError,
+        //            Message = ex.Message,
+        //            Data = null
+        //        };
+        //    }
+        //}
+
         public async Task<ResponseModel> GetOrderStatusAsync(string trackingOrder)
         {
             if (string.IsNullOrEmpty(trackingOrder))
@@ -112,36 +181,47 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var url = $"{_ghtkUrl}/shipment/v2/{trackingOrder}";
+            var ghtkLoginUrl = "https://web-staging.ghtklab.com/api/v1/auth/login";
+            var loginPayload = new
+            {
+                username = _ghtkUsername,
+                password = _ghtkPassword,
+                new_version = "true"
+            };
+
+            var ghtkJwtToken = _httpContextAccessor.HttpContext?.Session.GetString("GhtkToken").ToString();
+            if (!CheckGHTKJwtValidity(ghtkJwtToken))
+            {
+                var loginRequestMessage = new HttpRequestMessage(HttpMethod.Post, ghtkLoginUrl)
+                {
+                    Content = new StringContent(JsonConvert.SerializeObject(loginPayload), Encoding.UTF8, "application/json")
+                };
+                var loginResponse = await _httpClient.SendAsync(loginRequestMessage);
+                var loginContent = await loginResponse.Content.ReadAsStringAsync();
+                var jwt = JsonConvert.DeserializeObject<GHTKAccountInfo>(loginContent)!.Data!.Jwt;
+                ghtkJwtToken = JsonConvert.DeserializeObject<GHTKAccountInfo>(loginContent)!.Data!.Jwt;
+                _httpContextAccessor.HttpContext?.Session.SetString("GhtkToken", ghtkJwtToken);
+            }
+
+            var url = $"https://web-staging.ghtklab.com/api/v1/package/package-detail?alias={trackingOrder}";
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ghtkJwtToken);
+
 
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode(); 
+                response.EnsureSuccessStatusCode();
 
                 var content = await response.Content.ReadAsStringAsync();
-                var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
+                var jsonObject = JsonConvert.DeserializeObject<ShipmentStatusResponseModel>(content);
 
-                if (jsonObject?["success"]?.Value<bool>() == true)
+                return new ResponseModel
                 {
-                    var orderStatusResponse = jsonObject["order"]?.ToObject<OrderStatusResponseModel>();
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Success",
-                        Data = orderStatusResponse
-                    };
-                }
-                else
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status400BadRequest,
-                        Message = jsonObject?["message"]?.ToString() ?? "Unknown error",
-                        Data = null
-                    };
-                }
+                    Code = StatusCodes.Status200OK,
+                    Message = "Success",
+                    Data = jsonObject
+                };
             }
             catch (HttpRequestException ex)
             {
@@ -171,161 +251,38 @@ namespace Chillde.Services.Services
             }
         }
 
-        //public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
-        //{
-        //    var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
-        //    if (order == null)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status404NotFound,
-        //            Message = "Order not found."
-        //        };
-        //    }
+        public bool CheckGHTKJwtValidity(string ghtkJwtToken)
+        {
+            if (string.IsNullOrEmpty(ghtkJwtToken))
+            {
+                return false;
+            }
 
-        //    if (order.Stage != OrderStage.Shipping || order.Stage != OrderStage.Return)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status422UnprocessableEntity,
-        //            Message = "Shipment can only be initiated at the delivery and return stage."
-        //        };
-        //    }
+            var handler = new JwtSecurityTokenHandler();
+            try
+            {
+                var token = handler.ReadJwtToken(ghtkJwtToken);
+                var payload = token.Payload as IDictionary<string, object>;
 
-        //    var availableShipment = await _unitOfWork.ShipmentRepository.HasAvalaibleShipment(orderId);
+                if (token == null)
+                {
+                    return false;
+                }
 
-        //    if (!availableShipment)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status422UnprocessableEntity,
-        //            Message = "Order already had shipment."
-        //        };
-        //    }
+                var invalidAt = payload["invalid_at"].ToString();
+                using JsonDocument doc = JsonDocument.Parse(invalidAt);
+                string dateTimeInvalid = doc.RootElement.GetProperty("date").GetString();
 
-        //    if (shipmentCreateModel == null || !shipmentCreateModel.Products.Any())
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status400BadRequest,
-        //            Message = "Invalid shipment data",
-        //            Data = null
-        //        };
-        //    }
-
-        //    var url = "https://services.giaohangtietkiem.vn/services/shipment/order";
-        //    var jsonBody = JsonConvert.SerializeObject(new
-        //    {
-        //        products = shipmentCreateModel.Products,
-        //        order = new
-        //        {
-        //            id = shipmentCreateModel.Id,
-        //            pick_name = shipmentCreateModel.PickName,
-        //            pick_address = shipmentCreateModel.PickAddress,
-        //            pick_province = shipmentCreateModel.PickProvince,
-        //            pick_district = shipmentCreateModel.PickDistrict,
-        //            pick_ward = shipmentCreateModel.PickWard,
-        //            pick_tel = shipmentCreateModel.PickTel,
-        //            name = shipmentCreateModel.Name,
-        //            address = shipmentCreateModel.Address,
-        //            province = shipmentCreateModel.Province,
-        //            district = shipmentCreateModel.District,
-        //            ward = shipmentCreateModel.Ward,
-        //            tel = shipmentCreateModel.Tel,
-        //            hamlet = shipmentCreateModel.Hamlet,
-        //            email = shipmentCreateModel.Email,
-        //            //return_name = shipmentCreateModel.ReturnName,
-        //            //return_address = shipmentCreateModel.ReturnAddress,
-        //            //return_province = shipmentCreateModel.ReturnProvince,
-        //            //return_district = shipmentCreateModel.ReturnDistrict,
-        //            //return_tel = shipmentCreateModel.ReturnTel,
-        //            //return_email = shipmentCreateModel.ReturnEmail,
-        //            is_freeship = shipmentCreateModel.IsFreeShip,
-        //            pick_date = shipmentCreateModel.PickDate,
-        //            deliver_date = shipmentCreateModel.DeliverDate,
-        //            pick_money = shipmentCreateModel.PickMoney,
-        //            note = shipmentCreateModel.Note,
-        //            value = shipmentCreateModel.Value,
-        //            transport = shipmentCreateModel.Transport,
-        //            pick_option = shipmentCreateModel.PickOption,
-        //            deliver_option = shipmentCreateModel.DeliverOption,
-        //            tags = shipmentCreateModel.Tags
-        //        }
-        //    }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-
-        //    var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
-        //    var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
-        //    {
-        //        Content = content
-        //    };
-        //    try
-        //    {
-        //        var response = await _httpClient.SendAsync(requestMessage);
-        //        var responseContent = await response.Content.ReadAsStringAsync();
-        //        var parsedJson = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
-
-        //        if (!response.IsSuccessStatusCode)
-        //        {
-        //            return new ResponseModel
-        //            {
-        //                Code = (int)response.StatusCode,
-        //                Message = parsedJson.Success,
-        //                Data = parsedJson
-        //            };
-        //        }
-
-        //        Shipment shipment = new()
-        //        {
-        //            TrackingId = parsedJson!.Order!.TrackingId.ToString(),
-        //            StatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
-        //            PartnerId = parsedJson!.Order!.PartnerId,
-        //            Label = parsedJson.Order.Label,
-        //            Area = parsedJson.Order.Area,
-        //            Fee = parsedJson.Order.Fee != null ? decimal.Parse(parsedJson.Order.Fee) : 0,
-        //            InsuranceFee = parsedJson.Order.InsuranceFee != null ? decimal.Parse(parsedJson.Order.InsuranceFee) : 0,
-        //            EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
-        //            EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
-        //        };
-
-        //        await _unitOfWork.ShipmentRepository.AddAsync(shipment);
-        //        await _unitOfWork.SaveChangeAsync();
-
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status201Created,
-        //            Message = "Success",
-        //            Data = shipment
-        //        };
-
-        //        //var jsonObject = JsonConvert.DeserializeObject<JObject>(responseContent);
-        //        //if (jsonObject?["success"]?.Value<bool>() != true)
-        //        //{
-        //        //    return new ResponseModel
-        //        //    {
-        //        //        Code = StatusCodes.Status400BadRequest,
-        //        //        Message = jsonObject?["message"]?.ToString() ?? "Unknown error",
-        //        //        Data = null
-        //        //    };
-        //        //}
-
-        //        //var orderStatusResponse = jsonObject["order"]?.ToObject<ShipmentAddResponseModel>();
-        //        //return new ResponseModel
-        //        //{
-        //        //    Code = StatusCodes.Status200OK,
-        //        //    Message = "Success",
-        //        //    Data = orderStatusResponse
-        //        //};
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status500InternalServerError,
-        //            Message = $"Error: {ex.Message}",
-        //            Data = null
-        //        };
-        //    }
-        //}
-
+                if (DateTime.Parse(dateTimeInvalid) < DateTime.UtcNow)
+                {
+                    return false;
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
