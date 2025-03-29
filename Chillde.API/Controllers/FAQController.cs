@@ -20,7 +20,7 @@ namespace Chillde.API.Controllers
             _faqService = faqService;
         }
 
-        [Authorize("Artisan")]
+        [Authorize(Roles = "Artisan")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] FAQAddAndUpdateModel faqAddAndUpdateModel, Guid id)
         {
@@ -42,7 +42,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize("Artisan")]
+        [Authorize(Roles = "Artisan")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete (Guid id)
         {

@@ -565,10 +565,10 @@ namespace Chillde.Services.Services
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                 }
 
-                if (serviceUpdateModel.serviceAttacchmentIdsDeleting != null)
+                if (serviceUpdateModel.ServiceAttachmentIdsDeleting != null)
                 {
                     var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
-                    filter: _ => serviceUpdateModel.serviceAttacchmentIdsDeleting.Contains(_.Id)
+                    filter: _ => serviceUpdateModel.ServiceAttachmentIdsDeleting.Contains(_.Id)
                     );
 
                     var a = serviceAttachments.Data;
@@ -584,7 +584,7 @@ namespace Chillde.Services.Services
 
                     var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
 
-                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.serviceAttacchmentIdsDeleting.Select(id => id.ToString()).ToList());
+                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.ServiceAttachmentIdsDeleting.Select(id => id.ToString()).ToList());
 
                     _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
                 }
@@ -931,7 +931,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "FAQ successfully created.",
-                    Data = faq
+                    Data = _mapper.Map<FAQModel>(faq)
                 };
             }
             catch (Exception ex)
