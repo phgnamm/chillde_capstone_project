@@ -2,6 +2,8 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.ResponseModels;
@@ -160,13 +162,18 @@ namespace Chillde.Services.Services
                 //    }
                 //}
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
+
+                var featureModel = _mapper.Map<FeatureModel>(feature);
+                featureModel.PackageFeatures = _mapper.Map<List<PackageFeature>>(packageFeatures);
+
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Successfully created."
+                    Message = "Successfully created.",
+
                 };
             }
             catch (Exception ex)
