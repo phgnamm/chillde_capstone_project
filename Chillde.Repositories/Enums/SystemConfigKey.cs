@@ -23,6 +23,7 @@ namespace Chillde.Repositories.Enums
         MaximumPackageOfOneService,
         MaximumPackageFeatureOfOnePackage,
         MaximumFeatureOfOnePackage,
+        MaximumSerivceOfOneArtisan,
 
         // related to search history
         MaxSearchHistory,
