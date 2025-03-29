@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Chillde.Repositories.Common;
+using Chillde.Repositories.Models.OfferModels;
+using Chillde.Repositories.Models.AccountModels;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace Chillde.Services.Services
@@ -74,38 +77,56 @@ namespace Chillde.Services.Services
                                     : offers.OrderBy(offer => offer.CreationDate);
                         }
                     },
-                    include: null,
+                    include: o => o.Include(_ => _.CreatedBy).Include(_ => _.Service).Include(_ => _.Request),
                     filterParameter.PageIndex,
                     filterParameter.PageSize
                 );
                 var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
-                List<OfferLocalierModel> localizedOffers;
+                List<OfferModel> localizedOffers;
 
                 if (sourceLanguageCode != "en")
                 {
                     var offersWithTranslations =
                         await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(sourceLanguageCode, offerIds);
-                    localizedOffers = offersWithTranslations.Select(offer => new OfferLocalierModel
+                    localizedOffers = offersWithTranslations.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
-                        Status = _localizer[offer.Status.ToString()],
+                        Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
                         Message = offer.Message,
+                        MinWeight = offer.MinWeight,
+                        MaxWeight = offer.MaxWeight,
+                        OfferAttachments = offer.OfferAttachments.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
-                        CreatedById = offer.CreatedById,
+                        CreatedBy = new AccountLiteModel
+                        {
+                            Email = offer.CreatedBy.Email,
+                            FirstName = offer.CreatedBy.FirstName,
+                            LastName = offer.CreatedBy.LastName,
+                            Image = offer.CreatedBy.Image
+                        },
                         CreationDate = offer.CreationDate
                     }).ToList();
                 }
                 else
                 {
-                    localizedOffers = offersResult.Data.Select(offer => new OfferLocalierModel
+                    localizedOffers = offersResult.Data.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
                         Status = _localizer[offer.Status.ToString()],
                         Message = offer.Message,
-                        RequestId = (Guid)offer.RequestId,
-                        ServiceId = offer.ServiceId ?? Guid.Empty,
-                        CreatedById = offer.CreatedById,
+                        MinWeight = offer.MinWeight,
+                        MaxWeight = offer.MaxWeight,
+                        OfferAttachments = offer.OfferAttachments.ToList(),
+                        RequestId = offer.RequestId,
+                        ServiceId = offer.ServiceId,
+                        CreatedBy = new AccountLiteModel
+                        {
+                            Email = offer.CreatedBy.Email,
+                            FirstName = offer.CreatedBy.FirstName,
+                            LastName = offer.CreatedBy.LastName,
+                            Image = offer.CreatedBy.Image
+                        },
                         CreationDate = offer.CreationDate
                     }).ToList();
                 }
@@ -149,14 +170,23 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var result = new OfferLocalierModel
+                var result = new OfferModel
                 {
                     Id = offer.Id,
-                    Status = _localizer[offer.Status.ToString()],
+                    Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
                     Message = offer.Message,
+                    MinWeight = offer.MinWeight,
+                    MaxWeight = offer.MaxWeight,
+                    OfferAttachments = offer.OfferAttachments.ToList(),
                     RequestId = offer.RequestId,
                     ServiceId = offer.ServiceId,
-                    CreatedById = offer.CreatedById,
+                    CreatedBy = new AccountLiteModel
+                    {
+                        Email = offer.CreatedBy.Email,
+                        FirstName = offer.CreatedBy.FirstName,
+                        LastName = offer.CreatedBy.LastName,
+                        Image = offer.CreatedBy.Image
+                    },
                     CreationDate = offer.CreationDate
                 };
 
