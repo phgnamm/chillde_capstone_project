@@ -2050,7 +2050,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("a29ab9b9-2d03-4375-ab68-f5a395d591e5"),
-            Name = "True",
+
             IsExtra = false,
             AdditionalCost = 0,
             AdditionalDay = null,
@@ -2074,7 +2074,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("a2690141-4af6-4a45-884a-9b7c71bb4e7b"),
-            Name = "True",
+
             IsExtra = false,
             AdditionalCost = 0,
             AdditionalDay = null,
@@ -2199,7 +2199,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("6ef5683b-935f-4599-8011-5cd45f8de5e0"),
-            Name = "True",
+
             IsExtra = false,
             AdditionalCost = 0,
             AdditionalDay = null,
@@ -2223,7 +2223,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("f50c24f8-10ed-46fa-80df-20ba0aa0e61d"),
-            Name = "True",
+
             IsExtra = false,
             AdditionalCost = 0,
             AdditionalDay = null,
@@ -2235,7 +2235,7 @@ public static class InitialSeeding
         new()
         {
             Id = Guid.Parse("4eba12bb-164b-45b5-a3cc-334496551c8b"),
-            Name = "True",
+
             IsExtra = false,
             AdditionalCost = 0,
             AdditionalDay = null,
