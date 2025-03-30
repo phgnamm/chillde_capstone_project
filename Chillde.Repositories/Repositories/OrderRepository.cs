@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +47,21 @@ namespace Chillde.Repositories.Repositories
         {
             var orders = _dbSet.Where(_ => _.CreatedById == accountId && _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Success).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
             return orders;
+        }
+
+        public async Task<IEnumerable<Order>> GetSketchOrdersWithResponseTimeAsync()
+        {
+            return await _dbSet
+                .Where(order => order.Status == OrderStatus.Accepted
+                             && order.Stage == OrderStage.ReviewSketch
+                             && order.OrderTrackings.Any(tracking => tracking.Type == OrderTrackingType.Sketch && tracking.IsAccepted == null))
+                .Include(order => order.Package)
+                .Include(order => order.CreatedBy)
+                    .ThenInclude(user => user.Wallet)
+                    .Include(order => order.CreatedBy)
+                    .ThenInclude(user => user.AccountRoles)
+                .Include(order => order.OrderTrackings)
+                .ToListAsync();
         }
     }
 }

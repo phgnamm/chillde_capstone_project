@@ -23,7 +23,9 @@ namespace Chillde.Repositories.Enums
         MaximumPackageOfOneService,
         MaximumPackageFeatureOfOnePackage,
         MaximumFeatureOfOnePackage,
-
+        // percent order for cancellation automatically
+        AutoCancelPercentagePenalty,
+        AutoCancelPointPenalty,
         // related to search history
         MaxSearchHistory,
 

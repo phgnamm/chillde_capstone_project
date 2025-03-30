@@ -14,5 +14,6 @@ namespace Chillde.Repositories.Interfaces
         Task<bool> HasAnyOrderByService(Guid serviceId);
         Task<bool> HasAnyOrderByPackage(Guid packageId);
         Task<bool> HasAnyOrderByFeature(Guid featureId);
+        Task<IEnumerable<Order>> GetSketchOrdersWithResponseTimeAsync();
     }
 }

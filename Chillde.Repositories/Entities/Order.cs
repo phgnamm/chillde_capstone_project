@@ -23,6 +23,12 @@ public class Order : BaseEntity
     public int? CurrentSketchRevision { get; set; }
     public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    // start time accepted order
+    public DateTime? StartTime { get; set; }
+    // Reason Cancel 
+    public CancelOrderReason? CancelOrderReason { get; set; } 
+    // Automatically cancel
+    public decimal? ArtistRevenueAfterCancel { get; set; } = null;
     #endregion
     // Voucher
     public decimal? OriginPrice { get; set; }

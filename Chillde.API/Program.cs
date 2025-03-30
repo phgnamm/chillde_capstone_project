@@ -75,6 +75,7 @@ builder.Services.AddApiConfiguration(builder.Configuration);
 //    });
 
 //builder.Services.AddHostedService<WorkerService>();
+builder.Services.AddHostedService<OrderTrackingReminderService>();
 var app = builder.Build();
 
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
