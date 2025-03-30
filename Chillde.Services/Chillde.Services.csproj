@@ -19,6 +19,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Update="Resources\CategoryLanguage.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>CategoryLanguage.resx</DependentUpon>
+      </Compile>
       <Compile Update="Resources\OfferLanguage.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
@@ -27,6 +32,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <EmbeddedResource Update="Resources\CategoryLanguage.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>CategoryLanguage.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
       <EmbeddedResource Update="Resources\OfferLanguage.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>OfferLanguage.Designer.cs</LastGenOutput>

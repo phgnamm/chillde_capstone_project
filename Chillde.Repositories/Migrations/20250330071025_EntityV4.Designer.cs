@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250330071025_EntityV4")]
+    partial class EntityV4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -844,12 +847,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal?>("ArtistRevenue")
                         .HasColumnType("numeric");
 
-                    b.Property<decimal?>("ArtistRevenueAfterCancel")
-                        .HasColumnType("numeric");
-
-                    b.Property<int?>("CancelOrderReason")
-                        .HasColumnType("integer");
-
                     b.Property<Guid?>("CancellationReasonId")
                         .HasColumnType("uuid");
 
@@ -905,9 +902,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int>("Stage")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("StartTime")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

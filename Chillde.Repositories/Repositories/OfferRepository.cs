@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
+using Chillde.Repositories.Models.AccountModels;
 
 
 namespace Chillde.Repositories.Repositories
@@ -38,10 +39,20 @@ namespace Chillde.Repositories.Repositories
                 .Select(joined => new OfferModel
                 {
                     Id = joined.Offer.Id,
-                    Status = joined.Offer.Status,
+                    Status = joined.Offer.Status.ToString(),
                     Message = string.IsNullOrEmpty(joined.Translation.TranslationText) ? joined.Offer.Message : joined.Translation.TranslationText,
-                    RequestId = (Guid)joined.Offer.RequestId,
-                    ServiceId = joined.Offer.ServiceId ?? Guid.Empty
+                    MinWeight = joined.Offer.MinWeight,
+                    MaxWeight = joined.Offer.MaxWeight,
+                    OfferAttachments = joined.Offer.OfferAttachments.ToList(),
+                    RequestId = joined.Offer.RequestId,
+                    ServiceId = joined.Offer.ServiceId ?? Guid.Empty,
+                    CreatedBy = new AccountLiteModel
+                    {
+                        Email = joined.Offer.CreatedBy.Email,
+                        FirstName = joined.Offer.CreatedBy.FirstName,
+                        LastName = joined.Offer.CreatedBy.LastName,
+                        Image = joined.Offer.CreatedBy.Image,
+                    },
                 })
                 .ToListAsync();
 
@@ -58,11 +69,20 @@ namespace Chillde.Repositories.Repositories
                         select new OfferModel
                         {
                             Id = offer.Id,
-                            Status = offer.Status,
+                            Status = offer.Status.ToString(),
                             Message = translation != null ? translation.TranslationText : offer.Message,
-                            RequestId = (Guid)offer.RequestId,
-                            ServiceId = offer.ServiceId ?? Guid.Empty,
-                            CreatedById = offer.CreatedById,
+                            MinWeight = offer.MinWeight,
+                            MaxWeight = offer.MaxWeight,
+                            OfferAttachments = offer.OfferAttachments.ToList(),
+                            RequestId = offer.RequestId,
+                            ServiceId = offer.ServiceId,
+                            CreatedBy = new AccountLiteModel
+                            {
+                                Email = offer.CreatedBy.Email,
+                                FirstName = offer.CreatedBy.FirstName,
+                                LastName = offer.CreatedBy.LastName,
+                                Image = offer.CreatedBy.Image
+                            },
                             CreationDate = offer.CreationDate
                         };
 

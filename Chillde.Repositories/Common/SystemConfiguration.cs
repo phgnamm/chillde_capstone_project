@@ -24,6 +24,7 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.AutoCancelPercentagePenalty, "AutoCancelPercentagePenalty" },
             { SystemConfigKey.AutoCancelPointPenalty, "AutoCancelPointPenalty" },
 
+            { SystemConfigKey.MaximumSerivceOfOneArtisan, "MaximumSerivceOfOneArtisan" },
             // related to search history
             { SystemConfigKey.MaxSearchHistory , "MaxSearchHistory" },
             // related to voucher

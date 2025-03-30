@@ -10,6 +10,10 @@ using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Chillde.Repositories.Common;
 using Chillde.Services.Common;
+using Chillde.Services.Resources;
+using Microsoft.Extensions.Localization;
+using System.Globalization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Chillde.Services.Services
 {
@@ -18,12 +22,18 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IMapper _mapper;
+        private readonly IStringLocalizer<CategoryLanguage> _localizer;
+        private readonly IStringLocalizerFactory _localizerFactory;
+        private readonly IServiceProvider _serviceProvider;
 
-        public CategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper)
+        public CategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper, IStringLocalizer<CategoryLanguage> localizer, IStringLocalizerFactory localizerFactory, IServiceProvider serviceProvider)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryHelper = cloudinaryHelper;
             _mapper = mapper;
+            _localizer = localizer;
+            _localizerFactory = localizerFactory;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<ResponseModel> Add(CategoryAddModel categoryAddModel)
@@ -294,10 +304,26 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel)
+        public async Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel, string sourceLanguageCode, string targetLanguageCode)
         {
+            var originalCulture = new CultureInfo(sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US");
+            Thread.CurrentThread.CurrentCulture = originalCulture;
+            Thread.CurrentThread.CurrentUICulture = originalCulture;
+
             try
             {
+                if (originalCulture.Name == "vi-VN" && !string.IsNullOrEmpty(categoryFilterModel.Search))
+                {
+                    var tempCulture = new CultureInfo("en-US");
+                    Thread.CurrentThread.CurrentCulture = tempCulture;
+                    Thread.CurrentThread.CurrentUICulture = tempCulture;
+
+                    var translatedValue = _localizer[categoryFilterModel.Search];
+                    if (!string.IsNullOrEmpty(translatedValue) && translatedValue != categoryFilterModel.Search)
+                    {
+                        categoryFilterModel.Search = translatedValue;
+                    }
+                }
                 Expression<Func<Category, bool>> filter = category =>
                     (category.IsDeleted == categoryFilterModel.IsDeleted) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
@@ -308,7 +334,8 @@ namespace Chillde.Services.Services
 
                 var allCategoriesResult = await _unitOfWork.CategoryRepository.GetAllAsync(filter: filter);
                 var allCategories = allCategoriesResult.Data;
-
+                Thread.CurrentThread.CurrentCulture = originalCulture;
+                Thread.CurrentThread.CurrentUICulture = originalCulture;
                 if (categoryFilterModel.IncludeChildren)
                 {
                     var rootCategories = allCategories
@@ -343,7 +370,7 @@ namespace Chillde.Services.Services
                         .Select(category => new CategoryTreeModel
                         {
                             Id = category.Id,
-                            Name = category.Name,
+                            Name = _localizer[category.Name!],
                             Slug = category.Slug,
                             ParentId = category.ParentId,
                             AttachmentUrl = category.AttachmentUrl,
@@ -393,7 +420,7 @@ namespace Chillde.Services.Services
             var treeModel = new CategoryTreeModel
             {
                 Id = category.Id,
-                Name = category.Name,
+                Name = _localizer[category.Name!],
                 Slug = category.Slug,
                 ParentId = category.ParentId,
                 AttachmentUrl = category.AttachmentUrl,
@@ -543,10 +570,13 @@ namespace Chillde.Services.Services
 
         }
 
-        public async Task<ResponseModel> GetByIdOrSlug(string idOrSlug)
+        public async Task<ResponseModel> GetByIdOrSlug(string idOrSlug, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
+                var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+                Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
                 if (string.IsNullOrEmpty(idOrSlug))
                 {
                     return new ResponseModel
@@ -591,7 +621,7 @@ namespace Chillde.Services.Services
                 var categoryModel = new CategoryModel
                 {
                     Id = category.Id,
-                    Name = category.Name,
+                    Name = _localizer[category.Name!],
                     Slug = category.Slug,
                     ParentId = category.ParentId,
                     AttachmentAlt = category.AttachmentAlt,

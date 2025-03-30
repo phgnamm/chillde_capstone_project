@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.RequestModels;
 using Microsoft.EntityFrameworkCore;
@@ -30,11 +31,20 @@ namespace Chillde.Repositories.Repositories
                         select new OfferModel
                         {
                             Id = offer.Id,
-                            Status = offer.Status,
+                            Status = offer.Status.ToString(),
                             Message = translation != null ? translation.TranslationText : offer.Message,
-                            RequestId = (Guid)offer.RequestId,
-                            ServiceId = offer.ServiceId ?? Guid.Empty,
-                            CreatedById = offer.CreatedById,
+                            MinWeight = offer.MinWeight,
+                            MaxWeight = offer.MaxWeight,
+                            OfferAttachments = offer.OfferAttachments.ToList(),
+                            RequestId = offer.RequestId,
+                            ServiceId = offer.ServiceId,
+                            CreatedBy = new AccountLiteModel
+                            {
+                                Email = offer.CreatedBy.Email,
+                                FirstName = offer.CreatedBy.FirstName,
+                                LastName = offer.CreatedBy.LastName,
+                                Image = offer.CreatedBy.Image
+                            },
                             CreationDate = offer.CreationDate
                         };
 

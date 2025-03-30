@@ -55,6 +55,10 @@ namespace Chillde.Services.Models.ShipmentModels
 
         [JsonProperty("order.is_freeship")]
         public int IsFreeShip { get; set; }
+        //[JsonProperty("order.deliver_option")]
+        //public string? Fee { get; set; }
+        //[JsonProperty("order.value")]
+        //public string? InsuranceFee { get; set; }
 
         [JsonProperty("order.pick_date")]
         public string? PickDate { get; set; }
@@ -69,7 +73,7 @@ namespace Chillde.Services.Models.ShipmentModels
         public required string Note { get; set; }
 
         [JsonProperty("order.value")]
-        public required int Value { get; set; }
+        public required int Value { get; set; } //Giá trị đóng bảo hiểm, là căn cứ để tính phí bảo hiểm và bồi thường khi có sự cố.
 
         [JsonProperty("order.transport")]
         public required string Transport { get; set; }

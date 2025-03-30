@@ -90,20 +90,20 @@ namespace Chillde.Services.Services
                     Data = pastRecentEvent.Event
                 };
             }
-            if (nearestEvent != null && (nearestEvent.Date - currentDate).TotalDays > maxDaysThreshold)
+            if (nearestEvent != null && (nearestEvent.Date - currentDate).TotalDays <= maxDaysThreshold)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = sourLanguageCode == "vi" ? "Tạm thời không có sự kiện nào sắp diễn ra." : "No upcoming events.",
-                    Data = null
+                    Code = StatusCodes.Status200OK,
+                    Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
+                    Data = nearestEvent.Event
                 };
             }
             return new ResponseModel
             {
-                Code = StatusCodes.Status200OK,
-                Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                Data = nearestEvent?.Event ?? (sourLanguageCode == "vi" ? "Không có sự kiện nào sắp diễn ra." : "No upcoming events.")
+                Code = StatusCodes.Status404NotFound,
+                Message = sourLanguageCode == "vi" ? "Không có sự kiện nào sắp diễn ra." : "No upcoming events.",
+                Data = null
             };
         }
 

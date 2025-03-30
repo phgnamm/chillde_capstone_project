@@ -163,7 +163,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize(Roles = "Artisan, Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] ServiceUpdateModel serviceUpdateModel, Guid id)
+        public async Task<IActionResult> Update([FromForm] ServiceUpdateModel serviceUpdateModel, Guid id)
         {
             try
             {

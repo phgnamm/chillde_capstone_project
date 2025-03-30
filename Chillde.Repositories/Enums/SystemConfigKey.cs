@@ -23,6 +23,8 @@ namespace Chillde.Repositories.Enums
         MaximumPackageOfOneService,
         MaximumPackageFeatureOfOnePackage,
         MaximumFeatureOfOnePackage,
+        MaximumSerivceOfOneArtisan,
+
         // percent order for cancellation automatically
         AutoCancelPercentagePenalty,
         AutoCancelPointPenalty,

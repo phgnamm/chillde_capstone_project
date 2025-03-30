@@ -1,0 +1,411 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Accessories" xml:space="preserve">
+    <value>Accessories</value>
+  </data>
+  <data name="Anklets" xml:space="preserve">
+    <value>Anklets</value>
+  </data>
+  <data name="Arm Bands" xml:space="preserve">
+    <value>Arm Bands</value>
+  </data>
+  <data name="Arm Warmers" xml:space="preserve">
+    <value>Arm Warmers</value>
+  </data>
+  <data name="Art &amp; Collectibles" xml:space="preserve">
+    <value>Art &amp; Collectibles</value>
+  </data>
+  <data name="Artist Trading Cards" xml:space="preserve">
+    <value>Artist Trading Cards</value>
+  </data>
+  <data name="Baby Accessories" xml:space="preserve">
+    <value>Baby Accessories</value>
+  </data>
+  <data name="Bags &amp; Purses" xml:space="preserve">
+    <value>Bags &amp; Purses</value>
+  </data>
+  <data name="Bangles" xml:space="preserve">
+    <value>Bangles</value>
+  </data>
+  <data name="Barbells" xml:space="preserve">
+    <value>Barbells</value>
+  </data>
+  <data name="Beaded Necklaces" xml:space="preserve">
+    <value>Beaded Necklaces</value>
+  </data>
+  <data name="Belly Chains" xml:space="preserve">
+    <value>Belly Chains</value>
+  </data>
+  <data name="Belly Rings" xml:space="preserve">
+    <value>Belly Rings</value>
+  </data>
+  <data name="Belt Buckles" xml:space="preserve">
+    <value>Belt Buckles</value>
+  </data>
+  <data name="Belts" xml:space="preserve">
+    <value>Belts</value>
+  </data>
+  <data name="Belts &amp; Suspenders" xml:space="preserve">
+    <value>Belts &amp; Suspenders</value>
+  </data>
+  <data name="Bib Necklaces" xml:space="preserve">
+    <value>Bib Necklaces</value>
+  </data>
+  <data name="Body Jewelry" xml:space="preserve">
+    <value>Body Jewelry</value>
+  </data>
+  <data name="Bouquets" xml:space="preserve">
+    <value>Bouquets</value>
+  </data>
+  <data name="Bouquets &amp; Corsages" xml:space="preserve">
+    <value>Bouquets &amp; Corsages</value>
+  </data>
+  <data name="Boutonnières" xml:space="preserve">
+    <value>Boutonnières</value>
+  </data>
+  <data name="Boys' Clothing" xml:space="preserve">
+    <value>Boys' Clothing</value>
+  </data>
+  <data name="Bracelets" xml:space="preserve">
+    <value>Bracelets</value>
+  </data>
+  <data name="Bridal Churas" xml:space="preserve">
+    <value>Bridal Churas</value>
+  </data>
+  <data name="Brooches" xml:space="preserve">
+    <value>Brooches</value>
+  </data>
+  <data name="Brooches, Pins &amp; Clips" xml:space="preserve">
+    <value>Brooches, Pins &amp; Clips</value>
+  </data>
+  <data name="Cameo Necklaces" xml:space="preserve">
+    <value>Cameo Necklaces</value>
+  </data>
+  <data name="Chain Wallets" xml:space="preserve">
+    <value>Chain Wallets</value>
+  </data>
+  <data name="Chandelier Earrings" xml:space="preserve">
+    <value>Chandelier Earrings</value>
+  </data>
+  <data name="Charm Bracelets" xml:space="preserve">
+    <value>Charm Bracelets</value>
+  </data>
+  <data name="Charm Necklaces" xml:space="preserve">
+    <value>Charm Necklaces</value>
+  </data>
+  <data name="Checkbook Covers" xml:space="preserve">
+    <value>Checkbook Covers</value>
+  </data>
+  <data name="Children's Photo Props" xml:space="preserve">
+    <value>Children's Photo Props</value>
+  </data>
+  <data name="Clip-On Earrings" xml:space="preserve">
+    <value>Clip-On Earrings</value>
+  </data>
+  <data name="Clothing" xml:space="preserve">
+    <value>Clothing</value>
+  </data>
+  <data name="Clothing &amp; Shoe Clips" xml:space="preserve">
+    <value>Clothing &amp; Shoe Clips</value>
+  </data>
+  <data name="Cluster Earrings" xml:space="preserve">
+    <value>Cluster Earrings</value>
+  </data>
+  <data name="Collectibles" xml:space="preserve">
+    <value>Collectibles</value>
+  </data>
+  <data name="Corsages" xml:space="preserve">
+    <value>Corsages</value>
+  </data>
+  <data name="Costume Accessories" xml:space="preserve">
+    <value>Costume Accessories</value>
+  </data>
+  <data name="Costume Goggles" xml:space="preserve">
+    <value>Costume Goggles</value>
+  </data>
+  <data name="Costume Weapons" xml:space="preserve">
+    <value>Costume Weapons</value>
+  </data>
+  <data name="Cremation &amp; Memorial Jewelry" xml:space="preserve">
+    <value>Cremation &amp; Memorial Jewelry</value>
+  </data>
+  <data name="Cuff Bracelets" xml:space="preserve">
+    <value>Cuff Bracelets</value>
+  </data>
+  <data name="Dolls &amp; Miniatures" xml:space="preserve">
+    <value>Dolls &amp; Miniatures</value>
+  </data>
+  <data name="Drawing &amp; Illustration" xml:space="preserve">
+    <value>Drawing &amp; Illustration</value>
+  </data>
+  <data name="Dress Clips" xml:space="preserve">
+    <value>Dress Clips</value>
+  </data>
+  <data name="Driving Gloves" xml:space="preserve">
+    <value>Driving Gloves</value>
+  </data>
+  <data name="Earrings" xml:space="preserve">
+    <value>Earrings</value>
+  </data>
+  <data name="Facial Hair" xml:space="preserve">
+    <value>Facial Hair</value>
+  </data>
+  <data name="Fiber Arts" xml:space="preserve">
+    <value>Fiber Arts</value>
+  </data>
+  <data name="Fine Art Ceramics" xml:space="preserve">
+    <value>Fine Art Ceramics</value>
+  </data>
+  <data name="Fraternal &amp; Class Rings" xml:space="preserve">
+    <value>Fraternal &amp; Class Rings</value>
+  </data>
+  <data name="Gardening &amp; Work Gloves" xml:space="preserve">
+    <value>Gardening &amp; Work Gloves</value>
+  </data>
+  <data name="Gender-Neutral Adult Clothing" xml:space="preserve">
+    <value>Gender-Neutral Adult Clothing</value>
+  </data>
+  <data name="Ghép Hình" xml:space="preserve">
+    <value>Mosaics</value>
+  </data>
+  <data name="Glass Art" xml:space="preserve">
+    <value>Glass Art</value>
+  </data>
+  <data name="Gloves &amp; Mittens" xml:space="preserve">
+    <value>Gloves &amp; Mittens</value>
+  </data>
+  <data name="Halloween Candy Bags" xml:space="preserve">
+    <value>Halloween Candy Bags</value>
+  </data>
+  <data name="Hand Chain" xml:space="preserve">
+    <value>Hand Chain</value>
+  </data>
+  <data name="Jewelry" xml:space="preserve">
+    <value>Jewelry</value>
+  </data>
+  <data name="Jewelry Sets" xml:space="preserve">
+    <value>Jewelry Sets</value>
+  </data>
+  <data name="Jewelry Storage" xml:space="preserve">
+    <value>Jewelry Storage</value>
+  </data>
+  <data name="Kadas" xml:space="preserve">
+    <value>Kadas</value>
+  </data>
+  <data name="Lariat &amp; Y Necklaces" xml:space="preserve">
+    <value>Lariat &amp; Y Necklaces</value>
+  </data>
+  <data name="Lip Rings" xml:space="preserve">
+    <value>Lip Rings</value>
+  </data>
+  <data name="Lockets" xml:space="preserve">
+    <value>Lockets</value>
+  </data>
+  <data name="Masks &amp; Prosthetics" xml:space="preserve">
+    <value>Masks &amp; Prosthetics</value>
+  </data>
+  <data name="Midi Rings" xml:space="preserve">
+    <value>Midi Rings</value>
+  </data>
+  <data name="Mittens &amp; Muffs" xml:space="preserve">
+    <value>Mittens &amp; Muffs</value>
+  </data>
+  <data name="Mosaics" xml:space="preserve">
+    <value>Mosaics</value>
+  </data>
+  <data name="Multi-Stone Rings" xml:space="preserve">
+    <value>Multi-Stone Rings</value>
+  </data>
+  <data name="Necklaces" xml:space="preserve">
+    <value>Necklaces</value>
+  </data>
+  <data name="Nipple Jewelr" xml:space="preserve">
+    <value>Nipple Jewelr</value>
+  </data>
+  <data name="Nose Rings &amp; Studs" xml:space="preserve">
+    <value>Nose Rings &amp; Studs</value>
+  </data>
+  <data name="Painting" xml:space="preserve">
+    <value>Painting</value>
+  </data>
+  <data name="Photography" xml:space="preserve">
+    <value>Photography</value>
+  </data>
+  <data name="Pins &amp; Badges" xml:space="preserve">
+    <value>Pins &amp; Badges</value>
+  </data>
+  <data name="Pocket Watches" xml:space="preserve">
+    <value>Pocket Watches</value>
+  </data>
+  <data name="Prints" xml:space="preserve">
+    <value>Prints</value>
+  </data>
+  <data name="Ring Dishes" xml:space="preserve">
+    <value>Ring Dishes</value>
+  </data>
+  <data name="Ring Guards &amp; Spacers" xml:space="preserve">
+    <value>Ring Guards &amp; Spacers</value>
+  </data>
+  <data name="Ring Trees" xml:space="preserve">
+    <value>Ring Trees</value>
+  </data>
+  <data name="Rings" xml:space="preserve">
+    <value>Rings</value>
+  </data>
+  <data name="Shawl Pins" xml:space="preserve">
+    <value>Shawl Pins</value>
+  </data>
+  <data name="Shoe Clips" xml:space="preserve">
+    <value>Shoe Clips</value>
+  </data>
+  <data name="Solitaire Rings" xml:space="preserve">
+    <value>Solitaire Rings</value>
+  </data>
+  <data name="Stackable Rings" xml:space="preserve">
+    <value>Stackable Rings</value>
+  </data>
+  <data name="Sunglasses &amp; Eyewear" xml:space="preserve">
+    <value>Sunglasses &amp; Eyewear</value>
+  </data>
+  <data name="Sweater Clips" xml:space="preserve">
+    <value>Sweater Clips</value>
+  </data>
+  <data name="Wallets &amp; Money Clips" xml:space="preserve">
+    <value>Wallets &amp; Money Clips</value>
+  </data>
+  <data name="Wands" xml:space="preserve">
+    <value>Wands</value>
+  </data>
+  <data name="Watch Bands &amp; Straps" xml:space="preserve">
+    <value>Watch Bands &amp; Straps</value>
+  </data>
+  <data name="Watch Necklaces" xml:space="preserve">
+    <value>Watch Necklaces</value>
+  </data>
+  <data name="Watch Rings" xml:space="preserve">
+    <value>Watch Rings</value>
+  </data>
+  <data name="Watches" xml:space="preserve">
+    <value>Watches</value>
+  </data>
+  <data name="Wings" xml:space="preserve">
+    <value>Wings</value>
+  </data>
+</root>
