@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Models.CategoriesModels;
+﻿using Chillde.API.Helpers;
+using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
@@ -58,7 +59,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _categoryService.GetAll(categoryFilterModel);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _categoryService.GetAll(categoryFilterModel, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -113,7 +117,10 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var response = await _categoryService.GetByIdOrSlug(idOrSlug);
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var response = await _categoryService.GetByIdOrSlug(idOrSlug, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(response.Code, response);
             }
             catch (Exception ex)

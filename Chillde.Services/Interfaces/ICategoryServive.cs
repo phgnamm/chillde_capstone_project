@@ -17,10 +17,10 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> Add(CategoryAddModel categoryAddModel);
         Task<ResponseModel> AddList(CategoryAddRangeModel categoryAddModels);
-        Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel);
+        Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel);
         Task<ResponseModel> Delete(Guid id);
-        Task<ResponseModel> GetByIdOrSlug(string idOrSlug);
+        Task<ResponseModel> GetByIdOrSlug(string idOrSlug, string sourceLanguageCode, string targetLanguageCode);
 
 
 

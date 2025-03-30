@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.AccountModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,12 @@ namespace Chillde.Repositories.Models.OfferModels
     public class OfferModel : BaseEntity
     {
         public string? Message { get; set; }
-        public OfferStatus Status { get; set; }
-        public Guid RequestId { get; set; }
-        public Guid ServiceId { get; set; }
-        public string ServiceName { get; set; }
-        public string ArtisanName { get; set; }
+        public string? Status { get; set; }
+        public float? MinWeight { get; set; }
+        public float? MaxWeight { get; set; }
+        public Guid? RequestId { get; set; }
+        public Guid? ServiceId { get; set; }
+        public ICollection<OfferAttachment> OfferAttachments { get; set; } = new List<OfferAttachment>();
+        public required AccountLiteModel CreatedBy { get; set; }
     }
 }
