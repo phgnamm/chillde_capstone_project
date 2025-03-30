@@ -10,6 +10,7 @@ namespace Chillde.Repositories.Models.ServiceModels
         public string Description { get; set; } = string.Empty;
         public double? Similarity { get; set; }
         public ServiceStatus Status { get; set; }
+        public Guid CategoryId { get; set; }
         public double? Rate { get; set; }
         public int? FeedbackCount { get; set; }
         public decimal? Price { get; set; }

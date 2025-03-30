@@ -20,6 +20,7 @@ using Chillde.Services.Models.MessageModels;
 using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.ShippingAddressModels;
 using Chillde.Services.Models.SubcategoryModels;
@@ -75,6 +76,9 @@ public class MapperProfile : Profile
         //Service
         CreateMap<ServiceModel, Service>().ReverseMap();
         CreateMap<ServiceUpdateModel, Service>().ReverseMap();
+
+        //Service
+        CreateMap<ServiceAttachmentAddModel, ServiceAttachment>().ReverseMap();
 
         //Order
         CreateMap<OrderAddModel, Order>().ReverseMap();

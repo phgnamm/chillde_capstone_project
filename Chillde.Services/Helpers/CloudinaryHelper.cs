@@ -34,11 +34,19 @@ public class CloudinaryHelper : ICloudinaryHelper
     {
         if (publicIds == null || publicIds.Count == 0)
         {
-            var result = await _cloudinary.DeleteResourcesAsync(publicIds.ToArray());
-
-            return "Deleted {result.Deleted.Count} images successfully.";
+            return "No images to delete.";
         }
-       return "Failed to delete images.";
+
+        var deletionParams = new DelResParams()
+        {
+            PublicIds = publicIds,
+            Type = "upload",
+            ResourceType = ResourceType.Image
+        };
+
+        var result = await _cloudinary.DeleteResourcesAsync(deletionParams);
+
+        return $"Deleted {result.Deleted.Count} images successfully.";
     }
 
 }

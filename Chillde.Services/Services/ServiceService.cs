@@ -24,6 +24,7 @@ using Chillde.Services.Models.ServiceAttachmentModels;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ServiceAttachmentModels;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Chillde.Repositories.Common;
 
 namespace Chillde.Services.Services
 {
@@ -360,7 +361,8 @@ namespace Chillde.Services.Services
                             path = await _cloudinaryHelper.UploadImageAsync(
                                 attachmentUrl,
                                 attachmentAlt,
-                                Guid.NewGuid().ToString()
+                                Guid.NewGuid().ToString(),
+                                folderName: FolderAttachment.SERVICE
                             );
                         }
 
@@ -544,18 +546,21 @@ namespace Chillde.Services.Services
                         var attachmentAlt = serviceUpdateModel.ServiceAttachments[i].AttachmentAlt;
                         var attachmentUrl = serviceUpdateModel.ServiceAttachments[i].AttachmentUrl;
 
+                        Guid Id = Guid.NewGuid();
+
                         string? path = null;
                         if (attachmentUrl != null)
                         {
                             path = await _cloudinaryHelper.UploadImageAsync(
                                 attachmentUrl,
                                 attachmentAlt,
-                                Guid.NewGuid().ToString()
+                                Id.ToString()
                             );
                         }
 
                         newServiceAttachment.Add(new ServiceAttachment
                         {
+                            Id = Id,
                             AttachmentAlt = attachmentAlt,
                             AttachmentUrl = path,
                             ServiceId = service.Id
@@ -565,13 +570,11 @@ namespace Chillde.Services.Services
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                 }
 
-                if (serviceUpdateModel.serviceAttacchmentIdsDeleting != null)
+                if (serviceUpdateModel.ServiceAttachmentIdsDeleting != null)
                 {
                     var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
-                    filter: _ => serviceUpdateModel.serviceAttacchmentIdsDeleting.Contains(_.Id)
+                    filter: _ => serviceUpdateModel.ServiceAttachmentIdsDeleting.Contains(_.Id)
                     );
-
-                    var a = serviceAttachments.Data;
 
                     if (serviceAttachments == null || !serviceAttachments.Data.Any())
                     {
@@ -584,7 +587,7 @@ namespace Chillde.Services.Services
 
                     var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
 
-                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.serviceAttacchmentIdsDeleting.Select(id => id.ToString()).ToList());
+                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.ServiceAttachmentIdsDeleting.Select(id => id.ToString()).ToList());
 
                     _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
                 }
@@ -931,7 +934,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "FAQ successfully created.",
-                    Data = faq
+                    Data = _mapper.Map<FAQModel>(faq)
                 };
             }
             catch (Exception ex)
