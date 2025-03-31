@@ -6,6 +6,8 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ServiceModels;
+using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
@@ -33,6 +35,67 @@ namespace Chillde.Services.Services
             _mapper = mapper;
             _translationService = translationService;
             _badWordFilterService = badWordFilterService;
+        }
+
+        public async Task<ResponseModel> GetAsync(Guid id)
+        {
+            try
+            {
+                Func<IQueryable<Package>, IQueryable<Package>> include = services =>
+                     services.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature);
+
+                var package = await _unitOfWork.PackageRepository.GetAsync(id, include);
+                if (package == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Package not found."
+                    };
+                }
+
+                var packageModel = new PackageModel()
+                {
+                    Id = package.Id,
+                    Name = package.Name,
+                    Description = package.Description,
+                    Price = package.Price,
+                    DeliveryTime = package.DeliveryTime,
+                    SketchRevision = package.SketchRevision,
+                    ResponseTime = package.ResponseTime,
+                    ServiceId = package.ServiceId,
+                    IsDeleted = package.IsDeleted,
+                    MaxQuantity = package.MaxQuantity,
+                    CreationDate = package.CreationDate,
+                    Features = package.PackageFeatures
+                        .GroupBy(pf => pf.Feature.Name)
+                        .Select(g => new FeatureModel
+                        {
+                            Id = g.First().FeatureId,
+                            Name = g.Key,
+                            Question = g.First().Feature.Question,
+                            QuestionType = g.First().Feature.QuestionType,
+                            IsInformationRequired = g.First().Feature.IsInformationRequired,
+                            IsQuantity = g.First().Feature.IsQuantity,
+                            PackageFeatures = g.ToList()
+                        }).ToList()
+                };
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Successfully.",
+                    Data = packageModel
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
         }
 
         public async Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
