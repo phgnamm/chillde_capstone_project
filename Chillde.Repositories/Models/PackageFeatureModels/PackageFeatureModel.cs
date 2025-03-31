@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Models.FeatureModels;
 
 namespace Chillde.Repositories.Models.PackageFeatureModels
 {

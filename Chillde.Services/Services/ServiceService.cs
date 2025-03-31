@@ -1092,8 +1092,12 @@ namespace Chillde.Services.Services
                     Name = package.Name,
                     Description = package.Description,
                     Price = package.Price,
+                    DeliveryTime = package.DeliveryTime,
+                    SketchRevision = package.SketchRevision,
+                    ResponseTime = package.ResponseTime,
                     ServiceId = package.ServiceId,
                     IsDeleted = package.IsDeleted,
+                    MaxQuantity = package.MaxQuantity,
                     CreationDate = package.CreationDate,
                     Features = package.PackageFeatures
                         .GroupBy(pf => pf.Feature.Name)
@@ -1108,6 +1112,7 @@ namespace Chillde.Services.Services
                             PackageFeatures = g.ToList()
                         }).ToList()
                 }).OrderBy(_ => _.Name).ToList();
+
 
                 var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
                   packageFilterModel.PageSize, packages.TotalCount);
