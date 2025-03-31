@@ -18,7 +18,7 @@ namespace Chillde.Repositories.Repositories
 
         public async Task<List<Package>> GetAllPackageFromService(Guid serviceId)
         {
-            var result = await _dbSet.Where(_ => _.ServiceId == serviceId).ToListAsync();
+            var result = await _dbSet.Where(_ => _.ServiceId == serviceId && _.IsDeleted == false).ToListAsync();
             return result;
         }
 

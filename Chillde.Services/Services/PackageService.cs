@@ -4,6 +4,8 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
+using Chillde.Repositories.Models.PackageModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
@@ -58,6 +60,19 @@ namespace Chillde.Services.Services
                         Message = "Package not found."
                     };
                 }
+
+                if (package.Name != packageUpdateModel.Name)
+                {
+                    var packageWithSameName = _unitOfWork.PackageRepository.GetPackageByNameAsync(packageUpdateModel.Name, (Guid)package.ServiceId!);
+                    if (packageWithSameName)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status422UnprocessableEntity,
+                            Message = "Service already has this package's name."
+                        };
+                    }
+                }
                 //await _unitOfWork.BeginTransactionAsync();
                 //var languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode != "en" ? targetLanguageCode : sourceLanguageCode);
                 //var translationName = await _unitOfWork.TranslationRepository.GetTranslationAsync("Package", id, "Name", languageId);
@@ -108,12 +123,14 @@ namespace Chillde.Services.Services
                 //    };
                 //}
 
+                var packageModel = new PackageModel();
                 var anyOrder = _unitOfWork.OrderRepository.HasAnyOrderByPackage(id);
 
                 if (!anyOrder.Result)
                 {
                     _mapper.Map(packageUpdateModel, package);
                     _unitOfWork.PackageRepository.Update(package);
+                    packageModel = _mapper.Map<PackageModel>(package);
                 }
                 else
                 {
@@ -122,6 +139,7 @@ namespace Chillde.Services.Services
                     newPackage.ServiceId = package.ServiceId;
                     newPackage.Name = package.Name;
                     await _unitOfWork.PackageRepository.AddAsync(newPackage);
+                    packageModel = _mapper.Map<PackageModel>(newPackage);
                 }
 
                 await _unitOfWork.SaveChangeAsync();
@@ -131,6 +149,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Package updated successfully.",
+                    Data = packageModel
                 };
             }
             catch (Exception ex)
@@ -360,18 +379,22 @@ namespace Chillde.Services.Services
 
                 //string translatedName = translationResponse.TranslatedFields["Name"];
 
-                var newPackageFeature = new PackageFeature
-                {
-                    //Name = sourceLanguageCode == "en" ? packageFeatureAddModel.Name : translatedName,
-                    Name = packageFeatureAddModel.Name,
-                    IsExtra = packageFeatureAddModel.IsExtra,
-                    AdditionalCost = packageFeatureAddModel.AdditionalCost,
-                    AdditionalDay = packageFeatureAddModel.AdditionalDay,
-                    MaxQuantity = packageFeatureAddModel.MaxQuantity,
-                    IsChecked = packageFeatureAddModel.IsChecked,
-                    FeatureId = feature.Id,
-                    PackageId = packageId
-                };
+                //var newPackageFeature = new PackageFeature
+                //{
+                //    //Name = sourceLanguageCode == "en" ? packageFeatureAddModel.Name : translatedName,
+                //    Name = packageFeatureAddModel.Name,
+                //    IsExtra = packageFeatureAddModel.IsExtra,
+                //    AdditionalCost = packageFeatureAddModel.AdditionalCost,
+                //    AdditionalDay = packageFeatureAddModel.AdditionalDay,
+                //    MaxQuantity = packageFeatureAddModel.MaxQuantity,
+                //    IsChecked = packageFeatureAddModel.IsChecked,
+                //    FeatureId = feature.Id,
+                //    PackageId = packageId
+                //};
+
+                var newPackageFeature = _mapper.Map<PackageFeature>(packageFeatureAddModel);
+                newPackageFeature.FeatureId = feature.Id;
+                newPackageFeature.PackageId = packageId;
 
                 await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
 
@@ -419,10 +442,13 @@ namespace Chillde.Services.Services
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
 
+                var packageFeatureModel = _mapper.Map<PackageFeatureModel>(newPackageFeature);
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Successfully created."
+                    Message = "Successfully created.",
+                    Data = packageFeatureModel
                 };
             }
             catch (Exception ex)

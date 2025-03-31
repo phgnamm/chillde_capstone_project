@@ -4,10 +4,13 @@ namespace Chillde.Repositories.Models.PackageFeatureModels
 {
     public class PackageFeatureModel : BaseEntity
     {
-        public string? Question { get; set; }
-        public bool? IsInformationRequired { get; set; }
-        public bool? IsExtra { get; set; }
+        public string? Name { get; set; }
         public decimal? AdditionalCost { get; set; }
         public int? AdditionalDay { get; set; }
+        public bool? IsExtra { get; set; }
+        public bool? IsChecked { get; set; }
+        public int? MaxQuantity { get; set; }
+        public Guid? PackageId { get; set; }
+        public Guid FeatureId { get; set; }
     }
 }
