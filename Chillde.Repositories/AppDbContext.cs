@@ -166,6 +166,12 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<Package>(entity =>
+        {
+            entity.HasOne(s => s.Service)
+                .WithMany(c => c.Packages);
+        });
+
         modelBuilder.Entity<PackageFeature>(entity =>
         {
             entity.HasOne(pf => pf.Package)
