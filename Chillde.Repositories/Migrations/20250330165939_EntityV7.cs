@@ -5,24 +5,24 @@
 namespace Chillde.Repositories.Migrations
 {
     /// <inheritdoc />
-    public partial class EntityV4 : Migration
+    public partial class EntityV7 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "MaxQuantiy",
+            migrationBuilder.AddColumn<int>(
+                name: "MaxQuantity",
                 table: "Packages",
-                newName: "MaxQuantity");
+                type: "integer",
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
+            migrationBuilder.DropColumn(
                 name: "MaxQuantity",
-                table: "Packages",
-                newName: "MaxQuantiy");
+                table: "Packages");
         }
     }
 }

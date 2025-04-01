@@ -2,6 +2,7 @@
 using Chillde.Repositories.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Nest;
 using System.Text.Json;
 
 namespace Chillde.Repositories.Common;
@@ -16,6 +17,12 @@ public static class InitialSeeding
         new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f1"), Name = Enums.Role.Admin.ToString() },
         new() { Id = Guid.Parse("0195a73a-9919-714b-a9ad-29b849e946f7"), Name = Enums.Role.Customer.ToString() },
         new() { Id = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b"), Name = Enums.Role.Artisan.ToString() }
+    };
+    private static readonly List<Entities.Language> Languages = new()
+    {
+        new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f1"), Name = "English", Code = LanguageCode.en },
+        new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f7"), Name = "Việt Nam", Code = LanguageCode.vi },
+
     };
 
     private static readonly List<Wallet> Wallets = new()
@@ -1522,8 +1529,17 @@ public static class InitialSeeding
             EntityType = ConfigType.Package,
             FieldName = "MaxPriceOfPackage",
             Value = JsonDocument.Parse("10000000")
-        },
-        new()
+        },new()
+        {
+            EntityType = ConfigType.Order,
+            FieldName = "AutoCancelPercentagePenalty",
+            Value = JsonDocument.Parse("10")
+        },new()
+        {
+            EntityType = ConfigType.Reputation,
+            FieldName = "AutoCancelPointPenalty",
+            Value = JsonDocument.Parse("5")
+        },new()
         {
             EntityType = ConfigType.Service,
             FieldName = "MaximumSerivceOfOneArtisan",
@@ -1557,36 +1573,42 @@ public static class InitialSeeding
     {
         new()
         {
+            Id = Guid.Parse("a571fe38-237f-4614-9b2d-73613eb6663d"),
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1620656798579-1984d9e87df7?q=80&w=2670&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             ServiceId = Guid.Parse("1844b073-513f-4bd3-9fc3-8c77422cf22c")
         },
         new()
         {
+            Id = Guid.Parse("49f89835-ec28-47f7-a7b1-7c372d0ab507"),
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1569397288884-4d43d6738fbd?q=80&w=2565&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             ServiceId = Guid.Parse("1844b073-513f-4bd3-9fc3-8c77422cf22c")
         },
         new()
         {
+            Id = Guid.Parse("556c066c-fa96-485d-a060-84eeee8f3907"),
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1627072108045-a6605828afb7?q=80&w=2500&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             ServiceId = Guid.Parse("1844b073-513f-4bd3-9fc3-8c77422cf22c")
         },
         new()
         {
+            Id = Guid.Parse("6ad3234b-a0b5-4bb1-8ddc-9c15a594d018"),
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1614330315526-166f2d71e544?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             ServiceId = Guid.Parse("5bd4bcfd-9353-4ace-80a5-82d6d313ed59")
         },
         new()
         {
+            Id = Guid.Parse("a440d722-af65-475e-90ed-5a6a6a07f149"),
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1614330316074-769a15d75d01?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             ServiceId = Guid.Parse("5bd4bcfd-9353-4ace-80a5-82d6d313ed59")
         },
         new()
         {
+            Id = Guid.Parse("800fa516-5a58-4312-a382-2bd9cf84de54"),
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1614260937560-c749cc17da94?q=80&w=2576&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             ServiceId = Guid.Parse("5bd4bcfd-9353-4ace-80a5-82d6d313ed59")
@@ -2381,6 +2403,15 @@ public static class InitialSeeding
             {
                 config.CreationDate = DateTime.UtcNow;
                 context.SystemConfigs.Add(config);
+            }
+        }
+        // Seed Language
+        foreach(var language in Languages)
+        {
+            if (!context.Languages.Any(c => c.Id == language.Id))
+            {
+                language.CreationDate = DateTime.UtcNow;
+                context.Languages.Add(language);
             }
         }
 

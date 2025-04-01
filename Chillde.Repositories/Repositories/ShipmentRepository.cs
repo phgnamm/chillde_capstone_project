@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Repositories.Repositories;
 
@@ -21,5 +22,10 @@ public class ShipmentRepository : GenericRepository<Shipment>, IShipmentReposito
     {
         var shipment = _dbSet.Where(_ => _.PartnerId == trackingOrder || _.Label == trackingOrder).FirstOrDefault();
         return shipment;
+    }
+
+    public async Task<Shipment?> GetByTrackingIdAsync(string lableId)
+    {
+        return await _dbSet.FirstOrDefaultAsync(s=> s.Label == lableId);
     }
 }

@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250330071025_EntityV4")]
-    partial class EntityV4
+    [Migration("20250331164307_EntityV9")]
+    partial class EntityV9
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -847,6 +847,12 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal?>("ArtistRevenue")
                         .HasColumnType("numeric");
 
+                    b.Property<decimal?>("ArtistRevenueAfterCancel")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("CancelOrderReason")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("CancellationReasonId")
                         .HasColumnType("uuid");
 
@@ -863,14 +869,17 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("CurrentSketchRevision")
                         .HasColumnType("integer");
 
+                    b.Property<bool?>("DeadlineMissed")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid?>("DeletedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("DeliveryTime")
-                        .HasColumnType("integer");
+                    b.Property<float?>("DeliveryTime")
+                        .HasColumnType("real");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -894,6 +903,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
+                    b.Property<bool?>("ReminderSent")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ShipmentCode")
                         .HasColumnType("text");
 
@@ -902,6 +914,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int>("Stage")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("StartTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");

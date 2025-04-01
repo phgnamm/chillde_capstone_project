@@ -23,6 +23,25 @@ namespace Chillde.API.Controllers
             _packageService = packageService;
         }
 
+        //[Authorize]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAsync(Guid id)
+        {
+            try
+            {
+                var result = await _packageService.GetAsync(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
         //[Authorize(Roles = "Artisan")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromBody] PackageUpdateModel packageUpdateModel, Guid id)

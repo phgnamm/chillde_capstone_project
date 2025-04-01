@@ -25,6 +25,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddAsync(ServiceAddModel serviceAddModel, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> UpdateAsync(ServiceUpdateModel serviceUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> DeleteAsync(Guid id);
+        Task<ResponseModel> ActiveAsync(Guid id);
         Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId);
         Task<ResponseModel> AddListServiceAttachmentAsync(List<ServiceAttachmentAddModel> attachmentModels, Guid serviceId);
         Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId, string sourceLanguageCode);

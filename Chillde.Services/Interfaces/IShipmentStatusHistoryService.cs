@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Chillde.Repositories.Enums
+namespace Chillde.Services.Interfaces
 {
-    public enum CancleOrderReason
+    public interface IShipmentStatusHistoryService
     {
-        ChangeShipmentAddress
     }
 }

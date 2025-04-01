@@ -1,5 +1,6 @@
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -205,6 +206,24 @@ public class AccountController : ControllerBase
         try
         {
             var result = await _accountService.BecomeASeller(id, accountBecomeASellerModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+/*    [Authorize(Roles = "Admin")]*/
+    [HttpGet("{artisanId}/categories")]
+    public async Task<IActionResult> GetCategoryByService(Guid artisanId, [FromQuery] FilterModel filterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetCategoryByArtisan(artisanId, filterModel);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

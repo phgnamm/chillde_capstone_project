@@ -166,6 +166,12 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        modelBuilder.Entity<Package>(entity =>
+        {
+            entity.HasOne(s => s.Service)
+                .WithMany(c => c.Packages);
+        });
+
         modelBuilder.Entity<PackageFeature>(entity =>
         {
             entity.HasOne(pf => pf.Package)
@@ -173,7 +179,7 @@ public class AppDbContext : DbContext
     .HasForeignKey(pf => pf.PackageId)
     .OnDelete(DeleteBehavior.Cascade);
         });
-    
+
 
 
         #endregion
@@ -224,6 +230,7 @@ public class AppDbContext : DbContext
     public DbSet<CancellationReason> CancellationReasons { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<VoucherUsageLog> VoucherUsageLogs { get; set; }
+    public DbSet<ShipmentStatusHistory> ShipmentStatusHistory { get; set; }
 
     #endregion
 }

@@ -49,6 +49,8 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                PackageFeature newPackageFeature = new PackageFeature();
+
                 var anyOrder = await _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId!.Value);
 
                 if (!anyOrder)
@@ -59,11 +61,13 @@ namespace Chillde.Services.Services
                 else
                 {
                     _unitOfWork.PackageFeatureRepository.SoftRemove(packageFeature);
-                    PackageFeature newPackageFeature = _mapper.Map<PackageFeature>(packageFeatureUpdateModel);
+                    newPackageFeature = _mapper.Map<PackageFeature>(packageFeatureUpdateModel);
                     newPackageFeature.PackageId = packageFeature.PackageId;
                     newPackageFeature.FeatureId = packageFeature.FeatureId;
                     await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
                 }
+
+                var newPackageFeatureModel = _mapper.Map<PackageFeatureUpdateModel>(newPackageFeature);
 
                 await _unitOfWork.SaveChangeAsync();
 
@@ -71,6 +75,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Package feature successfully updated.",
+                    Data = newPackageFeatureModel
                 };
             }
             catch (Exception ex)

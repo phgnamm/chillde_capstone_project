@@ -14,6 +14,7 @@ using Chillde.Services.Resources;
 using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Services.Services
 {
@@ -25,8 +26,9 @@ namespace Chillde.Services.Services
         private readonly IStringLocalizer<CategoryLanguage> _localizer;
         private readonly IStringLocalizerFactory _localizerFactory;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IClaimService _claimService;
 
-        public CategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper, IStringLocalizer<CategoryLanguage> localizer, IStringLocalizerFactory localizerFactory, IServiceProvider serviceProvider)
+        public CategoryService(IUnitOfWork unitOfWork, ICloudinaryHelper cloudinaryHelper, IMapper mapper, IStringLocalizer<CategoryLanguage> localizer, IStringLocalizerFactory localizerFactory, IServiceProvider serviceProvider, IClaimService claimService)
         {
             _unitOfWork = unitOfWork;
             _cloudinaryHelper = cloudinaryHelper;
@@ -34,6 +36,7 @@ namespace Chillde.Services.Services
             _localizer = localizer;
             _localizerFactory = localizerFactory;
             _serviceProvider = serviceProvider;
+            _claimService = claimService;   
         }
 
         public async Task<ResponseModel> Add(CategoryAddModel categoryAddModel)
@@ -414,6 +417,7 @@ namespace Chillde.Services.Services
             }
 
         }
+
 
         private CategoryTreeModel BuildCategoryTree(Category category, IEnumerable<Category> allCategories)
         {

@@ -18,6 +18,10 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Chillde.Services.Models.AccountModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -98,8 +102,14 @@ namespace Chillde.Services.Services
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
 
                 var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
-                shipment!.StatusId = ShipmentStatus.Cancelled;
+                shipment!.CurrentStatusId = ShipmentStatus.Cancelled;
 
+                var statusHistory = new ShipmentStatusHistory
+                {
+                    ShipmentId = shipment.Id,
+                    StatusId = ShipmentStatus.Cancelled,
+                };
+                shipment.ShipmentStatusHistorys.Add(statusHistory);
                 _unitOfWork.ShipmentRepository.Update(shipment);
                 await _unitOfWork.SaveChangeAsync();
 
@@ -192,7 +202,7 @@ namespace Chillde.Services.Services
                 new_version = "true"
             };
 
-            var ghtkJwtToken = _httpContextAccessor.HttpContext?.Session.GetString("GhtkToken").ToString();
+            var ghtkJwtToken = _httpContextAccessor.HttpContext?.Session.GetString("GhtkToken");
             if (!CheckGHTKJwtValidity(ghtkJwtToken))
             {
                 var loginRequestMessage = new HttpRequestMessage(HttpMethod.Post, ghtkLoginUrl)
@@ -287,56 +297,33 @@ namespace Chillde.Services.Services
                 return false;
             }
         }
-        public async Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus)
+        public async Task<bool> UpdateShipmentStatusAsync(ShipmentUpdateRequestModel request)
         {
-            try
+            var shipment = await _unitOfWork.ShipmentRepository.GetByTrackingIdAsync(request.LabelId);
+
+            if (shipment == null)
             {
-                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
-                if (shipment == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Shipment not found."
-                    };
-                }
-
-                if (shipment.StatusId == newStatus)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Shipment status is already up-to-date."
-                    };
-                }
-
-                shipment.StatusId = newStatus;
-
-                _unitOfWork.ShipmentRepository.Update(shipment);
-                var updateResult = await _unitOfWork.SaveChangeAsync();
-                if (updateResult <= 0)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = "Failed to update shipment status."
-                    };
-                }              
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Shipment status updated ",
-                };
+                return false;
             }
-            catch (Exception ex)
+
+            if (!Enum.IsDefined(typeof(ShipmentStatus), request.StatusId))
             {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = $"Error updating shipment status: {ex.Message}"
-                };
+                throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
             }
+
+            shipment.CurrentStatusId = (ShipmentStatus)request.StatusId;
+
+            var history = new ShipmentStatusHistory
+            {
+                ShipmentId = shipment.Id,
+                StatusId = (ShipmentStatus)request.StatusId,
+            };
+            shipment.ShipmentStatusHistorys.Add(history);
+
+            _unitOfWork.ShipmentRepository.Update(shipment);
+            await _unitOfWork.SaveChangeAsync();
+
+            return true;
         }
 
         public async Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model)
@@ -362,6 +349,6 @@ namespace Chillde.Services.Services
             };
         }
 
-
+       
     }
 }

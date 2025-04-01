@@ -4,4 +4,5 @@ namespace Chillde.Repositories.Interfaces;
 
 public interface IAccountRoleRepository : IGenericRepository<AccountRole>
 {
+
 }

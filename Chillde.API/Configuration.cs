@@ -19,6 +19,7 @@ using Chillde.Repositories.Repositories;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using RabbitMQ.Client;
+using Chillde.Repositories.Entities;
 
 namespace Chillde.API;
 
@@ -32,7 +33,8 @@ public static class Configuration
         // Local database
         services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
+            //options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
+            options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
         });
 
         // Redis
@@ -49,7 +51,7 @@ public static class Configuration
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
         var apiSecret = configuration["Cloudinary:ApiSecret"];
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
-        var cloudinary = new Cloudinary(new Account { Cloud = cloud, ApiKey = apiKey, ApiSecret = apiSecret });
+        var cloudinary = new Cloudinary(new CloudinaryDotNet.Account { Cloud = cloud, ApiKey = apiKey, ApiSecret = apiSecret });
         services.AddSingleton<ICloudinary>(cloudinary);
 
         // JWT
@@ -359,6 +361,10 @@ public static class Configuration
 
         //VoucherUsageLog
         services.AddScoped<IVoucherUsageLogRepository, VoucherUsageLogRepository>();
+
+        //ShipmentStatusHistory
+        services.AddScoped<IShipmentStatusHistoryRepository,ShipmentStatusHistoryRepository>();
+        services.AddScoped<IShipmentStatusHistoryService, ShipmentStatusHistoryService>();
 
 
         #endregion
