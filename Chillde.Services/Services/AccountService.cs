@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -9,12 +10,14 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.SearchModels;
 using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.AccountModels.OAuth2;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TokenModels;
 using Chillde.Services.Utils;
@@ -1160,5 +1163,69 @@ public class AccountService : IAccountService
         }).ToList();
         return new ResponseModel { Data = searchHistoryModels};
 
+    }
+    public async Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel)
+    {
+        try
+        {
+            var account = await _unitOfWork.AccountRepository.GetAsync(id);
+            if (account == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Account not found."
+                };
+            }
+            Expression<Func<Service, bool>> filter = s => s.CreatedById == id;
+            if (!string.IsNullOrEmpty(filterModel.Search))
+            {
+                var search = filterModel.Search.ToLower();
+                filter = s => s.CreatedBy.Id == id &&
+                              s.Category.Name != null &&
+                              s.Category.Slug != null &&
+                              (s.Category.Name.ToLower().Contains(search) ||
+                               s.Category.Slug.ToLower().Contains(search));
+            }
+            var serviceResult = await _unitOfWork.ServiceRepository.GetAllAsync(
+                filter: filter,
+                include: s => s.Include(x => x.Category),
+                pageIndex: filterModel.PageIndex,
+                pageSize: filterModel.PageSize
+            );
+
+            var categories = serviceResult.Data
+                .GroupBy(s => s.Category.Id)
+                .Select(g => g.First().Category)
+                .Select(c => new CategoryModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Slug = c.Slug,
+                    AttachmentUrl = c.AttachmentUrl,
+                    AttachmentAlt = c.AttachmentAlt,
+                    CreatedById = c.CreatedById,
+                    CreationDate = c.CreationDate,
+                    ModificationDate = c.ModificationDate,
+                    ModifiedById = c.ModifiedById,
+                    DeletionDate = c.DeletionDate,
+                    IsDeleted = c.IsDeleted,
+                })
+                .ToList();
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Get all categories of artisan successfully",
+                Data = categories
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = $"An error occurred while retrieving categories: {ex.Message}"
+            };
+        }
     }
 }
