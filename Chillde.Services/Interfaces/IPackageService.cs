@@ -7,6 +7,7 @@ namespace Chillde.Services.Interfaces
 {
     public interface IPackageService
     {
+        Task<ResponseModel> GetAsync(Guid id);
         Task<ResponseModel> UpdateAsync(PackageUpdateModel packageUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> DeleteAsync(Guid id);
         Task<ResponseModel> GetAllFeatureByPackageAsync(FeatureFilterModel model, Guid packageId, string sourceLanguageCode, string targetLanguage);
