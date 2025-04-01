@@ -58,6 +58,7 @@ public class MapperProfile : Profile
         //Package
         CreateMap<PackageModel, Package>().ReverseMap();
         CreateMap<PackageUpdateModel, Package>().ReverseMap();
+        CreateMap<PackageAddModel, Package>().ReverseMap();
 
         //ShippingAddress
         CreateMap<ShippingAddress,ShippingAddressAddModel>().ReverseMap();
@@ -67,6 +68,7 @@ public class MapperProfile : Profile
 
         //PackageFeature
         CreateMap<PackageFeatureUpdateModel, PackageFeature>().ReverseMap();
+        CreateMap<PackageFeatureAddModel, PackageFeature>().ReverseMap();
         CreateMap<PackageFeatureModel, PackageFeature>().ReverseMap();
 
         //Feature
@@ -75,7 +77,7 @@ public class MapperProfile : Profile
 
         //Service
         CreateMap<ServiceModel, Service>().ReverseMap();
-        CreateMap<ServiceUpdateModel, Service>().ReverseMap();
+        CreateMap<ServiceUpdateModel, Service>().ForMember(x => x.ServiceAttachments, otp => otp.Ignore()).ReverseMap();
 
         //Service
         CreateMap<ServiceAttachmentAddModel, ServiceAttachment>().ReverseMap();

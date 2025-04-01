@@ -192,7 +192,7 @@ namespace Chillde.Services.Services
                 new_version = "true"
             };
 
-            var ghtkJwtToken = _httpContextAccessor.HttpContext?.Session.GetString("GhtkToken").ToString();
+            var ghtkJwtToken = _httpContextAccessor.HttpContext?.Session.GetString("GhtkToken");
             if (!CheckGHTKJwtValidity(ghtkJwtToken))
             {
                 var loginRequestMessage = new HttpRequestMessage(HttpMethod.Post, ghtkLoginUrl)
