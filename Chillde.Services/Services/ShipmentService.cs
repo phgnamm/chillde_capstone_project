@@ -18,6 +18,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -98,8 +99,14 @@ namespace Chillde.Services.Services
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
 
                 var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
-                shipment!.StatusId = ShipmentStatus.Cancelled;
+                shipment!.CurrentStatusId = ShipmentStatus.Cancelled;
 
+                var statusHistory = new ShipmentStatusHistory
+                {
+                    ShipmentId = shipment.Id,
+                    StatusId = ShipmentStatus.Cancelled,
+                };
+                shipment.ShipmentStatusHistorys.Add(statusHistory);
                 _unitOfWork.ShipmentRepository.Update(shipment);
                 await _unitOfWork.SaveChangeAsync();
 
@@ -291,7 +298,11 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
+                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(
+                                        shipmentId,
+                                        include: s => s.Include(s => s.ShipmentStatusHistorys)
+                                            );
+
                 if (shipment == null)
                 {
                     return new ResponseModel
@@ -301,32 +312,25 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                if (shipment.StatusId == newStatus)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Shipment status is already up-to-date."
-                    };
-                }
+                // Cập nhật trạng thái hiện tại
+                shipment.CurrentStatusId = newStatus;
 
-                shipment.StatusId = newStatus;
+                // Thêm lịch sử trạng thái
+                var statusHistory = new ShipmentStatusHistory
+                {
+                    ShipmentId = shipmentId,
+                    StatusId = newStatus,
+                };
+                shipment.ShipmentStatusHistorys.Add(statusHistory);
 
                 _unitOfWork.ShipmentRepository.Update(shipment);
-                var updateResult = await _unitOfWork.SaveChangeAsync();
-                if (updateResult <= 0)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = "Failed to update shipment status."
-                    };
-                }              
+                await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
-                    Message = "Shipment status updated ",
+                    Message = $"Shipment status updated to {newStatus}.",
+                    Data = shipment
                 };
             }
             catch (Exception ex)

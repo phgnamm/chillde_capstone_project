@@ -51,6 +51,7 @@ public interface IUnitOfWork
     ISystemConfigRepository SystemConfigRepository { get; }
     IVoucherRepository VoucherRepository { get; }
     IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
+    IShipmentStatusHistoryRepository ShipmentStatusHistoryRepository { get; }
 
     #endregion
 }

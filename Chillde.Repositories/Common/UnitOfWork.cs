@@ -44,7 +44,8 @@ public class UnitOfWork : IUnitOfWork
         IVoucherRepository voucherRepository,
         IVoucherUsageLogRepository voucherUsageLogRepository,
         ICancellationReasonRepository cancellationReasonRepository,
-        IOrderTrackingRepository orderTrackingRepository
+        IOrderTrackingRepository orderTrackingRepository,
+        IShipmentStatusHistoryRepository shipmentStatusHistoryRepository
         )
     {
         Context = context;
@@ -88,6 +89,8 @@ public class UnitOfWork : IUnitOfWork
         VoucherRepository = voucherRepository;
         VoucherUsageLogRepository = voucherUsageLogRepository;
         OrderTrackingRepository = orderTrackingRepository;
+        ShipmentStatusHistoryRepository = shipmentStatusHistoryRepository;
+
     }
 
     public AppDbContext Context { get; }
@@ -140,6 +143,8 @@ public class UnitOfWork : IUnitOfWork
     public IOrderTrackingRepository OrderTrackingRepository { get; }
 
     public ICancellationReasonRepository CancellationReasonRepository { get; }
+
+    public IShipmentStatusHistoryRepository ShipmentStatusHistoryRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

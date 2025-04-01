@@ -704,7 +704,7 @@ namespace Chillde.Services.Services
                 {
                     OrderId = order.Id,
                     TrackingId = parsedJson!.Order!.TrackingId.ToString(),
-                    StatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
+                    CurrentStatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
                     PartnerId = parsedJson!.Order!.PartnerId,
                     Label = parsedJson.Order.Label,
                     Area = parsedJson.Order.Area,
@@ -713,6 +713,12 @@ namespace Chillde.Services.Services
                     EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
                     EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
                 };
+                shipment.ShipmentStatusHistorys.Add(new ShipmentStatusHistory
+                {
+                    ShipmentId = shipment.Id, 
+                    StatusId = shipment.CurrentStatusId,                
+                });
+                    
 
                 await _unitOfWork.ShipmentRepository.AddAsync(shipment);
                 await _unitOfWork.SaveChangeAsync();
