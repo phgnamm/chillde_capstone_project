@@ -1483,7 +1483,7 @@ namespace Chillde.Services.Services
                     var averageEmbedding = ComputeAverageEmbedding(recentLogs.Data.Select(log => log.EmbeddingVector).ToList());
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
-                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy),
+                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy).Include(_ => _.Category),
                         pageIndex: serviceFilterModel.PageIndex,
                         pageSize: 1000
                      );
@@ -1501,6 +1501,7 @@ namespace Chillde.Services.Services
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
                             Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            CategoryId = s.CategoryId,
                             Artisan = new AccountLiteModel()
                             {
                                 FirstName = s.CreatedBy.FirstName,
@@ -1552,14 +1553,14 @@ namespace Chillde.Services.Services
                         Data = serviceList
                     };
                 };
-                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetails.Message });
+                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetails.Data.ToString() });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
-                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy),
+                        include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy).Include(_ => _.Category),
                         pageIndex: serviceFilterModel.PageIndex,
                         pageSize: 1000
                      );
@@ -1577,6 +1578,7 @@ namespace Chillde.Services.Services
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
                             Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            CategoryId = s.CategoryId,
                             Artisan = new AccountLiteModel()
                             {
                                 FirstName = s.CreatedBy.FirstName,
@@ -1597,7 +1599,7 @@ namespace Chillde.Services.Services
                             Message = "No matching services found for the event.",
                             Data = new
                             {
-                                EventName = eventDetails.Message,
+                                EventName = eventDetails.Data,
                                 Services = results
                             }
                         };
@@ -1615,17 +1617,14 @@ namespace Chillde.Services.Services
                         Message = "Get services based on event successfully",
                         Data = new
                         {
-                            EventName = eventDetails.Message,
-                            Services = paginatedResult.Data,
-                            paginatedResult.CurrentPage,
-                            paginatedResult.PageSize,
-                            paginatedResult.TotalPages
+                            EventName = eventDetails.Data,
+                            Services = results
                         }
                     };
-                }, cacheDuration);
+            }, cacheDuration);
 
-                return responseModel;
-            }
+            return responseModel;
+        }
             else
             {
                 var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
@@ -1687,6 +1686,7 @@ namespace Chillde.Services.Services
                         Rate = s.Rate,
                         FeedbackCount = s.FeedbackCount,
                         Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                        CategoryId = s.CategoryId,
                         Artisan = new AccountLiteModel()
                         {
                             FirstName = s.CreatedBy.FirstName,
