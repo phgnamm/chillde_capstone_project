@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Enums
 {
-    public enum CancleOrderReason
+    public enum CancelOrderReason
     {
-        ChangeShipmentAddress
+        NotReponseDeadlineInTime,
+        NotPostDeliveryInTime,
     }
 }
