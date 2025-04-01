@@ -1,7 +1,10 @@
 ﻿using Chillde.Repositories.Enums;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
+using Chillde.Services.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
@@ -92,36 +95,32 @@ namespace Chillde.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        //[Authorize]
+        [HttpPost("webhook/shipment-update")]
+        public async Task<IActionResult> UpdateShipment([FromForm] ShipmentUpdateRequestModel request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.LabelId) || request.StatusId == 0)
+                {
+                    return BadRequest(new { message = "Dữ liệu không hợp lệ" });
+                }
 
-        ////[Authorize]
-        //[HttpPost("create-shipment")]
-        //public async Task<IActionResult> CreateShipment([FromBody] ShipmentCreateModel model)
-        //{
-        //    try
-        //    {
-        //        var result = await _shipmentService.CreateShipmentAsync(model);
-        //        return StatusCode(result.Code, result);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status500InternalServerError,
-        //            Message = ex.Message
-        //        });
-        //    }
-        //}
-        [HttpPut("{shipmentId}/status")]
-        public async Task<IActionResult> UpdateShipmentStatus(Guid shipmentId, [FromBody] ShipmentStatus newStatus)
-        {
-            var response = await _shipmentService.UpdateShipmentStatusAsync(shipmentId, newStatus);
-            return StatusCode(response.Code, response);
-        }
-        [HttpGet]
-        public async Task<IActionResult> GetAll ([FromQuery] ShipmentFilterModel model)
-        {
-            var response = await _shipmentService.GetALlShipmentAsync(model);
-            return StatusCode(response.Code, response);
+                var result = await _shipmentService.UpdateShipmentStatusAsync(request);
+
+                if (result)
+                {
+                    return Ok(new { message = "Cập nhật thành công" });
+                }
+                else
+                {
+                    return StatusCode(500, new { message = "Cập nhật thất bại" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi xử lý webhook", error = ex.Message });
+            }
         }
 
     }

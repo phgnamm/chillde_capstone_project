@@ -19,6 +19,9 @@ using System.Text;
 using System.Text.Json;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Chillde.Services.Models.AccountModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -294,53 +297,33 @@ namespace Chillde.Services.Services
                 return false;
             }
         }
-        public async Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus)
+        public async Task<bool> UpdateShipmentStatusAsync(ShipmentUpdateRequestModel request)
         {
-            try
+            var shipment = await _unitOfWork.ShipmentRepository.GetByTrackingIdAsync(request.LabelId);
+
+            if (shipment == null)
             {
-                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(
-                                        shipmentId,
-                                        include: s => s.Include(s => s.ShipmentStatusHistorys)
-                                            );
-
-                if (shipment == null)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Shipment not found."
-                    };
-                }
-
-                // Cập nhật trạng thái hiện tại
-                shipment.CurrentStatusId = newStatus;
-
-                // Thêm lịch sử trạng thái
-                var statusHistory = new ShipmentStatusHistory
-                {
-                    ShipmentId = shipmentId,
-                    StatusId = newStatus,
-                };
-                shipment.ShipmentStatusHistorys.Add(statusHistory);
-
-                _unitOfWork.ShipmentRepository.Update(shipment);
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = $"Shipment status updated to {newStatus}.",
-                    Data = shipment
-                };
+                return false;
             }
-            catch (Exception ex)
+
+            if (!Enum.IsDefined(typeof(ShipmentStatus), request.StatusId))
             {
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = $"Error updating shipment status: {ex.Message}"
-                };
+                throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
             }
+
+            shipment.CurrentStatusId = (ShipmentStatus)request.StatusId;
+
+            var history = new ShipmentStatusHistory
+            {
+                ShipmentId = shipment.Id,
+                StatusId = (ShipmentStatus)request.StatusId,
+            };
+            shipment.ShipmentStatusHistorys.Add(history);
+
+            _unitOfWork.ShipmentRepository.Update(shipment);
+            await _unitOfWork.SaveChangeAsync();
+
+            return true;
         }
 
         public async Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model)
@@ -366,6 +349,6 @@ namespace Chillde.Services.Services
             };
         }
 
-
+       
     }
 }

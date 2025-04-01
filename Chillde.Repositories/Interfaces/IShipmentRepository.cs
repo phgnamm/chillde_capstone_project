@@ -7,5 +7,7 @@ public interface IShipmentRepository : IGenericRepository<Shipment>
 {
     bool HasAvalaibleShipment(Guid orderId, string partnerId);
     Shipment? GetShipmentByPartnerIdOrLabel(string trackingOrder);
+    Task<Shipment?> GetByTrackingIdAsync(string lableId);
+
 
 }
