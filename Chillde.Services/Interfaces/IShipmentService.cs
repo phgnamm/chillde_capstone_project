@@ -13,8 +13,8 @@ namespace Chillde.Services.Interfaces
         Task<byte[]> GetShippingLabelAsync(string trackingOrder);
         Task<ResponseModel> GetOrderStatusAsync(string trackingOrder);
         //Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId);
-        Task<ResponseModel> UpdateShipmentStatusAsync(Guid shipmentId, ShipmentStatus newStatus);
         Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model);
+        Task<bool> UpdateShipmentStatusAsync(ShipmentUpdateRequestModel request);
 
     }
 }
