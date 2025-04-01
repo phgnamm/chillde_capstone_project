@@ -662,6 +662,7 @@ namespace Chillde.Services.Services
             {
                 Name = model.Name,
                 Description = model.Description,
+                CategoryId =model.ItemId,
                 MinBudget = model.MinBudget,
                 MaxBudget = model.MaxBudget,
                 Timeline = model.Timeline,
