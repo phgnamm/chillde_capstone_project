@@ -22,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Chillde.Services.Models.AccountModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Chillde.Services.Models.ShipmentStatusHistoryModels;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -349,6 +350,30 @@ namespace Chillde.Services.Services
             };
         }
 
-       
+        public async Task<ResponseModel> GetAllStatusByLableOrParentId(ShipmentStatusFilterModel model)
+        {
+            var shipment = await _unitOfWork.ShipmentRepository.GetAllAsync(
+                filter: s => s.PartnerId == model.PartnerId || s.Label == model.Label,
+                include: q => q.Include(s => s.ShipmentStatusHistorys)
+            );
+
+            if (shipment == null || !shipment.Data.Any())
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Không tìm thấy đơn hàng"
+                };
+            }
+
+            var shipmentData = shipment.Data.FirstOrDefault();
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+            };
+        }
+
+
     }
 }
