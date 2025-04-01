@@ -1,4 +1,11 @@
-﻿using Chillde.Services.Interfaces;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
+using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.PackageModels;
+using Chillde.Services.Interfaces;
+using Chillde.Services.Models.FeatureModels;
+using Chillde.Services.Models.PackageFeatureModels;
+using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ServiceAttachmentModels;
 using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Authorization;
@@ -11,10 +18,16 @@ namespace Chillde.API.Controllers
     public class SeedingController : ControllerBase
     {
         private readonly IServiceService _serviceService;
+        private readonly IPackageService _packageService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IFeatureService _featureService;
 
-        public SeedingController(IServiceService serviceService)
+        public SeedingController(IServiceService serviceService, IPackageService packageService, IUnitOfWork unitOfWork, IFeatureService featureService)
         {
             _serviceService = serviceService;
+            _packageService = packageService;
+            _unitOfWork = unitOfWork;
+            _featureService = featureService;
         }
         [Authorize]
         [HttpPost("seed-services")]
@@ -43,10 +56,11 @@ namespace Chillde.API.Controllers
                     // Dịch vụ 2: Khuyên Tai Đính Đá (Danh mục: Earrings - Id: 3f8c0d2a-4b56-4ffb-f68b-2f5f6a7b9012)
                         new ServiceAddModel
                         {
+
                             Name = "Khuyên Tai Đính Đá",
                             Description = "Mang đến vẻ đẹp lấp lánh với những đôi khuyên tai đính đá được chế tác tinh xảo. Sản phẩm của chúng tôi kết hợp giữa thiết kế hiện đại và chất liệu cao cấp, phù hợp cho mọi dịp từ thường ngày đến sự kiện đặc biệt.\r\n\r\nĐặc Điểm:\r\nChất Liệu Cao Cấp: Sử dụng bạc 925 và đá quý tự nhiên.\r\nThiết Kế Độc Đáo: Mỗi mẫu đều được thiết kế để tôn lên vẻ đẹp của người đeo.\r\nĐộ Bền Cao: Chống xỉn màu và giữ được độ sáng bóng lâu dài.\r\nTùy Chỉnh: Có thể thêm khắc tên hoặc ký tự cá nhân hóa.\r\n\r\nLý Do Chọn Chúng Tôi:\r\nSản phẩm thủ công tỉ mỉ, đảm bảo chất lượng vượt trội.\r\nDịch vụ hỗ trợ tận tâm, giao hàng nhanh chóng.\r\nHãy để đôi khuyên tai này trở thành điểm nhấn hoàn hảo cho phong cách của bạn!",
-                            MinWeight = 1000,
-                            MaxWeight = 5000,
+                            MinWeight = 100,
+                            MaxWeight = 2000,
                             CategoryId = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"), // Earrings
                             ServiceAttachments = new List<ServiceAttachmentAddModel>
                             {
@@ -61,7 +75,7 @@ namespace Chillde.API.Controllers
                         new ServiceAddModel
                         {
                             Name = "Dây Chuyền Cá Nhân Hóa",
-                            Description = "Tạo dấu ấn riêng với dây chuyền cá nhân hóa được làm từ vàng hoặc bạc chất lượng cao. Đây là món quà hoàn hảo để lưu giữ những kỷ niệm đặc biệt.\r\n\r\nĐặc Điểm:\r\nChất Liệu: Vàng 18K hoặc bạc 925 tùy chọn.\r\nKhắc Tên: Khắc tên, ngày kỷ niệm hoặc thông điệp theo yêu cầu.\r\nThiết Kế Tinh Tế: Phù hợp với mọi độ tuổi và phong cách.\r\nĐóng Gói Sang Trọng: Hộp quà cao cấp kèm theo.\r\n\r\nLý Do Chọn Chúng Tôi:\r\nSản phẩm được chế tác thủ công với sự chú ý đến từng chi tiết.\r\nDịch vụ tư vấn tận tình, giao hàng an toàn.\r\nHãy biến ý tưởng của bạn thành hiện thực với dây chuyền độc nhất này!",
+                            Description = "Tạo dấu ấn riêng với dây chuyền cá nhân hóa được làm bạc chất lượng cao. Đây là món quà hoàn hảo để lưu giữ những kỷ niệm đặc biệt.\r\n\r\nĐặc Điểm:\r\nChất Liệu: Vàng 18K hoặc bạc 925 tùy chọn.\r\nKhắc Tên: Khắc tên, ngày kỷ niệm hoặc thông điệp theo yêu cầu.\r\nThiết Kế Tinh Tế: Phù hợp với mọi độ tuổi và phong cách.\r\nĐóng Gói Sang Trọng: Hộp quà cao cấp kèm theo.\r\n\r\nLý Do Chọn Chúng Tôi:\r\nSản phẩm được chế tác thủ công với sự chú ý đến từng chi tiết.\r\nDịch vụ tư vấn tận tình, giao hàng an toàn.\r\nHãy biến ý tưởng của bạn thành hiện thực với dây chuyền độc nhất này!",
                             MinWeight = 200,
                             MaxWeight = 1500,
                             CategoryId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"), // Necklaces
@@ -113,8 +127,8 @@ namespace Chillde.API.Controllers
                         {
                             Name = "Kẹp Tiền Kim Loại",
                             Description = "Tăng thêm phong cách với kẹp tiền kim loại được chế tác tinh xảo. Sản phẩm nhỏ gọn nhưng tiện dụng, phù hợp cho những ai yêu thích sự tối giản.\r\n\r\nĐặc Điểm:\r\nChất Liệu: Thép không gỉ hoặc hợp kim cao cấp.\r\nThiết Kế: Nhỏ gọn, dễ dàng mang theo trong túi.\r\nKhắc Cá Nhân: Tùy chọn khắc tên hoặc biểu tượng.\r\nĐộ Bền: Chống gỉ sét và giữ độ sáng lâu dài.\r\n\r\nLý Do Chọn Chúng Tôi:\r\nSản phẩm được làm thủ công với độ chính xác cao.\r\nDịch vụ giao hàng nhanh, hỗ trợ tận tình.\r\nHãy để kẹp tiền này thay thế ví truyền thống của bạn một cách phong cách!",
-                            MinWeight = 1000,
-                            MaxWeight = 5000,
+                            MinWeight = 100,
+                            MaxWeight = 500,
                             CategoryId = Guid.Parse("8f3b2c1d-4e56-4a9b-b78c-2d5e6f7a9012"), // Money Clips
                             ServiceAttachments = new List<ServiceAttachmentAddModel>
                             {
@@ -130,8 +144,8 @@ namespace Chillde.API.Controllers
                         {
                             Name = "Vòng Tay Hạt Đá",
                             Description = "Khám phá vẻ đẹp tự nhiên với vòng tay hạt đá được làm từ các loại đá quý phong thủy. Mỗi chiếc vòng đều mang năng lượng tích cực và ý nghĩa riêng.\r\n\r\nĐặc Điểm:\r\nChất Liệu: Đá tự nhiên (thạch anh, ngọc bích, mã não...).\r\nThiết Kế: Hạt tròn đều, kết hợp dây đan thủ công.\r\nTùy Chỉnh: Chọn loại đá và kích thước phù hợp.\r\nÝ Nghĩa: Mang lại may mắn, bình an cho người đeo.\r\n\r\nLý Do Chọn Chúng Tôi:\r\nSản phẩm được chế tác thủ công với sự chăm chút.\r\nĐảm bảo đá thật 100%, kiểm định chất lượng.\r\nHãy chọn chiếc vòng tay hoàn hảo để đồng hành cùng bạn!",
-                            MinWeight = 1000,
-                            MaxWeight = 5000,
+                            MinWeight = 100,
+                            MaxWeight = 1000,
                             CategoryId = Guid.Parse("8c3f5a7d-9e01-4fce-c13e-7c0c1d2e4567"), // Beaded Bracelets
                             ServiceAttachments = new List<ServiceAttachmentAddModel>
                             {
@@ -176,7 +190,97 @@ namespace Chillde.API.Controllers
                                     AttachmentAlt = "Hộp đựng trang sức gỗ sang trọng"
                                 }
                             }
-    },
+                        },
+                        // Dịch vụ 10: Chain Wallet (Danh mục: Chain Wallets)
+                        new ServiceAddModel
+                        {
+                            Name = "Ví Chuỗi Thời Trang",
+                            Description = "Thể hiện phong cách cá tính với ví chuỗi thời trang đẳng cấp. Được làm từ chất liệu da thật, kết hợp với dây xích kim loại tạo điểm nhấn mạnh mẽ.\r\n\r\nĐặc Điểm:\r\n- Chất Liệu: Da thật, hợp kim chống gỉ.\r\n- Thiết Kế: Kiểu dáng sang trọng, kết hợp dây xích tháo rời.\r\n- Tính Ứng Dụng: Phù hợp cho cả nam và nữ, tiện lợi mang theo khi đi chơi, đi làm.\r\n\r\n **Gợi ý dịp tặng:** Phù hợp làm quà tặng cho bạn trai, người yêu vào các dịp sinh nhật, Giáng sinh, hoặc Tết Dương lịch.",
+                            MinWeight = 200,
+                            MaxWeight = 1000,
+                            CategoryId = Guid.Parse("0b5d4e3f-6a78-4c1d-d90e-4f7a8b9c1234"), // Chain Wallets
+                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            {
+                                new ServiceAttachmentAddModel
+                                {
+                                    AttachmentUrl = CreateFormFileFromPath("chain_wallet.jpg"),
+                                    AttachmentAlt = "Ví chuỗi thời trang phong cách"
+                                }
+                            }
+                        },
+
+                        // Dịch vụ 11: Ring Trees (Danh mục: Ring Trees)
+                        new ServiceAddModel
+                        {
+                            Name = "Giá Đỡ Nhẫn Nghệ Thuật",
+                            Description = "Trang trí không gian của bạn với giá đỡ nhẫn độc đáo, giúp bảo quản nhẫn ngăn nắp và thẩm mỹ.\r\n\r\nĐặc Điểm:\r\n- Chất Liệu: Gỗ tự nhiên hoặc hợp kim cao cấp.\r\n- Thiết Kế: Kiểu dáng cây nghệ thuật, giúp trưng bày nhiều nhẫn cùng lúc.\r\n- Ứng Dụng: Thích hợp cho bàn trang điểm hoặc cửa hàng trang sức.\r\n\r\n **Gợi ý dịp tặng:** Quà tặng hoàn hảo cho những ai yêu thích trang sức, đặc biệt là vào Ngày Quốc tế Phụ nữ hoặc Giáng sinh.",
+                            MinWeight = 300,
+                            MaxWeight = 1200,
+                            CategoryId = Guid.Parse("1b6e8f0c-2d34-47fb-b46d-0b3b4c5d7890"), // Ring Trees
+                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            {
+                                new ServiceAttachmentAddModel
+                                {
+                                    AttachmentUrl = CreateFormFileFromPath("ring_tree.jpg"),
+                                    AttachmentAlt = "Giá đỡ nhẫn nghệ thuật"
+                                }
+                            }
+                        },
+
+                        // Dịch vụ 12: Arm Bands (Danh mục: Arm Bands)
+                        new ServiceAddModel
+                        {
+                            Name = "Vòng Tay Bắp Tay Cá Tính",
+                            Description = "Tôn lên vẻ đẹp cá tính với vòng tay bắp tay phong cách boho hoặc hiện đại. Một phụ kiện độc đáo dành cho những người yêu thời trang.\r\n\r\nĐặc Điểm:\r\n- Chất Liệu: Hợp kim cao cấp, mạ vàng/bạc.\r\n- Thiết Kế: Kiểu dáng tinh tế, có thể điều chỉnh kích thước.\r\n- Phù Hợp: Thích hợp cho những buổi tiệc, chụp ảnh hoặc lễ hội.\r\n\r\n **Gợi ý dịp tặng:** Lựa chọn lý tưởng cho Ngày Quốc tế Phụ nữ hoặc Ngày Quốc tế Hạnh phúc.",
+                            MinWeight = 150,
+                            MaxWeight = 800,
+                            CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
+                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            {
+                                new ServiceAttachmentAddModel
+                                {
+                                    AttachmentUrl = CreateFormFileFromPath("arm_band.jpg"),
+                                    AttachmentAlt = "Vòng tay bắp tay sang trọng"
+                                }
+                            }
+                        },
+
+                        // Dịch vụ 13: Belt Buckles (Danh mục: Belt Buckles)
+                        new ServiceAddModel
+                        {
+                            Name = "Mặt Khóa Thắt Lưng Độc Đáo",
+                            Description = "Nâng tầm phong cách với mặt khóa thắt lưng thiết kế sang trọng. Một phụ kiện không thể thiếu để hoàn thiện set đồ của bạn.\r\n\r\nĐặc Điểm:\r\n- Chất Liệu: Hợp kim cao cấp, chống gỉ.\r\n- Thiết Kế: Họa tiết tinh xảo, đa dạng phong cách từ cổ điển đến hiện đại.\r\n- Ứng Dụng: Dễ dàng thay thế cho các loại dây thắt lưng phổ biến.\r\n\r\n **Gợi ý dịp tặng:** Lý tưởng làm quà tặng cho nam giới vào các dịp sinh nhật, Ngày Quốc tế Lao động.",
+                            MinWeight = 250,
+                            MaxWeight = 1200,
+                            CategoryId = Guid.Parse("6551bec5-12eb-49e1-ba72-134545db85dc"), // Belt Buckles
+                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            {
+                                new ServiceAttachmentAddModel
+                                {
+                                    AttachmentUrl = CreateFormFileFromPath("belt_buckle.jpg"),
+                                    AttachmentAlt = "Mặt khóa thắt lưng sang trọng"
+                                }
+                            }
+                        },
+
+                        // Dịch vụ 14: Costume Gloves (Danh mục: Costume Gloves)
+                        new ServiceAddModel
+                        {
+
+                            Name = "Găng Tay Biểu Diễn Sang Trọng",
+                            Description = "Tạo dấu ấn riêng với găng tay biểu diễn mang phong cách hoàng gia hoặc hiện đại. Phù hợp cho các dịp quan trọng như sự kiện, lễ hội.\r\n\r\nĐặc Điểm:\r\n- Chất Liệu: Satin, ren hoặc da cao cấp.\r\n- Thiết Kế: Dài hoặc ngắn tùy theo phong cách.\r\n- Ứng Dụng: Phù hợp với cosplay, biểu diễn nghệ thuật.\r\n\r\n **Gợi ý dịp tặng:** Món quà ý nghĩa cho những người yêu nghệ thuật, đặc biệt vào dịp Halloween hoặc các lễ hội thời trang.",
+                            MinWeight = 100,
+                            MaxWeight = 700,
+                            CategoryId = Guid.Parse("947d3c1d-2e29-45ea-a965-d6dbc9d5a503"), // Costume Gloves
+                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            {
+                                new ServiceAttachmentAddModel
+                                {
+                                    AttachmentUrl = CreateFormFileFromPath("costume_gloves.jpg"),
+                                    AttachmentAlt = "Găng tay biểu diễn thời trang"
+                                }
+                            }
+                        }
 
 
                 };
@@ -193,7 +297,7 @@ namespace Chillde.API.Controllers
                     }
                 }
 
-                return Ok(new { Message = "Seeding successfully"});
+                return Ok(new { Message = "Seeding successfully" });
             }
             catch (Exception ex)
             {
@@ -203,6 +307,305 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+
+        //    [Authorize]
+        //    [HttpPost("seed-services")]
+        //    public async Task<IActionResult> SeedPackages()
+        //    {
+        //        try
+        //        {
+        //            var serviceList = await _unitOfWork.ServiceRepository.GetTop14NewestServicesAsync();
+        //            var packages = new List<PackageAddModel>
+        //{
+        //    new PackageAddModel
+        //    {
+        //        Name = PackageName.Basic, // Enum PackageName
+        //        Description = "Gói dịch vụ tiêu chuẩn với thời gian xử lý 3-5 ngày làm việc.",
+        //        Price = 500000,
+        //        DeliveryTime = 5,
+        //        SketchRevision = 1,
+        //        ResponseTime = 24,
+        //        MaxQuantity = 10,
+        //    },
+        //    new PackageAddModel
+        //    {
+        //        Name = PackageName.Standard,
+        //        Description = "Gói dịch vụ cao cấp với thời gian xử lý nhanh trong 2-3 ngày.",
+        //        Price = 1000000,
+        //        DeliveryTime = 3,
+        //        SketchRevision = 2,
+        //        ResponseTime = 12,
+        //        MaxQuantity = 5,
+        //    },
+        //    new PackageAddModel
+        //    {
+        //        Name = PackageName.Premium,
+        //        Description = "Gói Dịch vụ VIP với ưu tiên xử lý ngay lập tức trong 24 giờ.",
+        //        Price = 2000000,
+        //        DeliveryTime = 1,
+        //        SketchRevision = 3,
+        //        ResponseTime = 6,
+        //        MaxQuantity = 3,
+        //    }
+        //};
+        //            string sourceLanguageCode = "vi";
+        //            string targetLanguageCode = "en";
+        //            foreach (var serviceId in serviceList)
+        //            {
+        //                var servicePackages = packages.Select(package => new PackageAddModel
+        //                {
+        //                    Name = package.Name,
+        //                    Description =package.Description,
+        //                    Price = package.Price + (new Random().Next(0, 500000)),
+        //                    DeliveryTime = package.DeliveryTime + (new Random().Next(0, 2)),
+        //                    SketchRevision = package.SketchRevision,
+        //                    ResponseTime = package.ResponseTime,
+        //                    MaxQuantity = package.MaxQuantity + (new Random().Next(1, 5)),
+        //                }).ToList();
+
+        //                foreach (var package in servicePackages)
+        //                {
+        //                    var result = await _serviceService.AddPackageAsync(package, serviceId, sourceLanguageCode, targetLanguageCode);
+        //                    if (result.Code != StatusCodes.Status201Created)
+        //                    {
+        //                        return StatusCode(result.Code, result);
+        //                    }
+        //                }
+        //            }
+        //            return Ok(new { Message = "Seeding successfully" });
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            return StatusCode(StatusCodes.Status500InternalServerError, new
+        //            {
+        //                Error = ex.Message
+        //            });
+        //        }
+
+        //    }
+
+        [Authorize]
+        [HttpPost("seed-package")]
+        public async Task<IActionResult> SeedPackages()
+        {
+            try
+            {
+                var serviceList = await _unitOfWork.ServiceRepository.GetTop14NewestServicesAsync();
+                var packages = new List<PackageAddModel>
+        {
+            new PackageAddModel
+            {
+                Name = PackageName.Basic,
+                Description = "Gói dịch vụ tiêu chuẩn với thời gian xử lý 3-5 ngày làm việc.",
+                Price = 100000,
+                DeliveryTime = 5,
+                SketchRevision = 1,
+                ResponseTime = 24,
+                MaxQuantity = 10,
+            },
+            new PackageAddModel
+            {
+                Name = PackageName.Standard,
+                Description = "Gói dịch vụ cao cấp với thời gian xử lý nhanh trong 3-5 ngày.",
+                Price = 500000,
+                DeliveryTime = 3,
+                SketchRevision = 2,
+                ResponseTime = 12,
+                MaxQuantity = 5,
+            },
+            new PackageAddModel
+            {
+                Name = PackageName.Premium,
+                Description = "Gói dịch vụ VIP với ưu tiên xử lý ngay lập tức trong 1-2 ngày.",
+                Price = 1000000,
+                DeliveryTime = 2,
+                SketchRevision = 3,
+                ResponseTime = 6,
+                MaxQuantity = 3,
+            }
+        };
+
+                var serviceFeatures = new Dictionary<string, List<string>>
+{
+    { "Khuyên Tai Đính Đá", new List<string> { "Màu sắc", "Kích thước", "Chất liệu", "Khắc tên", "Kiểu dáng", "Chất liệu đá", "Độ sáng", "Số viên đá", "Loại đá", "Đặc điểm nổi bật" } },
+    { "Dây Chuyền Cá Nhân Hóa", new List<string> { "Màu sắc", "Kích thước", "Chất liệu", "Khắc tên", "Kiểu dáng", "Số hạt", "Loại hạt", "Chất liệu dây", "Đặc điểm nổi bật", "Phong cách" } },
+    { "Nhẫn Đính Hôn", new List<string> { "Kích thước", "Chất liệu", "Kiểu dáng", "Chất liệu đá", "Loại đá", "Khắc tên", "Số viên đá", "Độ sáng", "Màu sắc", "Đặc điểm nổi bật" } },
+    { "Đồng Hồ Cổ Điển", new List<string> { "Màu sắc", "Kích thước", "Chất liệu vỏ", "Chất liệu dây", "Loại mặt đồng hồ", "Kiểu dáng", "Màu sắc mặt đồng hồ", "Chất liệu kính", "Khắc tên", "Đặc điểm nổi bật" } },
+    { "Kẹp Tiền Kim Loại", new List<string> { "Chất liệu", "Kích thước", "Khắc tên", "Màu sắc", "Phong cách", "Độ dày", "Kiểu dáng", "Chất liệu bao bì", "Đặc điểm nổi bật", "Màu sắc kim loại" } },
+    { "Vòng Tay Hạt Đá", new List<string> { "Màu sắc", "Kích thước", "Chất liệu hạt", "Chất liệu dây", "Loại hạt", "Phong cách", "Độ dài", "Màu sắc dây", "Khắc tên", "Đặc điểm nổi bật" } },
+    { "Gài Áo Thời Trang", new List<string> { "Màu sắc", "Chất liệu", "Kiểu dáng", "Phong cách", "Chất liệu kim loại", "Chất liệu vải", "Kích thước", "Khắc tên", "Đặc điểm nổi bật", "Đặc điểm thiết kế" } },
+    { "Hộp Đựng Trang Sức Gỗ", new List<string> { "Chất liệu", "Kích thước", "Khắc tên", "Màu sắc", "Kiểu dáng", "Chất liệu gỗ", "Màu sắc gỗ", "Phong cách", "Đặc điểm nổi bật", "Đặc điểm thiết kế" } },
+    { "Ví Chuỗi Thời Trang", new List<string> { "Màu sắc", "Kích thước", "Chất liệu", "Kiểu dáng", "Khắc tên", "Số ngăn", "Chất liệu dây", "Đặc điểm thiết kế", "Phong cách", "Đặc điểm nổi bật" } },
+    { "Giá Đỡ Nhẫn Nghệ Thuật", new List<string> { "Màu sắc", "Kích thước", "Chất liệu", "Phong cách", "Kiểu dáng", "Chất liệu kim loại", "Chất liệu đá", "Khắc tên", "Đặc điểm nổi bật", "Đặc điểm thiết kế" } },
+    { "Vòng Tay Bắp Tay Cá Tính", new List<string> { "Màu sắc", "Kích thước", "Chất liệu", "Khắc tên", "Phong cách", "Chất liệu đá", "Loại đá", "Số viên đá", "Kiểu dáng", "Đặc điểm nổi bật" } },
+    { "Mặt Khóa Thắt Lưng Độc Đáo", new List<string> { "Màu sắc", "Kích thước", "Chất liệu", "Kiểu dáng", "Chất liệu kim loại", "Phong cách", "Màu sắc kim loại", "Khắc tên", "Đặc điểm nổi bật", "Đặc điểm thiết kế" } },
+    { "Găng Tay Biểu Diễn Sang Trọng", new List<string> { "Chất liệu", "Kích thước", "Màu sắc", "Phong cách", "Khắc tên", "Đặc điểm thiết kế", "Màu sắc vải", "Độ dài", "Đặc điểm nổi bật", "Chất liệu kim loại" } }
+};
+
+
+                var servicePackageList = new List<(PackageAddModel package, Service service)>();
+                foreach (var service in serviceList)
+                {
+                    var tempPackageList = packages.Select(package => new PackageAddModel
+                    {
+                        Name = package.Name,
+                        Description = package.Description,
+                        Price = package.Price + (new Random().Next(0, 500000)),
+                        DeliveryTime = package.DeliveryTime + (new Random().Next(0, 2)),
+                        SketchRevision = package.SketchRevision,
+                        ResponseTime = package.ResponseTime,
+                        MaxQuantity = package.MaxQuantity + (new Random().Next(1, 5)),
+                    }).ToList();
+
+                    foreach (var package in tempPackageList)
+                    {
+                        servicePackageList.Add((package, service));
+                    }
+                }
+                string sourceLanguageCode = "vi";
+                string targetLanguageCode = "en";
+                var addPackageResults = new List<PackageModel>();
+                foreach (var (package, service) in servicePackageList)
+                {
+                    // Truyền thêm service tương ứng vào AddPackageAsync
+                    var result = await _serviceService.AddPackageAsync(package, service.Id, sourceLanguageCode, targetLanguageCode);
+
+                    if (result.Code == StatusCodes.Status201Created)
+                    {
+                        addPackageResults.Add((PackageModel)result.Data);
+                    }
+                    else
+                    {
+                        return StatusCode(result.Code, result);
+                    }
+                }
+
+                foreach (var service in serviceList)
+                {
+                    var servicePackages = addPackageResults.Where(p => p.Name.ToString() == service.Name).ToList();
+
+                    foreach (var package in servicePackages)
+                    {
+                        var features = serviceFeatures[service.Name].Select(featureName => new FeatureAddModel
+                        {
+                            PackageId = package.Id,  // Gán Id của gói
+                            Name = featureName,  // Tên của tính năng
+                            Question = $"Bạn muốn chọn {featureName} cho dịch vụ {service.Name}?",  // Câu hỏi động dựa trên tên tính năng và dịch vụ
+                            QuestionType = MediaType.Select,  // Loại câu hỏi, chọn kiểu Select cho các tính năng
+                            IsInformationRequired = true,  // Đảm bảo tính năng là bắt buộc
+                            IsQuantity = false,
+                            PackageFeatureAddModels = GeneratePackageFeatures(featureName, mediaType: "Select")
+                        }).ToList();
+
+                        // Thêm các tính năng vào Package
+                        foreach (var feature in features)
+                        {
+                            var featureResult = await _featureService.AddFeatureAsync(feature, sourceLanguageCode, targetLanguageCode);
+                            if (featureResult.Code != StatusCodes.Status201Created)
+                            {
+                                return StatusCode(featureResult.Code, featureResult);
+                            }
+                        }
+                    }
+                }
+                return Ok(new { Message = "Seeding successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Error = ex.Message
+                });
+            }
+        }
+
+        private List<PackageFeatureAddModelForFeature> GeneratePackageFeatures(string featureName, string mediaType)
+        {
+            var random = new Random();
+            var packageFeatures = new List<PackageFeatureAddModelForFeature>();
+
+            // Chọn mediaType dựa trên các loại input khác nhau
+            switch (mediaType)
+            {
+                case "Select":
+                    switch (featureName)
+                    {
+                        case "Màu sắc":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Đỏ", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Xanh", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Tím", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vàng", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Đen", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Gỗ tự nhiên", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Kích thước":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Nhỏ (5-7 cm)", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vừa (8-10 cm)", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Lớn (11-15 cm)", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Siêu lớn (16 cm trở lên)", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Chất liệu vải":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vải cotton", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vải len", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vải lụa", IsExtra = true, AdditionalCost = 200000, AdditionalDay = 2, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vải thô", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Chất liệu dây":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Dây thừng", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Dây nylon", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Dây da", IsExtra = true, AdditionalCost = 150000, AdditionalDay = 1, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Chất liệu":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Bạc", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Thép không gỉ", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Titanium", IsExtra = true, AdditionalCost = 200000, AdditionalDay = 2, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Nhựa cao cấp", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Loại đá":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Ruby", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Emerald", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Diamond", IsExtra = true, AdditionalCost = 500000, AdditionalDay = 5, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Kiểu dáng":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Tròn", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Vuông", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Phong cách":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Cổ điển", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Hiện đại", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Tinh tế", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Nổi bật", IsExtra = true, AdditionalCost = 50000, AdditionalDay = 1, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Độ sáng":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Bình thường", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Cao", IsExtra = true, AdditionalCost = 20000, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                        case "Đặc điểm nổi bật":
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Chống nước", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Chống xước", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 0 });
+                            packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "Thiết kế độc đáo", IsExtra = true, AdditionalCost = 100000, AdditionalDay = 1, IsChecked = false, MaxQuantity = 0 });
+                            break;
+                    }
+                    break;
+
+                case "Text":
+                    if (featureName == "Khắc tên")
+                    {
+                        packageFeatures.Add(new PackageFeatureAddModelForFeature { Name = "CVT", IsExtra = false, AdditionalCost = 0, AdditionalDay = 0, IsChecked = false, MaxQuantity = 1 });
+                    }
+                    break;
+
+
+                default:
+                    throw new ArgumentException("Unsupported media type.");
+            }
+
+            return packageFeatures;
+        }
+
+
+
         private static IFormFile CreateFormFileFromPath(string fileName)
         {
             string rootPath = Directory.GetCurrentDirectory(); // Lấy thư mục gốc của API
