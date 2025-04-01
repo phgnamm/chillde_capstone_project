@@ -179,7 +179,7 @@ public class AppDbContext : DbContext
     .HasForeignKey(pf => pf.PackageId)
     .OnDelete(DeleteBehavior.Cascade);
         });
-    
+
 
 
         #endregion
@@ -230,6 +230,7 @@ public class AppDbContext : DbContext
     public DbSet<CancellationReason> CancellationReasons { get; set; }
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<VoucherUsageLog> VoucherUsageLogs { get; set; }
+    public DbSet<ShipmentStatusHistory> ShipmentStatusHistory { get; set; }
 
     #endregion
 }
