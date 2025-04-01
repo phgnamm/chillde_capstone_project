@@ -1532,9 +1532,7 @@ public static class InitialSeeding
             EntityType = ConfigType.Reputation,
             FieldName = "AutoCancelPointPenalty",
             Value = JsonDocument.Parse("5")
-        }
-        },
-        new()
+        },new()
         {
             EntityType = ConfigType.Service,
             FieldName = "MaximumSerivceOfOneArtisan",

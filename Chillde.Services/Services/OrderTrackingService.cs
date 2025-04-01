@@ -15,6 +15,7 @@ using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Nest;
 
 namespace Chillde.Services.Services
@@ -24,15 +25,18 @@ namespace Chillde.Services.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
         private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IServiceProvider _serviceProvider;
         private readonly ISystemConfigService _systemConfigService;
 
-        public OrderTrackingService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, ISystemConfigService systemConfigService)
+        public OrderTrackingService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceProvider serviceProvider, ISystemConfigService systemConfigService)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
+            _serviceProvider = serviceProvider;
             _systemConfigService = systemConfigService;
         }
+
         public async Task<ResponseModel> ChangeAccepted(Guid orderTrackingId, bool isAccept)
         {
             var orderTracking = await _unitOfWork.OrderTrackingRepository.GetAsync(orderTrackingId, include: _ => _.Include(_ => _.Order));
@@ -52,6 +56,8 @@ namespace Chillde.Services.Services
                 {
                     orderTracking.IsAccepted = true;
                     orderTracking.Order.Stage = OrderStage.DeliveryInProcess;
+                    orderTracking.Order.ReminderSent = false;
+                    orderTracking.Order.DeadlineMissed = false;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
 
@@ -80,7 +86,8 @@ namespace Chillde.Services.Services
                     }
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
-
+                    var reminderService = _serviceProvider.GetRequiredService<OrderReminderService>();
+                    reminderService.TriggerImmediateCheck();
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,

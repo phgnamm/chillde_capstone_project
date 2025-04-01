@@ -19,9 +19,13 @@ public class Order : BaseEntity
     //public CancleOrderReason CancleOrderReason { get; set; }
 
     #region new fields
-    public int? DeliveryTime { get; set; }
+    public float? DeliveryTime { get; set; }
     public int? CurrentSketchRevision { get; set; }
     public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
+    // background Service
+    public bool? ReminderSent { get; set; } = null;
+    public bool? DeadlineMissed { get; set; } = null;
+
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     // start time accepted order
     public DateTime? StartTime { get; set; }

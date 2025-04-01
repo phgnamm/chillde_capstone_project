@@ -900,44 +900,51 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
+            try
             {
-                return new ResponseModel
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
                 {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized"
-                };
-            }
-            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy));
-            if (order == null)
-            {
-                return new ResponseModel
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy));
+                if (order == null)
                 {
-                    Message = "Not found",
-                    Code = StatusCodes.Status404NotFound
-                };
-            }
-            if(order.Package.Service.CreatedBy.Id != currentUserId.Value)
-            {
-                return new ResponseModel
+                    return new ResponseModel
+                    {
+                        Message = "Not found",
+                        Code = StatusCodes.Status404NotFound
+                    };
+                }
+                if (order.Package.Service.CreatedBy.Id != currentUserId.Value)
                 {
-                    Message = "You do not have permission to cancel this order",
-                    Code = StatusCodes.Status403Forbidden
-                };
-            }
+                    return new ResponseModel
+                    {
+                        Message = "You do not have permission to cancel this order",
+                        Code = StatusCodes.Status403Forbidden
+                    };
+                }
                 order.Status = (OrderStatus)orderStatus;
                 if (orderStatus == OrderStatus.Accepted)
                 {
-                    order.StartTime = DateTime.Now;
+                    order.StartTime = DateTime.UtcNow;
                     order.Stage = OrderStage.SketchInProcess;
                 }
-            
-            _unitOfWork.OrderRepository.Update(order);
-            var result = await _unitOfWork.SaveChangeAsync();
-            return result > 0
-                ? new ResponseModel { Message = "Successfully" }
-                : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
+
+                _unitOfWork.OrderRepository.Update(order);
+                var result = await _unitOfWork.SaveChangeAsync();
+                return result > 0
+                    ? new ResponseModel { Message = "Successfully" }
+                    : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId)
@@ -1298,7 +1305,7 @@ namespace Chillde.Services.Services
                 {
                     if (orderTracking.Type == OrderTrackingType.Sketch)
                     {
-                        await SendNew(order.CreatedBy.Email, order.Code, "sketch");
+                        await SendNew(order.CreatedBy.Email, order.Code, "sketch", order);
                     }
                     return new ResponseModel
                     {
@@ -1343,21 +1350,49 @@ namespace Chillde.Services.Services
 
             return uploadedAttachments;
         }
-        public async Task SendNew(string email, string orderCode, string title)
+        public async Task SendNew(string email, string orderCode, string title, Repositories.Entities.Order order)
         {
-            if (title.ToLower().Trim().Equals("sketch"))
+            title = title.ToLower().Trim();
+
+            string subject, body;
+
+            if (title == "sketch")
             {
-                await _iIEmailHelper.SendEmailAsync(email, $"Confirm {title}",
-                   $"A new sketch has upload by artisan from the order {orderCode}. Please check it !",
-                   true);
+                subject = $"📢 New Sketch Uploaded for Order #{orderCode}";
+                body = $@"
+                         <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                         <p>Good news! A new sketch has been uploaded by the artisan for your order <strong>#{orderCode}</strong>.</p>
+                         <p><strong>Action Required:</strong></p>
+                         <ul>
+                             <li>Review the sketch.</li>
+                             <li>Approve it or request revisions.</li>
+                             <li>Ensure timely responses to avoid delays.</li>
+                         </ul>
+                         <p>Best regards,</p>
+                         <p><strong>From Chillde</strong></p>";
             }
-            if (title.ToLower().Trim().Equals("delivery"))
+            else if (title == "delivery")
             {
-                await _iIEmailHelper.SendEmailAsync(email, $"Confirm {title}",
-                   $"A new delivery has upload by artisan from the order {orderCode}. Please check it !",
-                   true);
+                subject = $"📦 Your Order #{orderCode} Has Been Delivered!";
+                body = $@"
+                          <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                          <p>Exciting update! Your artisan has completed and delivered the final product for order <strong>#{orderCode}</strong>.</p>
+                          <p><strong>Next Steps:</strong></p>
+                          <ul>
+                              <li>Review your delivered product.</li>
+                              <li>Confirm delivery or request adjustments before the artist must close the order and send it for shipping.</li>
+                          </ul>
+                          <p>Thank you for choosing us!</p>
+                          <p><strong>From Chillde</strong></p>";
             }
+            else
+            {
+                return;  
+            }
+
+            await _iIEmailHelper.SendEmailAsync(email, subject, body, true);
         }
+
         public async Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel)
         {
             try
@@ -1444,7 +1479,7 @@ namespace Chillde.Services.Services
                 {
                     if (orderTracking.Type == OrderTrackingType.Delivery)
                     {
-                        await SendNew(order.CreatedBy.Email, order.Code, "delivery");
+                        await SendNew(order.CreatedBy.Email, order.Code, "delivery", order);
                     }
                     return new ResponseModel
                     {

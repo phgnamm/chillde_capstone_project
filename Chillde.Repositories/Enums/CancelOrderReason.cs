@@ -8,6 +8,7 @@ namespace Chillde.Repositories.Enums
 {
     public enum CancelOrderReason
     {
-        NotReponseDeadlineInTime
+        NotReponseDeadlineInTime,
+        NotPostDeliveryInTime,
     }
 }
