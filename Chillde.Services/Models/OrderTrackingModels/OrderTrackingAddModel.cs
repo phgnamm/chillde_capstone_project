@@ -13,7 +13,7 @@ namespace Chillde.Services.Models.OrderTrackingModels
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public OrderStage Stage { get; set; }
+        //public OrderStage Stage { get; set; }
         public OrderTrackingType Type { get; set; }
         public ICollection<OrderTrackingAttachmentAddModel>? OrderTrackingAttachmentAddModels { get; set; } = new List<OrderTrackingAttachmentAddModel>();
 

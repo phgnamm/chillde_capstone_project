@@ -25,6 +25,8 @@ using CloudinaryDotNet.Core;
 using Chillde.Repositories.Models.PackageModels;
 using AutoMapper;
 using Chillde.Repositories.Common;
+using Chillde.Repositories.Models.OrderTrackingModels;
+using Chillde.Services.Models.OrderTrackingModels;
 
 namespace Chillde.Services.Services
 {
@@ -39,9 +41,10 @@ namespace Chillde.Services.Services
         private readonly string? _shopId;
         private readonly string? _token;
         private readonly ISystemConfigService _systemConfigService;
+        private readonly IEmailHelper _iIEmailHelper;
         private readonly IMapper _mapper;
 
-        public OrderService(ISystemConfigService systemConfigService, IUnitOfWork unitOfWork, IClaimService claimService, 
+        public OrderService(IEmailHelper iIEmailHelper, ISystemConfigService systemConfigService, IUnitOfWork unitOfWork, IClaimService claimService, 
             ICloudinaryHelper cloudinaryHelper, 
             IVnpay vnpay, 
             IConfiguration configuration,
@@ -54,6 +57,7 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _vnpay = vnpay;
+            _iIEmailHelper = iIEmailHelper;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
             _mapper = mapper;
         }
@@ -279,6 +283,7 @@ namespace Chillde.Services.Services
                 DeliveryTime = package.DeliveryTime,
                 ShippingPrice = orderAddModel.ShippingPrice,
                 OriginPrice = totalOrder,
+                CurrentSketchRevision = package.SketchRevision,
                 AdminCommDefault = adminCommission,
                 AdminCommUsedVch = null,
                 ArtistRevenue = totalOrder - adminCommission,
@@ -895,30 +900,64 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
-            var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
-            if (order == null)
+            try
             {
-                return new ResponseModel
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
                 {
-                    Message = "Not found",
-                    Code = StatusCodes.Status404NotFound
-                };
-            }
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy));
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Message = "Not found",
+                        Code = StatusCodes.Status404NotFound
+                    };
+                }
+                if (order.Package.Service.CreatedBy.Id != currentUserId.Value)
+                {
+                    return new ResponseModel
+                    {
+                        Message = "You do not have permission to cancel this order",
+                        Code = StatusCodes.Status403Forbidden
+                    };
+                }
                 order.Status = (OrderStatus)orderStatus;
                 if (orderStatus == OrderStatus.Accepted)
                 {
+                    order.StartTime = DateTime.UtcNow;
                     order.Stage = OrderStage.SketchInProcess;
                 }
-            
-            _unitOfWork.OrderRepository.Update(order);
-            var result = await _unitOfWork.SaveChangeAsync();
-            return result > 0
-                ? new ResponseModel { Message = "Successfully" }
-                : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
+
+                _unitOfWork.OrderRepository.Update(order);
+                var result = await _unitOfWork.SaveChangeAsync();
+                return result > 0
+                    ? new ResponseModel { Message = "Successfully" }
+                    : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
+            }
+            catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         public async Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId)
         {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
+            }
             var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
             if (order == null)
             {
@@ -999,5 +1038,467 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest
                 };
         }
+        public async Task<ResponseModel> Cancel(Guid orderId, Guid cancellationReasonId)
+        {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
+            }
+
+            var account = await _unitOfWork.AccountRepository.GetAsync(
+                currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
+
+            if (account?.Wallet == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Wallet not found."
+                };
+            }
+
+            var order = await _unitOfWork.OrderRepository.GetAsync(
+                orderId, include: _ => _.Include(_ => _.OrderTrackings)
+                                        .Include(_ => _.Package.Service.CreatedBy.AccountRoles).ThenInclude(_ => _.Role)
+                                        .Include(_ => _.CreatedBy.AccountRoles).ThenInclude(_ => _.Role));
+
+            if (order == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Order not found."
+                };
+            }
+            if (order.Status == OrderStatus.Cancelled && order.Stage == OrderStage.Cancelled)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "Order has cancelled."
+                };
+            }
+            var cancellationReason = await _unitOfWork.CancellationReasonRepository.GetAsync(cancellationReasonId);
+
+            if (cancellationReason == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Cancellation reason not found."
+                };
+            }
+
+            bool appliesToCustomer = cancellationReason.RoleType.Equals(Chillde.Repositories.Enums.Role.Customer);
+            bool appliesToArtisan = cancellationReason.RoleType.Equals(Chillde.Repositories.Enums.Role.Artisan);
+
+            var accountRoleArtisan = order.Package.Service.CreatedBy?.AccountRoles
+                .FirstOrDefault(_ => appliesToArtisan && _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
+
+            var accountRoleCustomer = order.CreatedBy?.AccountRoles
+                .FirstOrDefault(_ => appliesToCustomer && _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
+
+            if (appliesToArtisan && accountRoleArtisan != null)
+            {
+                accountRoleArtisan.TotalReputation -= cancellationReason.Value;
+                _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
+            }
+            if (appliesToCustomer && accountRoleCustomer != null)
+            {
+                accountRoleCustomer.TotalReputation -= cancellationReason.Value;
+                _unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
+            }
+
+            var transaction = new Transaction
+            {
+                Amount = order.TotalPrice,
+                Type = TransactionType.TransferIn,
+                CreatedById = currentUserId.Value,
+                Status = TransactionStatus.Completed,
+                WalletId = account.Wallet.Id
+            };
+
+            account.Wallet.Balance += (decimal)order.TotalPrice;
+            order.Transactions.Add(transaction);
+            order.Status = OrderStatus.Cancelled;
+            order.Stage = OrderStage.Cancelled;
+            order.CancellationReason = cancellationReason;
+
+            _unitOfWork.OrderRepository.Update(order);
+
+            var result = await _unitOfWork.SaveChangeAsync();
+
+            return result > 0
+                ? new ResponseModel { Message = "Cancel order successfully" }
+                : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Cancel order unsuccessfully" };
+        }
+        public async Task<ResponseModel> GetAllOrderTrackings(Guid orderId, OrderStage? orderStage)
+        {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
+            }
+
+            var order = await _unitOfWork.OrderRepository.GetAsync(
+                orderId, include: _ => _.Include(_ => _.OrderTrackings)
+                                         .ThenInclude(_ => _.CreatedBy)
+                                         .ThenInclude(_ => _.AccountRoles)
+                                         .Include(_ => _.OrderTrackings)
+                                         .ThenInclude(_ => _.OrderTrackingAttachments));
+
+            if (order == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Order not found."
+                };
+            }
+
+            var filteredTrackings = order.OrderTrackings
+                .Where(_ => !orderStage.HasValue || _.Stage == orderStage)
+                .Select(_ => new OrderTrackingModel
+                {
+                    Id = _.Id,
+                    CreatedBy = $"{_.CreatedBy.FirstName} {_.CreatedBy.LastName}",
+                    DeletedById = _.CreatedById,
+                    CreatedRole = _.CreatedBy.AccountRoles.FirstOrDefault()?.Role?.Name ?? "Unknown",
+                    CurrentSketchRevision = order.CurrentSketchRevision,
+                    Name = _.Name,
+                    Description = _.Description,
+                    IsAccepted = _.IsAccepted,
+                    Stage = _.Stage,
+                    Type = _.Type,
+                    CreationDate = _.CreationDate,
+                    OrderTrackingAttachmentModels = _.OrderTrackingAttachments?
+                        .Select(_ => new OrderTrackingAttachmentModel
+                        {
+                            Id = _.Id,
+                            AttachmentUrl = _.AttachmentUrl,
+                            AttachmentAlt = _.AttachmentAlt
+                        }).ToList()
+                })
+                .ToList();
+
+            return new ResponseModel
+            {
+                Data = filteredTrackings.Any() ? filteredTrackings : null,
+                Message = "Order trackings retrieved successfully."
+            };
+        }
+        public async Task<ResponseModel> AddSketch(Guid orderId, OrderTrackingAddModel orderTrackingAddModel)
+        {
+            try
+            {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
+
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _
+                    .Include(_ => _.OrderTrackings)
+                    .Include(_ => _.CreatedBy));
+
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+
+                if (orderTrackingAddModel == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid tracking data."
+                    };
+                }
+
+              
+                if (order.Stage != OrderStage.SketchInProcess && order.Stage != OrderStage.ReviewSketch)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Error in stage."
+                    };
+                }
+                var latestSketchs = order.OrderTrackings.OrderByDescending(_ => _.CreationDate).ToList();
+                var roles = await _unitOfWork.AccountRoleRepository.GetAllAsync(filter: _ => _.AccountId == currentUserId.Value, include: _ => _.Include(_ => _.Role));
+
+                if (roles.Data.Count() == 1)
+                {
+                    if (order.CurrentSketchRevision <= 0)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "Sketch tracking cannot be added. No revisions available."
+                        };
+                    }
+
+                    OrderTracking lastSketch = null;
+                    OrderTracking lastNone = null;
+
+                    foreach (var tracking in latestSketchs)
+                    {
+                        if (tracking.Type == OrderTrackingType.Sketch && tracking.IsAccepted == null)
+                        {
+                            lastSketch = tracking;
+                            break;
+                        }
+                    }
+                    if (lastSketch != null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "Cannot add new sketch. Please accept or reject the previous sketch first."
+                        };
+                    }
+                }
+
+                if (order.Stage == OrderStage.SketchInProcess)
+                {
+                    order.Stage = OrderStage.ReviewSketch;
+                }
+
+                var uploadedAttachments = await UploadAttachments(
+                    orderTrackingAddModel.OrderTrackingAttachmentAddModels,
+                    order.Code,
+                    FolderAttachment.TRACKINGSKETCH
+                );
+
+                var orderTracking = new OrderTracking
+                {
+                    Name = orderTrackingAddModel.Name ?? "New Sketch",
+                    Description = orderTrackingAddModel.Description ?? "Sketch phase",
+                    Type = orderTrackingAddModel.Type,
+                    Stage = OrderStage.ReviewSketch,
+                    CreatedById = currentUserId.Value,
+                    OrderTrackingAttachments = uploadedAttachments
+                };
+
+                order.OrderTrackings.Add(orderTracking);
+                _unitOfWork.OrderRepository.Update(order);
+
+                int result = await _unitOfWork.SaveChangeAsync();
+                if (result > 0)
+                {
+                    if (orderTracking.Type == OrderTrackingType.Sketch)
+                    {
+                        await SendNew(order.CreatedBy.Email, order.Code, "sketch", order);
+                    }
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Sketch tracking added"
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Failed to add sketch tracking."
+                };
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<OrderTrackingAttachmentAddModel> attachments, string orderCode, string folderName)
+        {
+            var uploadedAttachments = new List<OrderTrackingAttachment>();
+
+            if (attachments != null)
+            {
+                foreach (var attachment in attachments)
+                {
+                    var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
+                        attachment.AttachmentUrl,
+                        orderCode,
+                        folderName: FolderAttachment.TRACKINGSKETCH
+                    );
+
+                    uploadedAttachments.Add(new OrderTrackingAttachment
+                    {
+                        AttachmentUrl = attachmentPath,
+                        AttachmentAlt = attachment.AttachmentAlt
+                    });
+                }
+            }
+
+            return uploadedAttachments;
+        }
+        public async Task SendNew(string email, string orderCode, string title, Repositories.Entities.Order order)
+        {
+            title = title.ToLower().Trim();
+
+            string subject, body;
+
+            if (title == "sketch")
+            {
+                subject = $"📢 New Sketch Uploaded for Order #{orderCode}";
+                body = $@"
+                         <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                         <p>Good news! A new sketch has been uploaded by the artisan for your order <strong>#{orderCode}</strong>.</p>
+                         <p><strong>Action Required:</strong></p>
+                         <ul>
+                             <li>Review the sketch.</li>
+                             <li>Approve it or request revisions.</li>
+                             <li>Ensure timely responses to avoid delays.</li>
+                         </ul>
+                         <p>Best regards,</p>
+                         <p><strong>From Chillde</strong></p>";
+            }
+            else if (title == "delivery")
+            {
+                subject = $"📦 Your Order #{orderCode} Has Been Delivered!";
+                body = $@"
+                          <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                          <p>Exciting update! Your artisan has completed and delivered the final product for order <strong>#{orderCode}</strong>.</p>
+                          <p><strong>Next Steps:</strong></p>
+                          <ul>
+                              <li>Review your delivered product.</li>
+                              <li>Confirm delivery or request adjustments before the artist must close the order and send it for shipping.</li>
+                          </ul>
+                          <p>Thank you for choosing us!</p>
+                          <p><strong>From Chillde</strong></p>";
+            }
+            else
+            {
+                return;  
+            }
+
+            await _iIEmailHelper.SendEmailAsync(email, subject, body, true);
+        }
+
+        public async Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel)
+        {
+            try
+            {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
+
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _
+                    .Include(_ => _.OrderTrackings)
+                    .Include(_ => _.CreatedBy));
+
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+
+                if (orderTrackingAddModel == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid tracking data."
+                    };
+                }
+                if (order.StartTime.HasValue && order.DeliveryTime.HasValue)
+                {
+                    DateTime expectedDeliveryDate = order.StartTime.Value.AddDays(order.DeliveryTime.Value);
+                    if (expectedDeliveryDate >= DateTime.UtcNow)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "Cannot add delivery. Expected delivery time has not passed yet."
+                        };
+                    }
+                }
+                if (order.Stage != OrderStage.DeliveryInProcess && order.Stage != OrderStage.ReviewDelivery)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Error in stage."
+                    };
+                }
+                var roles = await _unitOfWork.AccountRoleRepository.GetAllAsync(filter: _ => _.AccountId == currentUserId.Value, include: _ => _.Include(_ => _.Role));
+
+                if (order.Stage == OrderStage.DeliveryInProcess)
+                {
+                    order.Stage = OrderStage.ReviewDelivery;
+                }
+
+                var uploadedAttachments = await UploadAttachments(
+                    orderTrackingAddModel.OrderTrackingAttachmentAddModels,
+                    order.Code,
+                    FolderAttachment.TRACKINGDELIVERY
+                );
+
+                var orderTracking = new OrderTracking
+                {
+                    Name = orderTrackingAddModel.Name ?? "New Delivery",
+                    Description = orderTrackingAddModel.Description ?? "Delivery phase",
+                    Type = orderTrackingAddModel.Type,
+                    Stage = OrderStage.ReviewSketch,
+                    CreatedById = currentUserId.Value,
+                    OrderTrackingAttachments = uploadedAttachments
+                };
+
+                order.OrderTrackings.Add(orderTracking);
+                _unitOfWork.OrderRepository.Update(order);
+
+                int result = await _unitOfWork.SaveChangeAsync();
+                if (result > 0)
+                {
+                    if (orderTracking.Type == OrderTrackingType.Delivery)
+                    {
+                        await SendNew(order.CreatedBy.Email, order.Code, "delivery", order);
+                    }
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Delivery tracking added"
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Failed to add delivery tracking."
+                };
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Nest;
 
 namespace Chillde.Repositories.Repositories
 {
@@ -45,6 +47,37 @@ namespace Chillde.Repositories.Repositories
         public async Task<int> NumberCompletedOrder(Guid accountId, Guid artistId)
         {
             var orders = _dbSet.Where(_ => _.CreatedById == accountId && _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Success).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
+            return orders;
+        }
+
+        public async Task<IEnumerable<Order>> GetSketchOrdersWithResponseTimeAsync()
+        {
+            return await _dbSet
+                .Where(_ => _.Status == OrderStatus.Accepted
+                             && _.Stage == OrderStage.ReviewSketch
+                             && _.OrderTrackings.Any(_ => _.Type == OrderTrackingType.Sketch && _.IsAccepted == null))
+                .Include(_ => _.Package)
+                .ThenInclude(_ => _.Service)
+                .Include(_ => _.CreatedBy)
+                    .ThenInclude(_ => _.Wallet)
+                    .Include(_ => _.CreatedBy)
+                    .ThenInclude(_ => _.AccountRoles)
+                .Include(_ => _.OrderTrackings)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Order>> GetOrderInDeliveryProcess(CancellationToken stoppingToken)
+        {
+            var orders = await _dbSet
+                        .Where(o => o.Stage == OrderStage.DeliveryInProcess && o.StartTime.HasValue && o.DeliveryTime.HasValue)
+                         .Include(_ => _.Package)
+                         .ThenInclude(_ => _.Service)
+                         .Include(_ => _.CreatedBy)
+                             .ThenInclude(_ => _.Wallet)
+                             .Include(_ => _.CreatedBy)
+                             .ThenInclude(_ => _.AccountRoles)
+                         .Include(_ => _.OrderTrackings)
+                        .ToListAsync(stoppingToken);
             return orders;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Enums;
 using Chillde.Services.Models.OrderModels;
+using Chillde.Services.Models.OrderTrackingModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Http;
@@ -16,5 +17,10 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> CancelShipmentAsync(Guid orderId, string shipmentCode);
         Task<ResponseModel> GetAll(OrderFilterModel orderFilterModel);
         Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus);
+        Task<ResponseModel> Cancel(Guid orderId, Guid cancellationReasonId);
+        Task<ResponseModel> GetAllOrderTrackings(Guid orderId, OrderStage? orderStage);
+        Task<ResponseModel> AddSketch(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
+        Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
+
     }
 }
