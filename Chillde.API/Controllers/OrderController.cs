@@ -1,8 +1,10 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.VnPayModels;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OrderModels;
+using Chillde.Services.Models.OrderTrackingModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Chillde.Services.Services;
@@ -19,11 +21,13 @@ namespace Chillde.API.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IOrderTrackingService _orderTrackingService;
         private readonly IVnpay _vnpay;
         private readonly IConfiguration _configuration;
 
-        public OrderController(IOrderService orderService, IVnpay vnpay, IConfiguration configuration)
+        public OrderController(IOrderTrackingService orderTrackingService, IOrderService orderService, IVnpay vnpay, IConfiguration configuration)
         {
+            _orderTrackingService = orderTrackingService;
             _orderService = orderService;
             _vnpay = vnpay;
             _configuration = configuration;
@@ -75,8 +79,8 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
-        [HttpPut("artisans")]
-        public async Task<IActionResult> UpdateStatus(Guid orderId, [FromBody] OrderStatus orderStatus)
+        [HttpPut("order-accepts")]
+        public async Task<IActionResult> UpdateStatus(Guid orderId, OrderStatus orderStatus)
         {
             try
             {
@@ -214,6 +218,77 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _orderService.CancelShipmentAsync(orderId, shipmentCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpPost("{orderId}/order-tracking-sketches")]
+        public async Task<IActionResult> AddSketch(Guid orderId, [FromBody] OrderTrackingAddModel orderTrackingAddModel)
+        {
+            try
+            {
+                var result = await _orderService.AddSketch(orderId, orderTrackingAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpPost("{orderId}/order-tracking-deliveries")]
+        public async Task<IActionResult> AddDelivery(Guid orderId, [FromBody] OrderTrackingAddModel orderTrackingAddModel)
+        {
+            try
+            {
+                var result = await _orderService.AddDelivery(orderId, orderTrackingAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpPut("{orderId}/cancel-order/{cancellationReasonId}")]
+        public async Task<IActionResult> Cancel(Guid orderId, Guid cancellationReasonId)
+        {
+            try
+            {
+                var result = await _orderService.Cancel(orderId, cancellationReasonId);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpGet("{orderId}/get-order-trackings")]
+        public async Task<IActionResult> GetAllOrderTrackings(Guid orderId, OrderStage? orderStage)
+        {
+            try
+            {
+                var result = await _orderService.GetAllOrderTrackings(orderId, orderStage);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

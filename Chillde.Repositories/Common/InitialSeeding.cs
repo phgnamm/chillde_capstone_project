@@ -1522,8 +1522,17 @@ public static class InitialSeeding
             EntityType = ConfigType.Package,
             FieldName = "MaxPriceOfPackage",
             Value = JsonDocument.Parse("10000000")
-        },
-        new()
+        },new()
+        {
+            EntityType = ConfigType.Order,
+            FieldName = "AutoCancelPercentagePenalty",
+            Value = JsonDocument.Parse("10")
+        },new()
+        {
+            EntityType = ConfigType.Reputation,
+            FieldName = "AutoCancelPointPenalty",
+            Value = JsonDocument.Parse("5")
+        },new()
         {
             EntityType = ConfigType.Service,
             FieldName = "MaximumSerivceOfOneArtisan",

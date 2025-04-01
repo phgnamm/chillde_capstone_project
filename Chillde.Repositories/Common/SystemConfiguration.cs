@@ -20,6 +20,10 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" },
             { SystemConfigKey.MaximumPackageOfOneService, "MaximumPackageOfOneService" },
             { SystemConfigKey.MaximumPackageFeatureOfOnePackage, "MaximumFeatureOfOnePackage" },
+            // percent order for cancellation automatically
+            { SystemConfigKey.AutoCancelPercentagePenalty, "AutoCancelPercentagePenalty" },
+            { SystemConfigKey.AutoCancelPointPenalty, "AutoCancelPointPenalty" },
+
             { SystemConfigKey.MaximumSerivceOfOneArtisan, "MaximumSerivceOfOneArtisan" },
             // related to search history
             { SystemConfigKey.MaxSearchHistory , "MaxSearchHistory" },

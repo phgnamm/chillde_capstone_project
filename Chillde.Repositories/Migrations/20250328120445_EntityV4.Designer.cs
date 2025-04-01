@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250328120445_EntityV4")]
+    partial class EntityV4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -866,17 +869,14 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("CurrentSketchRevision")
                         .HasColumnType("integer");
 
-                    b.Property<bool?>("DeadlineMissed")
-                        .HasColumnType("boolean");
-
                     b.Property<Guid?>("DeletedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<float?>("DeliveryTime")
-                        .HasColumnType("real");
+                    b.Property<int?>("DeliveryTime")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -900,9 +900,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
 
-                    b.Property<bool?>("ReminderSent")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("ShipmentCode")
                         .HasColumnType("text");
 
@@ -911,9 +908,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int>("Stage")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("StartTime")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
@@ -1174,7 +1168,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("MaxQuantity")
+                    b.Property<int?>("MaxQuantiy")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModificationDate")
