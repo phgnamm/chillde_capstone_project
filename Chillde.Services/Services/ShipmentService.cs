@@ -49,7 +49,7 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
-            var url = $"{_ghtkUrl}/shipment/fee?" +
+            var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
                       $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
                       $"province={Uri.EscapeDataString(requestModel.Province)}&" +
                       $"district={Uri.EscapeDataString(requestModel.District)}&" +
@@ -61,10 +61,22 @@ namespace Chillde.Services.Services
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
+            requestMessage.Headers.Add("Token", "140QYIuQUX4Fh3GvqhpzC2yFCTb8Zsqu3hPO3rh");
+
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = $"API error: {errorContent}",
+                        Data = null
+                    };
+                }
 
                 var content = await response.Content.ReadAsStringAsync();
                 var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
@@ -78,16 +90,17 @@ namespace Chillde.Services.Services
                     Data = shipmentData
                 };
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message,
+                    Message = $"Exception: {ex.Message}",
                     Data = null
                 };
             }
         }
+
 
         public async Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder)
         {

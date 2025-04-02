@@ -753,7 +753,7 @@ namespace Chillde.Services.Services
             {
                 attributeValues.Add(new RequestAttributeValue
                 {
-                    Value = JsonConvert.SerializeObject(valueModel.Value),
+                    Value = (valueModel.Value),
                     IntOrder = intOrder++
                 });
             }
