@@ -9,5 +9,6 @@ namespace Chillde.Repositories.Interfaces
 {
     public interface IShippingAddressRepository : IGenericRepository<ShippingAddress>
     {
+        Task<ShippingAddress?> FindDefaultShippingAddressByAccountIdAsync(Guid accountId);
     }
 }
