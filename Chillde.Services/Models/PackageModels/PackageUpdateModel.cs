@@ -11,7 +11,7 @@ namespace Chillde.Services.Models.PackageModels
         public decimal Price { get; set; }
         public int? DeliveryTime { get; set; }
         public int? SketchRevision { get; set; }
-        public float ResponseTime { get; set; }
+        public TimeSpan ResponseTime { get; set; }
         public int? MaxQuantity { get; set; }
     }
 }

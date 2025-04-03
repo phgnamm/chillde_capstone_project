@@ -401,7 +401,7 @@ namespace Chillde.API.Controllers
                 Price = 100000,
                 DeliveryTime = 5,
                 SketchRevision = 1,
-                ResponseTime = 24,
+                //ResponseTime = 24,
                 MaxQuantity = 10,
             },
             new PackageAddModel
@@ -411,7 +411,7 @@ namespace Chillde.API.Controllers
                 Price = 500000,
                 DeliveryTime = 3,
                 SketchRevision = 2,
-                ResponseTime = 12,
+                //ResponseTime = 12,
                 MaxQuantity = 5,
             },
             new PackageAddModel
@@ -421,7 +421,7 @@ namespace Chillde.API.Controllers
                 Price = 1000000,
                 DeliveryTime = 2,
                 SketchRevision = 3,
-                ResponseTime = 6,
+                //ResponseTime = 6,
                 MaxQuantity = 3,
             }
         };
