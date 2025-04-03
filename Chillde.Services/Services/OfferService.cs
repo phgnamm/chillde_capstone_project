@@ -12,6 +12,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.AccountModels;
 using Microsoft.EntityFrameworkCore;
+using Chillde.Services.Models.TranslationModels;
 
 
 namespace Chillde.Services.Services
@@ -207,8 +208,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode,
-            string targetLanguageCode)
+        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
@@ -243,9 +243,7 @@ namespace Chillde.Services.Services
                     Message = model.Message,
                     MinWeight = model.MinWeight,
                     MaxWeight = model.MaxWeight,
-                    Service = model.ServiceId.HasValue
-                        ? await _unitOfWork.ServiceRepository.GetAsync(model.ServiceId.Value)
-                        : null
+                    Service = model.ServiceId.HasValue ? await _unitOfWork.ServiceRepository.GetAsync(model.ServiceId.Value) : null
                 };
 
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
@@ -267,7 +265,9 @@ namespace Chillde.Services.Services
                 }
 
                 Dictionary<string, string> textsToTranslate = new Dictionary<string, string>
-                    { { "Message", model.Message } };
+        {
+            { "Message", model.Message }
+        };
 
                 Package? newPackage = null;
                 List<Feature> features = new List<Feature>();
@@ -334,8 +334,8 @@ namespace Chillde.Services.Services
 
                 if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
                 {
-                    var translationResponse = await _translationService.TranslateMultipleAsync(
-                        textsToTranslate, "Offer", offerId, sourceLanguageCode
+                    var translationResponse = await _translationService.TranslateMultipleFieldsAsync(
+                        textsToTranslate, sourceLanguageCode, targetLanguageCode
                     );
 
                     if (translationResponse.Code != StatusCodes.Status200OK)
@@ -347,91 +347,36 @@ namespace Chillde.Services.Services
                         };
                     }
 
-                    var translations = new List<Translation>();
-                    Guid? languageId = null;
-
-                    if (sourceLanguageCode != "en")
+                    if (translationResponse.TranslatedFields is Dictionary<string, string> translatedTexts)
                     {
-                        languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
-                    }
-                    else
-                    {
-                        languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
-                    }
-
-                    if (translationResponse.Data is Dictionary<string, string> translatedTexts)
-                    {
-                        if (translatedTexts.TryGetValue("Message", out var text))
+                        foreach (var item in translatedTexts)
                         {
-                            newOffer.Message = sourceLanguageCode == "vi" ? model.Message : text;
-
-                            translations.Add(new Translation
+                            var entityType = item.Key.Split('.')[0];
+                            var fieldName = item.Key.Split('.').Last();
+                            var entityId = entityType switch
                             {
-                                Id = Guid.NewGuid(),
-                                EntityType = "Offer",
-                                EntityId = newOffer.Id,
-                                FieldName = "Message",
-                                TranslationText = sourceLanguageCode == "vi" ? model.Message : text,
-                                LanguageId = languageId.Value
-                            });
-                        }
+                                "Offer" => newOffer.Id,
+                                "Package" => newPackage?.Id ?? Guid.Empty,
+                                "Feature" => features.FirstOrDefault(f => $"Feature.{f.Id}.Name" == item.Key)?.Id ?? Guid.Empty,
+                                "PackageFeature" => packageFeatures.FirstOrDefault(pf => $"PackageFeature.{pf.Id}.Name" == item.Key)?.Id ?? Guid.Empty,
+                                _ => Guid.Empty
+                            };
 
-                        if (translatedTexts.ContainsKey("Package.Description") && newPackage != null)
-                        {
-                            newPackage.Description = sourceLanguageCode == "vi" ? model.PackageAddModel!.Description : translatedTexts["Package.Description"];
-
-                            translations.Add(new Translation
+                            if (entityId != Guid.Empty)
                             {
-                                Id = Guid.NewGuid(),
-                                EntityType = "Package",
-                                EntityId = newPackage.Id,
-                                FieldName = "Description",
-                                TranslationText = sourceLanguageCode == "vi" ? model.PackageAddModel!.Description : translatedTexts["Package.Description"],
-                                LanguageId = languageId.Value
-                            });
-                        }
-
-                        foreach (var feature in features)
-                        {
-                            if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Name", out var featureName))
-                            {
-                                feature.Name = sourceLanguageCode == "vi" ? feature.Name : featureName;
-
-                                translations.Add(new Translation
+                                await _translationService.SaveTranslationAsync(new TransaltionAddModel
                                 {
-                                    Id = Guid.NewGuid(),
-                                    EntityType = "Feature",
-                                    EntityId = feature.Id,
-                                    FieldName = "Name",
-                                    TranslationText = sourceLanguageCode == "vi" ? feature.Name! : featureName,
-                                    LanguageId = languageId.Value
-                                });
-                            }
-                        }
-
-                        foreach (var packageFeature in packageFeatures)
-                        {
-                            if (translatedTexts.TryGetValue($"PackageFeature.{packageFeature.Id}.Name", out var packageFeatureName))
-                            {
-                                packageFeature.Name = sourceLanguageCode == "vi" ? packageFeature.Name : packageFeatureName;
-
-                                translations.Add(new Translation
-                                {
-                                    Id = Guid.NewGuid(),
-                                    EntityType = "PackageFeature",
-                                    EntityId = packageFeature.Id,
-                                    FieldName = "Name",
-                                    TranslationText = sourceLanguageCode == "vi" ? packageFeature.Name! : packageFeatureName,
-                                    LanguageId = languageId.Value
-                                });
+                                    EntityType = entityType,
+                                    EntityId = entityId,
+                                    FieldName = fieldName,
+                                    TranslationText = item.Value
+                                }, "en");
                             }
                         }
                     }
-
-                    await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 }
 
-                await _unitOfWork.SaveChangeAsync();
+                //await _unitOfWork.SaveChangeAsync();
                 await _unitOfWork.CommitTransactionAsync();
 
                 return new ResponseModel
