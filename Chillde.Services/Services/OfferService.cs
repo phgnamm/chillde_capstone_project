@@ -46,7 +46,7 @@ namespace Chillde.Services.Services
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
                         (!filterParameter.ItemId.HasValue ||
-                         offer.Request.CategoryId == filterParameter.ItemId) &&
+                         offer.Request!.CategoryId == filterParameter.ItemId) &&
                         (!filterParameter.MinPrice.HasValue ||
                          offer.Service.Packages.Any(p => p.Price >= filterParameter.MinPrice)) &&
                         (!filterParameter.MaxPrice.HasValue ||
@@ -347,35 +347,88 @@ namespace Chillde.Services.Services
                         };
                     }
 
+                    var translations = new List<Translation>();
+                    Guid? languageId = null;
+
+                    if (sourceLanguageCode != "en")
+                    {
+                        languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
+                    }
+                    else
+                    {
+                        languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+                    }
+
                     if (translationResponse.Data is Dictionary<string, string> translatedTexts)
                     {
                         if (translatedTexts.TryGetValue("Message", out var text))
                         {
-                            newOffer.Message = targetLanguageCode == "en" ? text : model.Message;
+                            newOffer.Message = sourceLanguageCode == "vi" ? model.Message : text;
+
+                            translations.Add(new Translation
+                            {
+                                Id = Guid.NewGuid(),
+                                EntityType = "Offer",
+                                EntityId = newOffer.Id,
+                                FieldName = "Message",
+                                TranslationText = sourceLanguageCode == "vi" ? model.Message : text,
+                                LanguageId = languageId.Value
+                            });
                         }
 
                         if (translatedTexts.ContainsKey("Package.Description") && newPackage != null)
                         {
-                            newPackage.Description = translatedTexts["Package.Description"];
+                            newPackage.Description = sourceLanguageCode == "vi" ? model.PackageAddModel!.Description : translatedTexts["Package.Description"];
+
+                            translations.Add(new Translation
+                            {
+                                Id = Guid.NewGuid(),
+                                EntityType = "Package",
+                                EntityId = newPackage.Id,
+                                FieldName = "Description",
+                                TranslationText = sourceLanguageCode == "vi" ? model.PackageAddModel!.Description : translatedTexts["Package.Description"],
+                                LanguageId = languageId.Value
+                            });
                         }
 
                         foreach (var feature in features)
                         {
                             if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Name", out var featureName))
                             {
-                                feature.Name = featureName;
+                                feature.Name = sourceLanguageCode == "vi" ? feature.Name : featureName;
+
+                                translations.Add(new Translation
+                                {
+                                    Id = Guid.NewGuid(),
+                                    EntityType = "Feature",
+                                    EntityId = feature.Id,
+                                    FieldName = "Name",
+                                    TranslationText = sourceLanguageCode == "vi" ? feature.Name! : featureName,
+                                    LanguageId = languageId.Value
+                                });
                             }
                         }
 
                         foreach (var packageFeature in packageFeatures)
                         {
-                            if (translatedTexts.TryGetValue($"PackageFeature.{packageFeature.Id}.Name",
-                                    out var packageFeatureName))
+                            if (translatedTexts.TryGetValue($"PackageFeature.{packageFeature.Id}.Name", out var packageFeatureName))
                             {
-                                packageFeature.Name = packageFeatureName;
+                                packageFeature.Name = sourceLanguageCode == "vi" ? packageFeature.Name : packageFeatureName;
+
+                                translations.Add(new Translation
+                                {
+                                    Id = Guid.NewGuid(),
+                                    EntityType = "PackageFeature",
+                                    EntityId = packageFeature.Id,
+                                    FieldName = "Name",
+                                    TranslationText = sourceLanguageCode == "vi" ? packageFeature.Name! : packageFeatureName,
+                                    LanguageId = languageId.Value
+                                });
                             }
                         }
                     }
+
+                    await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 }
 
                 await _unitOfWork.SaveChangeAsync();
@@ -491,7 +544,7 @@ namespace Chillde.Services.Services
 
                 var translation = await _unitOfWork.TranslationRepository
                     .GetTranslationAsync("Offer", offerId, "Message",
-                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("vi"))!);
+                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("en"))!);
                 if (translation != null)
                 {
                     _unitOfWork.TranslationRepository.SoftRemove(translation);
