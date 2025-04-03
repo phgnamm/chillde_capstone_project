@@ -222,15 +222,26 @@ namespace Chillde.Services.Services
                 shippingAddress.ProvinceName = province.ProvinceName;
                 shippingAddress.DistrictName = district.DistrictName;
                 shippingAddress.WardName = ward.WardName;
-                //shippingAddress.IsDefault = false;
                 var existingAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
-            filter: sa => sa.CreatedById == currentUserId.Value && !sa.IsDeleted);
+                filter: sa => sa.CreatedById == currentUserId.Value && !sa.IsDeleted);
 
-                // Nếu không có địa chỉ nào tồn tại, đặt IsDefault = true, ngược lại là false
-                shippingAddress.IsDefault = !existingAddresses.Data.Any();
+                if (request.IsDefault.HasValue && request.IsDefault.Value) 
+                {
+                    shippingAddress.IsDefault = true;
+                    foreach (var address in existingAddresses.Data)
+                    {
+                        if (address.IsDefault)
+                        {
+                            address.IsDefault = false;
+                            _unitOfWork.ShippingAddressRepository.Update(address);
+                        }
+                    }
+                }
+                else 
+                {                   
+                    shippingAddress.IsDefault = !existingAddresses.Data.Any();
+                }
                 await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
-                /*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
-                */
                 await _unitOfWork.SaveChangeAsync();
 
                 var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
@@ -351,7 +362,7 @@ namespace Chillde.Services.Services
         }
 
 
-        public async Task<ResponseModel> GetByIdAsync(Guid id)
+   /*     public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
             {
@@ -394,7 +405,7 @@ namespace Chillde.Services.Services
                 Message = "Shipping address retrieved successfully",
                 Data = shippingAddressModel
             };
-        }
+        }*/
 
 
         public async Task<ResponseModel> UpdateShippingAddressAsync(Guid id, ShippingAddressUpdateModel request)
