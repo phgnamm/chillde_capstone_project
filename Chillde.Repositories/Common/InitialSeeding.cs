@@ -2445,7 +2445,7 @@ public static class InitialSeeding
 
         foreach (var accountRole in AccountRoles)
         {
-            if (!context.AccountRoles.Any(c => c.Id == accountRole.Id))
+            if (!context.AccountRoles.Any(c => c.AccountId == accountRole.AccountId && c.RoleId == accountRole.RoleId))
             {
                 accountRole.CreationDate = DateTime.UtcNow;
                 context.AccountRoles.Add(accountRole);

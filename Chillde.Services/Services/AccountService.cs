@@ -12,6 +12,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.SearchModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
@@ -39,9 +40,10 @@ public class AccountService : IAccountService
     private readonly IEmailHelper _iIEmailHelper;
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
+    private readonly IShippingAddressService _shippingAddressService;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
-        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork)
+        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork, IShippingAddressService shippingAddressService)
     {
         _claimService = claimService;
         _cloudinaryHelper = cloudinaryHelper;
@@ -50,6 +52,7 @@ public class AccountService : IAccountService
         _mapper = mapper;
         _redisHelper = redisHelper;
         _unitOfWork = unitOfWork;
+        _shippingAddressService = shippingAddressService;
     }
 
     public async Task<ResponseModel> SignUp(AccountSignUpModel accountSignUpModel)
@@ -922,6 +925,8 @@ public class AccountService : IAccountService
             };
         }
 
+        accountBecomeASellerModel.ShippingAddress.IsDefault = true;
+        await _shippingAddressService.AddShippingAddressAsync(accountBecomeASellerModel.ShippingAddress);
         _unitOfWork.AccountRepository.Update(account);
         var currentRoles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(id);
         if (currentRoles.All(role => role.Name != Role.Artisan.ToString()))
@@ -1227,5 +1232,25 @@ public class AccountService : IAccountService
                 Message = $"An error occurred while retrieving categories: {ex.Message}"
             };
         }
+    }
+
+    public async Task<ResponseModel> GetDefaultShippingAddress(Guid id)
+    {
+        var account = await _unitOfWork.AccountRepository.GetAsync(id);
+        if (account == null)
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Account not found"
+            };
+
+        var shippingAddress =
+            await _unitOfWork.ShippingAddressRepository.FindDefaultShippingAddressByAccountIdAsync(id);
+        
+        return new ResponseModel()
+        {
+            Message = "Get default shipping address successfully.",
+            Data = _mapper.Map<ShippingAddressModel>(shippingAddress),
+        };
     }
 }

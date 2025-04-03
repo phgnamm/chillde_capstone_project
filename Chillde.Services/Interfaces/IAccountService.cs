@@ -28,5 +28,5 @@ public interface IAccountService
     Task<ResponseModel> GetVoucherAdmin(Guid orderId);
     Task<ResponseModel> GetSearchHistories();
     Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel);
-
+    Task<ResponseModel> GetDefaultShippingAddress(Guid id);
 }
