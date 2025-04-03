@@ -220,7 +220,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (string.IsNullOrEmpty(model.Message) || !model.ServiceId.HasValue || model.ServiceId.Value == Guid.Empty)
+            if (string.IsNullOrEmpty(model.Message))
             {
                 return new ResponseModel
                 {
