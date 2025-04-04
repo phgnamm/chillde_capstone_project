@@ -50,14 +50,18 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
             var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
-                      $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
-                      $"province={Uri.EscapeDataString(requestModel.Province)}&" +
-                      $"district={Uri.EscapeDataString(requestModel.District)}&" +
-                      $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
-                      $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
-                      $"weight={requestModel.Weight}&" +
-                      $"value={requestModel.Value}&" +
-                      $"deliver_option={requestModel.DeliverOption}";
+              $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
+              $"province={Uri.EscapeDataString(requestModel.Province)}&" +
+              $"district={Uri.EscapeDataString(requestModel.District)}&" +
+              $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
+              $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
+              $"pick_ward={Uri.EscapeDataString(requestModel.PickWard ?? string.Empty)}&" +       
+              $"pick_address={Uri.EscapeDataString(requestModel.PickAddress ?? string.Empty)}&" + 
+              $"ward={Uri.EscapeDataString(requestModel.Ward ?? string.Empty)}&" +               
+              $"transport={Uri.EscapeDataString(requestModel.Transport ?? string.Empty)}&" +      
+              $"weight={requestModel.Weight}&" +
+              $"value={requestModel.Value}&" +
+              $"deliver_option={requestModel.DeliverOption}";
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
 
@@ -319,7 +323,10 @@ namespace Chillde.Services.Services
             {
                 return false;
             }
-
+            if(shipment.PartnerId != request.PartnerId)
+            {
+                return false;
+            }
             if (!Enum.IsDefined(typeof(ShipmentStatus), request.StatusId))
             {
                 throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
