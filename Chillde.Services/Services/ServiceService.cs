@@ -25,6 +25,9 @@ using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ServiceAttachmentModels;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Chillde.Repositories.Common;
+using Chillde.Repositories.Models.UserActivityLogModels;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace Chillde.Services.Services
 {
@@ -1553,7 +1556,11 @@ namespace Chillde.Services.Services
                         Data = serviceList
                     };
                 };
-                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetails.Data.ToString() });
+                var json = JsonConvert.SerializeObject(eventDetails.Data);
+                var eventDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                var eventVi = eventDict["EventVi"];
+                var eventEn = eventDict["EventEn"];
+                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> {eventVi});
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
@@ -1618,7 +1625,7 @@ namespace Chillde.Services.Services
                         Data = new
                         {
                             EventName = eventDetails.Data,
-                            Services = results
+                            Services = paginatedResult
                         }
                     };
             }, cacheDuration);
