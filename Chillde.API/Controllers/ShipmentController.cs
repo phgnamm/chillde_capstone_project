@@ -3,6 +3,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
+using Chillde.Services.Models.ShipmentStatusHistoryModels;
 using Chillde.Services.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -120,6 +121,30 @@ namespace Chillde.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Lỗi xử lý webhook", error = ex.Message });
+            }
+        }
+        //[Authorize]
+        [HttpGet("all-status/{shipmentId}")]
+        public async Task<IActionResult> GetAllStatusByShimentId(Guid shipmentId, [FromQuery] ShipmentStatusFilterModel filterModel)
+        {
+            try
+            {
+                var response = await _shipmentService.GetAllStatusByShipmentId(shipmentId, filterModel);
+
+                if (response.Code == StatusCodes.Status404NotFound)
+                {
+                    return NotFound();
+                }
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "Đã xảy ra lỗi khi lấy danh sách trạng thái shipment",
+                    Error = ex.Message
+                });
             }
         }
 
