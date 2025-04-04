@@ -370,29 +370,45 @@ namespace Chillde.Services.Services
             };
         }
 
-        public async Task<ResponseModel> GetAllStatusByLableOrParentId(ShipmentStatusFilterModel model)
+        public async Task<ResponseModel> GetAllStatusByShipmentId(Guid shipmentId, ShipmentStatusFilterModel filterModel)
         {
-            var shipment = await _unitOfWork.ShipmentRepository.GetAllAsync(
-                filter: s => s.PartnerId == model.PartnerId || s.Label == model.Label,
-                include: q => q.Include(s => s.ShipmentStatusHistorys)
-            );
-
-            if (shipment == null || !shipment.Data.Any())
+            var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
+            if (shipment == null)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status404NotFound,
-                    Message = "Không tìm thấy đơn hàng"
+                    Message = "Không tìm thấy shipment."
                 };
             }
 
-            var shipmentData = shipment.Data.FirstOrDefault();
+            Expression<Func<ShipmentStatusHistory, bool>> filter = s =>
+                s.ShipmentId == shipmentId && s.IsDeleted == filterModel.IsDeleted;
+
+            var statusHistories = await _unitOfWork.ShipmentStatusHistoryRepository.GetAllAsync(
+                filter: filter,
+                order: q =>
+                {
+                    return filterModel.OrderByDescending
+                        ? q.OrderByDescending(s => s.CreationDate)
+                        : q.OrderBy(s => s.CreationDate);
+                },
+                pageIndex: filterModel.PageIndex,
+                pageSize: filterModel.PageSize
+            );
 
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
+                Message = "Get all status list successfully",
+                Data = statusHistories.Data.Select(x => new
+                {
+                    x.StatusId,
+                    x.CreationDate
+                }),
             };
         }
+
 
 
     }
