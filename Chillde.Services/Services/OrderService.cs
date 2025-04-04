@@ -666,15 +666,15 @@ namespace Chillde.Services.Services
                     //return_district = shipmentCreateModel.ReturnDistrict,
                     //return_tel = shipmentCreateModel.ReturnTel,
                     //return_email = shipmentCreateModel.ReturnEmail,
-                    is_freeship = shipmentCreateModel.IsFreeShip,
-                    pick_date = shipmentCreateModel.PickDate,
-                    deliver_date = shipmentCreateModel.DeliverDate,
-                    pick_money = shipmentCreateModel.PickMoney,
+                    is_freeship = /*shipmentCreateModel.IsFreeShip*/1,
+                   /* pick_date = shipmentCreateModel.PickDate,
+                    deliver_date = shipmentCreateModel.DeliverDate,*/
+                    pick_money = /*shipmentCreateModel.PickMoney*/0,
                     note = shipmentCreateModel.Note,
                     value = shipmentCreateModel.Value,
-                    transport = shipmentCreateModel.Transport,
-                    pick_option = shipmentCreateModel.PickOption,
-                    deliver_option = shipmentCreateModel.DeliverOption,
+                    transport = /*shipmentCreateModel.Transport*/"road",
+                    pick_option = /*shipmentCreateModel.PickOption*/"cod",
+                    deliver_option = /*shipmentCreateModel.DeliverOption*/"none",
                     tags = shipmentCreateModel.Tags
                 }
             }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
@@ -713,6 +713,20 @@ namespace Chillde.Services.Services
                     EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
                     EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
                 };
+                if (parsedJson?.Order?.Products != null && parsedJson.Order.Products.Any())
+                {
+                    foreach (var product in parsedJson.Order.Products)
+                    {
+                        shipment.ProductShipments.Add(new ProductShipment
+                        {
+                            ShipmentId = shipment.Id,  
+                            Name = product.Name ?? string.Empty,
+                            Weight = (decimal)product.Weight,
+                            Quantity = product.Quantity,
+                            ProductCode = product.ProductCode.ToString() 
+                        });
+                    }
+                }
                 shipment.ShipmentStatusHistorys.Add(new ShipmentStatusHistory
                 {
                     ShipmentId = shipment.Id, 
