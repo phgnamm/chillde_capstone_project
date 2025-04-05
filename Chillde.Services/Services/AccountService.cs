@@ -647,61 +647,60 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> GetAll(AccountFilterModel accountFilterModel)
     {
-        var cacheKey = $"accounts_{CacheTools.GenerateCacheKey(accountFilterModel)}";
-        var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-        {
-            var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
-                account =>
-                    account.IsDeleted == accountFilterModel.IsDeleted &&
-                    (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
-                    (!accountFilterModel.Role.HasValue || account.AccountRoles
-                        .Select(accountRole => accountRole.Role.Name)
-                        .Contains(accountFilterModel.Role.ToString())) &&
-                    (string.IsNullOrWhiteSpace(accountFilterModel.Search) ||
-                     account.FirstName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
-                     account.LastName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
-                     account.Username.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
-                     account.Email.ToLower().Contains(accountFilterModel.Search.ToLower())),
-                accounts =>
-                {
-                    switch (accountFilterModel.Order.ToLower())
-                    {
-                        case "firstName":
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.FirstName)
-                                : accounts.OrderBy(account => account.FirstName);
-                        case "lastName":
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.LastName)
-                                : accounts.OrderBy(account => account.LastName);
-                        case "dateOfBirth":
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.DateOfBirth)
-                                : accounts.OrderBy(account => account.DateOfBirth);
-                        default:
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.CreationDate)
-                                : accounts.OrderBy(account => account.CreationDate);
-                    }
-                },
-                accounts => accounts.Include(account => account.AccountRoles)
-                    .ThenInclude(accountRole => accountRole.Role),
-                accountFilterModel.PageIndex,
-                accountFilterModel.PageSize
-            );
-            var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
-            var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
-                accountFilterModel.PageSize, accounts.TotalCount);
-
-            return new ResponseModel
+        var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
+            account =>
+                account.IsDeleted == accountFilterModel.IsDeleted &&
+                (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
+                (!accountFilterModel.Role.HasValue || account.AccountRoles
+                    .Select(accountRole => accountRole.Role.Name)
+                    .Contains(accountFilterModel.Role.ToString())) &&
+                (string.IsNullOrWhiteSpace(accountFilterModel.Search) ||
+                 account.FirstName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
+                 account.LastName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
+                 account.Username.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
+                 account.Email.ToLower().Contains(accountFilterModel.Search.ToLower())),
+            accounts =>
             {
-                Message = "Get all accounts successfully",
-                Data = result
-            };
-        });
+                switch (accountFilterModel.Order.ToLower())
+                {
+                    case "firstName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.FirstName)
+                            : accounts.OrderBy(account => account.FirstName);
+                    case "lastName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.LastName)
+                            : accounts.OrderBy(account => account.LastName);
+                    case "dateOfBirth":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.DateOfBirth)
+                            : accounts.OrderBy(account => account.DateOfBirth);
+                    default:
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.CreationDate)
+                            : accounts.OrderBy(account => account.CreationDate);
+                }
+            },
+           accounts => accounts
+            .Include(account => account.AccountRoles)
+                .ThenInclude(accountRole => accountRole.Role)
+            .Include(account => account.Wallet)
+            .Include(account => account.Orders), 
+        accountFilterModel.PageIndex,
+        accountFilterModel.PageSize
+        );
 
-        return responseModel;
+        var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
+            accountFilterModel.PageSize, accounts.TotalCount);
+
+        return new ResponseModel
+        {
+            Message = "Get all accounts successfully",
+            Data = result
+        };
     }
+    
 
     public async Task<ResponseModel> Update(Guid id, AccountUpdateModel accountUpdateModel)
     {

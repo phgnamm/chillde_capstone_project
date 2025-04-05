@@ -27,6 +27,7 @@ using AutoMapper;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Services.Models.OrderTrackingModels;
+using Chillde.Services.Models.CategoryModels;
 
 namespace Chillde.Services.Services
 {
@@ -917,7 +918,61 @@ namespace Chillde.Services.Services
             };
 
         }
+        public async Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel)
+        {
+    
+            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
+                filter: _ =>
+                (orderFilterModel.IsDeleted == _.IsDeleted) && 
+                (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status),
+                include: _ => _.Include(_ => _.Package),
+                order: _ =>
+                {
+                    switch (orderFilterModel.Order.ToLower())
+                    {
+                        case "recentdays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderByDescending(account => account.CreationDate)
+                                : _.OrderBy(account => account.CreationDate);
+                        case "olddays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderBy(account => account.CreationDate)
+                                : _.OrderByDescending(account => account.CreationDate);
+                        default:
+                            return orderFilterModel.OrderByDescending
+                                 ? _.OrderByDescending(account => account.CreationDate)
+                                 : _.OrderBy(account => account.CreationDate);
+                    }
+                },
+                pageIndex: orderFilterModel.PageIndex,
+                pageSize: orderFilterModel.PageSize
+                );
+            var orderModels = orders.Data.Select(_ => new OrderModel
+            {
+                Id = _.Id,
+                Phone = _.Phone,
+                Address = _.Address,
+                ToDistrict = _.ToDistrict,
+                ToProvince = _.ToProvince,
+                ToWard = _.ToWard,
+                TotalPrice = _.TotalPrice,
+                PackagePrice = _.OriginPrice,
+                PackageName = _.Package.Name.ToString(),
+                Quantity = _.Quantity,
+                ShipmentCode = _.ShipmentCode,
+                Status = _.Status,
 
+            }).ToList();
+            var result = new Pagination<OrderModel>(orderModels, orderFilterModel.PageIndex,
+                        orderFilterModel.PageSize, orders.Data.Count);
+
+            return new ResponseModel
+            {
+                Message = "Get all orders successfully",
+                Data = result
+            };
+
+        }
         public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
             try

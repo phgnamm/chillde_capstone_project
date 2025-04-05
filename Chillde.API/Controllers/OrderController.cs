@@ -56,6 +56,27 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetAllByAdmin([FromQuery] OrderFilterModel orderFilterModel)
+        {
+            try
+            {
+                var result = await _orderService.GetAllByAdmin(orderFilterModel);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
         [Authorize]
         [HttpPost("use-admin-vouchers")]
         public async Task<IActionResult> UsedAdminVoucher(Guid orderId, Guid voucherId)
