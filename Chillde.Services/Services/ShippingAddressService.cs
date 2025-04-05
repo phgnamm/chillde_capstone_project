@@ -330,7 +330,7 @@ namespace Chillde.Services.Services
             Expression<Func<ShippingAddress, bool>> filter = address =>
                 address.CreatedById == AccountId &&
                 address.IsDeleted == shippingAddressFilterModel.IsDeleted &&
-                address.IsDefault == shippingAddressFilterModel.IsDefault && 
+                (!shippingAddressFilterModel.IsDefault.HasValue || address.IsDefault == shippingAddressFilterModel.IsDefault) && 
                 (string.IsNullOrEmpty(shippingAddressFilterModel.Search) ||
                  address.FullName.Contains(shippingAddressFilterModel.Search) ||
                  address.PhoneNumber.Contains(shippingAddressFilterModel.Search) ||
