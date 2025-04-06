@@ -56,7 +56,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpGet]
+       /* [HttpGet]
         public async Task<IActionResult> GetAllByAdmin([FromQuery] OrderFilterModel orderFilterModel)
         {
             try
@@ -76,7 +76,7 @@ namespace Chillde.API.Controllers
                     Message = ex.Message
                 });
             }
-        }
+        }*/
         [Authorize]
         [HttpPost("use-admin-vouchers")]
         public async Task<IActionResult> UsedAdminVoucher(Guid orderId, Guid voucherId)
