@@ -254,4 +254,21 @@ public class AccountController : ControllerBase
             });
         }
     }
+    [HttpPost("ban-role")]
+    public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
+    {
+        try
+        {
+            var result = await _accountService.BanAccountRole(request);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
 }
