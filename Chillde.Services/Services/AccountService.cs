@@ -8,6 +8,7 @@ using System.Text.Json;
 using AutoMapper;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoryModels;
@@ -1250,6 +1251,44 @@ public class AccountService : IAccountService
         {
             Message = "Get default shipping address successfully.",
             Data = _mapper.Map<ShippingAddressModel>(shippingAddress),
+        };
+    }
+
+    public async Task<ResponseModel> BanAccountRole(BanAccountRoleModel request)
+    {
+        var account = await _unitOfWork.AccountRepository.GetAsync(request.AccountId,
+            a => a.Include(x => x.AccountRoles).ThenInclude(ar => ar.Role));
+        if (account == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Account not found"
+            };
+        }
+
+        var accountRole = account.AccountRoles
+            .FirstOrDefault(ar => ar.Role.Name == request.Role.ToString());
+
+        if (accountRole == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = $"Role {request.Role} not found for this account"
+            };
+        }
+
+        accountRole.Status = AccountStatus.Suspended;
+        accountRole.ModificationDate = DateTime.UtcNow; 
+
+        _unitOfWork.AccountRepository.Update(account);
+        await _unitOfWork.SaveChangeAsync();
+
+        return new ResponseModel
+        {
+            Code = StatusCodes.Status200OK,
+            Message = $"Role {request.Role} has been banned successfully"
         };
     }
 }
