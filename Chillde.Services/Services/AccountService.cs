@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using AutoMapper;
 using Chillde.Repositories.Common;
@@ -22,9 +23,21 @@ using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TokenModels;
 using Chillde.Services.Utils;
 using Elasticsearch.Net;
+using FirebaseAdmin;
+using FirebaseAdmin.Auth;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+
+using Nest;
+
+using RabbitMQ.Client;
+
+
+//using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Role = Chillde.Repositories.Enums.Role;
 
@@ -39,9 +52,10 @@ public class AccountService : IAccountService
     private readonly IEmailHelper _iIEmailHelper;
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
+    private readonly HttpClient _httpClient;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
-        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork)
+        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork, HttpClient httpClient)
     {
         _claimService = claimService;
         _cloudinaryHelper = cloudinaryHelper;
@@ -50,6 +64,7 @@ public class AccountService : IAccountService
         _mapper = mapper;
         _redisHelper = redisHelper;
         _unitOfWork = unitOfWork;
+        _httpClient = httpClient;
     }
 
     public async Task<ResponseModel> SignUp(AccountSignUpModel accountSignUpModel)
@@ -443,6 +458,88 @@ public class AccountService : IAccountService
         {
             Code = StatusCodes.Status500InternalServerError,
             Message = "Cannot resend verification email"
+        };
+    }
+
+    public async Task<ResponseModel> VerifyPhone(string phone, string verificationCode)
+    {
+        //string phoneNumber = "+840965794464"; // Replace with actual phone number
+        //string apiKey = "AIzaSyCdtLB8UPZb5sipndOCrD9BJ90c-lXnlOw"; // Replace with your Firebase Web API Key
+        ////FirebaseApp app = FirebaseApp.Create(new AppOptions()
+        ////{
+        ////    Credential = GoogleCredential.FromFile("chillde-b8780-firebase-adminsdk-fbsvc-4074991401.json"),
+        ////});
+        //var requestData = new
+        //{
+        //    phoneNumber = phoneNumber,
+        //    recaptchaToken = "test" // Must be obtained from client-side (Web/Android/iOS)
+        //};
+        //string json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+        //StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //HttpResponseMessage response = await _httpClient.PostAsync(
+        //    $"https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key={apiKey}",
+        //    content
+        //);
+        string apiKeySid = "SK.0.7RP3RlnZdb54u2Igez5qnfajq4yJF59g"; // Found in your Stringee project
+        string apiKeySecret = "aU5BTFB3OWo4YUxXbVZNNXRkc29iMWJXUmJsV3BONUY="; // Found in your Stringee project
+
+        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKeySecret));
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim("jti", Guid.NewGuid().ToString()),
+            new Claim("iss", apiKeySid),
+            new Claim("exp", ((DateTimeOffset)DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds().ToString()), // Expiry in 1 hour
+            new Claim("rest_api", "true")
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: apiKeySid,
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials
+        );
+
+        string accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+        //string accessToken = "YOUR_ACCESS_TOKEN"; // Replace with your Stringee API access token
+        string senderNumber = "0988682715"; // Replace with your sender number
+        string recipientNumber = "0965794464"; // Replace with the recipient's phone number
+        string messageText = "Hello, this is a test message from Stringee!";
+
+        var smsData = new
+        {
+            from = senderNumber,
+            to = recipientNumber,
+            text = messageText
+        };
+
+        string apiUrl = "https://api.stringee.com/v1/sms";
+        using (HttpClient client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("X-STRINGEE-AUTH", accessToken);
+
+            string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(smsData);
+            HttpContent content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+            string responseString = await response.Content.ReadAsStringAsync();
+            return new ResponseModel
+            {
+                Code = int.Parse(response.StatusCode.ToString()),
+                //Message = "Cannot verify email",
+                Data = responseString
+            };
+            //Console.WriteLine("Response: " + responseString);
+        }
+
+        return new ResponseModel
+        {
+            Code = StatusCodes.Status400BadRequest,
+            //Message = "Cannot verify email",
+            //Data = responseString
         };
     }
 

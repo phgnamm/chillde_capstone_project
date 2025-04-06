@@ -151,6 +151,24 @@ public class AuthenticationController : ControllerBase
         }
     }
 
+    [HttpGet("phone/verify")]
+    public async Task<IActionResult> VerifyPhone()
+    {
+        try
+        {
+            var result = await _accountService.VerifyPhone("A", "A");
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+
     [HttpPost("email/resend-verification")]
     public async Task<IActionResult> ResendVerificationEmail([FromBody] AccountEmailModel accountEmailModel)
     {
