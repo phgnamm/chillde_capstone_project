@@ -222,10 +222,26 @@ namespace Chillde.Services.Services
                 shippingAddress.ProvinceName = province.ProvinceName;
                 shippingAddress.DistrictName = district.DistrictName;
                 shippingAddress.WardName = ward.WardName;
-                shippingAddress.IsDefault = false;
+                var existingAddresses = await _unitOfWork.ShippingAddressRepository.GetAllAsync(
+                filter: sa => sa.CreatedById == currentUserId.Value && !sa.IsDeleted);
+
+                if (request.IsDefault.HasValue && request.IsDefault.Value) 
+                {
+                    shippingAddress.IsDefault = true;
+                    foreach (var address in existingAddresses.Data)
+                    {
+                        if (address.IsDefault)
+                        {
+                            address.IsDefault = false;
+                            _unitOfWork.ShippingAddressRepository.Update(address);
+                        }
+                    }
+                }
+                else 
+                {                   
+                    shippingAddress.IsDefault = !existingAddresses.Data.Any();
+                }
                 await _unitOfWork.ShippingAddressRepository.AddAsync(shippingAddress);
-                /*                shippingAddress.CreatedById = Guid.Parse("01940b23-5d7f-75fb-856d-3a6d99bc013e");
-                */
                 await _unitOfWork.SaveChangeAsync();
 
                 var responseModel = _mapper.Map<ShippingAddressModel>(shippingAddress);
@@ -300,22 +316,21 @@ namespace Chillde.Services.Services
         }
 
 
-        public async Task<ResponseModel> GetAllAsync(ShippingAddressFilterModel shippingAddressFilterModel)
+        public async Task<ResponseModel> GetAllAsync(Guid AccountId, ShippingAddressFilterModel shippingAddressFilterModel)
         {
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (currentUserId == null)
+            if (AccountId == Guid.Empty)
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized",
-                    Data = null
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid Account ID",
                 };
             }
 
             Expression<Func<ShippingAddress, bool>> filter = address =>
-                address.CreatedById == currentUserId && 
+                address.CreatedById == AccountId &&
                 address.IsDeleted == shippingAddressFilterModel.IsDeleted &&
+                (!shippingAddressFilterModel.IsDefault.HasValue || address.IsDefault == shippingAddressFilterModel.IsDefault) && 
                 (string.IsNullOrEmpty(shippingAddressFilterModel.Search) ||
                  address.FullName.Contains(shippingAddressFilterModel.Search) ||
                  address.PhoneNumber.Contains(shippingAddressFilterModel.Search) ||
@@ -347,7 +362,7 @@ namespace Chillde.Services.Services
         }
 
 
-        public async Task<ResponseModel> GetByIdAsync(Guid id)
+   /*     public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
             if (id == Guid.Empty)
             {
@@ -390,7 +405,7 @@ namespace Chillde.Services.Services
                 Message = "Shipping address retrieved successfully",
                 Data = shippingAddressModel
             };
-        }
+        }*/
 
 
         public async Task<ResponseModel> UpdateShippingAddressAsync(Guid id, ShippingAddressUpdateModel request)

@@ -16,8 +16,8 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetDistrictsAsync(int provinceId);
         Task<ResponseModel> GetWardsAsync(int districtId);
         Task<ResponseModel> AddShippingAddressAsync(ShippingAddressAddModel request);
-        Task<ResponseModel> GetAllAsync(ShippingAddressFilterModel shippingaddressFilterModel);
-        Task<ResponseModel> GetByIdAsync(Guid id);
+        Task<ResponseModel> GetAllAsync(Guid AccountId, ShippingAddressFilterModel shippingAddressFilterModel);   
+        /*Task<ResponseModel> GetByIdAsync(Guid id);*/
         Task<ResponseModel> UpdateShippingAddressAsync(Guid id, ShippingAddressUpdateModel request);
         Task<ResponseModel> Delete(Guid id);
 

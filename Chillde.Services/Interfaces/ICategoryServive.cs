@@ -24,6 +24,5 @@ namespace Chillde.Services.Interfaces
 
 
 
-
     }
 }

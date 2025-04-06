@@ -12,6 +12,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.AccountModels;
 using Microsoft.EntityFrameworkCore;
+using Chillde.Services.Models.TranslationModels;
 
 
 namespace Chillde.Services.Services
@@ -46,7 +47,7 @@ namespace Chillde.Services.Services
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
                         (!filterParameter.ItemId.HasValue ||
-                         offer.Request.CategoryId == filterParameter.ItemId) &&
+                         offer.Request!.CategoryId == filterParameter.ItemId) &&
                         (!filterParameter.MinPrice.HasValue ||
                          offer.Service.Packages.Any(p => p.Price >= filterParameter.MinPrice)) &&
                         (!filterParameter.MaxPrice.HasValue ||
@@ -207,8 +208,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode,
-            string targetLanguageCode)
+        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
@@ -220,7 +220,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (string.IsNullOrEmpty(model.Message) || !model.ServiceId.HasValue || model.ServiceId.Value == Guid.Empty)
+            if (string.IsNullOrEmpty(model.Message))
             {
                 return new ResponseModel
                 {
@@ -243,9 +243,7 @@ namespace Chillde.Services.Services
                     Message = model.Message,
                     MinWeight = model.MinWeight,
                     MaxWeight = model.MaxWeight,
-                    Service = model.ServiceId.HasValue
-                        ? await _unitOfWork.ServiceRepository.GetAsync(model.ServiceId.Value)
-                        : null
+                    Service = model.ServiceId.HasValue ? await _unitOfWork.ServiceRepository.GetAsync(model.ServiceId.Value) : null
                 };
 
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
@@ -267,7 +265,9 @@ namespace Chillde.Services.Services
                 }
 
                 Dictionary<string, string> textsToTranslate = new Dictionary<string, string>
-                    { { "Message", model.Message } };
+        {
+            { "Message", model.Message }
+        };
 
                 Package? newPackage = null;
                 List<Feature> features = new List<Feature>();
@@ -334,8 +334,8 @@ namespace Chillde.Services.Services
 
                 if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
                 {
-                    var translationResponse = await _translationService.TranslateMultipleAsync(
-                        textsToTranslate, "Offer", offerId, sourceLanguageCode
+                    var translationResponse = await _translationService.TranslateMultipleFieldsAsync(
+                        textsToTranslate, sourceLanguageCode, targetLanguageCode
                     );
 
                     if (translationResponse.Code != StatusCodes.Status200OK)
@@ -347,32 +347,30 @@ namespace Chillde.Services.Services
                         };
                     }
 
-                    if (translationResponse.Data is Dictionary<string, string> translatedTexts)
+                    if (translationResponse.TranslatedFields is Dictionary<string, string> translatedTexts)
                     {
-                        if (translatedTexts.TryGetValue("Message", out var text))
+                        foreach (var item in translatedTexts)
                         {
-                            newOffer.Message = targetLanguageCode == "en" ? text : model.Message;
-                        }
-
-                        if (translatedTexts.ContainsKey("Package.Description") && newPackage != null)
-                        {
-                            newPackage.Description = translatedTexts["Package.Description"];
-                        }
-
-                        foreach (var feature in features)
-                        {
-                            if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Name", out var featureName))
+                            var entityType = item.Key.Split('.')[0];
+                            var fieldName = item.Key.Split('.').Last();
+                            var entityId = entityType switch
                             {
-                                feature.Name = featureName;
-                            }
-                        }
+                                "Offer" => newOffer.Id,
+                                "Package" => newPackage?.Id ?? Guid.Empty,
+                                "Feature" => features.FirstOrDefault(f => $"Feature.{f.Id}.Name" == item.Key)?.Id ?? Guid.Empty,
+                                "PackageFeature" => packageFeatures.FirstOrDefault(pf => $"PackageFeature.{pf.Id}.Name" == item.Key)?.Id ?? Guid.Empty,
+                                _ => Guid.Empty
+                            };
 
-                        foreach (var packageFeature in packageFeatures)
-                        {
-                            if (translatedTexts.TryGetValue($"PackageFeature.{packageFeature.Id}.Name",
-                                    out var packageFeatureName))
+                            if (entityId != Guid.Empty)
                             {
-                                packageFeature.Name = packageFeatureName;
+                                await _translationService.SaveTranslationAsync(new TransaltionAddModel
+                                {
+                                    EntityType = entityType,
+                                    EntityId = entityId,
+                                    FieldName = fieldName,
+                                    TranslationText = item.Value
+                                }, "en");
                             }
                         }
                     }
@@ -491,7 +489,7 @@ namespace Chillde.Services.Services
 
                 var translation = await _unitOfWork.TranslationRepository
                     .GetTranslationAsync("Offer", offerId, "Message",
-                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("vi"))!);
+                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("en"))!);
                 if (translation != null)
                 {
                     _unitOfWork.TranslationRepository.SoftRemove(translation);

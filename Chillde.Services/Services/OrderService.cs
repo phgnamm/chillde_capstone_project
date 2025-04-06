@@ -27,6 +27,7 @@ using AutoMapper;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Services.Models.OrderTrackingModels;
+using Chillde.Services.Models.CategoryModels;
 
 namespace Chillde.Services.Services
 {
@@ -666,15 +667,15 @@ namespace Chillde.Services.Services
                     //return_district = shipmentCreateModel.ReturnDistrict,
                     //return_tel = shipmentCreateModel.ReturnTel,
                     //return_email = shipmentCreateModel.ReturnEmail,
-                    is_freeship = shipmentCreateModel.IsFreeShip,
-                    pick_date = shipmentCreateModel.PickDate,
-                    deliver_date = shipmentCreateModel.DeliverDate,
-                    pick_money = shipmentCreateModel.PickMoney,
+                    is_freeship = /*shipmentCreateModel.IsFreeShip*/1,
+                   /* pick_date = shipmentCreateModel.PickDate,
+                    deliver_date = shipmentCreateModel.DeliverDate,*/
+                    pick_money = /*shipmentCreateModel.PickMoney*/0,
                     note = shipmentCreateModel.Note,
                     value = shipmentCreateModel.Value,
-                    transport = shipmentCreateModel.Transport,
-                    pick_option = shipmentCreateModel.PickOption,
-                    deliver_option = shipmentCreateModel.DeliverOption,
+                    transport = /*shipmentCreateModel.Transport*/"road",
+                    pick_option = /*shipmentCreateModel.PickOption*/"cod",
+                    deliver_option = /*shipmentCreateModel.DeliverOption*/"none",
                     tags = shipmentCreateModel.Tags
                 }
             }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
@@ -704,7 +705,7 @@ namespace Chillde.Services.Services
                 {
                     OrderId = order.Id,
                     TrackingId = parsedJson!.Order!.TrackingId.ToString(),
-                    StatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
+                    CurrentStatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
                     PartnerId = parsedJson!.Order!.PartnerId,
                     Label = parsedJson.Order.Label,
                     Area = parsedJson.Order.Area,
@@ -713,6 +714,26 @@ namespace Chillde.Services.Services
                     EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
                     EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
                 };
+                if (parsedJson?.Order?.Products != null && parsedJson.Order.Products.Any())
+                {
+                    foreach (var product in parsedJson.Order.Products)
+                    {
+                        shipment.ProductShipments.Add(new ProductShipment
+                        {
+                            ShipmentId = shipment.Id,  
+                            Name = product.Name ?? string.Empty,
+                            Weight = (decimal)product.Weight,
+                            Quantity = product.Quantity,
+                            ProductCode = product.ProductCode.ToString() 
+                        });
+                    }
+                }
+                shipment.ShipmentStatusHistorys.Add(new ShipmentStatusHistory
+                {
+                    ShipmentId = shipment.Id, 
+                    StatusId = shipment.CurrentStatusId,                
+                });
+                    
 
                 await _unitOfWork.ShipmentRepository.AddAsync(shipment);
                 await _unitOfWork.SaveChangeAsync();
@@ -897,7 +918,61 @@ namespace Chillde.Services.Services
             };
 
         }
+        public async Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel)
+        {
+    
+            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
+                filter: _ =>
+                (orderFilterModel.IsDeleted == _.IsDeleted) && 
+                (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status),
+                include: _ => _.Include(_ => _.Package),
+                order: _ =>
+                {
+                    switch (orderFilterModel.Order.ToLower())
+                    {
+                        case "recentdays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderByDescending(account => account.CreationDate)
+                                : _.OrderBy(account => account.CreationDate);
+                        case "olddays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderBy(account => account.CreationDate)
+                                : _.OrderByDescending(account => account.CreationDate);
+                        default:
+                            return orderFilterModel.OrderByDescending
+                                 ? _.OrderByDescending(account => account.CreationDate)
+                                 : _.OrderBy(account => account.CreationDate);
+                    }
+                },
+                pageIndex: orderFilterModel.PageIndex,
+                pageSize: orderFilterModel.PageSize
+                );
+            var orderModels = orders.Data.Select(_ => new OrderModel
+            {
+                Id = _.Id,
+                Phone = _.Phone,
+                Address = _.Address,
+                ToDistrict = _.ToDistrict,
+                ToProvince = _.ToProvince,
+                ToWard = _.ToWard,
+                TotalPrice = _.TotalPrice,
+                PackagePrice = _.OriginPrice,
+                PackageName = _.Package.Name.ToString(),
+                Quantity = _.Quantity,
+                ShipmentCode = _.ShipmentCode,
+                Status = _.Status,
 
+            }).ToList();
+            var result = new Pagination<OrderModel>(orderModels, orderFilterModel.PageIndex,
+                        orderFilterModel.PageSize, orders.Data.Count);
+
+            return new ResponseModel
+            {
+                Message = "Get all orders successfully",
+                Data = result
+            };
+
+        }
         public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
             try

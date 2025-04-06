@@ -9,5 +9,6 @@ namespace Chillde.Services.Models.ShippingAddressModels
 {
     public class ShippingAddressFilterModel : FilterParameter
     {
+        public bool? IsDefault { get; set; }
     }
 }

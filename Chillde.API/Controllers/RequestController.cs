@@ -141,7 +141,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-
+        [Authorize]
         [HttpPost("{requestId}/offers")]
         public async Task<IActionResult> Add([FromForm] OfferAddModel model, Guid requestId)
         {

@@ -70,7 +70,7 @@ namespace Chillde.API.Controllers
                 });
             }
         } 
-        //[Authorize]
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] ShippingAddressAddModel shippingAddressAddModel)
         {
@@ -89,12 +89,12 @@ namespace Chillde.API.Controllers
             }
         }
         [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] ShippingAddressFilterModel shippingAddressFilterModel)
+        [HttpGet("{accountId}")]
+        public async Task<IActionResult> GetAll(Guid accountId,[FromQuery] ShippingAddressFilterModel shippingAddressFilterModel)
         {
             try
             {
-                var result = await _shippingAddressService.GetAllAsync(shippingAddressFilterModel);
+                var result = await _shippingAddressService.GetAllAsync(accountId,shippingAddressFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
@@ -106,7 +106,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
+     /*   [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(Guid id)
         {
@@ -123,7 +123,7 @@ namespace Chillde.API.Controllers
                     Message = ex.Message
                 });
             }
-        }
+        }*/
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] ShippingAddressUpdateModel shippingAddressUpdateModel)

@@ -1,5 +1,7 @@
 ﻿using Chillde.Services.Models.AccountModels;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.Services.Interfaces;
 
@@ -26,5 +28,7 @@ public interface IAccountService
     Task<ResponseModel> GetVoucher(Guid packageId, decimal? totalPriceOfOrder);
     Task<ResponseModel> GetVoucherAdmin(Guid orderId);
     Task<ResponseModel> GetSearchHistories();
-
+    Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel);
+    Task<ResponseModel> GetDefaultShippingAddress(Guid id);
+    Task<ResponseModel> BanAccountRole(BanAccountRoleModel request);
 }

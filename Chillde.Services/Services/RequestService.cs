@@ -662,6 +662,7 @@ namespace Chillde.Services.Services
             {
                 Name = model.Name,
                 Description = model.Description,
+                CategoryId =model.ItemId,
                 MinBudget = model.MinBudget,
                 MaxBudget = model.MaxBudget,
                 Timeline = model.Timeline,
@@ -752,7 +753,7 @@ namespace Chillde.Services.Services
             {
                 attributeValues.Add(new RequestAttributeValue
                 {
-                    Value = JsonConvert.SerializeObject(valueModel.Value),
+                    Value = (valueModel.Value),
                     IntOrder = intOrder++
                 });
             }

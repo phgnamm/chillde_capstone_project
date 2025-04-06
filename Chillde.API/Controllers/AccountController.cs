@@ -1,5 +1,6 @@
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -205,6 +206,60 @@ public class AccountController : ControllerBase
         try
         {
             var result = await _accountService.BecomeASeller(id, accountBecomeASellerModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+/*    [Authorize(Roles = "Admin")]*/
+    [HttpGet("{artisanId}/categories")]
+    public async Task<IActionResult> GetCategoryByService(Guid artisanId, [FromQuery] FilterModel filterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetCategoryByArtisan(artisanId, filterModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+    
+    [Authorize]
+    [HttpGet("{id}/shipping-addresses/default")]
+    public async Task<IActionResult> GetDefaultShippingAddress(Guid id)
+    {
+        try
+        {
+            var result = await _accountService.GetDefaultShippingAddress(id);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+    [HttpPost("ban-role")]
+    public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
+    {
+        try
+        {
+            var result = await _accountService.BanAccountRole(request);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

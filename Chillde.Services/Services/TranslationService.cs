@@ -159,18 +159,23 @@ namespace Chillde.Services.Services
                 };
 
                 await _unitOfWork.TranslationRepository.AddAsync(translation);
-                var changes = await _unitOfWork.SaveChangeAsync();
-                return changes > 0
-                   ? new ResponseModel
-                   {
-                       Code = StatusCodes.Status200OK,
-                       Message = "Translation added successfully."
-                   }
-                   : new ResponseModel
-                   {
-                       Code = StatusCodes.Status500InternalServerError,
-                       Message = "Failed to save the translation."
-                   };
+                //var changes = await _unitOfWork.SaveChangeAsync();
+                //return changes > 0
+                //   ? new ResponseModel
+                //   {
+                //       Code = StatusCodes.Status200OK,
+                //       Message = "Translation added successfully."
+                //   }
+                //   : new ResponseModel
+                //   {
+                //       Code = StatusCodes.Status500InternalServerError,
+                //       Message = "Failed to save the translation."
+                //   };
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Translation added successfully."
+                };
             }
             catch (Exception ex)
             {

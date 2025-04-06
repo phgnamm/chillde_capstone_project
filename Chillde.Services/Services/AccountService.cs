@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
@@ -7,14 +8,18 @@ using System.Text.Json;
 using AutoMapper;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.SearchModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.AccountModels.OAuth2;
+using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TokenModels;
 using Chillde.Services.Utils;
@@ -36,9 +41,10 @@ public class AccountService : IAccountService
     private readonly IEmailHelper _iIEmailHelper;
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
+    private readonly IShippingAddressService _shippingAddressService;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
-        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork)
+        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork, IShippingAddressService shippingAddressService)
     {
         _claimService = claimService;
         _cloudinaryHelper = cloudinaryHelper;
@@ -47,6 +53,7 @@ public class AccountService : IAccountService
         _mapper = mapper;
         _redisHelper = redisHelper;
         _unitOfWork = unitOfWork;
+        _shippingAddressService = shippingAddressService;
     }
 
     public async Task<ResponseModel> SignUp(AccountSignUpModel accountSignUpModel)
@@ -641,61 +648,60 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> GetAll(AccountFilterModel accountFilterModel)
     {
-        var cacheKey = $"accounts_{CacheTools.GenerateCacheKey(accountFilterModel)}";
-        var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-        {
-            var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
-                account =>
-                    account.IsDeleted == accountFilterModel.IsDeleted &&
-                    (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
-                    (!accountFilterModel.Role.HasValue || account.AccountRoles
-                        .Select(accountRole => accountRole.Role.Name)
-                        .Contains(accountFilterModel.Role.ToString())) &&
-                    (string.IsNullOrWhiteSpace(accountFilterModel.Search) ||
-                     account.FirstName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
-                     account.LastName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
-                     account.Username.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
-                     account.Email.ToLower().Contains(accountFilterModel.Search.ToLower())),
-                accounts =>
-                {
-                    switch (accountFilterModel.Order.ToLower())
-                    {
-                        case "firstName":
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.FirstName)
-                                : accounts.OrderBy(account => account.FirstName);
-                        case "lastName":
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.LastName)
-                                : accounts.OrderBy(account => account.LastName);
-                        case "dateOfBirth":
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.DateOfBirth)
-                                : accounts.OrderBy(account => account.DateOfBirth);
-                        default:
-                            return accountFilterModel.OrderByDescending
-                                ? accounts.OrderByDescending(account => account.CreationDate)
-                                : accounts.OrderBy(account => account.CreationDate);
-                    }
-                },
-                accounts => accounts.Include(account => account.AccountRoles)
-                    .ThenInclude(accountRole => accountRole.Role),
-                accountFilterModel.PageIndex,
-                accountFilterModel.PageSize
-            );
-            var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
-            var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
-                accountFilterModel.PageSize, accounts.TotalCount);
-
-            return new ResponseModel
+        var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
+            account =>
+                account.IsDeleted == accountFilterModel.IsDeleted &&
+                (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
+                (!accountFilterModel.Role.HasValue || account.AccountRoles
+                    .Select(accountRole => accountRole.Role.Name)
+                    .Contains(accountFilterModel.Role.ToString())) &&
+                (string.IsNullOrWhiteSpace(accountFilterModel.Search) ||
+                 account.FirstName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
+                 account.LastName.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
+                 account.Username.ToLower().Contains(accountFilterModel.Search.ToLower()) ||
+                 account.Email.ToLower().Contains(accountFilterModel.Search.ToLower())),
+            accounts =>
             {
-                Message = "Get all accounts successfully",
-                Data = result
-            };
-        });
+                switch (accountFilterModel.Order.ToLower())
+                {
+                    case "firstName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.FirstName)
+                            : accounts.OrderBy(account => account.FirstName);
+                    case "lastName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.LastName)
+                            : accounts.OrderBy(account => account.LastName);
+                    case "dateOfBirth":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.DateOfBirth)
+                            : accounts.OrderBy(account => account.DateOfBirth);
+                    default:
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.CreationDate)
+                            : accounts.OrderBy(account => account.CreationDate);
+                }
+            },
+           accounts => accounts
+            .Include(account => account.AccountRoles)
+                .ThenInclude(accountRole => accountRole.Role)
+            .Include(account => account.Wallet)
+            .Include(account => account.Orders), 
+        accountFilterModel.PageIndex,
+        accountFilterModel.PageSize
+        );
 
-        return responseModel;
+        var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
+            accountFilterModel.PageSize, accounts.TotalCount);
+
+        return new ResponseModel
+        {
+            Message = "Get all accounts successfully",
+            Data = result
+        };
     }
+    
 
     public async Task<ResponseModel> Update(Guid id, AccountUpdateModel accountUpdateModel)
     {
@@ -919,6 +925,8 @@ public class AccountService : IAccountService
             };
         }
 
+        accountBecomeASellerModel.ShippingAddress.IsDefault = true;
+        await _shippingAddressService.AddShippingAddressAsync(accountBecomeASellerModel.ShippingAddress);
         _unitOfWork.AccountRepository.Update(account);
         var currentRoles = await _unitOfWork.RoleRepository.GetAllByAccountIdAsync(id);
         if (currentRoles.All(role => role.Name != Role.Artisan.ToString()))
@@ -1160,5 +1168,127 @@ public class AccountService : IAccountService
         }).ToList();
         return new ResponseModel { Data = searchHistoryModels};
 
+    }
+    public async Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel)
+    {
+        try
+        {
+            var account = await _unitOfWork.AccountRepository.GetAsync(id);
+            if (account == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Account not found."
+                };
+            }
+            Expression<Func<Service, bool>> filter = s => s.CreatedById == id;
+            if (!string.IsNullOrEmpty(filterModel.Search))
+            {
+                var search = filterModel.Search.ToLower();
+                filter = s => s.CreatedBy.Id == id &&
+                              s.Category.Name != null &&
+                              s.Category.Slug != null &&
+                              (s.Category.Name.ToLower().Contains(search) ||
+                               s.Category.Slug.ToLower().Contains(search));
+            }
+            var serviceResult = await _unitOfWork.ServiceRepository.GetAllAsync(
+                filter: filter,
+                include: s => s.Include(x => x.Category),
+                pageIndex: filterModel.PageIndex,
+                pageSize: filterModel.PageSize
+            );
+
+            var categories = serviceResult.Data
+                .GroupBy(s => s.Category.Id)
+                .Select(g => g.First().Category)
+                .Select(c => new CategoryModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Slug = c.Slug,
+                    AttachmentUrl = c.AttachmentUrl,
+                    AttachmentAlt = c.AttachmentAlt,
+                    CreatedById = c.CreatedById,
+                    CreationDate = c.CreationDate,
+                    ModificationDate = c.ModificationDate,
+                    ModifiedById = c.ModifiedById,
+                    DeletionDate = c.DeletionDate,
+                    IsDeleted = c.IsDeleted,
+                })
+                .ToList();
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Get all categories of artisan successfully",
+                Data = categories
+            };
+        }
+        catch (Exception ex)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = $"An error occurred while retrieving categories: {ex.Message}"
+            };
+        }
+    }
+
+    public async Task<ResponseModel> GetDefaultShippingAddress(Guid id)
+    {
+        var account = await _unitOfWork.AccountRepository.GetAsync(id);
+        if (account == null)
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Account not found"
+            };
+
+        var shippingAddress =
+            await _unitOfWork.ShippingAddressRepository.FindDefaultShippingAddressByAccountIdAsync(id);
+        
+        return new ResponseModel()
+        {
+            Message = "Get default shipping address successfully.",
+            Data = _mapper.Map<ShippingAddressModel>(shippingAddress),
+        };
+    }
+
+    public async Task<ResponseModel> BanAccountRole(BanAccountRoleModel request)
+    {
+        var account = await _unitOfWork.AccountRepository.GetAsync(request.AccountId,
+            a => a.Include(x => x.AccountRoles).ThenInclude(ar => ar.Role));
+        if (account == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Account not found"
+            };
+        }
+
+        var accountRole = account.AccountRoles
+            .FirstOrDefault(ar => ar.Role.Name == request.Role.ToString());
+
+        if (accountRole == null)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = $"Role {request.Role} not found for this account"
+            };
+        }
+
+        accountRole.Status = AccountStatus.Suspended;
+        accountRole.ModificationDate = DateTime.UtcNow; 
+
+        _unitOfWork.AccountRepository.Update(account);
+        await _unitOfWork.SaveChangeAsync();
+
+        return new ResponseModel
+        {
+            Code = StatusCodes.Status200OK,
+            Message = $"Role {request.Role} has been banned successfully"
+        };
     }
 }

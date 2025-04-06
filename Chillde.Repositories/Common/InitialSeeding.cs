@@ -2,6 +2,7 @@
 using Chillde.Repositories.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Nest;
 using System.Text.Json;
 
 namespace Chillde.Repositories.Common;
@@ -16,6 +17,12 @@ public static class InitialSeeding
         new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f1"), Name = Enums.Role.Admin.ToString() },
         new() { Id = Guid.Parse("0195a73a-9919-714b-a9ad-29b849e946f7"), Name = Enums.Role.Customer.ToString() },
         new() { Id = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b"), Name = Enums.Role.Artisan.ToString() }
+    };
+    private static readonly List<Entities.Language> Languages = new()
+    {
+        new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f1"), Name = "English", Code = LanguageCode.en },
+        new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f7"), Name = "Việt Nam", Code = LanguageCode.vi },
+
     };
 
     private static readonly List<Wallet> Wallets = new()
@@ -2398,6 +2405,15 @@ public static class InitialSeeding
                 context.SystemConfigs.Add(config);
             }
         }
+        // Seed Language
+        foreach(var language in Languages)
+        {
+            if (!context.Languages.Any(c => c.Id == language.Id))
+            {
+                language.CreationDate = DateTime.UtcNow;
+                context.Languages.Add(language);
+            }
+        }
 
         // Seed Roles
         foreach (var role in Roles)
@@ -2429,7 +2445,7 @@ public static class InitialSeeding
 
         foreach (var accountRole in AccountRoles)
         {
-            if (!context.AccountRoles.Any(c => c.Id == accountRole.Id))
+            if (!context.AccountRoles.Any(c => c.AccountId == accountRole.AccountId && c.RoleId == accountRole.RoleId))
             {
                 accountRole.CreationDate = DateTime.UtcNow;
                 context.AccountRoles.Add(accountRole);
