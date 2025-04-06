@@ -17,7 +17,7 @@ namespace Chillde.Repositories.Models.PackageModels
 
         public Guid? ServiceId { get; set; }
         public Guid? OfferId { get; set; }
-        public List<PackageFeatureModel> PackageFeatures { get; set; }
-        public List<FeatureModel> Features { get; set; }
+        public List<PackageFeatureModel>? PackageFeatures { get; set; }
+        public List<FeatureModel>? Features { get; set; }
     }
 }
