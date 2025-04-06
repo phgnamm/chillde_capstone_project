@@ -281,7 +281,7 @@ namespace Chillde.Services.Services
                 ToProvince = orderAddModel.ToProvince,
                 TotalPrice = totalOrder + (orderAddModel.ShippingPrice ?? 0),
                 DeliveryTime = package.DeliveryTime,
-                ShippingPrice = orderAddModel.ShippingPrice,
+                ShippingPrice = orderAddModel.ShippingPrice ?? 0,
                 OriginPrice = totalOrder,
                 CurrentSketchRevision = package.SketchRevision,
                 AdminCommDefault = adminCommission,
@@ -374,7 +374,7 @@ namespace Chillde.Services.Services
             }
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
-                    .Where(_ => _.PackageFeatureId == pf.Id)
+                    .Where(_ => _.PackageFeatureId == pf.Id)    
                     .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
             );
             var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
@@ -1130,6 +1130,7 @@ namespace Chillde.Services.Services
             order.CancellationReason = cancellationReason;
 
             _unitOfWork.OrderRepository.Update(order);
+            _unitOfWork.AccountRepository.Update(account);
 
             var result = await _unitOfWork.SaveChangeAsync();
 
