@@ -236,7 +236,6 @@ public class AccountController : ControllerBase
         }
     }
     
-    [Authorize]
     [HttpGet("{id}/shipping-addresses/default")]
     public async Task<IActionResult> GetDefaultShippingAddress(Guid id)
     {

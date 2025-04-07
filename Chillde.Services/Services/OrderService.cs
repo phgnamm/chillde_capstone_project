@@ -234,14 +234,15 @@ namespace Chillde.Services.Services
                  .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
                  .ToList();
             
-            foreach (var feature in requiredFeatures)
+            foreach (var feature in orderAddModel.OrderInformationAddModels)
             {
-                var info = orderAddModel.OrderInformationAddModels?
-                    .FirstOrDefault(_ => _.PackageFeatureId == feature.Id);
+                var info = package.PackageFeatures
+                    .FirstOrDefault(_ => _.Id == feature.PackageFeatureId);
 
-                if (info == null || string.IsNullOrWhiteSpace(info.Description))
+                if (info == null || (info.Feature.IsInformationRequired && (info.IsExtra ?? true) &&
+                                     string.IsNullOrWhiteSpace(feature.Description)))
                 {
-                    throw new InvalidOperationException($"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty.");
+                    new InvalidOperationException($"Order description for PackageFeature '{info.Name}' cannot be null or empty.");
                 }
             }
 
