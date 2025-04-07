@@ -254,7 +254,7 @@ public class AccountController : ControllerBase
             });
         }
     }
-    [HttpPost("ban-role")]
+    /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
         try
@@ -270,5 +270,5 @@ public class AccountController : ControllerBase
                 Message = ex.Message
             });
         }
-    }
+    }*/
 }

@@ -22,6 +22,7 @@ namespace Chillde.Services.Models.PackageFeatureModels
 
     public class PackageFeatureAddModelForFeature
     {
+        public Guid? FeatureId { get; set; }
         [Required]
         public string Name { get; set; }
         [Required]
