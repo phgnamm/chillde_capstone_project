@@ -85,8 +85,8 @@ builder.Services.AddSession(options =>
 
 //builder.Services.AddHostedService<WorkerService>();
 //builder.Services.AddHostedService<OrderTrackingReminderService>();
-builder.Services.AddHostedService<OrderReminderService>();
-builder.Services.AddScoped<IOrderReminderService, OrderReminderService>();
+//builder.Services.AddHostedService<OrderReminderService>();
+//builder.Services.AddScoped<IOrderReminderService, OrderReminderService>();
 
 
 var app = builder.Build();

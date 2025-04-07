@@ -28,16 +28,16 @@ namespace Chillde.Services.Services
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceProvider _serviceProvider;
         private readonly ISystemConfigService _systemConfigService;
-        private readonly IOrderReminderService _orderReminderService;
+        //private readonly IOrderReminderService _orderReminderService;
 
-        public OrderTrackingService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceProvider serviceProvider, ISystemConfigService systemConfigService, IOrderReminderService orderReminderService)
+        public OrderTrackingService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceProvider serviceProvider, ISystemConfigService systemConfigService)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _serviceProvider = serviceProvider;
             _systemConfigService = systemConfigService;
-            _orderReminderService = orderReminderService;
+            //_orderReminderService = orderReminderService;
         }
 
         public async Task<ResponseModel> ChangeAccepted(Guid orderTrackingId, bool isAccept)
@@ -63,7 +63,7 @@ namespace Chillde.Services.Services
                     orderTracking.Order.DeadlineMissed = false;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
-                    _orderReminderService.UpdateSchedule();
+                    //_orderReminderService.UpdateSchedule();
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,

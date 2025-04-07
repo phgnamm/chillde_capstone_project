@@ -230,8 +230,10 @@ namespace Chillde.Services.Services
             }
 
             var requiredFeatures = package.PackageFeatures
-                .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
-                .ToList();
+                 .GroupBy(_ => _.FeatureId)
+                 .Select(_ => _.First())
+                 .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
+                 .ToList();
             
             foreach (var feature in requiredFeatures)
             {
