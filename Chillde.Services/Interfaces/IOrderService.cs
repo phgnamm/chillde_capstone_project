@@ -22,6 +22,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddSketch(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
         Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel);
         Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
+        Task<ResponseModel> GetOrderDetail(Guid orderId);
 
     }
 }

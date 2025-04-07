@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Nest;
 
 namespace Chillde.Services.Services
@@ -27,6 +28,7 @@ namespace Chillde.Services.Services
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceProvider _serviceProvider;
         private readonly ISystemConfigService _systemConfigService;
+        //private readonly IOrderReminderService _orderReminderService;
 
         public OrderTrackingService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceProvider serviceProvider, ISystemConfigService systemConfigService)
         {
@@ -35,6 +37,7 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
             _serviceProvider = serviceProvider;
             _systemConfigService = systemConfigService;
+            //_orderReminderService = orderReminderService;
         }
 
         public async Task<ResponseModel> ChangeAccepted(Guid orderTrackingId, bool isAccept)
@@ -60,7 +63,7 @@ namespace Chillde.Services.Services
                     orderTracking.Order.DeadlineMissed = false;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
-
+                    //_orderReminderService.UpdateSchedule();
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -86,8 +89,7 @@ namespace Chillde.Services.Services
                     }
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
-                    var reminderService = _serviceProvider.GetRequiredService<OrderReminderService>();
-                    reminderService.TriggerImmediateCheck();
+                   
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
