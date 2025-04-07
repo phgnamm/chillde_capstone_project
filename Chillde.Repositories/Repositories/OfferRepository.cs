@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Localization;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.PackageModels;
 
 
 namespace Chillde.Repositories.Repositories
@@ -21,43 +23,7 @@ namespace Chillde.Repositories.Repositories
         {
             _context = context;
         }
-        //public async Task<IEnumerable<OfferModel>> GetOffersWithTranslationsAsync(string sourceLanguageCode, List<Guid> offerIds)
-        //{
-        //    if (!Enum.TryParse(sourceLanguageCode, true, out LanguageCode languageCode))
-        //    {
-        //    }
-        //    var result = await _context.Offers
-        //        .Where(o => offerIds.Contains(o.Id))
-        //        .Join(
-        //            _context.Translations,
-        //            offer => offer.Id,
-        //            translation => translation.EntityId,
-        //            (offer, translation) => new { Offer = offer, Translation = translation }
-        //        )
-        //        .Where(joined => joined.Translation.FieldName == "Message" && joined.Translation.EntityType == "Offer"
-        //                         && joined.Translation.Language.Code == languageCode)
-        //        .Select(joined => new OfferModel
-        //        {
-        //            Id = joined.Offer.Id,
-        //            Status = joined.Offer.Status.ToString(),
-        //            Message = string.IsNullOrEmpty(joined.Translation.TranslationText) ? joined.Offer.Message : joined.Translation.TranslationText,
-        //            MinWeight = joined.Offer.MinWeight,
-        //            MaxWeight = joined.Offer.MaxWeight,
-        //            OfferAttachments = joined.Offer.OfferAttachments.ToList(),
-        //            RequestId = joined.Offer.RequestId,
-        //            ServiceId = joined.Offer.ServiceId ?? Guid.Empty,
-        //            CreatedBy = new AccountLiteModel
-        //            {
-        //                Email = joined.Offer.CreatedBy.Email,
-        //                FirstName = joined.Offer.CreatedBy.FirstName,
-        //                LastName = joined.Offer.CreatedBy.LastName,
-        //                Image = joined.Offer.CreatedBy.Image,
-        //            },
-        //        })
-        //        .ToListAsync();
 
-        //    return result;
-        //}
         public async Task<List<Offer>> GetOffersWithTranslationsAsync(string sourceLanguageCode, List<Guid> offerIds)
         {
             if (!Enum.TryParse(sourceLanguageCode, true, out LanguageCode languageCode))
@@ -97,18 +63,18 @@ namespace Chillde.Repositories.Repositories
 
             foreach (var offer in offers)
             {
-                offer.Message = GetTranslation(translationDict, "Offer", offer.Id, "Message", offer.Message);
+                offer.Message = GetTranslation(translationDict, "Offer", offer.Id, "Message", offer.Message!);
 
                 var package = offer.Package!;
-                package.Description = GetTranslation(translationDict, "Package", package.Id, "Description", package.Description);
+                package.Description = GetTranslation(translationDict, "Package", package.Id, "Description", package.Description!);
 
                 foreach (var pf in package.PackageFeatures)
                 {
                     var feature = pf.Feature;
 
-                    feature.Name = GetTranslation(translationDict, "Feature", feature.Id, "Name", feature.Name);
+                    feature.Name = GetTranslation(translationDict, "Feature", feature.Id, "Name", feature.Name!);
                     feature.Question = GetTranslation(translationDict, "Feature", feature.Id, "Question", feature.Question);
-                    pf.Name = GetTranslation(translationDict, "PackageFeature", pf.Id, "Name", pf.Name);
+                    pf.Name = GetTranslation(translationDict, "PackageFeature", pf.Id, "Name", pf.Name!);
                 }
             }
 
@@ -129,35 +95,67 @@ namespace Chillde.Repositories.Repositories
         }
 
 
-        public async Task<OfferModel?> GetOfferAsync(Guid id, string targetLanguageCode)
+        public async Task<Offer> GetOfferAsync(Guid id, string sourceLanguageCode)
         {
-            var query = from offer in _context.Offers
-                        where offer.Id == id
-                        join translation in _context.Translations
-                            on offer.Id equals translation.EntityId into translationGroup
-                        from translation in translationGroup.DefaultIfEmpty()
-                        select new OfferModel
-                        {
-                            Id = offer.Id,
-                            Status = offer.Status.ToString(),
-                            Message = translation != null ? translation.TranslationText : offer.Message,
-                            MinWeight = offer.MinWeight,
-                            MaxWeight = offer.MaxWeight,
-                            OfferAttachments = offer.OfferAttachments.ToList(),
-                            RequestId = offer.RequestId,
-                            ServiceId = offer.ServiceId,
-                            CreatedBy = new AccountLiteModel
-                            {
-                                Email = offer.CreatedBy.Email,
-                                FirstName = offer.CreatedBy.FirstName,
-                                LastName = offer.CreatedBy.LastName,
-                                Image = offer.CreatedBy.Image
-                            },
-                            CreationDate = offer.CreationDate
-                        };
+            if (!Enum.TryParse(sourceLanguageCode, true, out LanguageCode languageCode))
+                languageCode = LanguageCode.en;
 
-            return await query.FirstOrDefaultAsync();
+            var offer = await _context.Offers
+                 .Include(o => o.OfferAttachments)
+                .Include(o => o.CreatedBy)
+                .Include(o => o.Package)
+                    .ThenInclude(p => p.PackageFeatures)
+                        .ThenInclude(pf => pf.Feature)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (offer == null)
+                return null;
+
+            var packageId = offer.Package?.Id;
+            var featureIds = offer.Package?.PackageFeatures.Select(pf => pf.Feature.Id).Distinct().ToList() ?? new();
+            var packageFeatureIds = offer.Package?.PackageFeatures.Select(pf => pf.Id).Distinct().ToList() ?? new();
+
+            var translations = await _context.Translations
+                .Where(t =>
+                    t.Language.Code == languageCode &&
+                    (
+                        (t.EntityType == "Offer" && t.EntityId == offer.Id) ||
+                        (t.EntityType == "Package" && t.EntityId == packageId) ||
+                        (t.EntityType == "Feature" && featureIds.Contains(t.EntityId)) ||
+                        (t.EntityType == "PackageFeature" && packageFeatureIds.Contains(t.EntityId))
+                    )
+                )
+                .ToListAsync();
+
+            var translationDict = translations
+                .GroupBy(t => (t.EntityType, t.EntityId, t.FieldName))
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.First().TranslationText
+                );
+
+            string Translate(string entityType, Guid entityId, string fieldName, string fallback)
+            {
+                return translationDict.TryGetValue((entityType, entityId, fieldName), out var text) ? text : fallback;
+            }
+
+            offer.Message = Translate("Offer", offer.Id, "Message", offer.Message ?? "");
+
+            if (offer.Package != null)
+            {
+                offer.Package.Description = Translate("Package", offer.Package.Id, "Description", offer.Package.Description ?? "");
+
+                foreach (var pf in offer.Package.PackageFeatures)
+                {
+                    var feature = pf.Feature;
+                    feature.Name = Translate("Feature", feature.Id, "Name", feature.Name ?? "");
+                    feature.Question = Translate("Feature", feature.Id, "Question", feature.Question ?? "");
+                    pf.Name = Translate("PackageFeature", pf.Id, "Name", pf.Name ?? "");
+                }
+            }
+            return offer;
         }
+
 
         public async Task<bool> RequestHasOffered(Guid id)
         {
