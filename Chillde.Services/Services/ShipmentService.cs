@@ -109,7 +109,26 @@ namespace Chillde.Services.Services
         public async Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder)
         {
             var url = $"{_ghtkUrl}/shipment/cancel/{trackingOrder}";
-
+            var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+            if (shipment == null)
+            {
+                return new CancelShipmentResponseModel
+                {
+                    Success = false,
+                    Message = "Shipment not found.",
+                    LogId = null
+                };
+            }
+            var cancellableStatuses = new[] { ShipmentStatus.NotReceived, ShipmentStatus.Received, ShipmentStatus.PickupArranging };
+            if (!cancellableStatuses.Contains(shipment.CurrentStatusId))
+            {
+                return new CancelShipmentResponseModel
+                {
+                    Success = false,
+                    Message = "Shipment cannot be cancelled at this status.",
+                    LogId = null
+                };
+            }
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             try
             {
@@ -119,7 +138,7 @@ namespace Chillde.Services.Services
                 var content = await response.Content.ReadAsStringAsync();
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
 
-                var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+               //var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
                 shipment!.CurrentStatusId = ShipmentStatus.Cancelled;
 
                 var statusHistory = new ShipmentStatusHistory
