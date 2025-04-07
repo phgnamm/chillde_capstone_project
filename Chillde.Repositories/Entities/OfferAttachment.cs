@@ -1,4 +1,6 @@
-﻿namespace Chillde.Repositories.Entities;
+﻿using System.Text.Json.Serialization;
+
+namespace Chillde.Repositories.Entities;
 
 public class OfferAttachment : BaseEntity
 {
@@ -7,7 +9,8 @@ public class OfferAttachment : BaseEntity
     
     // Foreign key
     public Guid OfferId { get; set; }
-    
+
     // Relationship
+    [JsonIgnore]
     public Offer Offer { get; set; } = null!;  
 }

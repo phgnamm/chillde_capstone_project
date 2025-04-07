@@ -28,6 +28,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Services.Models.OrderTrackingModels;
 using Chillde.Services.Models.CategoryModels;
+using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
 {
@@ -230,17 +231,18 @@ namespace Chillde.Services.Services
             }
 
             var requiredFeatures = package.PackageFeatures
-                .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
-                .ToList();
+                 .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
+                 .ToList();
             
-            foreach (var feature in requiredFeatures)
+            foreach (var feature in orderAddModel.OrderInformationAddModels)
             {
-                var info = orderAddModel.OrderInformationAddModels?
-                    .FirstOrDefault(_ => _.PackageFeatureId == feature.Id);
+                var info = package.PackageFeatures
+                    .FirstOrDefault(_ => _.Id == feature.PackageFeatureId);
 
-                if (info == null || string.IsNullOrWhiteSpace(info.Description))
+                if (info == null || (info.Feature.IsInformationRequired && (info.IsExtra ?? true) &&
+                                     string.IsNullOrWhiteSpace(feature.Description)))
                 {
-                    throw new InvalidOperationException($"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty.");
+                    new InvalidOperationException($"Order description for PackageFeature '{info.Name}' cannot be null or empty.");
                 }
             }
 
@@ -282,7 +284,7 @@ namespace Chillde.Services.Services
                 ToProvince = orderAddModel.ToProvince,
                 TotalPrice = totalOrder + (orderAddModel.ShippingPrice ?? 0),
                 DeliveryTime = package.DeliveryTime,
-                ShippingPrice = orderAddModel.ShippingPrice,
+                ShippingPrice = orderAddModel.ShippingPrice ?? 0,
                 OriginPrice = totalOrder,
                 CurrentSketchRevision = package.SketchRevision,
                 AdminCommDefault = adminCommission,
@@ -375,7 +377,7 @@ namespace Chillde.Services.Services
             }
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
-                    .Where(_ => _.PackageFeatureId == pf.Id)
+                    .Where(_ => _.PackageFeatureId == pf.Id)    
                     .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
             );
             var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
@@ -868,30 +870,55 @@ namespace Chillde.Services.Services
                     Message = "Unauthorized"
                 };
             }
-            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
-                filter: _ => (_.Package.CreatedById == currentUserId.Value) || (_.CreatedById == currentUserId.Value) || (orderFilterModel.Status.HasValue && _.Status == orderFilterModel.Status),
-                include: _ => _.Include(_ => _.Package),
-                order: _ =>
+
+            Func<IQueryable<Repositories.Entities.Order>, IOrderedQueryable<Repositories.Entities.Order>> orderBy = _ =>
+            {
+                switch (orderFilterModel.Order?.ToLower())
                 {
-                    switch (orderFilterModel.Order.ToLower())
-                    {
                     case "recentdays":
-                            return orderFilterModel.OrderByDescending
-                                ? _.OrderByDescending(account => account.CreationDate)
-                                : _.OrderBy(account => account.CreationDate);
+                        return orderFilterModel.OrderByDescending
+                            ? _.OrderByDescending(_ => _.CreationDate)
+                            : _.OrderBy(_ => _.CreationDate);
                     case "olddays":
-                            return orderFilterModel.OrderByDescending
-                                ? _.OrderBy(account => account.CreationDate)
-                                : _.OrderByDescending(account => account.CreationDate);
+                        return orderFilterModel.OrderByDescending
+                            ? _.OrderBy(_ => _.CreationDate)
+                            : _.OrderByDescending(_ => _.CreationDate);
                     default:
-                            return orderFilterModel.OrderByDescending
-                                 ? _.OrderByDescending(account => account.CreationDate)
-                                 : _.OrderBy(account => account.CreationDate);
-                    }
-                },
+                        return orderFilterModel.OrderByDescending
+                            ? _.OrderByDescending(_ => _.CreationDate)
+                            : _.OrderBy(_ => _.CreationDate);
+                }
+            };
+
+            Expression<Func<Repositories.Entities.Order, bool>> filter = _ => true;
+
+            if (orderFilterModel.Role == Repositories.Enums.Role.Customer)
+            {
+                filter = _ => _.CreatedById == currentUserId.Value &&
+                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status);
+            }
+            else if (orderFilterModel.Role == Repositories.Enums.Role.Artisan)
+            {
+                filter = _ => _.Package.Service.CreatedById == currentUserId.Value &&
+                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status);
+            }
+            else
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid role"
+                };
+            }
+
+            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
+                filter: filter,
+                include: _ => _.Include(_ => _.Package).ThenInclude(_ => _.Service),
+                order: orderBy,
                 pageIndex: orderFilterModel.PageIndex,
-                pageSize: orderFilterModel.PageSize              
-                );
+                pageSize: orderFilterModel.PageSize
+            );
+
             var orderModels = orders.Data.Select(_ => new OrderModel
             {
                 Id = _.Id,
@@ -902,22 +929,26 @@ namespace Chillde.Services.Services
                 ToWard = _.ToWard,
                 TotalPrice = _.TotalPrice,
                 PackagePrice = _.OriginPrice,
-                PackageName = _.Package.Name.ToString(),
+                PackageName = _.Package?.Name.ToString() ?? string.Empty,
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
-                Status = _.Status,
-
+                Status = _.Status
             }).ToList();
-            var result = new Pagination<OrderModel>(orderModels, orderFilterModel.PageIndex,
-                        orderFilterModel.PageSize, orders.Data.Count);
+
+            var result = new Pagination<OrderModel>(
+                orderModels,
+                orderFilterModel.PageIndex,
+                orderFilterModel.PageSize,
+                orders.Data.Count
+            );
 
             return new ResponseModel
             {
                 Message = "Get all orders successfully",
                 Data = result
             };
-
         }
+
         public async Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel)
         {
     
@@ -1205,6 +1236,7 @@ namespace Chillde.Services.Services
             order.CancellationReason = cancellationReason;
 
             _unitOfWork.OrderRepository.Update(order);
+            _unitOfWork.AccountRepository.Update(account);
 
             var result = await _unitOfWork.SaveChangeAsync();
 
@@ -1572,6 +1604,110 @@ namespace Chillde.Services.Services
             catch (Exception ex)
             {
                 throw;
+            }
+        }
+
+        public async Task<ResponseModel> GetOrderDetail(Guid orderId)
+        {
+            try
+            {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
+
+                var order = await _unitOfWork.OrderRepository.GetAsync(
+                    orderId,
+                    include: _ => _
+                        .Include(_ => _.CancellationReason)
+                        .Include(_ => _.CreatedBy)
+                        .Include(_ => _.Package.PackageFeatures).ThenInclude(_ => _.Feature)
+                        .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher)
+                        .Include(_ => _.OrderInformations).ThenInclude(_ => _.OrderInformationAttachments)
+                );
+
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found"
+                    };
+                }
+
+                var model = new OrderDetailModel
+                {
+                    Id = order.Id,
+                    Code = order.Code,
+                    PackageName = order.Package?.Name.ToString() ?? string.Empty,
+                    CustomerName = order.CreatedBy.FirstName +  " " + order.CreatedBy.LastName,
+                    CustomerPhone = order.Phone,
+                    CustomerAddress = order.Address,
+                    Ward = order.ToWard,
+                    District = order.ToDistrict.ToString(),
+                    Province = order.ToProvince,
+                    Quantity = order.Quantity ?? 1,
+                    ShipmentCode = order.ShipmentCode,
+                    DeliveryTime = order.DeliveryTime,
+                    StartTime = order.StartTime,
+                    Stage = order.Stage,
+                    Status = order.Status,
+                    OriginPrice = (decimal)order.OriginPrice,
+                    TotalPrice = (decimal)order.TotalPrice,
+                    ShippingPrice = (decimal)order.ShippingPrice,
+                    AfterApplyVoucherPrice = (decimal)order.AfterApplyVoucherPrice,
+                    ArtistRevenueAfterCancel = order.ArtistRevenueAfterCancel,
+                    AdminCommUsedVch = order.AdminCommUsedVch,
+                    AdminCommDefault = order.AdminCommDefault,
+                    ArtistRevenue = order.ArtistRevenue,
+                    VoucherCost = order.VoucherCost,
+                    CurrentSketchRevision = (int)order.CurrentSketchRevision,
+                    CancelOrderReason = order.CancellationReason?.Name ?? null,
+                    AutoCancelOrderReason = order.CancelOrderReason?.ToString(),
+                    CreationDate = order.CreationDate,
+                    VoucherUsages = order.VoucherUsageLogs?.Select(_ => new VoucherUsageModel
+                    {
+                        Id = _.Id,
+                        VoucherId = _.Voucher.Id,
+                        DiscountValue = _.DiscountValue,
+                        DiscountOriginalValue = _.DiscountValueOrigin,
+                        UsageStatus = _.UsageStatus,
+                        CreationDate = _.CreationDate,
+                    }).ToList(),
+
+                    OrderInformation = order.OrderInformations?.Select(_ => new OrderInformationModel
+                    {
+                        Id = _.Id,
+                        FeatureId = _.PackageFeature?.Feature?.Id ?? Guid.Empty,
+                        FeatureName = _.PackageFeature?.Feature?.Name ?? string.Empty,
+                        Description = _.Description,
+                        Quantity = (int)_.Quantity,
+                        Price = (decimal)_.Price,
+                        Attachments = _.OrderInformationAttachments?.Select(att => new OrderAttachmentModel
+                        {
+                            Id = att.Id,
+                            AttachmentUrl = att.AttachmentUrl,
+                            AttachmentAlt = att.AttachmentAlt
+                        }).ToList()
+                    }).ToList()
+
+                };
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Get order detail successfully",
+                    Data = model
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 

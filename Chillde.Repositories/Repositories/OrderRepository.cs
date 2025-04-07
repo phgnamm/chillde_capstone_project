@@ -69,14 +69,14 @@ namespace Chillde.Repositories.Repositories
         public async Task<IEnumerable<Order>> GetOrderInDeliveryProcess(CancellationToken stoppingToken)
         {
             var orders = await _dbSet
-                        .Where(o => o.Stage == OrderStage.DeliveryInProcess && o.StartTime.HasValue && o.DeliveryTime.HasValue)
+                         .Where(o => o.Stage == OrderStage.DeliveryInProcess && o.StartTime.HasValue && o.DeliveryTime.HasValue)
                          .Include(_ => _.Package)
-                         .ThenInclude(_ => _.Service)
-                         .Include(_ => _.CreatedBy)
-                             .ThenInclude(_ => _.Wallet)
-                             .Include(_ => _.CreatedBy)
-                             .ThenInclude(_ => _.AccountRoles)
-                         .Include(_ => _.OrderTrackings)
+                        .ThenInclude(_ => _.Service)
+                        .ThenInclude(_ => _.CreatedBy).ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Role)
+                        .Include(_ => _.CreatedBy)
+                        .ThenInclude(_ => _.Wallet)
+                        .Include(_ => _.CreatedBy)
+                        .Include(_ => _.OrderTrackings)
                         .ToListAsync(stoppingToken);
             return orders;
         }

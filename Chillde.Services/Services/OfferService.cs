@@ -13,6 +13,9 @@ using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.AccountModels;
 using Microsoft.EntityFrameworkCore;
 using Chillde.Services.Models.TranslationModels;
+using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
 
 
 namespace Chillde.Services.Services
@@ -47,15 +50,15 @@ namespace Chillde.Services.Services
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
                         (!filterParameter.ItemId.HasValue ||
-                         offer.Request!.CategoryId == filterParameter.ItemId) &&
+                        offer.Request!.CategoryId == filterParameter.ItemId) &&
                         (!filterParameter.MinPrice.HasValue ||
-                         offer.Service.Packages.Any(p => p.Price >= filterParameter.MinPrice)) &&
+                        (offer.Package != null && offer.Package.Price >= filterParameter.MinPrice)) &&
                         (!filterParameter.MaxPrice.HasValue ||
-                         offer.Service.Packages.Any(p => p.Price <= filterParameter.MaxPrice)) &&
+                        (offer.Package != null && offer.Package.Price <= filterParameter.MaxPrice)) &&
                         (!filterParameter.MinDeliveryTime.HasValue ||
-                         offer.Service.Packages.Any(p => p.DeliveryTime >= filterParameter.MinDeliveryTime)) &&
+                        (offer.Package != null && offer.Package.DeliveryTime >= filterParameter.MinDeliveryTime)) &&
                         (!filterParameter.MaxDeliveryTime.HasValue ||
-                         offer.Service.Packages.Any(p => p.DeliveryTime <= filterParameter.MaxDeliveryTime)) &&
+                        (offer.Package != null && offer.Package.DeliveryTime <= filterParameter.MaxDeliveryTime)) &&
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (offer.RequestId == requestId) &&
@@ -78,14 +81,14 @@ namespace Chillde.Services.Services
                                     : offers.OrderBy(offer => offer.CreationDate);
                         }
                     },
-                    include: o => o.Include(_ => _.CreatedBy).Include(_ => _.Service).Include(_ => _.Request),
+                    include: o => o.Include(_ => _.CreatedBy).Include(_ => _.Service).Include(_ => _.Request).Include(_ => _.Package).ThenInclude(_ => _.PackageFeatures).ThenInclude(_ => _.Feature),
                     filterParameter.PageIndex,
                     filterParameter.PageSize
                 );
                 var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
                 List<OfferModel> localizedOffers;
 
-                if (sourceLanguageCode != "en")
+                if (sourceLanguageCode != "vi")
                 {
                     var offersWithTranslations =
                         await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(sourceLanguageCode, offerIds);
@@ -96,9 +99,43 @@ namespace Chillde.Services.Services
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments.ToList(),
+                        OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
+                        Package = new PackageModel
+                        {
+                            Name = offer.Package!.Name.ToString(),
+                            Description = offer.Package!.Description,
+                            Price = offer.Package!.Price,
+                            DeliveryTime = offer.Package!.DeliveryTime,
+                            MaxQuantity = offer.Package!.MaxQuantity,
+                            SketchRevision = offer.Package!.SketchRevision,
+                            //ResponseTime = offer.Package!.ResponseTime,
+                            Features = offer.Package.PackageFeatures?
+            .Select(pf => pf.Feature)
+            .Distinct()
+            .Select(feature => new FeatureModel
+            {
+                Id = feature.Id,
+                Name = feature.Name,
+                Question = feature.Question,
+                QuestionType = feature.QuestionType,
+                IsInformationRequired = feature.IsInformationRequired,
+                IsQuantity = feature.IsQuantity,
+                PackageFeatures = offer.Package.PackageFeatures
+                    .Where(pf => pf.FeatureId == feature.Id)
+                    .Select(pf => new PackageFeature
+                    {
+                        Id = pf.Id,
+                        Name = pf.Name,
+                        AdditionalCost = pf.AdditionalCost,
+                        AdditionalDay = pf.AdditionalDay,
+                        IsExtra = pf.IsExtra,
+                        IsChecked = pf.IsChecked,
+                        MaxQuantity = pf.MaxQuantity,
+                    }).ToList()
+            }).ToList()
+                        },
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
@@ -109,18 +146,53 @@ namespace Chillde.Services.Services
                         CreationDate = offer.CreationDate
                     }).ToList();
                 }
+
                 else
                 {
                     localizedOffers = offersResult.Data.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
-                        Status = _localizer[offer.Status.ToString()],
+                        Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments.ToList(),
+                        OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
+                        Package = new PackageModel
+                        {
+                            Name = offer.Package!.Name.ToString(),
+                            Description = offer.Package!.Description,
+                            Price = offer.Package!.Price,
+                            DeliveryTime = offer.Package!.DeliveryTime,
+                            MaxQuantity = offer.Package!.MaxQuantity,
+                            SketchRevision = offer.Package!.SketchRevision,
+                            //ResponseTime = offer.Package!.ResponseTime,
+                            Features = offer.Package.PackageFeatures?
+            .Select(pf => pf.Feature)
+            .Distinct()
+            .Select(feature => new FeatureModel
+            {
+                Id = feature.Id,
+                Name = feature.Name,
+                Question = feature.Question,
+                QuestionType = feature.QuestionType,
+                IsInformationRequired = feature.IsInformationRequired,
+                IsQuantity = feature.IsQuantity,
+                PackageFeatures = offer.Package.PackageFeatures
+                    .Where(pf => pf.FeatureId == feature.Id)
+                    .Select(pf => new PackageFeature
+                    {
+                        Id = pf.Id,
+                        Name = pf.Name,
+                        AdditionalCost = pf.AdditionalCost,
+                        AdditionalDay = pf.AdditionalDay,
+                        IsExtra = pf.IsExtra,
+                        IsChecked = pf.IsChecked,
+                        MaxQuantity = pf.MaxQuantity,
+                    }).ToList()
+            }).ToList()
+                        },
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
@@ -178,7 +250,7 @@ namespace Chillde.Services.Services
                     Message = offer.Message,
                     MinWeight = offer.MinWeight,
                     MaxWeight = offer.MaxWeight,
-                    OfferAttachments = offer.OfferAttachments.ToList(),
+                    OfferAttachments = offer.OfferAttachments?.ToList(),
                     RequestId = offer.RequestId,
                     ServiceId = offer.ServiceId,
                     CreatedBy = new AccountLiteModel
