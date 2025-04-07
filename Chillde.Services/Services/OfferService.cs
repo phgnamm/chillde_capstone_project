@@ -104,43 +104,37 @@ namespace Chillde.Services.Services
                         ServiceId = offer.ServiceId,
                         Package = new PackageModel
                         {
-                            Name = offer.Package!.Name,
+                            Name = offer.Package!.Name.ToString(),
                             Description = offer.Package!.Description,
                             Price = offer.Package!.Price,
                             DeliveryTime = offer.Package!.DeliveryTime,
                             MaxQuantity = offer.Package!.MaxQuantity,
                             SketchRevision = offer.Package!.SketchRevision,
-                            ResponseTime = offer.Package!.ResponseTime,
-                            Features = offer.Package.Features?
-             .Select(f => new FeatureModel
-             {
-                 Id = f.Id,
-                 Name = f.Name,
-                 Question = f.Question,
-                 QuestionType = f.QuestionType,
-                 IsInformationRequired = f.IsInformationRequired,
-                 IsQuantity = f.IsQuantity,
-                 PackageFeatures = f.PackageFeatures != null && f.PackageFeatures.Any()
-                     ? new List<PackageFeature>
-                     {
-                        f.PackageFeatures
-                            .Where(pf => pf.PackageId == offer.Package.Id)
-                            .Select(pf => new PackageFeature
-                            {
-                                Id = pf.Id,
-                                Name = pf.Name,
-                                AdditionalCost = pf.AdditionalCost,
-                                AdditionalDay = pf.AdditionalDay,
-                                IsExtra = pf.IsExtra,
-                                IsChecked = pf.IsChecked,
-                                MaxQuantity = pf.MaxQuantity,
-                                PackageId = pf.PackageId,
-                                FeatureId = pf.FeatureId
-                            }).FirstOrDefault()!
-                     }
-                     : new List<PackageFeature>()
-             })
-                     .ToList()
+                            //ResponseTime = offer.Package!.ResponseTime,
+                            Features = offer.Package.PackageFeatures?
+            .Select(pf => pf.Feature)
+            .Distinct()
+            .Select(feature => new FeatureModel
+            {
+                Id = feature.Id,
+                Name = feature.Name,
+                Question = feature.Question,
+                QuestionType = feature.QuestionType,
+                IsInformationRequired = feature.IsInformationRequired,
+                IsQuantity = feature.IsQuantity,
+                PackageFeatures = offer.Package.PackageFeatures
+                    .Where(pf => pf.FeatureId == feature.Id)
+                    .Select(pf => new PackageFeature
+                    {
+                        Id = pf.Id,
+                        Name = pf.Name,
+                        AdditionalCost = pf.AdditionalCost,
+                        AdditionalDay = pf.AdditionalDay,
+                        IsExtra = pf.IsExtra,
+                        IsChecked = pf.IsChecked,
+                        MaxQuantity = pf.MaxQuantity,
+                    }).ToList()
+            }).ToList()
                         },
                         CreatedBy = new AccountLiteModel
                         {
@@ -158,13 +152,47 @@ namespace Chillde.Services.Services
                     localizedOffers = offersResult.Data.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
-                        Status = _localizer[offer.Status.ToString()],
+                        Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments.ToList(),
+                        OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
+                        Package = new PackageModel
+                        {
+                            Name = offer.Package!.Name.ToString(),
+                            Description = offer.Package!.Description,
+                            Price = offer.Package!.Price,
+                            DeliveryTime = offer.Package!.DeliveryTime,
+                            MaxQuantity = offer.Package!.MaxQuantity,
+                            SketchRevision = offer.Package!.SketchRevision,
+                            //ResponseTime = offer.Package!.ResponseTime,
+                            Features = offer.Package.PackageFeatures?
+            .Select(pf => pf.Feature)
+            .Distinct()
+            .Select(feature => new FeatureModel
+            {
+                Id = feature.Id,
+                Name = feature.Name,
+                Question = feature.Question,
+                QuestionType = feature.QuestionType,
+                IsInformationRequired = feature.IsInformationRequired,
+                IsQuantity = feature.IsQuantity,
+                PackageFeatures = offer.Package.PackageFeatures
+                    .Where(pf => pf.FeatureId == feature.Id)
+                    .Select(pf => new PackageFeature
+                    {
+                        Id = pf.Id,
+                        Name = pf.Name,
+                        AdditionalCost = pf.AdditionalCost,
+                        AdditionalDay = pf.AdditionalDay,
+                        IsExtra = pf.IsExtra,
+                        IsChecked = pf.IsChecked,
+                        MaxQuantity = pf.MaxQuantity,
+                    }).ToList()
+            }).ToList()
+                        },
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
