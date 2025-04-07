@@ -230,9 +230,10 @@ namespace Chillde.Services.Services
             var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
             Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+
             try
             {
-                var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, targetLanguageCode);
+                var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, sourceLanguageCode);
 
                 if (offer == null)
                 {
@@ -243,7 +244,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var result = new OfferModel
+                var offerModel = new OfferModel
                 {
                     Id = offer.Id,
                     Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
@@ -260,14 +261,48 @@ namespace Chillde.Services.Services
                         LastName = offer.CreatedBy.LastName,
                         Image = offer.CreatedBy.Image
                     },
-                    CreationDate = offer.CreationDate
+                    CreationDate = offer.CreationDate,
+                    Package = offer.Package == null ? null : new PackageModel
+                    {
+                        Name = offer.Package.Name.ToString(),
+                        Description = offer.Package.Description,
+                        Price = offer.Package.Price,
+                        DeliveryTime = offer.Package.DeliveryTime,
+                        MaxQuantity = offer.Package.MaxQuantity,
+                        SketchRevision = offer.Package.SketchRevision,
+                        //ResponseTime = offer.Package.ResponseTime,
+                        Features = offer.Package.PackageFeatures?
+                            .Select(pf => pf.Feature)
+                            .Distinct()
+                            .Select(feature => new FeatureModel
+                            {
+                                Id = feature.Id,
+                                Name = feature.Name,
+                                Question = feature.Question,
+                                QuestionType = feature.QuestionType,
+                                IsInformationRequired = feature.IsInformationRequired,
+                                IsQuantity = feature.IsQuantity,
+                                PackageFeatures = offer.Package.PackageFeatures
+                                    .Where(pf => pf.FeatureId == feature.Id)
+                                    .Select(pf => new PackageFeature
+                                    {
+                                        Id = pf.Id,
+                                        Name = pf.Name,
+                                        AdditionalCost = pf.AdditionalCost,
+                                        AdditionalDay = pf.AdditionalDay,
+                                        IsExtra = pf.IsExtra,
+                                        IsChecked = pf.IsChecked,
+                                        MaxQuantity = pf.MaxQuantity,
+                                    }).ToList()
+                            }).ToList()
+                    }
                 };
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Offer retrieved successfully.",
-                    Data = result
+                    Data = offerModel
                 };
             }
             catch (Exception ex)
@@ -338,7 +373,7 @@ namespace Chillde.Services.Services
 
                 Dictionary<string, string> textsToTranslate = new Dictionary<string, string>
         {
-            { "Message", model.Message }
+            { "Offer.Message", model.Message }
         };
 
                 Package? newPackage = null;
