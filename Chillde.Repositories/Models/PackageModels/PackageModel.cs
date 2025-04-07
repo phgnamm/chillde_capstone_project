@@ -7,7 +7,7 @@ namespace Chillde.Repositories.Models.PackageModels
 {
     public class PackageModel : BaseEntity
     {
-        public PackageName Name { get; set; }
+        public string? Name { get; set; }
         public string? Description { get; set; }
         public decimal? Price { get; set; }
         public int? DeliveryTime { get; set; }

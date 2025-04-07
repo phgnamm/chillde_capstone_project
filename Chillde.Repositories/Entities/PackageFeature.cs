@@ -15,7 +15,9 @@ public class PackageFeature : BaseEntity
     #endregion
 
     // Foreign key
+    [JsonIgnore]
     public Guid? PackageId { get; set; }
+    [JsonIgnore]
     public Guid FeatureId { get; set; }
 
     // Relationship
