@@ -15,6 +15,7 @@ public class Offer : BaseEntity
 
     // Relationship
     public Account CreatedBy { get; set; } = null!;
+    public Package? Package { get; set; }
     public Request? Request { get; set; }
     public Service? Service { get; set; }
     public virtual ICollection<OfferAttachment> OfferAttachments { get; set; } = new List<OfferAttachment>();

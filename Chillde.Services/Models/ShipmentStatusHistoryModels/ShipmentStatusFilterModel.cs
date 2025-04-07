@@ -9,7 +9,6 @@ namespace Chillde.Services.Models.ShipmentStatusHistoryModels
 {
     public class ShipmentStatusFilterModel: FilterParameter
     {
-        public required string PartnerId { get; set; }
-        public required string Label { get; set; }
+       
     }
 }

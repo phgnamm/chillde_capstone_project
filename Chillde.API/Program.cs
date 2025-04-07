@@ -84,8 +84,11 @@ builder.Services.AddSession(options =>
 });
 
 //builder.Services.AddHostedService<WorkerService>();
-// builder.Services.AddHostedService<OrderTrackingReminderService>();
-// builder.Services.AddHostedService<OrderReminderService>();
+//builder.Services.AddHostedService<OrderTrackingReminderService>();
+//builder.Services.AddHostedService<OrderReminderService>();
+//builder.Services.AddScoped<IOrderReminderService, OrderReminderService>();
+
+
 var app = builder.Build();
 
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);

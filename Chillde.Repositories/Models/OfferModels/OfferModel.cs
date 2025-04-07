@@ -1,6 +1,8 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.PackageModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +19,8 @@ namespace Chillde.Repositories.Models.OfferModels
         public float? MaxWeight { get; set; }
         public Guid? RequestId { get; set; }
         public Guid? ServiceId { get; set; }
-        public ICollection<OfferAttachment> OfferAttachments { get; set; } = new List<OfferAttachment>();
+        public List<OfferAttachment>? OfferAttachments { get; set; }
+        public PackageModel? Package { get; set; }
         public required AccountLiteModel CreatedBy { get; set; }
     }
 }

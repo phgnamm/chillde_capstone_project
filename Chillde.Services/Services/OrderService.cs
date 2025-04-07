@@ -27,6 +27,7 @@ using AutoMapper;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Services.Models.OrderTrackingModels;
+using Chillde.Services.Models.CategoryModels;
 
 namespace Chillde.Services.Services
 {
@@ -228,30 +229,20 @@ namespace Chillde.Services.Services
 
             }
 
-            // var requiredFeatures = package.PackageFeatures
-            //     .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
-            //     .ToList();
+            var requiredFeatures = package.PackageFeatures
+                 .GroupBy(_ => _.FeatureId)
+                 .Select(_ => _.First())
+                 .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
+                 .ToList();
             
-            // foreach (var feature in requiredFeatures)
-            // {
-            //     var info = orderAddModel.OrderInformationAddModels?
-            //         .FirstOrDefault(_ => _.PackageFeatureId == feature.Id);
-            //
-            //     if (info == null || string.IsNullOrWhiteSpace(info.Description))
-            //     {
-            //         throw new InvalidOperationException($"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty.");
-            //     }
-            // }
-            
-            foreach (var feature in orderAddModel.OrderInformationAddModels)
+            foreach (var feature in requiredFeatures)
             {
-                var info = package.PackageFeatures
-                    .FirstOrDefault(_ => _.Id == feature.PackageFeatureId);
+                var info = orderAddModel.OrderInformationAddModels?
+                    .FirstOrDefault(_ => _.PackageFeatureId == feature.Id);
 
-                if (info == null || (info.Feature.IsInformationRequired && (info.IsExtra ?? true) &&
-                     string.IsNullOrWhiteSpace(feature.Description)))
+                if (info == null || string.IsNullOrWhiteSpace(info.Description))
                 {
-                    new InvalidOperationException($"Order description for PackageFeature '{info.Name}' cannot be null or empty.");
+                    throw new InvalidOperationException($"Order description for PackageFeature '{feature.Feature.Name}' cannot be null or empty.");
                 }
             }
 
@@ -293,7 +284,7 @@ namespace Chillde.Services.Services
                 ToProvince = orderAddModel.ToProvince,
                 TotalPrice = totalOrder + (orderAddModel.ShippingPrice ?? 0),
                 DeliveryTime = package.DeliveryTime,
-                ShippingPrice = orderAddModel.ShippingPrice,
+                ShippingPrice = orderAddModel.ShippingPrice ?? 0,
                 OriginPrice = totalOrder,
                 CurrentSketchRevision = package.SketchRevision,
                 AdminCommDefault = adminCommission,
@@ -386,7 +377,7 @@ namespace Chillde.Services.Services
             }
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
-                    .Where(_ => _.PackageFeatureId == pf.Id)
+                    .Where(_ => _.PackageFeatureId == pf.Id)    
                     .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
             );
             var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
@@ -678,15 +669,15 @@ namespace Chillde.Services.Services
                     //return_district = shipmentCreateModel.ReturnDistrict,
                     //return_tel = shipmentCreateModel.ReturnTel,
                     //return_email = shipmentCreateModel.ReturnEmail,
-                    is_freeship = shipmentCreateModel.IsFreeShip,
-                    pick_date = shipmentCreateModel.PickDate,
-                    deliver_date = shipmentCreateModel.DeliverDate,
-                    pick_money = shipmentCreateModel.PickMoney,
+                    is_freeship = /*shipmentCreateModel.IsFreeShip*/1,
+                   /* pick_date = shipmentCreateModel.PickDate,
+                    deliver_date = shipmentCreateModel.DeliverDate,*/
+                    pick_money = /*shipmentCreateModel.PickMoney*/0,
                     note = shipmentCreateModel.Note,
                     value = shipmentCreateModel.Value,
-                    transport = shipmentCreateModel.Transport,
-                    pick_option = shipmentCreateModel.PickOption,
-                    deliver_option = shipmentCreateModel.DeliverOption,
+                    transport = /*shipmentCreateModel.Transport*/"road",
+                    pick_option = /*shipmentCreateModel.PickOption*/"cod",
+                    deliver_option = /*shipmentCreateModel.DeliverOption*/"none",
                     tags = shipmentCreateModel.Tags
                 }
             }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
@@ -725,6 +716,20 @@ namespace Chillde.Services.Services
                     EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
                     EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
                 };
+                if (parsedJson?.Order?.Products != null && parsedJson.Order.Products.Any())
+                {
+                    foreach (var product in parsedJson.Order.Products)
+                    {
+                        shipment.ProductShipments.Add(new ProductShipment
+                        {
+                            ShipmentId = shipment.Id,  
+                            Name = product.Name ?? string.Empty,
+                            Weight = (decimal)product.Weight,
+                            Quantity = product.Quantity,
+                            ProductCode = product.ProductCode.ToString() 
+                        });
+                    }
+                }
                 shipment.ShipmentStatusHistorys.Add(new ShipmentStatusHistory
                 {
                     ShipmentId = shipment.Id, 
@@ -915,7 +920,61 @@ namespace Chillde.Services.Services
             };
 
         }
+        public async Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel)
+        {
+    
+            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
+                filter: _ =>
+                (orderFilterModel.IsDeleted == _.IsDeleted) && 
+                (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status),
+                include: _ => _.Include(_ => _.Package),
+                order: _ =>
+                {
+                    switch (orderFilterModel.Order.ToLower())
+                    {
+                        case "recentdays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderByDescending(account => account.CreationDate)
+                                : _.OrderBy(account => account.CreationDate);
+                        case "olddays":
+                            return orderFilterModel.OrderByDescending
+                                ? _.OrderBy(account => account.CreationDate)
+                                : _.OrderByDescending(account => account.CreationDate);
+                        default:
+                            return orderFilterModel.OrderByDescending
+                                 ? _.OrderByDescending(account => account.CreationDate)
+                                 : _.OrderBy(account => account.CreationDate);
+                    }
+                },
+                pageIndex: orderFilterModel.PageIndex,
+                pageSize: orderFilterModel.PageSize
+                );
+            var orderModels = orders.Data.Select(_ => new OrderModel
+            {
+                Id = _.Id,
+                Phone = _.Phone,
+                Address = _.Address,
+                ToDistrict = _.ToDistrict,
+                ToProvince = _.ToProvince,
+                ToWard = _.ToWard,
+                TotalPrice = _.TotalPrice,
+                PackagePrice = _.OriginPrice,
+                PackageName = _.Package.Name.ToString(),
+                Quantity = _.Quantity,
+                ShipmentCode = _.ShipmentCode,
+                Status = _.Status,
 
+            }).ToList();
+            var result = new Pagination<OrderModel>(orderModels, orderFilterModel.PageIndex,
+                        orderFilterModel.PageSize, orders.Data.Count);
+
+            return new ResponseModel
+            {
+                Message = "Get all orders successfully",
+                Data = result
+            };
+
+        }
         public async Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus)
         {
             try
@@ -1148,6 +1207,7 @@ namespace Chillde.Services.Services
             order.CancellationReason = cancellationReason;
 
             _unitOfWork.OrderRepository.Update(order);
+            _unitOfWork.AccountRepository.Update(account);
 
             var result = await _unitOfWork.SaveChangeAsync();
 
