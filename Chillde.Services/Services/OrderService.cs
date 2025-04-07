@@ -929,7 +929,7 @@ namespace Chillde.Services.Services
                 ToWard = _.ToWard,
                 TotalPrice = _.TotalPrice,
                 PackagePrice = _.OriginPrice,
-                PackageName = _.Package?.Name.ToString() ?? string.Empty,
+                PackageName = _.Package.Name,
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
                 Status = _.Status
@@ -988,7 +988,7 @@ namespace Chillde.Services.Services
                 ToWard = _.ToWard,
                 TotalPrice = _.TotalPrice,
                 PackagePrice = _.OriginPrice,
-                PackageName = _.Package.Name.ToString(),
+                PackageName = _.Package.Name,
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
                 Status = _.Status,
