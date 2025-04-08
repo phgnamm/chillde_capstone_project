@@ -1092,7 +1092,7 @@ namespace Chillde.Services.Services
                 var packageModels = packages.Data.Select(package => new PackageModel
                 {
                     Id = package.Id,
-                    Name = package.Name.ToString(),
+                    Name = package.Name,
                     Description = package.Description,
                     Price = package.Price,
                     DeliveryTime = package.DeliveryTime,
