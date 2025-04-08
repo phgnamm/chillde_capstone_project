@@ -7,6 +7,7 @@ namespace Chillde.Services.Models.FeatureModels
 {
     public class FeatureUpdateModel
     {
+        public Guid? FeatureId { get; set; }
         [Required]
         public string Name { get; set; }
         public string? Question { get; set; }
