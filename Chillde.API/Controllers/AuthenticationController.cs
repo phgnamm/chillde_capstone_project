@@ -3,6 +3,7 @@ using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace Chillde.API.Controllers;
 
@@ -151,12 +152,12 @@ public class AuthenticationController : ControllerBase
         }
     }
 
-    [HttpGet("phone/verify")]
-    public async Task<IActionResult> VerifyPhone()
+    [HttpGet("phone/send-otp-code")]
+    public async Task<IActionResult> VerifyPhone([FromQuery] string email)
     {
         try
         {
-            var result = await _accountService.VerifyPhone("A", "A");
+            var result = await _accountService.SendVerifyPhone(email);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

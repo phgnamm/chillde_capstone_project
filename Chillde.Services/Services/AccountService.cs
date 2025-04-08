@@ -24,9 +24,11 @@ using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TokenModels;
 using Chillde.Services.Utils;
+using CloudinaryDotNet;
 using Elasticsearch.Net;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using FirebaseAdmin.Messaging;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Http;
@@ -41,6 +43,7 @@ using RabbitMQ.Client;
 
 //using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using Account = Chillde.Repositories.Entities.Account;
 using Role = Chillde.Repositories.Enums.Role;
 
 namespace Chillde.Services.Services;
@@ -55,6 +58,10 @@ public class AccountService : IAccountService
     private readonly IMapper _mapper;
     private readonly IRedisHelper _redisHelper;
     private readonly IShippingAddressService _shippingAddressService;
+    private readonly HttpClient _httpClient;
+    private readonly string _stringeeSIDkey;
+    private readonly string _stringeeSecretKey;
+    private readonly string _stringeeSenderPhone;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
         IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork, IShippingAddressService shippingAddressService, HttpClient httpClient)
@@ -68,6 +75,9 @@ public class AccountService : IAccountService
         _unitOfWork = unitOfWork;
         _shippingAddressService = shippingAddressService;
         _httpClient = httpClient;
+        _stringeeSIDkey = configuration["Stringee:SIDkey"]!;
+        _stringeeSecretKey = configuration["Stringee:SecretKey"]!;
+        _stringeeSenderPhone = configuration["Stringee:SenderPhone"]!;
     }
 
     public async Task<ResponseModel> SignUp(AccountSignUpModel accountSignUpModel)
@@ -464,86 +474,97 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ResponseModel> VerifyPhone(string phone, string verificationCode)
+    public async Task<ResponseModel> SendVerifyPhone(string email)
     {
-        //string phoneNumber = "+840965794464"; // Replace with actual phone number
-        //string apiKey = "AIzaSyCdtLB8UPZb5sipndOCrD9BJ90c-lXnlOw"; // Replace with your Firebase Web API Key
-        ////FirebaseApp app = FirebaseApp.Create(new AppOptions()
-        ////{
-        ////    Credential = GoogleCredential.FromFile("chillde-b8780-firebase-adminsdk-fbsvc-4074991401.json"),
-        ////});
-        //var requestData = new
+        //var account = await _unitOfWork.AccountRepository.FindByEmailAsync(email);
+        //if (account == null)
+        //    return new ResponseModel
+        //    {
+        //        Code = StatusCodes.Status404NotFound,
+        //        Message = "Account not found"
+        //    };
+
+        //account.VerificationCode = AuthenticationTools.GenerateDigitCode(Constant.VerificationCodeLength);
+        //account.VerificationCodeExpiryTime = DateTime.UtcNow.AddMinutes(Constant.VerificationCodeValidityInMinutes);
+
+        //string phone = null;
+        //if (account.PhoneNumber.StartsWith("0"))
         //{
-        //    phoneNumber = phoneNumber,
-        //    recaptchaToken = "test" // Must be obtained from client-side (Web/Android/iOS)
+        //    phone = $"84{account.PhoneNumber.Substring(1)}";
+        //}
+
+        //var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_stringeeSecretKey));
+        //var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+        //var claims = new[]
+        //{
+        //    new Claim("jti", Guid.NewGuid().ToString()),
+        //    new Claim("iss", _stringeeSIDkey),
+        //    new Claim("exp", ((DateTimeOffset)DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds().ToString()), // Expiry in 1 hour
+        //    new Claim("rest_api", "true")
         //};
-        //string json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
-        //StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        //HttpResponseMessage response = await _httpClient.PostAsync(
-        //    $"https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key={apiKey}",
-        //    content
+        //var token = new JwtSecurityToken(
+        //    issuer: _stringeeSIDkey,
+        //    claims: claims,
+        //    expires: DateTime.UtcNow.AddHours(1),
+        //    signingCredentials: credentials
         //);
-        string apiKeySid = "SK.0.7RP3RlnZdb54u2Igez5qnfajq4yJF59g"; // Found in your Stringee project
-        string apiKeySecret = "aU5BTFB3OWo4YUxXbVZNNXRkc29iMWJXUmJsV3BONUY="; // Found in your Stringee project
 
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(apiKeySecret));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        //string stringeeAccessToken = new JwtSecurityTokenHandler().WriteToken(token);
+        //string apiUrl = "https://api.stringee.com/v1/call2/callout";
 
-        var claims = new[]
-        {
-            new Claim("jti", Guid.NewGuid().ToString()),
-            new Claim("iss", apiKeySid),
-            new Claim("exp", ((DateTimeOffset)DateTime.UtcNow.AddHours(1)).ToUnixTimeSeconds().ToString()), // Expiry in 1 hour
-            new Claim("rest_api", "true")
-        };
+        //using (HttpClient client = new HttpClient())
+        //{
+        //    client.DefaultRequestHeaders.Add("X-STRINGEE-AUTH", stringeeAccessToken);
+        //    //client.DefaultRequestHeaders.Add("Content-Type", "application/json");
 
-        var token = new JwtSecurityToken(
-            issuer: apiKeySid,
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
-            signingCredentials: credentials
-        );
+        //    var requestData = new
+        //    {
+        //        from = new
+        //        {
+        //            type = "external",
+        //            number = _stringeeSenderPhone, // Replace with your Stringee virtual number
+        //            alias = _stringeeSenderPhone
+        //        },
+        //        to = new[]
+        //{
+        //    new
+        //    {
+        //        type = "external",
+        //        number = phone, // The recipient’s phone number
+        //        alias = phone
+        //    }
+        //},
+        //        answer_url = "https://https://developer.stringee.com/scco_helper/simple_project_answer_url?record=false&appToPhone=auto&recordFormat=mp3/answerurl", // URL that will return call actions
+        //        actions = new[]
+        //{
+        //    new
+        //    {
+        //        action = "talk",
+        //        text = $"Mã OTP của bạn là {account.VerificationCode}. Xin nhắc lại mã otp của bạn là {account.VerificationCode}."
+        //    }
+        //}
+        //    };
 
-        string accessToken = new JwtSecurityTokenHandler().WriteToken(token);
+        //    string json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+        //    HttpContent content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        //string accessToken = "YOUR_ACCESS_TOKEN"; // Replace with your Stringee API access token
-        string senderNumber = "0988682715"; // Replace with your sender number
-        string recipientNumber = "0965794464"; // Replace with the recipient's phone number
-        string messageText = "Hello, this is a test message from Stringee!";
+        //    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+        //    string responseString = await response.Content.ReadAsStringAsync();
 
-        var smsData = new
-        {
-            from = senderNumber,
-            to = recipientNumber,
-            text = messageText
-        };
-
-        string apiUrl = "https://api.stringee.com/v1/sms";
-        using (HttpClient client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.Add("X-STRINGEE-AUTH", accessToken);
-
-            string jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(smsData);
-            HttpContent content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
-            string responseString = await response.Content.ReadAsStringAsync();
-            return new ResponseModel
-            {
-                Code = int.Parse(response.StatusCode.ToString()),
-                //Message = "Cannot verify email",
-                Data = responseString
-            };
-            //Console.WriteLine("Response: " + responseString);
-        }
+        //return new ResponseModel
+        //{
+        //    Code = int.Parse(response.StatusCode.ToString()),
+        //    Message = responseString
+        //};
 
         return new ResponseModel
         {
-            Code = StatusCodes.Status400BadRequest,
-            //Message = "Cannot verify email",
-            //Data = responseString
+            Code = StatusCodes.Status200OK
+            //Message = responseString
         };
+    //}
     }
 
     public async Task<ResponseModel> ChangePassword(AccountChangePasswordModel accountChangePasswordModel)
@@ -782,7 +803,7 @@ public class AccountService : IAccountService
             .Include(account => account.AccountRoles)
                 .ThenInclude(accountRole => accountRole.Role)
             .Include(account => account.Wallet)
-            .Include(account => account.Orders), 
+            .Include(account => account.Orders),
         accountFilterModel.PageIndex,
         accountFilterModel.PageSize
         );
@@ -797,7 +818,7 @@ public class AccountService : IAccountService
             Data = result
         };
     }
-    
+
 
     public async Task<ResponseModel> Update(Guid id, AccountUpdateModel accountUpdateModel)
     {
@@ -1215,9 +1236,10 @@ public class AccountService : IAccountService
                                            && _.VoucherType == Repositories.Enums.VoucherType.AdminToArtist
                                            && _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending
                                            && (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0)
-                                           && (!_.MinOrderValue.HasValue || (order.TotalPrice - order.ShippingPrice) >= _.MinOrderValue), 
+                                           && (!_.MinOrderValue.HasValue || (order.TotalPrice - order.ShippingPrice) >= _.MinOrderValue),
                                            include: _ => _.Include(_ => _.Receiver));
-        if (voucher == null) {
+        if (voucher == null)
+        {
             return new ResponseModel
             {
                 Code = StatusCodes.Status404NotFound,
@@ -1254,15 +1276,16 @@ public class AccountService : IAccountService
             };
         }
         var searchHistories = await _unitOfWork.SearchHistoryRepository.GetAllAsync(filter: _ => _.CreatedById == currentUserId.Value);
-        if (!searchHistories.Data.Any()) {
-            return new ResponseModel { Message = "Not found.", Code = StatusCodes.Status400BadRequest };     
+        if (!searchHistories.Data.Any())
+        {
+            return new ResponseModel { Message = "Not found.", Code = StatusCodes.Status400BadRequest };
         }
         var searchHistoryModels = searchHistories.Data.OrderByDescending(_ => _.CreationDate).Select(_ => new SearchModel
         {
             Id = _.Id,
             SearchText = _.SearchText
         }).ToList();
-        return new ResponseModel { Data = searchHistoryModels};
+        return new ResponseModel { Data = searchHistoryModels };
 
     }
     public async Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel)
@@ -1342,7 +1365,7 @@ public class AccountService : IAccountService
 
         var shippingAddress =
             await _unitOfWork.ShippingAddressRepository.FindDefaultShippingAddressByAccountIdAsync(id);
-        
+
         return new ResponseModel()
         {
             Message = "Get default shipping address successfully.",
@@ -1376,7 +1399,7 @@ public class AccountService : IAccountService
         }
 
         accountRole.Status = AccountStatus.Suspended;
-        accountRole.ModificationDate = DateTime.UtcNow; 
+        accountRole.ModificationDate = DateTime.UtcNow;
 
         _unitOfWork.AccountRepository.Update(account);
         await _unitOfWork.SaveChangeAsync();

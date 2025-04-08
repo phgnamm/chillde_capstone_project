@@ -13,7 +13,7 @@ public interface IAccountService
     Task<ResponseModel> RefreshToken(AccountRefreshTokenModel accountRefreshTokenModel);
     Task<ResponseModel> RevokeTokens(AccountEmailModel accountEmailModel);
     Task<ResponseModel> VerifyEmail(string email, string verificationCode);
-    Task<ResponseModel> VerifyPhone(string phone, string verificationCode);
+    Task<ResponseModel> SendVerifyPhone(string email);
     Task<ResponseModel> ResendVerificationEmail(AccountEmailModel accountEmailModel);
     Task<ResponseModel> ChangePassword(AccountChangePasswordModel accountChangePasswordModel);
     Task<ResponseModel> ForgotPassword(AccountEmailModel accountEmailModel);
