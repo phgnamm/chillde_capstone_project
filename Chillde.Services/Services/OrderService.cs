@@ -922,50 +922,52 @@ namespace Chillde.Services.Services
                 pageSize: orderFilterModel.PageSize
             );
 
-            var orderModels = orders.Data.Select(_ => new OrderModel
+            var orderModels = orders.Data.Select(order => new OrderModel
             {
-                Id = _.Id,
-                Phone = _.Phone,
-                Address = _.Address,
-                ToDistrict = _.ToDistrict,
-                ToProvince = _.ToProvince,
-                ToWard = _.ToWard,
-                TotalPrice = _.TotalPrice,
-                PackagePrice = _.OriginPrice,
-                PackageName = _.Package.Name,
-                Quantity = _.Quantity,
-                ShipmentCode = _.ShipmentCode,
-                OrderStage = _.Stage,
-                Status = _.Status,
-                ServiceModel = _.Package.Service == null ? null : new ServiceModel
+                Id = order.Id,
+                Phone = order.Phone ?? string.Empty,
+                Address = order.Address ?? string.Empty,
+                ToDistrict = order.ToDistrict,
+                ToProvince = order.ToProvince ?? string.Empty,
+                ToWard = order.ToWard ?? string.Empty,
+                TotalPrice = order.TotalPrice ?? 0,
+                PackagePrice = order.OriginPrice ?? 0,
+                PackageName = order.Package.Name, 
+                Quantity = order.Quantity ?? 1,
+                ShipmentCode = order.ShipmentCode ?? string.Empty,
+                OrderStage = order.Stage, 
+                Status = order.Status,
+
+                ServiceModel = order.Package?.Service == null ? null : new ServiceModel
                 {
-                    Id = _.Package.Service.Id,
-                    Name = _.Package.Service.Name,
-                    Description = _.Package.Service.Description,
-                    Status = _.Package.Service.Status,
-                    CategoryId = _.Package.Service.CategoryId,
-                    Rate = _.Package.Service.Rate,
-                    FeedbackCount = _.Package.Service.FeedbackCount,
-                    Price = _.Package.Price,
-                    MinWeight = _.Package.Service.MinWeight,
-                    MaxWeight = _.Package.Service.MaxWeight,
-                    Artisan = _.Package.Service.CreatedBy == null ? null : new AccountLiteModel
+                    Id = order.Package.Service.Id,
+                    Name = order.Package.Service.Name ?? "Unknown",
+                    Description = order.Package.Service.Description ?? string.Empty,
+                    Status = order.Package.Service.Status,
+                    CategoryId = order.Package.Service.CategoryId,
+                    Rate = order.Package.Service.Rate ?? 0,
+                    FeedbackCount = order.Package.Service.FeedbackCount ?? 0,
+                    Price = order.Package.Price ?? 0,
+                    MinWeight = order.Package.Service.MinWeight ?? 0,
+                    MaxWeight = order.Package.Service.MaxWeight ?? 0,
+                    Artisan = order.Package.Service.CreatedBy == null ? null : new AccountLiteModel
                     {
-                        FirstName = _.Package.Service.CreatedBy.FirstName ?? "Unknown",
-                        LastName = _.Package.Service.CreatedBy.LastName ?? "Unknown",
-                        Email = _.Package.Service.CreatedBy.Email ?? "Unknown",
-                        Username = _.Package.Service.CreatedBy.Username ?? "Unknown",
-                        Image = _.Package.Service.CreatedBy.Image ?? "Unknown",
+                        FirstName = order.Package.Service.CreatedBy.FirstName ?? "Unknown",
+                        LastName = order.Package.Service.CreatedBy.LastName ?? "Unknown",
+                        Email = order.Package.Service.CreatedBy.Email ?? "Unknown",
+                        Username = order.Package.Service.CreatedBy.Username ?? "Unknown",
+                        Image = order.Package.Service.CreatedBy.Image ?? string.Empty,
                     },
-                    ServiceAttachments = _.Package.Service.ServiceAttachments?.Select(_ => new ServiceAttachment
+                    ServiceAttachments = order.Package.Service.ServiceAttachments?.Select(att => new ServiceAttachment
                     {
-                        Id = _.Id,
-                        AttachmentUrl = _.AttachmentUrl,
-                        AttachmentAlt = _.AttachmentAlt,
-                        ServiceId = _.ServiceId
-                    }).ToList()
+                        Id = att.Id,
+                        AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                        AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                        ServiceId = att.ServiceId
+                    }).ToList() ?? new List<ServiceAttachment>()
                 }
             }).ToList();
+
 
 
             var result = new Pagination<OrderModel>(

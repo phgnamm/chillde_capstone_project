@@ -155,8 +155,8 @@ namespace Chillde.Services.Services
                 new { role = "system", content = "You are an AI that converts a list of attributes into a structured model with type and options." },
                 new { role = "user", content = prompt }
             },
-                max_tokens = 500,
-                temperature = 0.3
+                max_tokens = 1000,
+                temperature = 0.5
             };
 
             string apiKey = _configuration["OpenAI:ApiKey"]!;
