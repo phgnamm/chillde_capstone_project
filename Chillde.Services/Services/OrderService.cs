@@ -935,6 +935,7 @@ namespace Chillde.Services.Services
                 PackageName = _.Package.Name,
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
+                OrderStage = _.Stage,
                 Status = _.Status,
                 ServiceModel = _.Package.Service == null ? null : new ServiceModel
                 {
