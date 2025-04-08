@@ -52,6 +52,7 @@ public interface IUnitOfWork
     IVoucherRepository VoucherRepository { get; }
     IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
     IShipmentStatusHistoryRepository ShipmentStatusHistoryRepository { get; }
+    IOfferAttachmentRepository OfferAttachmentRepository { get; }
 
     #endregion
 }
