@@ -945,7 +945,7 @@ namespace Chillde.Services.Services
                 ShipmentCode = order.ShipmentCode ?? string.Empty,
                 OrderStage = order.Stage, 
                 Status = order.Status,
-
+                CreatedById = order.CreatedById,
                 ServiceModel = order.Package?.Service == null ? null : new ServiceModel
                 {
                     Id = order.Package.Service.Id,
@@ -1368,6 +1368,7 @@ namespace Chillde.Services.Services
                 {
                     Id = _.Id,
                     CreatedBy = $"{_.CreatedBy.FirstName} {_.CreatedBy.LastName}",
+                    CreatedById = _.CreatedById,
                     DeletedById = _.CreatedById,
                     CreatedRole = _.CreatedById == customerId ? Repositories.Enums.Role.Customer : Repositories.Enums.Role.Artisan,
                     CurrentSketchRevision = order.CurrentSketchRevision,
