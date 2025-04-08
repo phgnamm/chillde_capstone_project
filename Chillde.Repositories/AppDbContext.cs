@@ -108,7 +108,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<SystemConfig>(entity => { entity.Property(e => e.Value).HasColumnType("jsonb"); });
         modelBuilder.Entity<AccountRole>(entity => { entity.Property(e => e.TotalReputation).HasDefaultValue(100); });
         modelBuilder.Entity<Package>(entity => { entity.Property(e => e.Name).HasColumnType("int"); });
-
+        modelBuilder.Entity<Report>();
         #endregion
 
         #region Relationship Configuration

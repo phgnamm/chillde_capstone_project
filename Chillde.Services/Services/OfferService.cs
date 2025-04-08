@@ -12,6 +12,12 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.AccountModels;
 using Microsoft.EntityFrameworkCore;
+using Chillde.Services.Models.TranslationModels;
+using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
+using Chillde.Services.Models.PackageModels;
+using OpenAI.GPT3.Interfaces;
 
 
 namespace Chillde.Services.Services
@@ -34,7 +40,7 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
         }
 
-        public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter, Guid requestId,
+        public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter,
             string sourceLanguageCode, string targetLanguageCode)
         {
             var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
@@ -45,19 +51,19 @@ namespace Chillde.Services.Services
                 var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
-                        (!filterParameter.ItemId.HasValue ||
-                         offer.Request.CategoryId == filterParameter.ItemId) &&
+                        (!filterParameter.CategoryId.HasValue ||
+                        offer.Request!.CategoryId == filterParameter.CategoryId) &&
                         (!filterParameter.MinPrice.HasValue ||
-                         offer.Service.Packages.Any(p => p.Price >= filterParameter.MinPrice)) &&
+                        (offer.Package != null && offer.Package.Price >= filterParameter.MinPrice)) &&
                         (!filterParameter.MaxPrice.HasValue ||
-                         offer.Service.Packages.Any(p => p.Price <= filterParameter.MaxPrice)) &&
+                        (offer.Package != null && offer.Package.Price <= filterParameter.MaxPrice)) &&
                         (!filterParameter.MinDeliveryTime.HasValue ||
-                         offer.Service.Packages.Any(p => p.DeliveryTime >= filterParameter.MinDeliveryTime)) &&
+                        (offer.Package != null && offer.Package.DeliveryTime >= filterParameter.MinDeliveryTime)) &&
                         (!filterParameter.MaxDeliveryTime.HasValue ||
-                         offer.Service.Packages.Any(p => p.DeliveryTime <= filterParameter.MaxDeliveryTime)) &&
+                        (offer.Package != null && offer.Package.DeliveryTime <= filterParameter.MaxDeliveryTime)) &&
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
-                        (offer.RequestId == requestId) &&
+                        (!filterParameter.RequestId.HasValue || offer.RequestId == filterParameter.RequestId) &&
                         (!filterParameter.CreatedById.HasValue || offer.CreatedById == filterParameter.CreatedById),
                     offers =>
                     {
@@ -77,27 +83,61 @@ namespace Chillde.Services.Services
                                     : offers.OrderBy(offer => offer.CreationDate);
                         }
                     },
-                    include: o => o.Include(_ => _.CreatedBy).Include(_ => _.Service).Include(_ => _.Request),
+                    include: o => o.Include(_ => _.CreatedBy).Include(_ => _.Service).Include(_ => _.Request).Include(_ => _.Package).ThenInclude(_ => _.PackageFeatures).ThenInclude(_ => _.Feature),
                     filterParameter.PageIndex,
                     filterParameter.PageSize
                 );
                 var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
                 List<OfferModel> localizedOffers;
 
-                if (sourceLanguageCode != "en")
+                if (sourceLanguageCode != "vi")
                 {
                     var offersWithTranslations =
                         await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(sourceLanguageCode, offerIds);
                     localizedOffers = offersWithTranslations.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
-                        Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
+                        Status = _localizer[offer.Status.ToString()],
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments.ToList(),
+                        OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
+                        Package = new PackageModel
+                        {
+                            Name = offer.Package!.Name,
+                            Description = offer.Package!.Description,
+                            Price = offer.Package!.Price,
+                            DeliveryTime = offer.Package!.DeliveryTime,
+                            MaxQuantity = offer.Package!.MaxQuantity,
+                            SketchRevision = offer.Package!.SketchRevision,
+                            ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                            Features = offer.Package.PackageFeatures?
+            .Select(pf => pf.Feature)
+            .Distinct()
+            .Select(feature => new FeatureModel
+            {
+                Id = feature.Id,
+                Name = feature.Name,
+                Question = feature.Question,
+                QuestionType = feature.QuestionType,
+                IsInformationRequired = feature.IsInformationRequired,
+                IsQuantity = feature.IsQuantity,
+                PackageFeatures = offer.Package.PackageFeatures
+                    .Where(pf => pf.FeatureId == feature.Id)
+                    .Select(pf => new PackageFeature
+                    {
+                        Id = pf.Id,
+                        Name = pf.Name,
+                        AdditionalCost = pf.AdditionalCost,
+                        AdditionalDay = pf.AdditionalDay,
+                        IsExtra = pf.IsExtra,
+                        IsChecked = pf.IsChecked,
+                        MaxQuantity = pf.MaxQuantity,
+                    }).ToList()
+            }).ToList()
+                        },
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
@@ -108,6 +148,7 @@ namespace Chillde.Services.Services
                         CreationDate = offer.CreationDate
                     }).ToList();
                 }
+
                 else
                 {
                     localizedOffers = offersResult.Data.Select(offer => new OfferModel
@@ -117,9 +158,43 @@ namespace Chillde.Services.Services
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments.ToList(),
+                        OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
+                        Package = new PackageModel
+                        {
+                            Name = offer.Package!.Name,
+                            Description = offer.Package!.Description,
+                            Price = offer.Package!.Price,
+                            DeliveryTime = offer.Package!.DeliveryTime,
+                            MaxQuantity = offer.Package!.MaxQuantity,
+                            SketchRevision = offer.Package!.SketchRevision,
+                            ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                            Features = offer.Package.PackageFeatures?
+            .Select(pf => pf.Feature)
+            .Distinct()
+            .Select(feature => new FeatureModel
+            {
+                Id = feature.Id,
+                Name = feature.Name,
+                Question = feature.Question,
+                QuestionType = feature.QuestionType,
+                IsInformationRequired = feature.IsInformationRequired,
+                IsQuantity = feature.IsQuantity,
+                PackageFeatures = offer.Package.PackageFeatures
+                    .Where(pf => pf.FeatureId == feature.Id)
+                    .Select(pf => new PackageFeature
+                    {
+                        Id = pf.Id,
+                        Name = pf.Name,
+                        AdditionalCost = pf.AdditionalCost,
+                        AdditionalDay = pf.AdditionalDay,
+                        IsExtra = pf.IsExtra,
+                        IsChecked = pf.IsChecked,
+                        MaxQuantity = pf.MaxQuantity,
+                    }).ToList()
+            }).ToList()
+                        },
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
@@ -152,14 +227,17 @@ namespace Chillde.Services.Services
             }
         }
 
+
+
         public async Task<ResponseModel> GetByIdAsync(Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
             Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+
             try
             {
-                var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, targetLanguageCode);
+                var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, sourceLanguageCode);
 
                 if (offer == null)
                 {
@@ -170,14 +248,14 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var result = new OfferModel
+                var offerModel = new OfferModel
                 {
                     Id = offer.Id,
-                    Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
+                    Status = _localizer[offer.Status.ToString()],
                     Message = offer.Message,
                     MinWeight = offer.MinWeight,
                     MaxWeight = offer.MaxWeight,
-                    OfferAttachments = offer.OfferAttachments.ToList(),
+                    OfferAttachments = offer.OfferAttachments?.ToList(),
                     RequestId = offer.RequestId,
                     ServiceId = offer.ServiceId,
                     CreatedBy = new AccountLiteModel
@@ -187,14 +265,48 @@ namespace Chillde.Services.Services
                         LastName = offer.CreatedBy.LastName,
                         Image = offer.CreatedBy.Image
                     },
-                    CreationDate = offer.CreationDate
+                    CreationDate = offer.CreationDate,
+                    Package = offer.Package == null ? null : new PackageModel
+                    {
+                        Name = offer.Package.Name,
+                        Description = offer.Package.Description,
+                        Price = offer.Package.Price,
+                        DeliveryTime = offer.Package.DeliveryTime,
+                        MaxQuantity = offer.Package.MaxQuantity,
+                        SketchRevision = offer.Package.SketchRevision,
+                        ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                        Features = offer.Package.PackageFeatures?
+                            .Select(pf => pf.Feature)
+                            .Distinct()
+                            .Select(feature => new FeatureModel
+                            {
+                                Id = feature.Id,
+                                Name = feature.Name,
+                                Question = feature.Question,
+                                QuestionType = feature.QuestionType,
+                                IsInformationRequired = feature.IsInformationRequired,
+                                IsQuantity = feature.IsQuantity,
+                                PackageFeatures = offer.Package.PackageFeatures
+                                    .Where(pf => pf.FeatureId == feature.Id)
+                                    .Select(pf => new PackageFeature
+                                    {
+                                        Id = pf.Id,
+                                        Name = pf.Name,
+                                        AdditionalCost = pf.AdditionalCost,
+                                        AdditionalDay = pf.AdditionalDay,
+                                        IsExtra = pf.IsExtra,
+                                        IsChecked = pf.IsChecked,
+                                        MaxQuantity = pf.MaxQuantity,
+                                    }).ToList()
+                            }).ToList()
+                    }
                 };
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Offer retrieved successfully.",
-                    Data = result
+                    Data = offerModel
                 };
             }
             catch (Exception ex)
@@ -207,8 +319,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode,
-            string targetLanguageCode)
+        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
             if (!currentUserId.HasValue)
@@ -220,7 +331,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (string.IsNullOrEmpty(model.Message) || !model.ServiceId.HasValue || model.ServiceId.Value == Guid.Empty)
+            if (string.IsNullOrEmpty(model.Message))
             {
                 return new ResponseModel
                 {
@@ -243,31 +354,37 @@ namespace Chillde.Services.Services
                     Message = model.Message,
                     MinWeight = model.MinWeight,
                     MaxWeight = model.MaxWeight,
-                    Service = model.ServiceId.HasValue
-                        ? await _unitOfWork.ServiceRepository.GetAsync(model.ServiceId.Value)
-                        : null
                 };
 
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
 
-                if (model.OfferAttachmentAddModels != null)
+                for (int i = 0; i < model.OfferAttachmentAddModels.Count; i++)
                 {
-                    foreach (var attachmentModel in model.OfferAttachmentAddModels)
+                    Models.OfferAttachmentModels.OfferAttachmentAddModel? attachment = model.OfferAttachmentAddModels[i];
+                    if (attachment.AttachmentUrl == null) continue;
+
+                    var id = Guid.NewGuid();
+
+                    var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
+                        attachment.AttachmentUrl,
+                        attachment.AttachmentAlt,
+                        id.ToString(),
+                        folderName: FolderAttachment.OFFER
+                    );
+
+                    newOffer.OfferAttachments.Add(new OfferAttachment
                     {
-                        if (!string.IsNullOrEmpty(attachmentModel.AttachmentUrl?.ToString()))
-                        {
-                            var offerAttachment = new OfferAttachment
-                            {
-                                AttachmentUrl = await UploadFile(attachmentModel.AttachmentUrl, FolderAttachment.OFFER),
-                                AttachmentAlt = attachmentModel.AttachmentAlt
-                            };
-                            newOffer.OfferAttachments.Add(offerAttachment);
-                        }
-                    }
+                        Id = id,
+                        AttachmentAlt = attachment.AttachmentAlt,
+                        AttachmentUrl = uploadedUrl,
+                        OfferId = newOffer.Id
+                    });
                 }
 
                 Dictionary<string, string> textsToTranslate = new Dictionary<string, string>
-                    { { "Message", model.Message } };
+        {
+            { "Offer.Message", model.Message }
+        };
 
                 Package? newPackage = null;
                 List<Feature> features = new List<Feature>();
@@ -284,6 +401,7 @@ namespace Chillde.Services.Services
                         Description = model.PackageAddModel.Description,
                         Price = model.PackageAddModel.Price,
                         DeliveryTime = model.PackageAddModel.DeliveryTime,
+                        ResponseTime = (float)model.PackageAddModel.ResponseTime.TotalMinutes,
                         SketchRevision = model.PackageAddModel.SketchRevision,
                     };
 
@@ -334,8 +452,8 @@ namespace Chillde.Services.Services
 
                 if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
                 {
-                    var translationResponse = await _translationService.TranslateMultipleAsync(
-                        textsToTranslate, "Offer", offerId, sourceLanguageCode
+                    var translationResponse = await _translationService.TranslateMultipleFieldsAsync(
+                        textsToTranslate, sourceLanguageCode, targetLanguageCode
                     );
 
                     if (translationResponse.Code != StatusCodes.Status200OK)
@@ -347,32 +465,30 @@ namespace Chillde.Services.Services
                         };
                     }
 
-                    if (translationResponse.Data is Dictionary<string, string> translatedTexts)
+                    if (translationResponse.TranslatedFields is Dictionary<string, string> translatedTexts)
                     {
-                        if (translatedTexts.TryGetValue("Message", out var text))
+                        foreach (var item in translatedTexts)
                         {
-                            newOffer.Message = targetLanguageCode == "en" ? text : model.Message;
-                        }
-
-                        if (translatedTexts.ContainsKey("Package.Description") && newPackage != null)
-                        {
-                            newPackage.Description = translatedTexts["Package.Description"];
-                        }
-
-                        foreach (var feature in features)
-                        {
-                            if (translatedTexts.TryGetValue($"Feature.{feature.Id}.Name", out var featureName))
+                            var entityType = item.Key.Split('.')[0];
+                            var fieldName = item.Key.Split('.').Last();
+                            var entityId = entityType switch
                             {
-                                feature.Name = featureName;
-                            }
-                        }
+                                "Offer" => newOffer.Id,
+                                "Package" => newPackage?.Id ?? Guid.Empty,
+                                "Feature" => features.FirstOrDefault(f => $"Feature.{f.Id}.Name" == item.Key)?.Id ?? Guid.Empty,
+                                "PackageFeature" => packageFeatures.FirstOrDefault(pf => $"PackageFeature.{pf.Id}.Name" == item.Key)?.Id ?? Guid.Empty,
+                                _ => Guid.Empty
+                            };
 
-                        foreach (var packageFeature in packageFeatures)
-                        {
-                            if (translatedTexts.TryGetValue($"PackageFeature.{packageFeature.Id}.Name",
-                                    out var packageFeatureName))
+                            if (entityId != Guid.Empty)
                             {
-                                packageFeature.Name = packageFeatureName;
+                                await _translationService.SaveTranslationAsync(new TransaltionAddModel
+                                {
+                                    EntityType = entityType,
+                                    EntityId = entityId,
+                                    FieldName = fieldName,
+                                    TranslationText = item.Value
+                                }, "en");
                             }
                         }
                     }
@@ -399,19 +515,20 @@ namespace Chillde.Services.Services
         }
 
 
-        public async Task<ResponseModel> UpdateAsync(Guid offerId, OfferUpdateModel model)
+        public async Task<ResponseModel> UpdateAsync(Guid offerId, OfferUpdateModel model, string sourceLanguageCode, string targetLanguageCode)
         {
             if (offerId == Guid.Empty)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
-                    Message = "Invalid data provided."
+                    Message = "Invalid offer ID."
                 };
             }
+
             try
             {
-                var existingOffer = await _unitOfWork.OfferRepository.GetAsync(offerId);
+                var existingOffer = await _unitOfWork.OfferRepository.GetOfferAsync(offerId, sourceLanguageCode);
                 if (existingOffer == null)
                 {
                     return new ResponseModel
@@ -420,41 +537,230 @@ namespace Chillde.Services.Services
                         Message = "Offer not found."
                     };
                 }
-                if (existingOffer.Status != model.Status && model.Status != null)
+
+                // Update basic fields
+                var textsToTranslate = new Dictionary<string, string>();
+                if (!string.IsNullOrWhiteSpace(model.Message) && model.Message != existingOffer.Message)
                 {
-                    existingOffer.Status = (OfferStatus)model.Status;
-                    if (model.Status == OfferStatus.Approved)
+                    existingOffer.Message = model.Message;
+                    textsToTranslate.Add("Offer.Message", model.Message);
+                }
+                existingOffer.ServiceId = model.ServiceId ?? existingOffer.ServiceId;
+                existingOffer.MinWeight = model.MinWeight ?? existingOffer.MinWeight;
+                existingOffer.MaxWeight = model.MaxWeight ?? existingOffer.MaxWeight;
+
+                // Handle status change
+                if (model.Status.HasValue && existingOffer.Status != model.Status)
+                {
+                    existingOffer.Status = model.Status.Value;
+
+                    if (existingOffer.Status == OfferStatus.Approved)
                     {
                         var existedOffers = await _unitOfWork.OfferRepository.GetAllAsync(
                             offer => offer.RequestId == existingOffer.RequestId && offer.Status != OfferStatus.Approved,
-                            order: null, include: null, 1, 1000);
+                            order: null, include: null, pageIndex: 1, pageSize: 1000);
+
                         foreach (var offer in existedOffers.Data)
-                        {
                             offer.Status = OfferStatus.Rejected;
-                            _unitOfWork.OfferRepository.Update(offer);
+
+                        _unitOfWork.OfferRepository.UpdateRange(existedOffers.Data);
+                    }
+                }
+
+                // Update Package
+                var existingPkg = existingOffer.Package;
+                if (model.PackageUpdateModel != null && existingOffer.Package != null)
+                {
+                    var pkg = model.PackageUpdateModel;
+
+                    existingPkg.Name = string.IsNullOrWhiteSpace(pkg.Name.ToString()) ? existingPkg.Name : pkg.Name;
+                    if (!string.IsNullOrWhiteSpace(pkg.Description) && pkg.Description != existingPkg.Description)
+                    {
+                        existingPkg.Description = pkg.Description;
+                        textsToTranslate.Add("Package.Description", pkg.Description);
+                    }
+                    existingPkg.Price = pkg.Price != 0 ? pkg.Price : existingPkg.Price;
+                    existingPkg.DeliveryTime = pkg.DeliveryTime ?? existingPkg.DeliveryTime;
+                    existingPkg.SketchRevision = pkg.SketchRevision ?? existingPkg.SketchRevision;
+                    existingPkg.MaxQuantity = pkg.MaxQuantity ?? existingPkg.MaxQuantity;
+                    existingPkg.ResponseTime = (float)pkg.ResponseTime.TotalMinutes;
+                }
+
+                // add new OfferAttachment
+                if (model.OfferAttachmentAddModels?.Any() == true)
+                {
+                    var newAttachments = new List<OfferAttachment>();
+
+                    foreach (var attachment in model.OfferAttachmentAddModels)
+                    {
+                        if (attachment.AttachmentUrl == null) continue;
+
+                        var id = Guid.NewGuid();
+
+                        var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
+                            attachment.AttachmentUrl,
+                            attachment.AttachmentAlt,
+                            id.ToString(),
+                            folderName: FolderAttachment.OFFER
+                        );
+
+                        newAttachments.Add(new OfferAttachment
+                        {
+                            Id = id,
+                            AttachmentAlt = attachment.AttachmentAlt,
+                            AttachmentUrl = uploadedUrl,
+                            OfferId = existingOffer.Id
+                        });
+                    }
+
+                    if (newAttachments.Any())
+                    {
+                        await _unitOfWork.OfferAttachmentRepository.AddRangeAsync(newAttachments);
+                    }
+                }
+
+                // delete OfferAttachment by ID
+                if (model.OfferAttachmentIdsDeleting?.Any() == true)
+                {
+                    var offerAttachmentsToDelete = await _unitOfWork.OfferAttachmentRepository.GetAllAsync(
+                        filter: x => model.OfferAttachmentIdsDeleting.Contains(x.Id)
+                    );
+
+                    if (offerAttachmentsToDelete == null || !offerAttachmentsToDelete.Data.Any())
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Attachments not found."
+                        };
+                    }
+
+                    var publicIdsToDelete = offerAttachmentsToDelete.Data.Select(x => x.Id.ToString()).ToList();
+                    await _cloudinaryHelper.RemoveImagesAsync(publicIdsToDelete);
+                    _unitOfWork.OfferAttachmentRepository.HardRemoveRange(offerAttachmentsToDelete.Data);
+                }
+                var existingPackageFeatures = existingOffer.Package!.PackageFeatures!.ToList();
+
+                var packageFeaturesToUpdate = new List<PackageFeature>();
+                var packageFeaturesToAdd = new List<PackageFeature>();
+
+                foreach (var featureModel in model.featureUpdateModels!)
+                {
+                    foreach (var pfModel in featureModel.PackageFeatureAddModels)
+                    {
+                        var existing = existingPackageFeatures
+                            .FirstOrDefault(x => x.FeatureId == featureModel.FeatureId);
+
+                        if (existing != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(pfModel.Name) && pfModel.Name != existing.Name)
+                            {
+                                existing.Name = pfModel.Name;
+                                textsToTranslate.Add($"PackageFeature.{existing.FeatureId}.Name", pfModel.Name);
+                            }
+                            existing.AdditionalCost = pfModel.AdditionalCost;
+                            existing.AdditionalDay = pfModel.AdditionalDay;
+                            existing.IsExtra = pfModel.IsExtra;
+                            existing.IsChecked = pfModel.IsChecked;
+                            existing.MaxQuantity = pfModel.MaxQuantity;
+
+                            packageFeaturesToUpdate.Add(existing);
+                        }
+                        else
+                        {
+                            var newPackageFeatureId = new Guid();
+                            var newPackageFeature = new PackageFeature
+                            {
+                                Id = newPackageFeatureId,
+                                FeatureId = featureModel.FeatureId!.Value,
+                                Name = pfModel.Name,
+                                AdditionalCost = pfModel.AdditionalCost,
+                                AdditionalDay = pfModel.AdditionalDay,
+                                IsExtra = pfModel.IsExtra,
+                                IsChecked = pfModel.IsChecked,
+                                MaxQuantity = pfModel.MaxQuantity,
+                                PackageId = existingOffer.Package.Id
+                            };
+                            textsToTranslate.Add($"PackageFeature.{featureModel.FeatureId!.Value}.Name", pfModel.Name);
+                            packageFeaturesToAdd.Add(newPackageFeature);
+                        }
+                    }
+                }
+                if (packageFeaturesToUpdate.Any())
+                    _unitOfWork.PackageFeatureRepository.UpdateRange(packageFeaturesToUpdate);
+
+                if (packageFeaturesToAdd.Any())
+                    await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeaturesToAdd);
+
+                if (!string.IsNullOrEmpty(sourceLanguageCode) && !string.IsNullOrEmpty(targetLanguageCode))
+                {
+                    var translationResponse = await _translationService.TranslateMultipleFieldsAsync(
+                        textsToTranslate, sourceLanguageCode, targetLanguageCode
+                    );
+
+                    if (translationResponse.Code != StatusCodes.Status200OK)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = "Failed to translate fields."
+                        };
+                    }
+
+                    if (translationResponse.TranslatedFields is Dictionary<string, string> translatedTexts)
+                    {
+                        foreach (var item in translatedTexts)
+                        {
+                            var entityType = item.Key.Split('.')[0];
+                            var fieldName = item.Key.Split('.').Last();
+                            var entityId = entityType switch
+                            {
+                                "Offer" => offerId,
+                                "Package" => existingPkg?.Id ?? Guid.Empty,
+                                "PackageFeature" => packageFeaturesToAdd
+                                                    .Concat(packageFeaturesToUpdate)
+                                                    .FirstOrDefault(pf => $"PackageFeature.{pf.FeatureId}.Name" == item.Key)?.FeatureId ?? Guid.Empty,
+                                _ => Guid.Empty
+                            };
+
+                            if (entityId != Guid.Empty)
+                            {
+                                await _translationService.UpdateTranslationAsync(new TransaltionAddModel
+                                {
+                                    EntityType = entityType,
+                                    EntityId = entityId,
+                                    FieldName = fieldName,
+                                    TranslationText = item.Value
+                                }, "en");
+                            }
                         }
                     }
                     _unitOfWork.OfferRepository.Update(existingOffer);
-                }
 
-                var changes = await _unitOfWork.SaveChangeAsync();
-                if (changes > 0)
-                {
-                    return new ResponseModel
+                    var changes = await _unitOfWork.SaveChangeAsync();
+                    if (changes > 0)
                     {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Offer updated successfully.",
-                        Data = existingOffer
-                    };
-                }
-                else
-                {
-                    return new ResponseModel
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status200OK,
+                            Message = "Offer updated successfully.",
+                            Data = existingOffer
+                        };
+                    }
+                    else
                     {
-                        Code = StatusCodes.Status204NoContent,
-                        Message = "No changes detected."
-                    };
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status204NoContent,
+                            Message = "No changes detected."
+                        };
+                    }
                 }
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status204NoContent,
+                    Message = "No changes detected."
+                };
             }
             catch (Exception ex)
             {
@@ -465,6 +771,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
 
         public async Task<ResponseModel> DeleteAsync(Guid offerId)
         {
@@ -491,7 +798,7 @@ namespace Chillde.Services.Services
 
                 var translation = await _unitOfWork.TranslationRepository
                     .GetTranslationAsync("Offer", offerId, "Message",
-                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("vi"))!);
+                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("en"))!);
                 if (translation != null)
                 {
                     _unitOfWork.TranslationRepository.SoftRemove(translation);

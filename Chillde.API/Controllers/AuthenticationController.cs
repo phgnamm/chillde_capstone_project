@@ -3,6 +3,7 @@ using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace Chillde.API.Controllers;
 
@@ -139,6 +140,24 @@ public class AuthenticationController : ControllerBase
         try
         {
             var result = await _accountService.VerifyEmail(email, verificationCode);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+
+    [HttpGet("phone/send-otp-code")]
+    public async Task<IActionResult> VerifyPhone([FromQuery] string email)
+    {
+        try
+        {
+            var result = await _accountService.SendVerifyPhone(email);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

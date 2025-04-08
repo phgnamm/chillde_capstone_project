@@ -1,6 +1,7 @@
 ﻿using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.Services.Interfaces;
 
@@ -12,6 +13,7 @@ public interface IAccountService
     Task<ResponseModel> RefreshToken(AccountRefreshTokenModel accountRefreshTokenModel);
     Task<ResponseModel> RevokeTokens(AccountEmailModel accountEmailModel);
     Task<ResponseModel> VerifyEmail(string email, string verificationCode);
+    Task<ResponseModel> SendVerifyPhone(string email);
     Task<ResponseModel> ResendVerificationEmail(AccountEmailModel accountEmailModel);
     Task<ResponseModel> ChangePassword(AccountChangePasswordModel accountChangePasswordModel);
     Task<ResponseModel> ForgotPassword(AccountEmailModel accountEmailModel);
@@ -28,5 +30,6 @@ public interface IAccountService
     Task<ResponseModel> GetVoucherAdmin(Guid orderId);
     Task<ResponseModel> GetSearchHistories();
     Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel);
-
+    Task<ResponseModel> GetDefaultShippingAddress(Guid id);
+    Task<ResponseModel> BanAccountRole(BanAccountRoleModel request);
 }

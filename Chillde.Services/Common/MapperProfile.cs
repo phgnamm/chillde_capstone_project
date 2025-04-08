@@ -34,15 +34,24 @@ public class MapperProfile : Profile
     {
         // Account
         CreateMap<AccountSignUpModel, Account>();
+        CreateMap<AccountSignUpModel, Account>();
+        CreateMap<AccountSignUpModel, Account>();
         CreateMap<Account, AccountModel>()
             .ForMember(dest => dest.Roles,
                 opt => opt.MapFrom(src =>
                     src.AccountRoles.Select(accountRole => accountRole.Role.Name).Select(Enum.Parse<Role>)))
             .ForMember(dest => dest.RoleNames,
-                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Role.Name)));
-        CreateMap<Account, AccountLiteModel>();
-        CreateMap<AccountUpdateModel, Account>();
-        CreateMap<AccountBecomeASellerModel, Account>();
+                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Role.Name)))
+            .ForMember(dest => dest.Balance,
+                opt => opt.MapFrom(src => src.Wallet.Balance))
+            .ForMember(dest => dest.TotalReputations,
+                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.TotalReputation)))
+            .ForMember(dest => dest.Status,
+                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Status)))
+            .ForMember(dest => dest.StatusNames,
+                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Status.ToString())))
+            .ForMember(dest => dest.OrderCount,
+                opt => opt.MapFrom(src => src.Orders.Count)); // Đếm số lượng Orders
 
         // Message
         CreateMap<MessageAddModel, Message>();
@@ -56,9 +65,12 @@ public class MapperProfile : Profile
         CreateMap<FAQModel, FAQ>().ReverseMap();
 
         //Package
-        CreateMap<PackageModel, Package>().ReverseMap();
-        CreateMap<PackageUpdateModel, Package>().ReverseMap();
-        CreateMap<PackageAddModel, Package>().ReverseMap();
+        CreateMap<PackageModel, Package>()
+    .ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes))
+    .ReverseMap()
+    .ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => TimeSpan.FromMinutes(src.ResponseTime)));
+        CreateMap<PackageUpdateModel, Package>().ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes));
+        CreateMap<PackageAddModel, Package>().ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes)).ReverseMap();
 
         //ShippingAddress
         CreateMap<ShippingAddress,ShippingAddressAddModel>().ReverseMap();

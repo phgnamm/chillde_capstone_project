@@ -57,37 +57,38 @@ namespace Chillde.Services.Services
                 };
 
             var upcomingEvents = eventList
-                    .Select(e =>
-                    {
-                        DateTime eventDate;
-                        if (e.IsLunar)
-                        {
-                            var dateParts = e.Date!.Split('-');
-                            int lunarDay = int.Parse(dateParts[0]);
-                            int lunarMonth = int.Parse(dateParts[1]);
-                            int lunarYear = currentDate.Year;
-                            var chineseCalendar = new ChineseLunisolarCalendar();
-                            eventDate = chineseCalendar.ToDateTime(lunarYear, lunarMonth, lunarDay, 0, 0, 0, 0);
-                        }
-                        else
-                        {
-                            eventDate = DateTime.ParseExact(e.Date!, "dd-MM", CultureInfo.InvariantCulture);
-                            eventDate = new DateTime(currentDate.Year, eventDate.Month, eventDate.Day);
-                        }
-                        return new { Event = sourLanguageCode == "vi" ? e.NameVi : e.NameEn, Date = eventDate };
-                    })
-                    .OrderBy(e => e.Date)
-                    .ToList();
+        .Select(e =>
+        {
+            DateTime eventDate;
+            if (e.IsLunar)
+            {
+                var dateParts = e.Date!.Split('-');
+                int lunarDay = int.Parse(dateParts[0]);
+                int lunarMonth = int.Parse(dateParts[1]);
+                int lunarYear = currentDate.Year;
+                var chineseCalendar = new ChineseLunisolarCalendar();
+                eventDate = chineseCalendar.ToDateTime(lunarYear, lunarMonth, lunarDay, 0, 0, 0, 0);
+            }
+            else
+            {
+                eventDate = DateTime.ParseExact(e.Date!, "dd-MM", CultureInfo.InvariantCulture);
+                eventDate = new DateTime(currentDate.Year, eventDate.Month, eventDate.Day);
+            }
+            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate };
+        })
+        .OrderBy(e => e.Date)
+        .ToList();
 
             var nearestEvent = upcomingEvents.FirstOrDefault(e => e.Date >= currentDate);
             var pastRecentEvent = upcomingEvents.LastOrDefault(e => e.Date < currentDate);
+
             if (pastRecentEvent != null && (currentDate - pastRecentEvent.Date).TotalDays <= gracePeriodDays)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = pastRecentEvent.Event
+                    Data = new { pastRecentEvent.EventVi, pastRecentEvent.EventEn, Date = pastRecentEvent.Date.ToString("yyyy-MM-dd") }
                 };
             }
             if (nearestEvent != null && (nearestEvent.Date - currentDate).TotalDays <= maxDaysThreshold)
@@ -96,7 +97,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = nearestEvent.Event
+                    Data = new { nearestEvent.EventVi, nearestEvent.EventEn, Date = nearestEvent.Date.ToString("yyyy-MM-dd") }
                 };
             }
             return new ResponseModel
@@ -154,8 +155,8 @@ namespace Chillde.Services.Services
                 new { role = "system", content = "You are an AI that converts a list of attributes into a structured model with type and options." },
                 new { role = "user", content = prompt }
             },
-                max_tokens = 500,
-                temperature = 0.3
+                max_tokens = 1000,
+                temperature = 0.5
             };
 
             string apiKey = _configuration["OpenAI:ApiKey"]!;

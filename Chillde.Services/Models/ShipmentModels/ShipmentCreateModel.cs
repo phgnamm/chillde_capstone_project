@@ -53,21 +53,21 @@ namespace Chillde.Services.Models.ShipmentModels
         public string? Email { get; set; } // Không bắt buộc vì JSON không có
         #endregion
 
-        [JsonProperty("order.is_freeship")]
-        public int IsFreeShip { get; set; }
+        /*[JsonProperty("order.is_freeship")]
+        public int IsFreeShip { get; set; }*/
         //[JsonProperty("order.deliver_option")]
         //public string? Fee { get; set; }
         //[JsonProperty("order.value")]
         //public string? InsuranceFee { get; set; }
-
+/*
         [JsonProperty("order.pick_date")]
         public string? PickDate { get; set; }
 
         [JsonProperty("order.deliver_date")]
-        public string? DeliverDate { get; set; }
+        public string? DeliverDate { get; set; }*/
 
-        [JsonProperty("order.pick_money")]
-        public int PickMoney { get; set; }
+       /* [JsonProperty("order.pick_money")]
+        public int PickMoney { get; set; }*/
 
         [JsonProperty("order.note")]
         public required string Note { get; set; }
@@ -75,14 +75,14 @@ namespace Chillde.Services.Models.ShipmentModels
         [JsonProperty("order.value")]
         public required int Value { get; set; } //Giá trị đóng bảo hiểm, là căn cứ để tính phí bảo hiểm và bồi thường khi có sự cố.
 
-        [JsonProperty("order.transport")]
-        public required string Transport { get; set; }
+       /* [JsonProperty("order.transport")]
+        public required string Transport { get; set; }*/
 
-        [JsonProperty("order.pick_option")]
-        public required string PickOption { get; set; }
+        /*[JsonProperty("order.pick_option")]
+        public required string PickOption { get; set; }*/
 
-        [JsonProperty("order.deliver_option")]
-        public string? DeliverOption { get; set; }
+       /* [JsonProperty("order.deliver_option")]
+        public string? DeliverOption { get; set; }*/
 
         [JsonProperty("order.tags")]
         public string[]? Tags { get; set; }
@@ -102,7 +102,7 @@ namespace Chillde.Services.Models.ShipmentModels
         [JsonProperty("quantity")]
         public int? Quantity { get; set; }
 
-        [JsonProperty("product_code")]
-        public string? ProductCode { get; set; } // Có thể là int trong JSON, nhưng để string cho linh hoạt
+        /*[JsonProperty("product_code")]
+        public string? ProductCode { get; set; }*/ // Có thể là int trong JSON, nhưng để string cho linh hoạt
     }
 }

@@ -45,7 +45,8 @@ public class UnitOfWork : IUnitOfWork
         IVoucherUsageLogRepository voucherUsageLogRepository,
         ICancellationReasonRepository cancellationReasonRepository,
         IOrderTrackingRepository orderTrackingRepository,
-        IShipmentStatusHistoryRepository shipmentStatusHistoryRepository
+        IShipmentStatusHistoryRepository shipmentStatusHistoryRepository,
+        IOfferAttachmentRepository offerAttachmentRepository
         )
     {
         Context = context;
@@ -90,6 +91,7 @@ public class UnitOfWork : IUnitOfWork
         VoucherUsageLogRepository = voucherUsageLogRepository;
         OrderTrackingRepository = orderTrackingRepository;
         ShipmentStatusHistoryRepository = shipmentStatusHistoryRepository;
+        OfferAttachmentRepository = offerAttachmentRepository;
 
     }
 
@@ -145,6 +147,7 @@ public class UnitOfWork : IUnitOfWork
     public ICancellationReasonRepository CancellationReasonRepository { get; }
 
     public IShipmentStatusHistoryRepository ShipmentStatusHistoryRepository { get; }
+    public IOfferAttachmentRepository OfferAttachmentRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

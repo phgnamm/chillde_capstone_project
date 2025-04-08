@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Chillde.Services.Models.ShippingAddressModels
+namespace Chillde.Services.Models.ShipmentStatusHistoryModels
 {
-    public class ShippingAddressFilterModel : FilterParameter
+    public class ShipmentStatusFilterModel: FilterParameter
     {
-        public bool? IsDefault { get; set; }
+       
     }
 }
