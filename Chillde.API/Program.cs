@@ -88,6 +88,10 @@ builder.Services.AddSession(options =>
 //builder.Services.AddHostedService<OrderReminderService>();
 //builder.Services.AddScoped<IOrderReminderService, OrderReminderService>();
 
+builder.Services.AddSwaggerGen(options =>
+{
+    options.UseInlineDefinitionsForEnums();
+});
 
 var app = builder.Build();
 
