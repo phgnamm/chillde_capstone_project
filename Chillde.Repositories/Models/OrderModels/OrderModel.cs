@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.ServiceModels;
 
 namespace Chillde.Repositories.Models.OrderModels
 {
     public class OrderModel : BaseEntity
     {
-        public string? Phone { get; set; }
         public string Address { get; set; }
+        public string Phone { get; set; }
         public string ToWard { get; set; }
         public int ToDistrict { get; set; }
         public string ToProvince { get; set; }
@@ -21,5 +22,6 @@ namespace Chillde.Repositories.Models.OrderModels
         public int? Quantity { get; set; }
         public string? ShipmentCode { get; set; }
         public required OrderStatus Status { get; set; }
+        public ServiceModel ServiceModel { get; set; }
     }
 }
