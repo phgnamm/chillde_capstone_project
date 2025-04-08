@@ -13,7 +13,7 @@ public class Package : BaseEntity
     public int? DeliveryTime { get; set; }
     public int? SketchRevision { get; set; }
     public int? MaxQuantity { get; set; }
-    public float ResponseTime { get; set; }
+    public TimeSpan ResponseTime { get; set; }
 
     #endregion
 

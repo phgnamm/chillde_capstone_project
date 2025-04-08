@@ -1097,7 +1097,7 @@ namespace Chillde.Services.Services
                     Price = package.Price,
                     DeliveryTime = package.DeliveryTime,
                     SketchRevision = package.SketchRevision,
-                    //ResponseTime = package.ResponseTime,
+                    ResponseTime = package.ResponseTime,
                     ServiceId = package.ServiceId,
                     IsDeleted = package.IsDeleted,
                     MaxQuantity = package.MaxQuantity,
