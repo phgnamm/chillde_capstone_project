@@ -916,7 +916,7 @@ namespace Chillde.Services.Services
 
             var orders = await _unitOfWork.OrderRepository.GetAllAsync(
                 filter: filter,
-                include: _ => _.Include(_ => _.Package).ThenInclude(_ => _.Service),
+                include: _ => _.Include(_ => _.Package).ThenInclude(_ => _.Service).ThenInclude(_ => _.ServiceAttachments) .Include(_ => _.Package).ThenInclude(_ => _.Service).ThenInclude(_ => _.CreatedBy),
                 order: orderBy,
                 pageIndex: orderFilterModel.PageIndex,
                 pageSize: orderFilterModel.PageSize
