@@ -1733,6 +1733,7 @@ namespace Chillde.Services.Services
                 var model = new OrderDetailModel
                 {
                     Id = order?.Id ?? Guid.Empty,
+                    CreatedById = order?.CreatedById ?? Guid.Empty,
                     Code = order?.Code ?? string.Empty,
                     Ward = order?.ToWard ?? "N/A",
                     District = order?.ToDistrict.ToString() ?? "N/A",
