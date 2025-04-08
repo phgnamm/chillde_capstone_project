@@ -252,7 +252,7 @@ namespace Chillde.API.Controllers
         }
         [Authorize]
         [HttpPost("{orderId}/order-tracking-sketches")]
-        public async Task<IActionResult> AddSketch(Guid orderId, [FromBody] OrderTrackingAddModel orderTrackingAddModel)
+        public async Task<IActionResult> AddSketch(Guid orderId, [FromForm] OrderTrackingAddModel orderTrackingAddModel)
         {
             try
             {
@@ -269,7 +269,7 @@ namespace Chillde.API.Controllers
             }
         }
         [HttpPost("{orderId}/order-tracking-deliveries")]
-        public async Task<IActionResult> AddDelivery(Guid orderId, [FromBody] OrderTrackingAddModel orderTrackingAddModel)
+        public async Task<IActionResult> AddDelivery(Guid orderId, [FromForm] OrderTrackingAddModel orderTrackingAddModel)
         {
             try
             {
