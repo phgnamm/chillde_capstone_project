@@ -1678,61 +1678,62 @@ namespace Chillde.Services.Services
 
                 var model = new OrderDetailModel
                 {
-                    Id = order.Id,
-                    Code = order.Code,
-                    PackageName = order.Package.Name ,
-                    CustomerName = order.CreatedBy.FirstName +  " " + order.CreatedBy.LastName,
-                    CustomerPhone = order.Phone,
-                    CustomerAddress = order.Address,
-                    Ward = order.ToWard,
-                    District = order.ToDistrict.ToString(),
-                    Province = order.ToProvince,
-                    Quantity = order.Quantity ?? 1,
-                    ShipmentCode = order.ShipmentCode,
-                    DeliveryTime = order.DeliveryTime,
-                    StartTime = order.StartTime,
-                    Stage = order.Stage,
-                    Status = order.Status,
-                    OriginPrice = (decimal)order.OriginPrice,
-                    TotalPrice = (decimal)order.TotalPrice,
-                    ShippingPrice = (decimal)order.ShippingPrice,
-                    AfterApplyVoucherPrice = (decimal)order.AfterApplyVoucherPrice,
-                    ArtistRevenueAfterCancel = order.ArtistRevenueAfterCancel,
-                    AdminCommUsedVch = order.AdminCommUsedVch,
-                    AdminCommDefault = order.AdminCommDefault,
-                    ArtistRevenue = order.ArtistRevenue,
-                    VoucherCost = order.VoucherCost,
-                    CurrentSketchRevision = (int)order.CurrentSketchRevision,
-                    CancelOrderReason = order.CancellationReason?.Name ?? null,
-                    AutoCancelOrderReason = order.CancelOrderReason?.ToString(),
-                    CreationDate = order.CreationDate,
-                    VoucherUsages = order.VoucherUsageLogs?.Select(_ => new VoucherUsageModel
+                    Id = order?.Id ?? Guid.Empty,
+                    Code = order?.Code ?? string.Empty,
+                    PackageName = order.Package.Name,
+                    CustomerName = $"{order?.CreatedBy?.FirstName ?? ""} {order?.CreatedBy?.LastName ?? ""}".Trim(),
+                    CustomerPhone = order?.Phone ?? "N/A",
+                    CustomerAddress = order?.Address ?? "N/A",
+                    Ward = order?.ToWard ?? "N/A",
+                    District = order?.ToDistrict.ToString() ?? "N/A",
+                    Province = order?.ToProvince ?? "N/A",
+                    Quantity = order?.Quantity ?? 1,
+                    ShipmentCode = order?.ShipmentCode ?? string.Empty,
+                    DeliveryTime = order?.DeliveryTime,
+                    StartTime = order?.StartTime,
+                    Stage = order?.Stage ?? 0,
+                    Status = order?.Status ?? 0,
+                    OriginPrice = order?.OriginPrice ?? 0,
+                    TotalPrice = order?.TotalPrice ?? 0,
+                    ShippingPrice = order?.ShippingPrice ?? 0,
+                    AfterApplyVoucherPrice = order?.AfterApplyVoucherPrice ?? 0,
+                    ArtistRevenueAfterCancel = order?.ArtistRevenueAfterCancel ?? 0,
+                    AdminCommUsedVch = order?.AdminCommUsedVch ?? 0,
+                    AdminCommDefault = order?.AdminCommDefault ?? 0,
+                    ArtistRevenue = order?.ArtistRevenue ?? 0,
+                    VoucherCost = order?.VoucherCost ?? 0,
+                    CurrentSketchRevision = order?.CurrentSketchRevision ?? 0,
+                    CancelOrderReason = order?.CancellationReason?.Name ?? "N/A",
+                    AutoCancelOrderReason = order?.CancelOrderReason?.ToString() ?? "N/A",
+                    CreationDate = order?.CreationDate ?? DateTime.MinValue,
+
+                    VoucherUsages = order?.VoucherUsageLogs?.Select(_ => new VoucherUsageModel
                     {
                         Id = _.Id,
-                        VoucherId = _.Voucher.Id,
+                        VoucherId = _.Voucher?.Id ?? Guid.Empty,
                         DiscountValue = _.DiscountValue,
                         DiscountOriginalValue = _.DiscountValueOrigin,
                         UsageStatus = _.UsageStatus,
                         CreationDate = _.CreationDate,
-                    }).ToList(),
+                    }).ToList() ?? new List<VoucherUsageModel>(),
 
-                    OrderInformation = order.OrderInformations?.Select(_ => new OrderInformationModel
+                    OrderInformation = order?.OrderInformations?.Select(_ => new OrderInformationModel
                     {
                         Id = _.Id,
                         FeatureId = _.PackageFeature?.Feature?.Id ?? Guid.Empty,
                         FeatureName = _.PackageFeature?.Feature?.Name ?? string.Empty,
-                        Description = _.Description,
-                        Quantity = (int)_.Quantity,
-                        Price = (decimal)_.Price,
+                        Description = _.Description ?? string.Empty,
+                        Quantity = _.Quantity ?? 0,
+                        Price = _.Price ?? 0,
                         Attachments = _.OrderInformationAttachments?.Select(att => new OrderAttachmentModel
                         {
                             Id = att.Id,
-                            AttachmentUrl = att.AttachmentUrl,
-                            AttachmentAlt = att.AttachmentAlt
-                        }).ToList()
-                    }).ToList()
-
+                            AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                            AttachmentAlt = att.AttachmentAlt ?? string.Empty
+                        }).ToList() ?? new List<OrderAttachmentModel>()
+                    }).ToList() ?? new List<OrderInformationModel>()
                 };
+
 
                 return new ResponseModel
                 {
