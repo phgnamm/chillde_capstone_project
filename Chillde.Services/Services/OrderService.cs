@@ -29,6 +29,9 @@ using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Services.Models.OrderTrackingModels;
 using Chillde.Services.Models.CategoryModels;
 using System.Linq.Expressions;
+using Chillde.Repositories.Models.ServiceModels;
+using CloudinaryDotNet.Actions;
+using Chillde.Repositories.Models.AccountModels;
 
 namespace Chillde.Services.Services
 {
@@ -932,14 +935,43 @@ namespace Chillde.Services.Services
                 PackageName = _.Package.Name,
                 Quantity = _.Quantity,
                 ShipmentCode = _.ShipmentCode,
-                Status = _.Status
+                Status = _.Status,
+                ServiceModel = _.Package.Service == null ? null : new ServiceModel
+                {
+                    Id = _.Package.Service.Id,
+                    Name = _.Package.Service.Name,
+                    Description = _.Package.Service.Description,
+                    Status = _.Package.Service.Status,
+                    CategoryId = _.Package.Service.CategoryId,
+                    Rate = _.Package.Service.Rate,
+                    FeedbackCount = _.Package.Service.FeedbackCount,
+                    Price = _.Package.Price,
+                    MinWeight = _.Package.Service.MinWeight,
+                    MaxWeight = _.Package.Service.MaxWeight,
+                    Artisan = _.Package.Service.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = _.Package.Service.CreatedBy.FirstName ?? "Unknown",
+                        LastName = _.Package.Service.CreatedBy.LastName ?? "Unknown",
+                        Email = _.Package.Service.CreatedBy.Email ?? "Unknown",
+                        Username = _.Package.Service.CreatedBy.Username ?? "Unknown",
+                        Image = _.Package.Service.CreatedBy.Image ?? "Unknown",
+                    },
+                    ServiceAttachments = _.Package.Service.ServiceAttachments?.Select(_ => new ServiceAttachment
+                    {
+                        Id = _.Id,
+                        AttachmentUrl = _.AttachmentUrl,
+                        AttachmentAlt = _.AttachmentAlt,
+                        ServiceId = _.ServiceId
+                    }).ToList()
+                }
             }).ToList();
+
 
             var result = new Pagination<OrderModel>(
                 orderModels,
                 orderFilterModel.PageIndex,
                 orderFilterModel.PageSize,
-                orders.Data.Count
+                orders.TotalCount
             );
 
             return new ResponseModel
