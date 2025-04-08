@@ -28,6 +28,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Models.UserActivityLogModels;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using System;
 
 namespace Chillde.Services.Services
 {
@@ -902,6 +903,7 @@ namespace Chillde.Services.Services
                 //};
 
                 var package = _mapper.Map<Package>(packageAddModel);
+                package.ResponseTime = (float)packageAddModel.ResponseTime.TotalMinutes;
                 package.ServiceId = serviceId;
 
                 await _unitOfWork.PackageRepository.AddAsync(package);
@@ -1097,7 +1099,7 @@ namespace Chillde.Services.Services
                     Price = package.Price,
                     DeliveryTime = package.DeliveryTime,
                     SketchRevision = package.SketchRevision,
-                    ResponseTime = package.ResponseTime,
+                    ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
                     ServiceId = package.ServiceId,
                     IsDeleted = package.IsDeleted,
                     MaxQuantity = package.MaxQuantity,
