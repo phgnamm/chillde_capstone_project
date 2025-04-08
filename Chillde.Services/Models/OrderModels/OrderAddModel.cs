@@ -40,12 +40,12 @@ namespace Chillde.Services.Models.OrderModels
         //[Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0.")]
         public int? Quantity { get; set; } = 1;
 
-        public string? ShipmentCode { get; set; }
+        //public string? ShipmentCode { get; set; }
 
 
-        public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
+        //public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
 
-        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        //public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
         [Required]
         public Guid PackageId { get; set; }

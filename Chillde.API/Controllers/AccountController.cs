@@ -236,7 +236,6 @@ public class AccountController : ControllerBase
         }
     }
     
-    [Authorize]
     [HttpGet("{id}/shipping-addresses/default")]
     public async Task<IActionResult> GetDefaultShippingAddress(Guid id)
     {
@@ -254,7 +253,7 @@ public class AccountController : ControllerBase
             });
         }
     }
-    [HttpPost("ban-role")]
+    /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
         try
@@ -270,5 +269,5 @@ public class AccountController : ControllerBase
                 Message = ex.Message
             });
         }
-    }
+    }*/
 }

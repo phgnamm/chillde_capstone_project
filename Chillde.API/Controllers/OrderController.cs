@@ -35,7 +35,7 @@ namespace Chillde.API.Controllers
 
         }
         [Authorize]
-        [HttpGet("artisans")]
+        [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] OrderFilterModel orderFilterModel)
         {
             try
@@ -56,7 +56,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpGet]
+       /* [HttpGet]
         public async Task<IActionResult> GetAllByAdmin([FromQuery] OrderFilterModel orderFilterModel)
         {
             try
@@ -76,7 +76,7 @@ namespace Chillde.API.Controllers
                     Message = ex.Message
                 });
             }
-        }
+        }*/
         [Authorize]
         [HttpPost("use-admin-vouchers")]
         public async Task<IActionResult> UsedAdminVoucher(Guid orderId, Guid voucherId)
@@ -310,6 +310,24 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _orderService.GetAllOrderTrackings(orderId, orderStage);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpGet("{orderId}/details")]
+        public async Task<IActionResult> GetOrderDetail(Guid orderId)
+        {
+            try
+            {
+                var result = await _orderService.GetOrderDetail(orderId);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

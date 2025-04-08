@@ -17,7 +17,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public string ToProvince { get; set; }
         public decimal? TotalPrice { get; set; }
         public decimal? PackagePrice { get; set; }
-        public required string PackageName { get; set; }
+        public required PackageName PackageName { get; set; }
         public int? Quantity { get; set; }
         public string? ShipmentCode { get; set; }
         public required OrderStatus Status { get; set; }
