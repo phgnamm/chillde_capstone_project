@@ -903,7 +903,7 @@ namespace Chillde.Services.Services
                 //};
 
                 var package = _mapper.Map<Package>(packageAddModel);
-                package.ResponseTime = (float)packageAddModel.ResponseTime.TotalMinutes;
+                //package.ResponseTime = (float)packageAddModel.ResponseTime.TotalMinutes;
                 package.ServiceId = serviceId;
 
                 await _unitOfWork.PackageRepository.AddAsync(package);
