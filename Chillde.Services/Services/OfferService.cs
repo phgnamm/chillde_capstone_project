@@ -95,7 +95,7 @@ namespace Chillde.Services.Services
                     localizedOffers = offersWithTranslations.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
-                        Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
+                        Status = offer.Status,
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
@@ -152,7 +152,7 @@ namespace Chillde.Services.Services
                     localizedOffers = offersResult.Data.Select(offer => new OfferModel
                     {
                         Id = offer.Id,
-                        Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
+                        Status = offer.Status,
                         Message = offer.Message,
                         MinWeight = offer.MinWeight,
                         MaxWeight = offer.MaxWeight,
@@ -247,7 +247,7 @@ namespace Chillde.Services.Services
                 var offerModel = new OfferModel
                 {
                     Id = offer.Id,
-                    Status = offer.Status != null ? _localizer[offer.Status.ToString()] : string.Empty,
+                    Status = offer.Status,
                     Message = offer.Message,
                     MinWeight = offer.MinWeight,
                     MaxWeight = offer.MaxWeight,
