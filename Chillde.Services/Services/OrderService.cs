@@ -1644,7 +1644,7 @@ namespace Chillde.Services.Services
                 {
                     Id = order.Id,
                     Code = order.Code,
-                    PackageName = order.Package?.Name.ToString() ?? string.Empty,
+                    PackageName = order.Package.Name ,
                     CustomerName = order.CreatedBy.FirstName +  " " + order.CreatedBy.LastName,
                     CustomerPhone = order.Phone,
                     CustomerAddress = order.Address,

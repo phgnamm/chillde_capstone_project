@@ -11,7 +11,7 @@ namespace Chillde.Repositories.Models.OrderModels
     public class OrderDetailModel : BaseEntity
     {
         public string Code { get; set; }
-        public string PackageName { get; set; }
+        public PackageName PackageName { get; set; }
         public string CustomerName { get; set; }
         public string CustomerPhone { get; set; }
         public string CustomerAddress { get; set; }
