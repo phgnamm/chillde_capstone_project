@@ -1019,6 +1019,7 @@ namespace Chillde.Services.Services
                 ToDistrict = _.ToDistrict,
                 ToProvince = _.ToProvince,
                 ToWard = _.ToWard,
+                OrderStage = _.Stage,
                 TotalPrice = _.TotalPrice,
                 PackagePrice = _.OriginPrice,
                 PackageName = _.Package.Name,
