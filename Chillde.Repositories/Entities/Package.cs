@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Enums;
+using System.Text.Json.Serialization;
 
 namespace Chillde.Repositories.Entities;
 
@@ -17,7 +18,9 @@ public class Package : BaseEntity
     #endregion
 
     // Foreign key
+    [JsonIgnore]
     public Guid? ServiceId { get; set; }
+    [JsonIgnore]
     public Guid? OfferId { get; set; }
 
     // Relationship

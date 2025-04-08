@@ -15,7 +15,18 @@ public class ShippingFeeRequestModel
     public required string PickProvince { get; set; }     
 
     [Required(ErrorMessage = "Pick District is required.")]
-    public required string PickDistrict { get; set; }     
+    public required string PickDistrict { get; set; }
+    // Thêm mới: Phường/Xã nơi lấy hàng
+    public string? PickWard { get; set; }
+
+    // Thêm mới: Địa chỉ chi tiết nơi lấy hàng
+    public string? PickAddress { get; set; }
+
+    // Thêm mới: Phường/Xã nơi giao hàng
+    public string? Ward { get; set; }
+
+    // Thêm mới: Loại hình vận chuyển (ví dụ: "road", "air")
+    public string? Transport { get; set; }
 
     [Required(ErrorMessage = "Weight is required.")]
     [Range(1, int.MaxValue, ErrorMessage = "Weight must be greater than 0.")]

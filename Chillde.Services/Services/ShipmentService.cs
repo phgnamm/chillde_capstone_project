@@ -22,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Chillde.Services.Models.AccountModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Chillde.Services.Models.ShipmentStatusHistoryModels;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -48,22 +49,38 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> CalculateShippingFeeAsync(ShippingFeeRequestModel requestModel)
         {
-            var url = $"{_ghtkUrl}/shipment/fee?" +
-                      $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
-                      $"province={Uri.EscapeDataString(requestModel.Province)}&" +
-                      $"district={Uri.EscapeDataString(requestModel.District)}&" +
-                      $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
-                      $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
-                      $"weight={requestModel.Weight}&" +
-                      $"value={requestModel.Value}&" +
-                      $"deliver_option={requestModel.DeliverOption}";
+            var url = $"https://services.giaohangtietkiem.vn/services/shipment/fee?" +
+              $"address={Uri.EscapeDataString(requestModel.Address ?? string.Empty)}&" +
+              $"province={Uri.EscapeDataString(requestModel.Province)}&" +
+              $"district={Uri.EscapeDataString(requestModel.District)}&" +
+              $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
+              $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
+              $"pick_ward={Uri.EscapeDataString(requestModel.PickWard ?? string.Empty)}&" +       
+              $"pick_address={Uri.EscapeDataString(requestModel.PickAddress ?? string.Empty)}&" + 
+              $"ward={Uri.EscapeDataString(requestModel.Ward ?? string.Empty)}&" +               
+              $"transport={Uri.EscapeDataString(requestModel.Transport ?? string.Empty)}&" +      
+              $"weight={requestModel.Weight}&" +
+              $"value={requestModel.Value}&" +
+              $"deliver_option={requestModel.DeliverOption}";
 
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
+
+            requestMessage.Headers.Add("Token", "140QYIuQUX4Fh3GvqhpzC2yFCTb8Zsqu3hPO3rh");
 
             try
             {
                 var response = await _httpClient.SendAsync(requestMessage);
-                response.EnsureSuccessStatusCode();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = $"API error: {errorContent}",
+                        Data = null
+                    };
+                }
 
                 var content = await response.Content.ReadAsStringAsync();
                 var jsonObject = JsonConvert.DeserializeObject<JObject>(content);
@@ -77,21 +94,41 @@ namespace Chillde.Services.Services
                     Data = shipmentData
                 };
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message,
+                    Message = $"Exception: {ex.Message}",
                     Data = null
                 };
             }
         }
 
+
         public async Task<CancelShipmentResponseModel> CancelShipmentAsync(string trackingOrder)
         {
             var url = $"{_ghtkUrl}/shipment/cancel/{trackingOrder}";
-
+            var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+            if (shipment == null)
+            {
+                return new CancelShipmentResponseModel
+                {
+                    Success = false,
+                    Message = "Shipment not found.",
+                    LogId = null
+                };
+            }
+            var cancellableStatuses = new[] { ShipmentStatus.NotReceived, ShipmentStatus.Received, ShipmentStatus.PickupArranging };
+            if (!cancellableStatuses.Contains(shipment.CurrentStatusId))
+            {
+                return new CancelShipmentResponseModel
+                {
+                    Success = false,
+                    Message = "Shipment cannot be cancelled at this status.",
+                    LogId = null
+                };
+            }
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
             try
             {
@@ -101,7 +138,7 @@ namespace Chillde.Services.Services
                 var content = await response.Content.ReadAsStringAsync();
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
 
-                var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+               //var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
                 shipment!.CurrentStatusId = ShipmentStatus.Cancelled;
 
                 var statusHistory = new ShipmentStatusHistory
@@ -305,7 +342,10 @@ namespace Chillde.Services.Services
             {
                 return false;
             }
-
+            if(shipment.PartnerId != request.PartnerId)
+            {
+                return false;
+            }
             if (!Enum.IsDefined(typeof(ShipmentStatus), request.StatusId))
             {
                 throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
@@ -349,6 +389,46 @@ namespace Chillde.Services.Services
             };
         }
 
-       
+        public async Task<ResponseModel> GetAllStatusByShipmentId(Guid shipmentId, ShipmentStatusFilterModel filterModel)
+        {
+            var shipment = await _unitOfWork.ShipmentRepository.GetAsync(shipmentId);
+            if (shipment == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Không tìm thấy shipment."
+                };
+            }
+
+            Expression<Func<ShipmentStatusHistory, bool>> filter = s =>
+                s.ShipmentId == shipmentId && s.IsDeleted == filterModel.IsDeleted;
+
+            var statusHistories = await _unitOfWork.ShipmentStatusHistoryRepository.GetAllAsync(
+                filter: filter,
+                order: q =>
+                {
+                    return filterModel.OrderByDescending
+                        ? q.OrderByDescending(s => s.CreationDate)
+                        : q.OrderBy(s => s.CreationDate);
+                },
+                pageIndex: filterModel.PageIndex,
+                pageSize: filterModel.PageSize
+            );
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Get all status list successfully",
+                Data = statusHistories.Data.Select(x => new
+                {
+                    x.StatusId,
+                    x.CreationDate
+                }),
+            };
+        }
+
+
+
     }
 }

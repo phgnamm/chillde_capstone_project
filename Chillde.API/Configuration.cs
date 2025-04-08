@@ -33,8 +33,8 @@ public static class Configuration
         // Local database
         services.AddDbContext<AppDbContext>(options =>
         {
-            //options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
-            options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
+            options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
+            //options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
         });
 
         // Redis
@@ -281,6 +281,7 @@ public static class Configuration
         //Offer
         services.AddScoped<IOfferRepository, OfferRepository>();
         services.AddScoped<IOfferService, OfferService>();
+        services.AddScoped<IOfferAttachmentRepository, OfferAttachmentRepository>();
 
         //Caterory
         services.AddScoped<ICategoryRepository, CategoryRepository>();

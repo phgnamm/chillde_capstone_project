@@ -143,6 +143,37 @@ namespace Chillde.Services.Services
             }
         }
 
+        public async Task<ResponseModel> UpdateTranslationAsync(TransaltionAddModel addModel, string targetLanguageCode)
+        {
+            try
+            {
+                var languageId = await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
+
+                var translation = new Translation
+                {
+                    EntityType = addModel.EntityType,
+                    EntityId = addModel.EntityId,
+                    FieldName = addModel.FieldName,
+                    TranslationText = addModel.TranslationText,
+                    LanguageId = (Guid)languageId
+                };
+
+                 _unitOfWork.TranslationRepository.Update(translation);
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Translation updated successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
         public async Task<ResponseModel> SaveTranslationAsync(TransaltionAddModel addModel, string targetLanguageCode)
         {
             try
@@ -159,18 +190,11 @@ namespace Chillde.Services.Services
                 };
 
                 await _unitOfWork.TranslationRepository.AddAsync(translation);
-                var changes = await _unitOfWork.SaveChangeAsync();
-                return changes > 0
-                   ? new ResponseModel
-                   {
-                       Code = StatusCodes.Status200OK,
-                       Message = "Translation added successfully."
-                   }
-                   : new ResponseModel
-                   {
-                       Code = StatusCodes.Status500InternalServerError,
-                       Message = "Failed to save the translation."
-                   };
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Translation added successfully."
+                };
             }
             catch (Exception ex)
             {

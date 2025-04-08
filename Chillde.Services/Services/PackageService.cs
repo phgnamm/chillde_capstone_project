@@ -62,7 +62,7 @@ namespace Chillde.Services.Services
                     Price = package.Price,
                     DeliveryTime = package.DeliveryTime,
                     SketchRevision = package.SketchRevision,
-                    ResponseTime = package.ResponseTime,
+                    ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
                     ServiceId = package.ServiceId,
                     IsDeleted = package.IsDeleted,
                     MaxQuantity = package.MaxQuantity,
@@ -192,6 +192,7 @@ namespace Chillde.Services.Services
                 if (!anyOrder.Result)
                 {
                     _mapper.Map(packageUpdateModel, package);
+                    //package.ResponseTime = (float)packageUpdateModel.ResponseTime.TotalMinutes;
                     _unitOfWork.PackageRepository.Update(package);
                     packageModel = _mapper.Map<PackageModel>(package);
                 }
@@ -217,7 +218,7 @@ namespace Chillde.Services.Services
             }
             catch (Exception ex)
             {
-                await _unitOfWork.RollbackTransactionAsync();
+                //await _unitOfWork.RollbackTransactionAsync();
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,

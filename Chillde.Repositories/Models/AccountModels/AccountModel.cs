@@ -25,8 +25,17 @@ public class AccountModel : BaseEntity
     // Status
     public bool EmailConfirmed { get; set; }
     public bool PhoneNumberConfirmed { get; set; }
-    public AccountStatus Status { get; set; }
+    //public AccountStatus Status { get; set; }
+    // Wallet information
+    public decimal Balance { get; set; } // Lấy số dư ví
 
+    // AccountRole information
+    public List<int> TotalReputations { get; set; } = null!;
+    public List<AccountStatus> Status { get; set; } = null!;
+    public List<string> StatusNames { get; set; } = null!;
+    
+    // Order information
+    public int OrderCount { get; set; }
     // Relationship
     public List<Role> Roles { get; set; } = null!;
     public List<string> RoleNames { get; set; } = null!;

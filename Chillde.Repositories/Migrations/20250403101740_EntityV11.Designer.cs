@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250403101740_EntityV11")]
+    partial class EntityV11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,7 +143,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Accounts", (string)null);
+                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.AccountConversation", b =>
@@ -188,7 +191,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ConversationId");
 
-                    b.ToTable("AccountConversations", (string)null);
+                    b.ToTable("AccountConversations");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.AccountRole", b =>
@@ -238,7 +241,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AccountRoles", (string)null);
+                    b.ToTable("AccountRoles");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.CancellationReason", b =>
@@ -280,7 +283,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CancellationReasons", (string)null);
+                    b.ToTable("CancellationReasons");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Category", b =>
@@ -333,7 +336,7 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Conversation", b =>
@@ -375,7 +378,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Conversations", (string)null);
+                    b.ToTable("Conversations");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.FAQ", b =>
@@ -419,7 +422,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("FAQs", (string)null);
+                    b.ToTable("FAQs");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Feature", b =>
@@ -467,7 +470,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Features", (string)null);
+                    b.ToTable("Features");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Feedback", b =>
@@ -525,7 +528,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Feedbacks", (string)null);
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.FeedbackAttachment", b =>
@@ -568,7 +571,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("FeedbackId");
 
-                    b.ToTable("FeedbackAttachments", (string)null);
+                    b.ToTable("FeedbackAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Language", b =>
@@ -609,7 +612,7 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Languages", (string)null);
+                    b.ToTable("Languages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
@@ -666,7 +669,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ParentMessageId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.MessageRecipient", b =>
@@ -719,7 +722,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("MessageId");
 
-                    b.ToTable("MessageRecipients", (string)null);
+                    b.ToTable("MessageRecipients");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
@@ -775,7 +778,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Offers", (string)null);
+                    b.ToTable("Offers");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OfferAttachment", b =>
@@ -818,7 +821,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OfferId");
 
-                    b.ToTable("OfferAttachment", (string)null);
+                    b.ToTable("OfferAttachment");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Order", b =>
@@ -949,7 +952,7 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("ShipmentCode")
                         .IsUnique();
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderInformation", b =>
@@ -1000,7 +1003,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("PackageFeatureId");
 
-                    b.ToTable("OrderInformation", (string)null);
+                    b.ToTable("OrderInformation");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderInformationAttachment", b =>
@@ -1043,7 +1046,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderInformationId");
 
-                    b.ToTable("OrderInformationAttachments", (string)null);
+                    b.ToTable("OrderInformationAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderTracking", b =>
@@ -1101,7 +1104,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderTrackings", (string)null);
+                    b.ToTable("OrderTrackings");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.OrderTrackingAttachment", b =>
@@ -1144,7 +1147,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderTrackingId");
 
-                    b.ToTable("OrderTrackingAttachments", (string)null);
+                    b.ToTable("OrderTrackingAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Package", b =>
@@ -1204,12 +1207,11 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("OfferId")
-                        .IsUnique();
+                    b.HasIndex("OfferId");
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("Packages", (string)null);
+                    b.ToTable("Packages");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.PackageFeature", b =>
@@ -1269,7 +1271,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("PackageFeatures", (string)null);
+                    b.ToTable("PackageFeatures");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ProductShipment", b =>
@@ -1320,7 +1322,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ShipmentId");
 
-                    b.ToTable("ProductShipment", (string)null);
+                    b.ToTable("ProductShipment");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RefreshToken", b =>
@@ -1363,7 +1365,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Report", b =>
@@ -1407,7 +1409,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Report", (string)null);
+                    b.ToTable("Report");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ReputationLog", b =>
@@ -1451,7 +1453,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("AccountRoleId");
 
-                    b.ToTable("ReputationLogs", (string)null);
+                    b.ToTable("ReputationLogs");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Request", b =>
@@ -1512,7 +1514,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("Requests", (string)null);
+                    b.ToTable("Requests");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttachment", b =>
@@ -1555,7 +1557,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("RequestAttachments", (string)null);
+                    b.ToTable("RequestAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttribute", b =>
@@ -1599,7 +1601,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("RequestId");
 
-                    b.ToTable("RequestAttributes", (string)null);
+                    b.ToTable("RequestAttributes");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttributeAttachment", b =>
@@ -1642,7 +1644,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("RequestAttributeId");
 
-                    b.ToTable("RequestAttributeAttachments", (string)null);
+                    b.ToTable("RequestAttributeAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.RequestAttributeValue", b =>
@@ -1686,7 +1688,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("RequestAttributeId");
 
-                    b.ToTable("RequestAttributeValues", (string)null);
+                    b.ToTable("RequestAttributeValues");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Role", b =>
@@ -1730,7 +1732,7 @@ namespace Chillde.Repositories.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Roles", (string)null);
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.SearchHistory", b =>
@@ -1767,7 +1769,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("SearchHistory", (string)null);
+                    b.ToTable("SearchHistory");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Service", b =>
@@ -1835,7 +1837,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("Services", (string)null);
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ServiceAttachment", b =>
@@ -1878,7 +1880,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("ServiceAttachments", (string)null);
+                    b.ToTable("ServiceAttachments");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ServiceCollection", b =>
@@ -1919,7 +1921,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("ServiceCollection", (string)null);
+                    b.ToTable("ServiceCollection");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ServiceWishlist", b =>
@@ -1955,7 +1957,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ServiceCollectionId");
 
-                    b.ToTable("ServiceWishlists", (string)null);
+                    b.ToTable("ServiceWishlists");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Shipment", b =>
@@ -2019,7 +2021,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Shipment", (string)null);
+                    b.ToTable("Shipment");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ShipmentStatusHistory", b =>
@@ -2059,7 +2061,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ShipmentId");
 
-                    b.ToTable("ShipmentStatusHistory", (string)null);
+                    b.ToTable("ShipmentStatusHistory");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ShippingAddress", b =>
@@ -2134,7 +2136,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("ShippingAddresses", (string)null);
+                    b.ToTable("ShippingAddresses");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.SystemConfig", b =>
@@ -2176,7 +2178,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemConfigs", (string)null);
+                    b.ToTable("SystemConfigs");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Transaction", b =>
@@ -2227,7 +2229,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("WalletId");
 
-                    b.ToTable("Transaction", (string)null);
+                    b.ToTable("Transaction");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Translation", b =>
@@ -2278,7 +2280,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("Translations", (string)null);
+                    b.ToTable("Translations");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.UserActivityLog", b =>
@@ -2328,7 +2330,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserActivityLogs", (string)null);
+                    b.ToTable("UserActivityLogs");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Voucher", b =>
@@ -2404,7 +2406,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("ReceiverId");
 
-                    b.ToTable("Vouchers", (string)null);
+                    b.ToTable("Vouchers");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.VoucherUsageLog", b =>
@@ -2460,7 +2462,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("VoucherUsageLogs", (string)null);
+                    b.ToTable("VoucherUsageLogs");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Wallet", b =>
@@ -2495,7 +2497,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Wallets", (string)null);
+                    b.ToTable("Wallets");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Account", b =>
@@ -2782,8 +2784,8 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Package", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Offer", "Offer")
-                        .WithOne("Package")
-                        .HasForeignKey("Chillde.Repositories.Entities.Package", "OfferId");
+                        .WithMany()
+                        .HasForeignKey("OfferId");
 
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
                         .WithMany("Packages")
@@ -3176,8 +3178,6 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
                     b.Navigation("OfferAttachments");
-
-                    b.Navigation("Package");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Order", b =>

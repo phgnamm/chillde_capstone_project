@@ -20,15 +20,5 @@ namespace Chillde.Services.Models.OfferModels
         [Range(0.01, double.MaxValue, ErrorMessage = "MaxWeight must be greater than 0")]
         public float? MaxWeight { get; set; }
 
-        [CustomValidation(typeof(OfferAddModel), nameof(ValidateWeightRange))]
-        public static ValidationResult? ValidateWeightRange(OfferAddModel model, ValidationContext context)
-        {
-            if (model.MinWeight.HasValue && model.MaxWeight.HasValue && model.MinWeight.Value >= model.MaxWeight.Value)
-            {
-                return new ValidationResult("MaxWeight must be greater than MinWeight.");
-            }
-            return ValidationResult.Success;
-        }
-
     }
 }

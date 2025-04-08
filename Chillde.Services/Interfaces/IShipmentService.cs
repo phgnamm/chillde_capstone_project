@@ -2,6 +2,7 @@
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
+using Chillde.Services.Models.ShipmentStatusHistoryModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.Services.Interfaces
@@ -15,6 +16,6 @@ namespace Chillde.Services.Interfaces
         //Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId);
         Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model);
         Task<bool> UpdateShipmentStatusAsync(ShipmentUpdateRequestModel request);
-
+        Task<ResponseModel> GetAllStatusByShipmentId(Guid shipmentId, ShipmentStatusFilterModel filterModel);
     }
 }
