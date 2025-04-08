@@ -1349,7 +1349,9 @@ namespace Chillde.Services.Services
                                          .ThenInclude(_ => _.CreatedBy)
                                          .ThenInclude(_ => _.AccountRoles)
                                          .Include(_ => _.OrderTrackings)
-                                         .ThenInclude(_ => _.OrderTrackingAttachments));
+                                         .ThenInclude(_ => _.OrderTrackingAttachments)
+                                         .Include(_ => _.Package)
+                                         .ThenInclude(_ => _.Service));
 
             if (order == null)
             {
@@ -1359,7 +1361,7 @@ namespace Chillde.Services.Services
                     Message = "Order not found."
                 };
             }
-
+            var customerId = order.CreatedById;
             var filteredTrackings = order.OrderTrackings
                 .Where(_ => !orderStage.HasValue || _.Stage == orderStage)
                 .Select(_ => new OrderTrackingModel
@@ -1367,7 +1369,7 @@ namespace Chillde.Services.Services
                     Id = _.Id,
                     CreatedBy = $"{_.CreatedBy.FirstName} {_.CreatedBy.LastName}",
                     DeletedById = _.CreatedById,
-                    CreatedRole = _.CreatedBy.AccountRoles.FirstOrDefault()?.Role?.Name ?? "Unknown",
+                    CreatedRole = _.CreatedById == customerId ? Repositories.Enums.Role.Customer : Repositories.Enums.Role.Artisan,
                     CurrentSketchRevision = order.CurrentSketchRevision,
                     Name = _.Name,
                     Description = _.Description,
