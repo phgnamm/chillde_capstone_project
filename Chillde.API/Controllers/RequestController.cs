@@ -193,38 +193,5 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-    
-
-        [HttpGet("{requestId}/offers")]
-        public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter, Guid requestId)
-        {
-            try
-            {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-
-                var result = await _offerService.GetAllAsync(filterParameter, requestId, sourceLanguageCode, targetLanguageCode);
-                if (result.Code != StatusCodes.Status200OK)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                    {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = result.Message
-                    });
-                }
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
-
     }
 }

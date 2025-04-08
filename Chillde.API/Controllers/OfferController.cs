@@ -21,6 +21,37 @@ namespace Chillde.API.Controllers
             _offerService = offerService;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter)
+        {
+            try
+            {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+
+                var result = await _offerService.GetAllAsync(filterParameter, sourceLanguageCode, targetLanguageCode);
+                if (result.Code != StatusCodes.Status200OK)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = result.Message
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -50,7 +81,11 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _offerService.UpdateAsync(id, model);
+
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _offerService.UpdateAsync(id, model, sourceLanguageCode, targetLanguageCode);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
