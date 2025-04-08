@@ -104,7 +104,7 @@ namespace Chillde.Services.Services
                         ServiceId = offer.ServiceId,
                         Package = new PackageModel
                         {
-                            Name = offer.Package!.Name.ToString(),
+                            Name = offer.Package!.Name,
                             Description = offer.Package!.Description,
                             Price = offer.Package!.Price,
                             DeliveryTime = offer.Package!.DeliveryTime,
@@ -161,7 +161,7 @@ namespace Chillde.Services.Services
                         ServiceId = offer.ServiceId,
                         Package = new PackageModel
                         {
-                            Name = offer.Package!.Name.ToString(),
+                            Name = offer.Package!.Name,
                             Description = offer.Package!.Description,
                             Price = offer.Package!.Price,
                             DeliveryTime = offer.Package!.DeliveryTime,
@@ -264,7 +264,7 @@ namespace Chillde.Services.Services
                     CreationDate = offer.CreationDate,
                     Package = offer.Package == null ? null : new PackageModel
                     {
-                        Name = offer.Package.Name.ToString(),
+                        Name = offer.Package.Name,
                         Description = offer.Package.Description,
                         Price = offer.Package.Price,
                         DeliveryTime = offer.Package.DeliveryTime,
