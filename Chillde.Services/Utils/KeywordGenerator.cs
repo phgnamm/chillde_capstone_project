@@ -32,32 +32,42 @@ namespace Chillde.Services.Utils
             if (string.IsNullOrWhiteSpace(productName))
                 return new List<string>();
 
-            string cleanedName = Regex.Replace(productName.ToLower(), @"[^a-z0-9\s]", "").Trim();
+            string cleanedName = Regex.Replace(productName.ToLower(), @"[^\p{L}\p{Nd}\s]", "").Trim();
 
-            var words = cleanedName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                                   .Where(w => !_stopwords.Contains(w))
-                                   .ToList();
+            var allWords = cleanedName.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            var filteredWords = allWords.Where(w => !_stopwords.Contains(w)).ToList();
 
             var keywords = new HashSet<string>();
 
-            keywords.Add(cleanedName);
+            keywords.Add(string.Join(" ", filteredWords));
 
-            if (words.Count > 1)
+            if (filteredWords.Count > 1)
             {
-                var abbreviation = string.Concat(words.Select(w => w[0]));
+                var abbreviation = string.Concat(filteredWords.Select(w => w[0]));
                 keywords.Add(abbreviation);
             }
 
-            for (int len = 1; len <= words.Count; len++)
+            for (int len = 1; len <= filteredWords.Count; len++)
             {
-                for (int i = 0; i <= words.Count - len; i++)
+                for (int i = 0; i <= filteredWords.Count - len; i++)
                 {
-                    keywords.Add(string.Join(" ", words.Skip(i).Take(len)));
+                    var phrase = string.Join(" ", filteredWords.Skip(i).Take(len));
+                    keywords.Add(phrase);
                 }
             }
 
-            return keywords.ToList();
+            var englishWords = filteredWords.Where(w => Regex.IsMatch(w, @"^[a-zA-Z]+$")).ToList();
+            var vietnameseWords = filteredWords.Except(englishWords).ToList();
+
+            keywords.Add(string.Join(" ", englishWords));
+            keywords.Add(string.Join(" ", vietnameseWords));
+
+            return keywords
+                .Where(k => !string.IsNullOrWhiteSpace(k))
+                .Distinct()
+                .ToList();
         }
+
 
     }
 }
