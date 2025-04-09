@@ -16,15 +16,23 @@ before_script:
   - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   - |
     if [ -n "$APPSETTINGS_JSON_BASE64" ]; then
+      echo "Decoding appsettings.json..."
       echo "$APPSETTINGS_JSON_BASE64" | base64 -d > appsettings.json
       cp appsettings.json appsettings.Development.json
+      echo "Decoded appsettings.json content:"
+      cat appsettings.json
+    else
+      echo "APPSETTINGS_JSON_BASE64 is not set!"
     fi
 
 build:
   stage: build
   script:
     - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    - docker build \
+        --cache-from $CI_REGISTRY_IMAGE:latest \
+        --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA \
+        --tag $CI_REGISTRY_IMAGE:latest .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE:latest
 
