@@ -1656,7 +1656,7 @@ namespace Chillde.Services.Services
                 if (order.StartTime.HasValue && order.DeliveryTime.HasValue)
                 {
                     DateTime expectedDeliveryDate = order.StartTime.Value.AddDays(order.DeliveryTime.Value);
-                    if (expectedDeliveryDate >= DateTime.UtcNow)
+                    if (expectedDeliveryDate <= DateTime.UtcNow)
                     {
                         return new ResponseModel
                         {
