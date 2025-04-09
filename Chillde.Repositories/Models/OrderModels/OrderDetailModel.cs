@@ -23,6 +23,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public string ShipmentCode { get; set; }
         public float? DeliveryTime { get; set; }
         public DateTime? StartTime { get; set; }
+        public DateTime? Deadline {  get; set; }
         public OrderStage Stage { get; set; }
         public OrderStatus Status { get; set; }
         public decimal OriginPrice { get; set; }
