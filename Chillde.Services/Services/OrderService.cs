@@ -1505,9 +1505,35 @@ namespace Chillde.Services.Services
                     {
                         await SendNew(order.CreatedBy.Email, order.Code, "sketch", order);
                     }
+                    var createdBy = await _unitOfWork.AccountRepository.GetAsync((Guid)orderTracking.CreatedById);
+
+                    var trackingModel = new OrderTrackingModel
+                    {
+                        Id = orderTracking.Id,
+                        CreatedBy = $"{createdBy?.FirstName} {createdBy?.LastName}",
+                        CreatedById = orderTracking.CreatedById,
+                        DeletedById = orderTracking.CreatedById,
+                        CreatedRole = order.CreatedById == orderTracking.CreatedById
+                            ? Repositories.Enums.Role.Customer
+                            : Repositories.Enums.Role.Artisan,
+                        CurrentSketchRevision = order.CurrentSketchRevision,
+                        Name = orderTracking.Name,
+                        Description = orderTracking.Description,
+                        IsAccepted = orderTracking.IsAccepted,
+                        Stage = orderTracking.Stage,
+                        Type = orderTracking.Type,
+                        CreationDate = orderTracking.CreationDate,
+                        OrderTrackingAttachmentModels = orderTracking.OrderTrackingAttachments?
+                            .Select(_ => new OrderTrackingAttachmentModel
+                            {
+                                Id = _.Id,
+                                AttachmentUrl = _.AttachmentUrl,
+                                AttachmentAlt = _.AttachmentAlt
+                            }).ToList()
+                    };
                     return new ResponseModel
                     {
-                        Data = orderTracking,
+                        Data = trackingModel,
                         Code = StatusCodes.Status200OK,
                         Message = "Sketch tracking added"
                     };
@@ -1680,9 +1706,35 @@ namespace Chillde.Services.Services
                     {
                         await SendNew(order.CreatedBy.Email, order.Code, "delivery", order);
                     }
+                    var createdBy = await _unitOfWork.AccountRepository.GetAsync((Guid)orderTracking.CreatedById);
+
+                    var trackingModel = new OrderTrackingModel
+                    {
+                        Id = orderTracking.Id,
+                        CreatedBy = $"{createdBy?.FirstName} {createdBy?.LastName}",
+                        CreatedById = orderTracking.CreatedById,
+                        DeletedById = orderTracking.CreatedById,
+                        CreatedRole = order.CreatedById == orderTracking.CreatedById
+                            ? Repositories.Enums.Role.Customer
+                            : Repositories.Enums.Role.Artisan,
+                        CurrentSketchRevision = order.CurrentSketchRevision,
+                        Name = orderTracking.Name,
+                        Description = orderTracking.Description,
+                        IsAccepted = orderTracking.IsAccepted,
+                        Stage = orderTracking.Stage,
+                        Type = orderTracking.Type,
+                        CreationDate = orderTracking.CreationDate,
+                        OrderTrackingAttachmentModels = orderTracking.OrderTrackingAttachments?
+                            .Select(_ => new OrderTrackingAttachmentModel
+                            {
+                                Id = _.Id,
+                                AttachmentUrl = _.AttachmentUrl,
+                                AttachmentAlt = _.AttachmentAlt
+                            }).ToList()
+                    };
                     return new ResponseModel
                     {
-                        Data = orderTracking,
+                        Data = trackingModel,
                         Code = StatusCodes.Status200OK,
                         Message = "Delivery tracking added"
                     };
