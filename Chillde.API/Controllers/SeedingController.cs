@@ -281,186 +281,186 @@ namespace Chillde.API.Controllers
                         //        }
                         //    }
                         //},
-                        new ServiceAddModel
-{
-    Name = "Vòng Tay Tình Bạn",
-    Description = "Vòng tay tình bạn là món quà tuyệt vời cho những người bạn thân thiết. Chất liệu từ dây thừng và kim loại, thiết kế đơn giản nhưng đầy ý nghĩa. Đây sẽ là món quà lý tưởng cho Ngày Quốc tế Hạnh phúc (20-03), mang đến niềm vui và sự kết nối giữa bạn bè.",
-    MinWeight = 50,
-    MaxWeight = 200,
-    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
-    ServiceAttachments = new List<ServiceAttachmentAddModel>
-    {
-        new ServiceAttachmentAddModel
-        {
-            AttachmentUrl = CreateFormFileFromPath("friendship_band.jpg"),
-            AttachmentAlt = "Vòng tay tình bạn đơn giản"
-        }
-    }
-},
-
-new ServiceAddModel
-{
-    Name = "Chân Vòng Hoa Tết Nguyên Đán",
-    Description = "Chân vòng hoa Tết Nguyên Đán là món quà trang trí tuyệt vời cho ngày Tết cổ truyền. Sản phẩm được làm từ hoa tươi và các vật liệu tự nhiên, thích hợp để trang trí trong gia đình vào dịp Tết Nguyên Đán (01-01).",
-    MinWeight = 100,
-    MaxWeight = 500,
-    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
-    ServiceAttachments = new List<ServiceAttachmentAddModel>
-    {
-        new ServiceAttachmentAddModel
-        {
-            AttachmentUrl = CreateFormFileFromPath("tet_flower_band.jpg"),
-            AttachmentAlt = "Chân vòng hoa trang trí Tết"
-        }
-    }
-},
-
-new ServiceAddModel
-{
-    Name = "Vòng Tay Boho Summer",
-    Description = "Vòng tay phong cách Boho đơn giản nhưng cực kỳ cá tính, mang đến vẻ đẹp tự nhiên và năng động. Phù hợp cho các buổi dã ngoại hoặc đi biển trong mùa hè, đặc biệt là cho Ngày Quốc tế Thiếu nhi (01-06).",
-    MinWeight = 80,
-    MaxWeight = 300,
-    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
-    ServiceAttachments = new List<ServiceAttachmentAddModel>
-    {
-        new ServiceAttachmentAddModel
-        {
-            AttachmentUrl = CreateFormFileFromPath("boho_summer_band.jpg"),
-            AttachmentAlt = "Vòng tay Boho mùa hè"
-        }
-    }
-},
-
-new ServiceAddModel
-{
-    Name = "Vòng Tay Năng Lượng",
-    Description = "Vòng tay năng lượng được chế tác từ đá tự nhiên, mang đến sự may mắn và năng lượng tích cực. Một món quà tuyệt vời cho Ngày Quốc tế Phụ nữ (08-03), giúp chị em cảm nhận được sự tự tin và mạnh mẽ.",
-    MinWeight = 120,
-    MaxWeight = 400,
-    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
-    ServiceAttachments = new List<ServiceAttachmentAddModel>
-    {
-        new ServiceAttachmentAddModel
-        {
-            AttachmentUrl = CreateFormFileFromPath("energy_band.jpg"),
-            AttachmentAlt = "Vòng tay năng lượng tích cực"
-        }
-    }
-},
-
-new ServiceAddModel
-{
-    Name = "Vòng Tay Tình Yêu",
-    Description = "Vòng tay tình yêu mang lại sự gắn kết cho các cặp đôi, được thiết kế tinh xảo và sang trọng. Đây sẽ là món quà hoàn hảo cho Ngày Giáng Sinh (24-12), thể hiện tình cảm yêu thương và sự chăm sóc.",
-    MinWeight = 150,
-    MaxWeight = 600,
-    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
-    ServiceAttachments = new List<ServiceAttachmentAddModel>
-    {
-        new ServiceAttachmentAddModel
-        {
-            AttachmentUrl = CreateFormFileFromPath("love_band.jpg"),
-            AttachmentAlt = "Vòng tay tình yêu"
-        }
-    }
-},
-//new ServiceAddModel
+//                        new ServiceAddModel
 //{
-//    Name = "Hoa Tai Giáng Sinh",
-//    Description = "Hoa tai Giáng Sinh (24-12) với thiết kế ngôi sao và bông tuyết, mang đậm không khí lễ hội và sắc màu của mùa Giáng Sinh. Đây là món quà lý tưởng cho những ai yêu thích không khí ấm áp và vui tươi của lễ hội cuối năm.",
+//    Name = "Vòng Tay Tình Bạn",
+//    Description = "Vòng tay tình bạn là món quà tuyệt vời cho những người bạn thân thiết. Chất liệu từ dây thừng và kim loại, thiết kế đơn giản nhưng đầy ý nghĩa. Đây sẽ là món quà lý tưởng cho Ngày Quốc tế Hạnh phúc (20-03), mang đến niềm vui và sự kết nối giữa bạn bè.",
 //    MinWeight = 50,
 //    MaxWeight = 200,
-//    CategoryId = Guid.Parse("b71db97b-7586-4262-b03c-8c8b93ec1539"), // Earrings
+//    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
 //    ServiceAttachments = new List<ServiceAttachmentAddModel>
 //    {
 //        new ServiceAttachmentAddModel
 //        {
-//            AttachmentUrl = CreateFormFileFromPath("christmas_earrings.jpg"),
-//            AttachmentAlt = "Hoa tai Giáng Sinh"
+//            AttachmentUrl = CreateFormFileFromPath("friendship_band.jpg"),
+//            AttachmentAlt = "Vòng tay tình bạn đơn giản"
 //        }
 //    }
 //},
+
 //new ServiceAddModel
 //{
-//    Name = "Khăn Quàng Tết Đoan Ngọ",
-//    Description = "Khăn quàng Tết Đoan Ngọ (05-05) với họa tiết thuyền rồng và hoa sen, tượng trưng cho sức mạnh và sự đoàn kết. Đây là món quà đặc biệt, phù hợp cho những dịp lễ hội truyền thống của Việt Nam.",
-//    MinWeight = 150,
-//    MaxWeight = 500,
-//    CategoryId = Guid.Parse("b8dfb7fe-3eb8-44d5-b8f9-9b58e46c7d26"), // Scarves
-//    ServiceAttachments = new List<ServiceAttachmentAddModel>
-//    {
-//        new ServiceAttachmentAddModel
-//        {
-//            AttachmentUrl = CreateFormFileFromPath("dragon_boat_festival_scarf.jpg"),
-//            AttachmentAlt = "Khăn quàng Tết Đoan Ngọ"
-//        }
-//    }
-//},
-//new ServiceAddModel
-//{
-//    Name = "Móc Khóa Ngày Quốc Tế Phụ Nữ",
-//    Description = "Móc khóa Ngày Quốc Tế Phụ Nữ (08-03) với hình ảnh hoa hồng và biểu tượng nữ tính. Món quà này tượng trưng cho sự tôn vinh và yêu thương dành cho phụ nữ trong dịp lễ đặc biệt này.",
-//    MinWeight = 30,
-//    MaxWeight = 100,
-//    CategoryId = Guid.Parse("f98e0a1a-049d-40e4-9f8b-d3c9842f4326"), // Keychains
-//    ServiceAttachments = new List<ServiceAttachmentAddModel>
-//    {
-//        new ServiceAttachmentAddModel
-//        {
-//            AttachmentUrl = CreateFormFileFromPath("womens_day_keychain.jpg"),
-//            AttachmentAlt = "Móc khóa Ngày Quốc Tế Phụ Nữ"
-//        }
-//    }
-//},
-//new ServiceAddModel
-//{
-//    Name = "Trâm Cài Tóc Phong Cách Dân Gian",
-//    Description = "Trâm cài tóc tinh xảo, mang đậm nét văn hóa dân tộc, phù hợp để sử dụng trong dịp **Giỗ Tổ Hùng Vương (10-03)**. Một món quà đặc biệt thể hiện sự kính trọng và lòng thành kính đối với các vua Hùng.",
-//    MinWeight = 50,
-//    MaxWeight = 250,
-//    CategoryId = Guid.Parse("d2a2197d-6c93-489f-963b-45fb1b9a53b2"), // Costume Accessories
-//    ServiceAttachments = new List<ServiceAttachmentAddModel>
-//    {
-//        new ServiceAttachmentAddModel
-//        {
-//            AttachmentUrl = CreateFormFileFromPath("hairpin_traditional.jpg"),
-//            AttachmentAlt = "Trâm cài tóc phong cách dân gian"
-//        }
-//    }
-//},
-//new ServiceAddModel
-//{
-//    Name = "Dây Chuyền Mặt Dây Chuyền Hình Tổ Quốc",
-//    Description = "Dây chuyền với mặt dây hình bản đồ Việt Nam, thể hiện lòng yêu nước và sự tự hào dân tộc, rất phù hợp cho **Giỗ Tổ Hùng Vương (10-03)**. Một món quà đầy ý nghĩa để tưởng nhớ các vua Hùng, với thiết kế giản dị nhưng đầy sâu sắc.",
+//    Name = "Chân Vòng Hoa Tết Nguyên Đán",
+//    Description = "Chân vòng hoa Tết Nguyên Đán là món quà trang trí tuyệt vời cho ngày Tết cổ truyền. Sản phẩm được làm từ hoa tươi và các vật liệu tự nhiên, thích hợp để trang trí trong gia đình vào dịp Tết Nguyên Đán (01-01).",
 //    MinWeight = 100,
-//    MaxWeight = 400,
-//    CategoryId = Guid.Parse("be9a6ad4-e0a7-490b-93c9-b55975d87b8e"), // Necklaces
+//    MaxWeight = 500,
+//    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
 //    ServiceAttachments = new List<ServiceAttachmentAddModel>
 //    {
 //        new ServiceAttachmentAddModel
 //        {
-//            AttachmentUrl = CreateFormFileFromPath("national_map_pendant.jpg"),
-//            AttachmentAlt = "Mặt dây chuyền hình bản đồ Việt Nam"
+//            AttachmentUrl = CreateFormFileFromPath("tet_flower_band.jpg"),
+//            AttachmentAlt = "Chân vòng hoa trang trí Tết"
 //        }
 //    }
 //},
+
 //new ServiceAddModel
 //{
-//    Name = "Mắt Kính Hình Mặt Trống Đồng",
-//    Description = "Mắt kính thiết kế độc đáo với mặt trống đồng, một biểu tượng văn hóa dân tộc, rất phù hợp cho **Giỗ Tổ Hùng Vương (10-03)**. Đây là món quà đặc biệt cho những người yêu thích văn hóa lịch sử Việt Nam.",
+//    Name = "Vòng Tay Boho Summer",
+//    Description = "Vòng tay phong cách Boho đơn giản nhưng cực kỳ cá tính, mang đến vẻ đẹp tự nhiên và năng động. Phù hợp cho các buổi dã ngoại hoặc đi biển trong mùa hè, đặc biệt là cho Ngày Quốc tế Thiếu nhi (01-06).",
+//    MinWeight = 80,
+//    MaxWeight = 300,
+//    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
+//    ServiceAttachments = new List<ServiceAttachmentAddModel>
+//    {
+//        new ServiceAttachmentAddModel
+//        {
+//            AttachmentUrl = CreateFormFileFromPath("boho_summer_band.jpg"),
+//            AttachmentAlt = "Vòng tay Boho mùa hè"
+//        }
+//    }
+//},
+
+//new ServiceAddModel
+//{
+//    Name = "Vòng Tay Năng Lượng",
+//    Description = "Vòng tay năng lượng được chế tác từ đá tự nhiên, mang đến sự may mắn và năng lượng tích cực. Một món quà tuyệt vời cho Ngày Quốc tế Phụ nữ (08-03), giúp chị em cảm nhận được sự tự tin và mạnh mẽ.",
+//    MinWeight = 120,
+//    MaxWeight = 400,
+//    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
+//    ServiceAttachments = new List<ServiceAttachmentAddModel>
+//    {
+//        new ServiceAttachmentAddModel
+//        {
+//            AttachmentUrl = CreateFormFileFromPath("energy_band.jpg"),
+//            AttachmentAlt = "Vòng tay năng lượng tích cực"
+//        }
+//    }
+//},
+
+//new ServiceAddModel
+//{
+//    Name = "Vòng Tay Tình Yêu",
+//    Description = "Vòng tay tình yêu mang lại sự gắn kết cho các cặp đôi, được thiết kế tinh xảo và sang trọng. Đây sẽ là món quà hoàn hảo cho Ngày Giáng Sinh (24-12), thể hiện tình cảm yêu thương và sự chăm sóc.",
 //    MinWeight = 150,
 //    MaxWeight = 600,
-//    CategoryId = Guid.Parse("db76efbf-d61d-470d-8c7f-3c5b10c4c7f8"), // Costume Accessories
+//    CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
 //    ServiceAttachments = new List<ServiceAttachmentAddModel>
 //    {
 //        new ServiceAttachmentAddModel
 //        {
-//            AttachmentUrl = CreateFormFileFromPath("trongdong_glasses.jpg"),
-//            AttachmentAlt = "Mắt kính hình mặt trống đồng"
+//            AttachmentUrl = CreateFormFileFromPath("love_band.jpg"),
+//            AttachmentAlt = "Vòng tay tình yêu"
 //        }
 //    }
-//}
+//},
+new ServiceAddModel
+{
+    Name = "Hoa Tai Giáng Sinh",
+    Description = "Hoa tai Giáng Sinh (24-12) với thiết kế ngôi sao và bông tuyết, mang đậm không khí lễ hội và sắc màu của mùa Giáng Sinh. Đây là món quà lý tưởng cho những ai yêu thích không khí ấm áp và vui tươi của lễ hội cuối năm.",
+    MinWeight = 50,
+    MaxWeight = 200,
+    CategoryId = Guid.Parse("b71db97b-7586-4262-b03c-8c8b93ec1539"), // Earrings
+    ServiceAttachments = new List<ServiceAttachmentAddModel>
+    {
+        new ServiceAttachmentAddModel
+        {
+            AttachmentUrl = CreateFormFileFromPath("christmas_earrings.jpg"),
+            AttachmentAlt = "Hoa tai Giáng Sinh"
+        }
+    }
+},
+new ServiceAddModel
+{
+    Name = "Khăn Quàng Tết Đoan Ngọ",
+    Description = "Khăn quàng Tết Đoan Ngọ (05-05) với họa tiết thuyền rồng và hoa sen, tượng trưng cho sức mạnh và sự đoàn kết. Đây là món quà đặc biệt, phù hợp cho những dịp lễ hội truyền thống của Việt Nam.",
+    MinWeight = 150,
+    MaxWeight = 500,
+    CategoryId = Guid.Parse("b8dfb7fe-3eb8-44d5-b8f9-9b58e46c7d26"), // Scarves
+    ServiceAttachments = new List<ServiceAttachmentAddModel>
+    {
+        new ServiceAttachmentAddModel
+        {
+            AttachmentUrl = CreateFormFileFromPath("dragon_boat_festival_scarf.jpg"),
+            AttachmentAlt = "Khăn quàng Tết Đoan Ngọ"
+        }
+    }
+},
+new ServiceAddModel
+{
+    Name = "Móc Khóa Ngày Quốc Tế Phụ Nữ",
+    Description = "Móc khóa Ngày Quốc Tế Phụ Nữ (08-03) với hình ảnh hoa hồng và biểu tượng nữ tính. Món quà này tượng trưng cho sự tôn vinh và yêu thương dành cho phụ nữ trong dịp lễ đặc biệt này.",
+    MinWeight = 30,
+    MaxWeight = 100,
+    CategoryId = Guid.Parse("f98e0a1a-049d-40e4-9f8b-d3c9842f4326"), // Keychains
+    ServiceAttachments = new List<ServiceAttachmentAddModel>
+    {
+        new ServiceAttachmentAddModel
+        {
+            AttachmentUrl = CreateFormFileFromPath("womens_day_keychain.jpg"),
+            AttachmentAlt = "Móc khóa Ngày Quốc Tế Phụ Nữ"
+        }
+    }
+},
+new ServiceAddModel
+{
+    Name = "Trâm Cài Tóc Phong Cách Dân Gian",
+    Description = "Trâm cài tóc tinh xảo, mang đậm nét văn hóa dân tộc, phù hợp để sử dụng trong dịp **Giỗ Tổ Hùng Vương (10-03)**. Một món quà đặc biệt thể hiện sự kính trọng và lòng thành kính đối với các vua Hùng.",
+    MinWeight = 50,
+    MaxWeight = 250,
+    CategoryId = Guid.Parse("d2a2197d-6c93-489f-963b-45fb1b9a53b2"), // Costume Accessories
+    ServiceAttachments = new List<ServiceAttachmentAddModel>
+    {
+        new ServiceAttachmentAddModel
+        {
+            AttachmentUrl = CreateFormFileFromPath("hairpin_traditional.jpg"),
+            AttachmentAlt = "Trâm cài tóc phong cách dân gian"
+        }
+    }
+},
+new ServiceAddModel
+{
+    Name = "Dây Chuyền Mặt Dây Chuyền Hình Tổ Quốc",
+    Description = "Dây chuyền với mặt dây hình bản đồ Việt Nam, thể hiện lòng yêu nước và sự tự hào dân tộc, rất phù hợp cho **Giỗ Tổ Hùng Vương (10-03)**. Một món quà đầy ý nghĩa để tưởng nhớ các vua Hùng, với thiết kế giản dị nhưng đầy sâu sắc.",
+    MinWeight = 100,
+    MaxWeight = 400,
+    CategoryId = Guid.Parse("be9a6ad4-e0a7-490b-93c9-b55975d87b8e"), // Necklaces
+    ServiceAttachments = new List<ServiceAttachmentAddModel>
+    {
+        new ServiceAttachmentAddModel
+        {
+            AttachmentUrl = CreateFormFileFromPath("national_map_pendant.jpg"),
+            AttachmentAlt = "Mặt dây chuyền hình bản đồ Việt Nam"
+        }
+    }
+},
+new ServiceAddModel
+{
+    Name = "Mắt Kính Hình Mặt Trống Đồng",
+    Description = "Mắt kính thiết kế độc đáo với mặt trống đồng, một biểu tượng văn hóa dân tộc, rất phù hợp cho **Giỗ Tổ Hùng Vương (10-03)**. Đây là món quà đặc biệt cho những người yêu thích văn hóa lịch sử Việt Nam.",
+    MinWeight = 150,
+    MaxWeight = 600,
+    CategoryId = Guid.Parse("db76efbf-d61d-470d-8c7f-3c5b10c4c7f8"), // Costume Accessories
+    ServiceAttachments = new List<ServiceAttachmentAddModel>
+    {
+        new ServiceAttachmentAddModel
+        {
+            AttachmentUrl = CreateFormFileFromPath("trongdong_glasses.jpg"),
+            AttachmentAlt = "Mắt kính hình mặt trống đồng"
+        }
+    }
+}
 
                 };
 
