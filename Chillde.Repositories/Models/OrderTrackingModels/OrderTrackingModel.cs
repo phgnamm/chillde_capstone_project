@@ -11,7 +11,8 @@ namespace Chillde.Repositories.Models.OrderTrackingModels
     public class OrderTrackingModel : BaseEntity
     {
         public string? CreatedBy { get; set; }
-        public string? CreatedRole { get; set; }
+        public Guid? CreatedById { get; set; }
+        public Chillde.Repositories.Enums.Role? CreatedRole { get; set; }
         public int? CurrentSketchRevision { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }

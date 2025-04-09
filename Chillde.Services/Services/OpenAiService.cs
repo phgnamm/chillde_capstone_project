@@ -205,7 +205,7 @@ namespace Chillde.Services.Services
                 throw new Exception("Response data is null or empty.");
 
             var result = rawResult.ConvertAll(item => new ModelResponse
-            {
+            {                
                 Name = item?.Name ?? "Unknown",
                 Type = item?.Type != null ? ParseMediaType(item.Type) : MediaType.Text,
                 Options = item?.Options ?? new List<string>()
@@ -222,18 +222,28 @@ namespace Chillde.Services.Services
             sb.AppendLine($"Description: {prompt[1]}");
             sb.AppendLine();
             sb.AppendLine("For each attribute, provide:");
-            sb.AppendLine("- name (string): The attribute name.");
+            sb.AppendLine("- name (string): The attribute name, written in simple and customer-friendly language.");
             sb.AppendLine("- type (integer), where:");
             sb.AppendLine("  - 0: Text (e.g., product description).");
             sb.AppendLine("  - 1: Number (e.g., price, weight).");
-            sb.AppendLine("  - 2: Select (e.g., material, color).");
-            sb.AppendLine("  - 3: Switch (Yes/No, e.g., 'Is customizable?').");
-            sb.AppendLine("  - 4: Image (e.g., product photos).");
-            sb.AppendLine("  - 5: File (e.g., design files, templates).");
+            sb.AppendLine("  - 2: Select (e.g., material, color, style, Yes/No options).");
             sb.AppendLine("  - 6: Checkbox (Multiple selections, e.g., suitable occasions).");
             sb.AppendLine("- options (list of strings, required for types 2 and 6, containing common or relevant values).");
             sb.AppendLine();
-            sb.AppendLine("Ensure that the listed attributes are contextually relevant to handmade products, considering both general and specific aspects of the given category and description. The output should be a well-structured JSON array.");
+            sb.AppendLine("Ensure that:");
+            sb.AppendLine("- Attributes are written in simple, clear, and easy-to-understand language for users.");
+            sb.AppendLine("- Switch attributes (e.g., Yes/No questions) are converted to Select with options: ['Yes', 'No'].");
+            sb.AppendLine("- Attributes cover physical properties, appearance, usability, customization, sustainability, packaging, and additional features.");
+            sb.AppendLine("- List all possible attributes that are relevant to the given category and description, ensuring comprehensive coverage.");
+            sb.AppendLine("- Exclude the following fields:");
+            sb.AppendLine("  - Name");
+            sb.AppendLine("  - Description");
+            sb.AppendLine("  - MinBudget");
+            sb.AppendLine("  - MaxBudget");
+            sb.AppendLine("  - Timeline");
+            sb.AppendLine("  - Quantity");
+            sb.AppendLine();
+            sb.AppendLine("The output should be a well-structured JSON array.");
 
             return sb.ToString();
         }
@@ -246,9 +256,6 @@ namespace Chillde.Services.Services
                 0 => MediaType.Text,
                 1 => MediaType.Number,
                 2 => MediaType.Select,
-                3 => MediaType.Switch,
-                4 => MediaType.Image,
-                5 => MediaType.File,
                 6 => MediaType.CheckBox,
                 _ => throw new ArgumentException($"Unknown media type: {type}")
             };
@@ -265,6 +272,7 @@ namespace Chillde.Services.Services
         }       
         public class ModelResponseRaw
         {
+            public Guid Id { get; set; } = Guid.NewGuid();
             public string? Name { get; set; }
             public int Type { get; set; } 
             public List<string>? Options { get; set; }

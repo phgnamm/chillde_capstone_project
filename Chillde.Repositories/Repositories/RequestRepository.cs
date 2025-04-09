@@ -31,7 +31,7 @@ namespace Chillde.Repositories.Repositories
                         select new OfferModel
                         {
                             Id = offer.Id,
-                            Status = offer.Status.ToString(),
+                            Status = offer.Status,
                             Message = translation != null ? translation.TranslationText : offer.Message,
                             MinWeight = offer.MinWeight,
                             MaxWeight = offer.MaxWeight,

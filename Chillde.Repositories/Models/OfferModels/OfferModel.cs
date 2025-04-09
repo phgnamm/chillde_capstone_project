@@ -14,7 +14,7 @@ namespace Chillde.Repositories.Models.OfferModels
     public class OfferModel : BaseEntity
     {
         public string? Message { get; set; }
-        public string? Status { get; set; }
+        public OfferStatus? Status { get; set; }
         public float? MinWeight { get; set; }
         public float? MaxWeight { get; set; }
         public Guid? RequestId { get; set; }

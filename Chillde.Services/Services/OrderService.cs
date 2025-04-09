@@ -32,6 +32,10 @@ using System.Linq.Expressions;
 using Chillde.Repositories.Models.ServiceModels;
 using CloudinaryDotNet.Actions;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.OfferModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
+using Chillde.Repositories.Models.FeatureModels;
+using System.Net.WebSockets;
 
 namespace Chillde.Services.Services
 {
@@ -400,6 +404,10 @@ namespace Chillde.Services.Services
         }
         private async Task ApplyVoucher(List<Guid> voucherIds, Repositories.Entities.Order order, PaymentType? paymentType)
         {
+            if (voucherIds.Distinct().Count() != voucherIds.Count)
+            {
+                throw new Exception("Duplicate vouchers are not allowed.");
+            }
             var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                 filter: _ => voucherIds.Contains(_.Id)
             );
@@ -937,7 +945,7 @@ namespace Chillde.Services.Services
                 ShipmentCode = order.ShipmentCode ?? string.Empty,
                 OrderStage = order.Stage, 
                 Status = order.Status,
-
+                CreatedById = order.CreatedById,
                 ServiceModel = order.Package?.Service == null ? null : new ServiceModel
                 {
                     Id = order.Package.Service.Id,
@@ -1053,7 +1061,7 @@ namespace Chillde.Services.Services
                         Message = "Unauthorized"
                     };
                 }
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy));
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy).ThenInclude(_ => _.Wallet) .Include(_ => _.CreatedBy) .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher) .Include(_ => _.Transactions));
                 if (order == null)
                 {
                     return new ResponseModel
@@ -1070,13 +1078,57 @@ namespace Chillde.Services.Services
                         Code = StatusCodes.Status403Forbidden
                     };
                 }
-                order.Status = (OrderStatus)orderStatus;
-                if (orderStatus == OrderStatus.Accepted)
-                {
-                    order.StartTime = DateTime.UtcNow;
-                    order.Stage = OrderStage.SketchInProcess;
-                }
+                order.Status = orderStatus ?? throw new ArgumentNullException(nameof(orderStatus), "Order status cannot be null");
 
+                switch (orderStatus)
+                {
+                    case OrderStatus.Accepted:
+                        order.StartTime = DateTime.UtcNow;
+                        order.Stage = OrderStage.SketchInProcess;
+                        break;
+
+                    case OrderStatus.Rejected:
+                        if (order.CreatedBy?.Wallet == null)
+                        {
+                            return new ResponseModel
+                            {
+                                Code = StatusCodes.Status404NotFound,
+                                Message = "Wallet not found"
+                            };
+                        }
+
+                        var refundTransaction = new Transaction
+                        {
+                            Amount = order.TotalPrice,
+                            Type = TransactionType.TransferIn,
+                            CreatedById = currentUserId.Value,
+                            Status = TransactionStatus.Completed,
+                            WalletId = order.CreatedBy.Wallet.Id
+                        };
+
+                        foreach (var voucherLog in order.VoucherUsageLogs)
+                        {
+                            if (voucherLog.Voucher.TotalQuantity.HasValue)
+                            {
+                                voucherLog.Voucher.TotalQuantity += 1; 
+                            }
+                            voucherLog.UsageStatus = UsageStatus.Cancelled;
+                        }
+
+                        order.CreatedBy.Wallet.Balance += (decimal)order.TotalPrice;
+
+                        order.Transactions.Add(refundTransaction);
+                        order.Status = OrderStatus.Cancelled;
+                        order.Stage = OrderStage.Cancelled;
+                        break;
+
+                    default:
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "Invalid order status"
+                        };
+                }
                 _unitOfWork.OrderRepository.Update(order);
                 var result = await _unitOfWork.SaveChangeAsync();
                 return result > 0
@@ -1297,7 +1349,9 @@ namespace Chillde.Services.Services
                                          .ThenInclude(_ => _.CreatedBy)
                                          .ThenInclude(_ => _.AccountRoles)
                                          .Include(_ => _.OrderTrackings)
-                                         .ThenInclude(_ => _.OrderTrackingAttachments));
+                                         .ThenInclude(_ => _.OrderTrackingAttachments)
+                                         .Include(_ => _.Package)
+                                         .ThenInclude(_ => _.Service));
 
             if (order == null)
             {
@@ -1307,15 +1361,16 @@ namespace Chillde.Services.Services
                     Message = "Order not found."
                 };
             }
-
+            var customerId = order.CreatedById;
             var filteredTrackings = order.OrderTrackings
                 .Where(_ => !orderStage.HasValue || _.Stage == orderStage)
                 .Select(_ => new OrderTrackingModel
                 {
                     Id = _.Id,
                     CreatedBy = $"{_.CreatedBy.FirstName} {_.CreatedBy.LastName}",
+                    CreatedById = _.CreatedById,
                     DeletedById = _.CreatedById,
-                    CreatedRole = _.CreatedBy.AccountRoles.FirstOrDefault()?.Role?.Name ?? "Unknown",
+                    CreatedRole = _.CreatedById == customerId ? Repositories.Enums.Role.Customer : Repositories.Enums.Role.Artisan,
                     CurrentSketchRevision = order.CurrentSketchRevision,
                     Name = _.Name,
                     Description = _.Description,
@@ -1452,6 +1507,7 @@ namespace Chillde.Services.Services
                     }
                     return new ResponseModel
                     {
+                        Data = orderTracking,
                         Code = StatusCodes.Status200OK,
                         Message = "Sketch tracking added"
                     };
@@ -1626,6 +1682,7 @@ namespace Chillde.Services.Services
                     }
                     return new ResponseModel
                     {
+                        Data = orderTracking,
                         Code = StatusCodes.Status200OK,
                         Message = "Delivery tracking added"
                     };
@@ -1663,6 +1720,8 @@ namespace Chillde.Services.Services
                         .Include(_ => _.CancellationReason)
                         .Include(_ => _.CreatedBy)
                         .Include(_ => _.Package.PackageFeatures).ThenInclude(_ => _.Feature)
+                        .Include(_ => _.Package.Offer).ThenInclude(_ => _.OfferAttachments)
+                        .Include(_ => _.Package.Offer).ThenInclude(_ => _.CreatedBy)
                         .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher)
                         .Include(_ => _.OrderInformations).ThenInclude(_ => _.OrderInformationAttachments)
                 );
@@ -1679,11 +1738,8 @@ namespace Chillde.Services.Services
                 var model = new OrderDetailModel
                 {
                     Id = order?.Id ?? Guid.Empty,
+                    CreatedById = order?.CreatedById ?? Guid.Empty,
                     Code = order?.Code ?? string.Empty,
-                    PackageName = order.Package.Name,
-                    CustomerName = $"{order?.CreatedBy?.FirstName ?? ""} {order?.CreatedBy?.LastName ?? ""}".Trim(),
-                    CustomerPhone = order?.Phone ?? "N/A",
-                    CustomerAddress = order?.Address ?? "N/A",
                     Ward = order?.ToWard ?? "N/A",
                     District = order?.ToDistrict.ToString() ?? "N/A",
                     Province = order?.ToProvince ?? "N/A",
@@ -1706,7 +1762,6 @@ namespace Chillde.Services.Services
                     CancelOrderReason = order?.CancellationReason?.Name ?? "N/A",
                     AutoCancelOrderReason = order?.CancelOrderReason?.ToString() ?? "N/A",
                     CreationDate = order?.CreationDate ?? DateTime.MinValue,
-
                     VoucherUsages = order?.VoucherUsageLogs?.Select(_ => new VoucherUsageModel
                     {
                         Id = _.Id,
@@ -1731,9 +1786,128 @@ namespace Chillde.Services.Services
                             AttachmentUrl = att.AttachmentUrl ?? string.Empty,
                             AttachmentAlt = att.AttachmentAlt ?? string.Empty
                         }).ToList() ?? new List<OrderAttachmentModel>()
-                    }).ToList() ?? new List<OrderInformationModel>()
+                    }).ToList() ?? new List<OrderInformationModel>(),
+                    Customer = new AccountLiteModel
+                    {
+                        FirstName = order.CreatedBy.FirstName,
+                        LastName = order.CreatedBy.LastName ?? string.Empty,
+                        Username = order.CreatedBy.Username ?? string.Empty,
+                        Email = order.CreatedBy.Email ?? string.Empty,
+                        Image = order.CreatedBy.Image ?? string.Empty,
+                    },
+                    Artisan = new AccountLiteModel
+                    {
+                        FirstName = order.CreatedBy.FirstName,
+                        LastName = order.CreatedBy.LastName ?? string.Empty,
+                        Username = order.CreatedBy.Username ?? string.Empty,
+                        Email = order.CreatedBy.Email ?? string.Empty,
+                        Image = order.CreatedBy.Image ?? string.Empty,
+                    }
                 };
 
+                if (order.Package?.Offer != null)
+                {
+                    model.OfferModel = new OfferModel
+                    {
+                        Id = order.Package.Offer.Id,
+                        Message = order.Package.Offer.Message ?? string.Empty,
+                        Status = order.Package.Offer.Status,
+                        MinWeight = order.Package.Offer.MinWeight ?? 0,
+                        MaxWeight = order.Package.Offer.MaxWeight ?? 0,
+                        RequestId = order.Package.Offer.RequestId ?? Guid.Empty,
+                        ServiceId = order.Package.Offer.ServiceId ?? Guid.Empty,
+                        OfferAttachments = order.Package.Offer.OfferAttachments?.Select(attachment => new OfferAttachment
+                        {
+                            Id = attachment.Id,
+                            AttachmentAlt = attachment.AttachmentAlt ?? string.Empty,
+                            AttachmentUrl = attachment.AttachmentUrl ?? string.Empty,
+                            OfferId = attachment.OfferId
+                        }).ToList() ?? new List<OfferAttachment>(),
+                        Package = order.Package.Offer.Package != null
+                            ? new PackageModel
+                            {
+                                Id = order.Package.Offer.Package.Id,
+                                Name = order.Package.Offer.Package.Name,
+                                Description = order.Package.Offer.Package.Description,
+                                DeliveryTime = order.Package.Offer.Package.DeliveryTime,
+                                SketchRevision = order.Package.Offer.Package.SketchRevision,
+                                ResponseTime = order.Package.Offer.Package.ResponseTime != null
+                                ? TimeSpan.FromHours(order.Package.Offer.Package.ResponseTime)
+                                : TimeSpan.Zero,
+                                MaxQuantity = order.Package.Offer.Package.MaxQuantity,
+                                Price = order.Package.Offer.Package.Price ?? 0,
+                                PackageFeatures = order.Package.Offer.Package?.PackageFeatures?.Select(feature => new PackageFeatureModel
+                                {
+                                    Id = feature.Id,
+                                    Name = feature.Name ?? string.Empty,
+                                    AdditionalCost = feature.AdditionalCost ?? 0,
+                                    AdditionalDay = feature.AdditionalDay ?? 0,
+                                    IsExtra = feature.IsExtra ?? false,
+                                    IsChecked = feature.IsChecked ?? false,
+                                    MaxQuantity = feature.MaxQuantity ?? 0,
+                                    PackageId = feature.PackageId ?? Guid.Empty,
+                                    FeatureId = feature.FeatureId
+                                }).ToList() ?? new List<PackageFeatureModel>(),
+                                Features = order.Package.Offer.Package?.PackageFeatures.Select(_ => _.Feature).Select(feature => new FeatureModel
+                                {
+                                    Id = feature.Id,
+                                    Name = feature.Name ?? string.Empty,
+                                    IsInformationRequired = feature.IsInformationRequired ? true : false,
+                                    Question = feature.Question ?? string.Empty,
+                                    QuestionType = feature.QuestionType,
+                                    IsQuantity = feature.IsQuantity ? true : false,
+                                }).ToList() ?? new List<FeatureModel>()
+                            }
+                            : null,
+                        CreatedBy = new AccountLiteModel
+                        {
+                            FirstName = order.Package.Offer.CreatedBy.FirstName,
+                            LastName = order.Package.Offer.CreatedBy.LastName ?? string.Empty,
+                            Username = order.Package.Offer.CreatedBy.Username ?? string.Empty,
+                            Email = order.Package.Offer.CreatedBy.Email ?? string.Empty,
+                            Image = order.Package.Offer.CreatedBy.Image ?? string.Empty,
+                        }
+                    };
+                }
+                else
+                {
+                    model.PackageModel = order.Package != null
+                        ? new PackageModel
+                        {
+                            Id = order.Package.Id,
+                            Name = order.Package.Name,
+                            Description = order.Package.Description,
+                            DeliveryTime = order.Package.DeliveryTime,
+                            SketchRevision = order.Package.SketchRevision,
+                            ResponseTime = order.Package.ResponseTime != null
+                                ? TimeSpan.FromHours(order.Package.ResponseTime)
+                                : TimeSpan.Zero,
+                            MaxQuantity = order.Package.MaxQuantity,
+                            Price = order.Package.Price ?? 0,
+                            PackageFeatures = order.Package?.PackageFeatures?.Select(feature => new PackageFeatureModel
+                            {
+                                Id = feature.Id,
+                                Name = feature.Name ?? string.Empty,
+                                AdditionalCost = feature.AdditionalCost ?? 0,
+                                AdditionalDay = feature.AdditionalDay ?? 0,
+                                IsExtra = feature.IsExtra ?? false,
+                                IsChecked = feature.IsChecked ?? false,
+                                MaxQuantity = feature.MaxQuantity ?? 0,
+                                PackageId = feature.PackageId ?? Guid.Empty,
+                                FeatureId = feature.FeatureId
+                            }).ToList() ?? new List<PackageFeatureModel>(),
+                            Features = order.Package?.PackageFeatures.Select(_ => _.Feature).Select(feature => new FeatureModel
+                            {
+                                Id = feature.Id,
+                                Name = feature.Name ?? string.Empty,
+                                IsInformationRequired = feature.IsInformationRequired ? true : false,
+                                Question = feature.Question ?? string.Empty,
+                                QuestionType = feature.QuestionType,
+                                IsQuantity = feature.IsQuantity ? true : false,
+                            }).ToList() ?? new List<FeatureModel>()
+                        }
+                        : null;
+                }
 
                 return new ResponseModel
                 {
@@ -1747,6 +1921,7 @@ namespace Chillde.Services.Services
                 throw new Exception(ex.Message);
             }
         }
+
 
     }
 }

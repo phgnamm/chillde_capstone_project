@@ -23,6 +23,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public string? ShipmentCode { get; set; }
         public required OrderStatus Status { get; set; }
         public required OrderStage OrderStage { get; set; }
+        public Guid? CreatedById { get; set; }
         public ServiceModel ServiceModel { get; set; }
     }
 }
