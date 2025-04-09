@@ -14,7 +14,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public string Address { get; set; }
         public string Phone { get; set; }
         public string ToWard { get; set; }
-        public int ToDistrict { get; set; }
+        public string ToDistrict { get; set; }
         public string ToProvince { get; set; }
         public decimal? TotalPrice { get; set; }
         public decimal? PackagePrice { get; set; }

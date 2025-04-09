@@ -1743,7 +1743,7 @@ namespace Chillde.Services.Services
                     Phone = order.Phone ?? "",
                     Address = order.Address ?? "",
                     Ward = order?.ToWard ?? "N/A",
-                    District = order?.ToDistrict.ToString() ?? "N/A",
+                    District = order?.ToDistrict ?? "N/A",
                     Province = order?.ToProvince ?? "N/A",
                     Quantity = order?.Quantity ?? 1,
                     ShipmentCode = order?.ShipmentCode ?? string.Empty,
