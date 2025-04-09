@@ -1,0 +1,42 @@
+image: docker:24.0.7
+
+services:
+  - docker:24.0.7-dind
+
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+
+before_script:
+  - docker version
+  - export $(grep -v '^#' .env | xargs)
+  - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  # Giải mã file cấu hình nếu biến đã được set
+  - |
+    if [ -n "$APPSETTINGS_JSON_BASE64" ]; then
+      echo "$APPSETTINGS_JSON_BASE64" | base64 -d > appsettings.json
+    fi
+
+build:
+  stage: build
+  script:
+    - docker pull $CI_REGISTRY_IMAGE:latest || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE:latest
+
+deploy_to_dockerhub:
+  stage: deploy
+  image: docker:latest
+  script:
+    - docker login -u "$DOCKERHUB_USERNAME" -p "$DOCKERHUB_PASSWORD"
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $DOCKERHUB_REPO:$CI_COMMIT_SHA
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $DOCKERHUB_REPO:latest
+    - docker push $DOCKERHUB_REPO:$CI_COMMIT_SHA
+    - docker push $DOCKERHUB_REPO:latest
+  only:
+    - deploy
