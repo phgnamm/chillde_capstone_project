@@ -1061,7 +1061,7 @@ namespace Chillde.Services.Services
                         Message = "Unauthorized"
                     };
                 }
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy).ThenInclude(_ => _.Wallet) .Include(_ => _.CreatedBy) .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher) .Include(_ => _.Transactions));
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package.Service.CreatedBy).ThenInclude(_ => _.Wallet) .Include(_ => _.CreatedBy).ThenInclude(_ => _.Wallet) .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher) .Include(_ => _.Transactions));
                 if (order == null)
                 {
                     return new ResponseModel
@@ -1740,6 +1740,8 @@ namespace Chillde.Services.Services
                     Id = order?.Id ?? Guid.Empty,
                     CreatedById = order?.CreatedById ?? Guid.Empty,
                     Code = order?.Code ?? string.Empty,
+                    Phone = order.Phone ?? "",
+                    Address = order.Address ?? "",
                     Ward = order?.ToWard ?? "N/A",
                     District = order?.ToDistrict.ToString() ?? "N/A",
                     Province = order?.ToProvince ?? "N/A",
