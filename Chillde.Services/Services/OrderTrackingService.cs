@@ -70,7 +70,13 @@ namespace Chillde.Services.Services
                         Message = "Sketch tracking accepted. Order stage updated to Delivery In Process."
                     };
                 }
-
+                else if(orderTracking.Type == OrderTrackingType.Delivery)
+                {
+                    orderTracking.IsAccepted = true;
+                    orderTracking.Order.Stage = OrderStage.Shipping;
+                    orderTracking.Stage = OrderStage.Shipping;
+                    orderTracking.IsAccepted = true;
+                }
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status400BadRequest,
