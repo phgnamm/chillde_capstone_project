@@ -20,7 +20,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     // Ignore all fields with null value in response
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+
 });
+
 builder.Services.AddSignalR(options => { options.MaximumReceiveMessageSize = null; });
 var elasticsearchUrl = builder.Configuration["Elasticsearch:Url"] ?? "https://0c2c20670a9e43a8939143015081cdd0.southeastasia.azure.elastic-cloud.com:443";
 var username = builder.Configuration["Elasticsearch:Username"] ?? "elastic";
@@ -32,6 +34,7 @@ var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
     .DefaultIndex("services");
 var client = new ElasticClient(settings);
 builder.Services.AddSingleton<IElasticClient>(client);
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

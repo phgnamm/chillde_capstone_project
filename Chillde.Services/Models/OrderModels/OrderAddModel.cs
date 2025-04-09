@@ -26,7 +26,7 @@ namespace Chillde.Services.Models.OrderModels
         public string ToWard { get; set; } = null!;
 
         [Required]
-        public int ToDistrict { get; set; }
+        public string ToDistrict { get; set; }
 
         [Required]
         public string ToProvince { get; set; } = null!;
