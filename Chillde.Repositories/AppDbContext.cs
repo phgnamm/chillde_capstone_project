@@ -66,8 +66,6 @@ public class AppDbContext : DbContext
             entity.Property(category => category.Name).HasMaxLength(100);
         });
 
-        modelBuilder.Entity<FAQ>(entity => { entity.Property(faq => faq.Question).HasMaxLength(100); });
-
         modelBuilder.Entity<Feature>(entity => { entity.Property(feature => feature.Name).HasMaxLength(100); });
 
         modelBuilder.Entity<OrderTracking>(entity =>
