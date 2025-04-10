@@ -2,6 +2,7 @@ image: docker:24.0.7
 
 services:
   - docker:24.0.7-dind
+   command: ["--dns", "8.8.8.8"]
 
 stages:
   - build
