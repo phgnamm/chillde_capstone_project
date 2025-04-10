@@ -102,15 +102,15 @@ public static class Configuration
         });
 
         //RabbitMQ
-        services.AddSingleton<IConnection>(sp =>
-        {
-            var configuration = sp.GetRequiredService<IConfiguration>();
-            var factory = new ConnectionFactory()
-            {
-                HostName = configuration["RabbitMQ:HostName"]!,
-            };
-            return factory.CreateConnection();
-        });
+        //services.AddSingleton<IConnection>(sp =>
+        //{
+        //    var configuration = sp.GetRequiredService<IConfiguration>();
+        //    var factory = new ConnectionFactory()
+        //    {
+        //        HostName = configuration["RabbitMQ:HostName"]!,
+        //    };
+        //    return factory.CreateConnection();
+        //});
 
         //WorkerService
         //services.AddHostedService<WorkerService>();
@@ -341,8 +341,8 @@ public static class Configuration
         //OpenAiService
         services.AddScoped<IOpenAiService, OpenAiService>();
 
-        //RabbitMQ
-        services.AddSingleton<IRabbitMQService, RabbitMQService>();
+        ////RabbitMQ
+        //services.AddSingleton<IRabbitMQService, RabbitMQService>();
 
         //UserActivityLog
         services.AddScoped<IUserActivityLogRepository, UserActivityLogRepository>();
