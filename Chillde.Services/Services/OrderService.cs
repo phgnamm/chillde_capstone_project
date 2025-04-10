@@ -1779,7 +1779,6 @@ namespace Chillde.Services.Services
                         .Include(_ => _.OrderInformations).ThenInclude(_ => _.OrderInformationAttachments)
                         .Include(_ => _.OrderInformations).ThenInclude(_ => _.PackageFeature).ThenInclude(_ => _.Feature)
                 );
-
                 if (order == null)
                 {
                     return new ResponseModel
