@@ -1774,8 +1774,10 @@ namespace Chillde.Services.Services
                         .Include(_ => _.Package.PackageFeatures).ThenInclude(_ => _.Feature)
                         .Include(_ => _.Package.Offer).ThenInclude(_ => _.OfferAttachments)
                         .Include(_ => _.Package.Offer).ThenInclude(_ => _.CreatedBy)
+                        .Include(_ => _.Package.Service).ThenInclude(_ => _.CreatedBy)
                         .Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Voucher)
                         .Include(_ => _.OrderInformations).ThenInclude(_ => _.OrderInformationAttachments)
+                        .Include(_ => _.OrderInformations).ThenInclude(_ => _.PackageFeature).ThenInclude(_ => _.Feature)
                 );
 
                 if (order == null)
@@ -1800,8 +1802,10 @@ namespace Chillde.Services.Services
                     Quantity = order?.Quantity ?? 1,
                     ShipmentCode = order?.ShipmentCode ?? string.Empty,
                     DeliveryTime = order?.DeliveryTime,
-                    StartTime = order?.StartTime,                  
-                    Deadline = order?.StartTime.Value.AddDays(order.DeliveryTime.Value) ?? null,
+                    StartTime = order?.StartTime,
+                    Deadline = order?.StartTime.HasValue == true && order?.DeliveryTime.HasValue == true
+                    ? order.StartTime.Value.AddDays(order.DeliveryTime.Value)
+                    : null,
                     Stage = order?.Stage ?? 0,
                     Status = order?.Status ?? 0,
                     OriginPrice = order?.OriginPrice ?? 0,
@@ -1827,6 +1831,7 @@ namespace Chillde.Services.Services
                         CreationDate = _.CreationDate,
                     }).ToList() ?? new List<VoucherUsageModel>(),
 
+
                     OrderInformation = order?.OrderInformations?.Select(_ => new OrderInformationModel
                     {
                         Id = _.Id,
@@ -1842,21 +1847,23 @@ namespace Chillde.Services.Services
                             AttachmentAlt = att.AttachmentAlt ?? string.Empty
                         }).ToList() ?? new List<OrderAttachmentModel>()
                     }).ToList() ?? new List<OrderInformationModel>(),
-                    Customer = new AccountLiteModel
+                    Customer = order?.CreatedBy != null
+                    ? new AccountLiteModel
                     {
-                        FirstName = order.CreatedBy.FirstName,
+                        FirstName = order.CreatedBy.FirstName ?? string.Empty,
                         LastName = order.CreatedBy.LastName ?? string.Empty,
                         Username = order.CreatedBy.Username ?? string.Empty,
                         Email = order.CreatedBy.Email ?? string.Empty,
                         Image = order.CreatedBy.Image ?? string.Empty,
-                    },
+                    }
+                    : null,
                     Artisan = new AccountLiteModel
                     {
-                        FirstName = order.CreatedBy.FirstName,
-                        LastName = order.CreatedBy.LastName ?? string.Empty,
-                        Username = order.CreatedBy.Username ?? string.Empty,
-                        Email = order.CreatedBy.Email ?? string.Empty,
-                        Image = order.CreatedBy.Image ?? string.Empty,
+                        FirstName = order.Package.Service.CreatedBy.FirstName,
+                        LastName = order.Package.Service.CreatedBy.LastName ?? string.Empty,
+                        Username = order.Package.Service.CreatedBy.Username ?? string.Empty,
+                        Email = order.Package.Service.CreatedBy.Email ?? string.Empty,
+                        Image = order.Package.Service.CreatedBy.Image ?? string.Empty,
                     }
                 };
 
