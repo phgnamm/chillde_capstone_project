@@ -120,6 +120,12 @@
   <data name="Accessories" xml:space="preserve">
     <value>Accessories</value>
   </data>
+  <data name="Accessory Cases" xml:space="preserve">
+    <value>Accessory Cases</value>
+  </data>
+  <data name="Advertisements" xml:space="preserve">
+    <value>Advertisements</value>
+  </data>
   <data name="Anklets" xml:space="preserve">
     <value>Anklets</value>
   </data>
@@ -131,6 +137,9 @@
   </data>
   <data name="Art &amp; Collectibles" xml:space="preserve">
     <value>Art &amp; Collectibles</value>
+  </data>
+  <data name="Art Dolls" xml:space="preserve">
+    <value>Art Dolls</value>
   </data>
   <data name="Artist Trading Cards" xml:space="preserve">
     <value>Artist Trading Cards</value>
@@ -146,6 +155,12 @@
   </data>
   <data name="Barbells" xml:space="preserve">
     <value>Barbells</value>
+  </data>
+  <data name="Batik" xml:space="preserve">
+    <value>Batik</value>
+  </data>
+  <data name="Beaded Bracelets" xml:space="preserve">
+    <value>Beaded Bracelets</value>
   </data>
   <data name="Beaded Necklaces" xml:space="preserve">
     <value>Beaded Necklaces</value>
@@ -195,8 +210,14 @@
   <data name="Brooches, Pins &amp; Clips" xml:space="preserve">
     <value>Brooches, Pins &amp; Clips</value>
   </data>
+  <data name="Business Card Cases" xml:space="preserve">
+    <value>Business Card Cases</value>
+  </data>
   <data name="Cameo Necklaces" xml:space="preserve">
     <value>Cameo Necklaces</value>
+  </data>
+  <data name="Chain &amp; Link Bracelets" xml:space="preserve">
+    <value>Chain &amp; Link Bracelets</value>
   </data>
   <data name="Chain Wallets" xml:space="preserve">
     <value>Chain Wallets</value>
@@ -215,6 +236,9 @@
   </data>
   <data name="Children's Photo Props" xml:space="preserve">
     <value>Children's Photo Props</value>
+  </data>
+  <data name="Choker Necklaces" xml:space="preserve">
+    <value>Choker Necklaces</value>
   </data>
   <data name="Clip-On Earrings" xml:space="preserve">
     <value>Clip-On Earrings</value>
@@ -237,8 +261,14 @@
   <data name="Costume Accessories" xml:space="preserve">
     <value>Costume Accessories</value>
   </data>
+  <data name="Costume Gloves" xml:space="preserve">
+    <value>Costume Gloves</value>
+  </data>
   <data name="Costume Goggles" xml:space="preserve">
     <value>Costume Goggles</value>
+  </data>
+  <data name="Costume Hats &amp; Headpieces" xml:space="preserve">
+    <value>Costume Hats &amp; Headpieces</value>
   </data>
   <data name="Costume Weapons" xml:space="preserve">
     <value>Costume Weapons</value>
@@ -246,8 +276,23 @@
   <data name="Cremation &amp; Memorial Jewelry" xml:space="preserve">
     <value>Cremation &amp; Memorial Jewelry</value>
   </data>
+  <data name="Crewel" xml:space="preserve">
+    <value>Crewel</value>
+  </data>
+  <data name="Crochet" xml:space="preserve">
+    <value>Crochet</value>
+  </data>
+  <data name="Crystal Necklaces" xml:space="preserve">
+    <value>Crystal Necklaces</value>
+  </data>
   <data name="Cuff Bracelets" xml:space="preserve">
     <value>Cuff Bracelets</value>
+  </data>
+  <data name="Dioramas" xml:space="preserve">
+    <value>Dioramas</value>
+  </data>
+  <data name="Dollhouses" xml:space="preserve">
+    <value>Dollhouses</value>
   </data>
   <data name="Dolls &amp; Miniatures" xml:space="preserve">
     <value>Dolls &amp; Miniatures</value>
@@ -288,8 +333,17 @@
   <data name="Glass Art" xml:space="preserve">
     <value>Glass Art</value>
   </data>
+  <data name="Glass Sculptures &amp; Figurines" xml:space="preserve">
+    <value>Glass Sculptures &amp; Figurines</value>
+  </data>
   <data name="Gloves &amp; Mittens" xml:space="preserve">
     <value>Gloves &amp; Mittens</value>
+  </data>
+  <data name="Goth &amp; Horror Dolls" xml:space="preserve">
+    <value>Goth &amp; Horror Dolls</value>
+  </data>
+  <data name="Hair Jewelry" xml:space="preserve">
+    <value>Hair Jewelry</value>
   </data>
   <data name="Halloween Candy Bags" xml:space="preserve">
     <value>Halloween Candy Bags</value>
@@ -299,6 +353,9 @@
   </data>
   <data name="Jewelry" xml:space="preserve">
     <value>Jewelry</value>
+  </data>
+  <data name="Jewelry Boxes" xml:space="preserve">
+    <value>Jewelry Boxes</value>
   </data>
   <data name="Jewelry Sets" xml:space="preserve">
     <value>Jewelry Sets</value>
@@ -375,8 +432,14 @@
   <data name="Shoe Clips" xml:space="preserve">
     <value>Shoe Clips</value>
   </data>
+  <data name="Signet Rings" xml:space="preserve">
+    <value>Signet Rings</value>
+  </data>
   <data name="Solitaire Rings" xml:space="preserve">
     <value>Solitaire Rings</value>
+  </data>
+  <data name="Sports Gloves" xml:space="preserve">
+    <value>Sports Gloves</value>
   </data>
   <data name="Stackable Rings" xml:space="preserve">
     <value>Stackable Rings</value>
@@ -407,5 +470,8 @@
   </data>
   <data name="Wings" xml:space="preserve">
     <value>Wings</value>
+  </data>
+  <data name="Winter Gloves" xml:space="preserve">
+    <value>Winter Gloves</value>
   </data>
 </root>
