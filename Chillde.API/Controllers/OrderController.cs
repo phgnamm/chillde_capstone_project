@@ -268,6 +268,8 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        
+        [Authorize]
         [HttpPost("{orderId}/order-tracking-deliveries")]
         public async Task<IActionResult> AddDelivery(Guid orderId, [FromForm] OrderTrackingAddModel orderTrackingAddModel)
         {
