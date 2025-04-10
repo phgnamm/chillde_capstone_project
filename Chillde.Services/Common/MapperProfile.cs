@@ -52,6 +52,9 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Status.ToString())))
             .ForMember(dest => dest.OrderCount,
                 opt => opt.MapFrom(src => src.Orders.Count)); // Đếm số lượng Orders
+        CreateMap<Account, AccountLiteModel>();
+        CreateMap<AccountUpdateModel, Account>();
+        CreateMap<AccountBecomeASellerModel, Account>();
 
         // Message
         CreateMap<MessageAddModel, Message>();

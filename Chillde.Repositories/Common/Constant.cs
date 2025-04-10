@@ -4,7 +4,8 @@ public static class Constant
 {
     #region Security
 
-    public const int AccessTokenValidityInMinutes = 5;
+    // public const int AccessTokenValidityInMinutes = 5;
+    public const int AccessTokenValidityInMinutes = 60 * 24 * 7;
     public const int RefreshTokenValidityInDays = 7;
     public const int VerificationCodeValidityInMinutes = 15;
     public const int VerificationCodeLength = 6;
