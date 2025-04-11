@@ -22,34 +22,30 @@ namespace Chillde.Services.Helpers
 
         //    throw new InvalidOperationException("Không tìm thấy địa chỉ IP");
         //}
-        public static string GetIpAddress(HttpContext context)
+        public string GetIpAddress(HttpContext context)
         {
-            // Nếu có dùng proxy/load balancer (Azure, Nginx...), ưu tiên lấy IP từ header
-            var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            if (!string.IsNullOrWhiteSpace(forwardedFor))
+            var ipAddress = string.Empty;
+            try
             {
-                // Trường hợp có nhiều IP thì lấy IP đầu tiên
-                var ip = forwardedFor.Split(',').FirstOrDefault()?.Trim();
-                if (IPAddress.TryParse(ip, out var parsedIp))
+                var remoteIpAddress = context.Connection.RemoteIpAddress;
+
+                if (remoteIpAddress != null)
                 {
-                    return parsedIp.ToString();
+                    if (remoteIpAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                        remoteIpAddress = Dns.GetHostEntry(remoteIpAddress).AddressList
+                            .FirstOrDefault(x => x.AddressFamily == AddressFamily.InterNetwork);
+
+                    if (remoteIpAddress != null) ipAddress = remoteIpAddress.ToString();
+
+                    return ipAddress;
                 }
             }
-
-            var remoteIp = context.Connection.RemoteIpAddress;
-
-            if (remoteIp != null)
+            catch (Exception ex)
             {
-                // Nếu là IPv6 thì map về IPv4 nếu có
-                if (remoteIp.AddressFamily == AddressFamily.InterNetworkV6)
-                {
-                    remoteIp = remoteIp.MapToIPv4();
-                }
-
-                return remoteIp.ToString();
+                return ex.Message;
             }
 
-            throw new InvalidOperationException("Không tìm thấy địa chỉ IP");
+            return "127.0.0.1";
         }
     }
 }
