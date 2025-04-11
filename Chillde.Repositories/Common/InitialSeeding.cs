@@ -2112,6 +2112,157 @@ new()
     ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
     AttachmentUrl = ""
 },
+// Danh mục con của Pet Bedding
+new()
+{
+    Id = Guid.Parse("019625d0-3008-778a-91cc-77da7488122b"),
+    Name = "Pet Mats & Pads",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d0-308f-7573-886d-11299cc616fd"),
+    Name = "Pet Blankets",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d0-3092-76ec-a2ff-42f7234add1e"),
+    Name = "Nesting Supplies",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d0-3094-7857-a893-f60680a5e35f"),
+    Name = "Liners",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Pet Feeding
+new()
+{
+    Id = Guid.Parse("019625d4-5de6-7e66-9f2b-d5ca87f95f94"),
+    Name = "Feeding Stands",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e40-7f3a-be21-9540f5c10262"),
+    Name = "Pet Bowls",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e44-7312-bb89-20dbf1194e16"),
+    Name = "Pet Food & Treats",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e4b-782a-972b-c8462bf7b390"),
+    Name = "Placemats",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e4d-7911-a5a2-06104a84072d"),
+    Name = "Pet Feeders & Waterers",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Home & Living
+new()
+{
+    Id = Guid.Parse("019625de-2aad-7750-bec1-e0483e3bdaab"),
+    Name = "Home Decor",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b24-7301-ae0f-9f1bee9321e0"),
+    Name = "Furniture",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b54-7ffc-b374-5a6d08777cdd"),
+    Name = "Outdoor & Gardening",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b57-7b29-b38f-8f2f62f42221"),
+    Name = "Floor & Rugs",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b59-7041-a3ff-ade37c3cdc96"),
+    Name = "Lighting",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b6a-79bc-8497-f833cd70e4b5"),
+    Name = "Storage & Organization",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Bath & Beauty
+new()
+{
+    Id = Guid.Parse("019625e4-d0c0-7b44-bc33-be143521ca3e"),
+    Name = "Spa & Relaxation",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d141-7daf-b65b-f0c1f9e791d8"),
+    Name = "Fragrances",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d144-7250-8847-1d169adf728e"),
+    Name = "Skin Care",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d170-7114-b9ef-c18ca7f485ee"),
+    Name = "Essential Oils",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d173-72d8-b78a-0f5d843248fc"),
+    Name = "Bath Accessories",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d175-71a5-be15-ce905ff33ff0"),
+    Name = "Hair Care",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
     };
 
     private static readonly List<SystemConfig> SystemConfigs = new()
