@@ -73,7 +73,7 @@ namespace Chillde.Services.Services
             helper.AddRequestData("vnp_ReturnUrl", _callbackUrl);
             helper.AddRequestData("vnp_TxnRef", request.OrderId.ToString());
 
-            return await helper.GetPaymentUrl(_baseUrl, "KFQODQOSIVQBB1XSF5MKSMLARY0F0WI2");
+            return await helper.GetPaymentUrl(_baseUrl, _hashSecret);
         }
         public async Task<PaymentResult> GetPaymentResult(IQueryCollection parameters)
         {
