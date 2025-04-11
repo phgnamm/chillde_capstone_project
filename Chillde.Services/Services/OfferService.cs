@@ -18,6 +18,10 @@ using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
 using OpenAI.GPT3.Interfaces;
+using Chillde.Services.Helpers;
+using Chillde.Services.Utils;
+using CloudinaryDotNet;
+using Chillde.Services.Common;
 
 
 namespace Chillde.Services.Services
@@ -29,15 +33,17 @@ namespace Chillde.Services.Services
         private readonly ITranslationService _translationService;
         private readonly IStringLocalizer<OfferLanguage> _localizer;
         private readonly ICloudinaryHelper _cloudinaryHelper;
+        private readonly IRedisHelper _redisHelper;
 
         public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService,
-            IStringLocalizer<OfferLanguage> localizer, ICloudinaryHelper cloudinaryHelper)
+            IStringLocalizer<OfferLanguage> localizer, ICloudinaryHelper cloudinaryHelper, IRedisHelper redisHelper)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _translationService = translationService;
             _localizer = localizer;
             _cloudinaryHelper = cloudinaryHelper;
+            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter,
@@ -48,7 +54,12 @@ namespace Chillde.Services.Services
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
             try
             {
-                var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
+
+                var cacheKey = $"offers_{sourceLanguageCode}_{targetLanguageCode}_{CacheTools.GenerateCacheKey(filterParameter)}";
+
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
                         (!filterParameter.CategoryId.HasValue ||
@@ -87,135 +98,136 @@ namespace Chillde.Services.Services
                     filterParameter.PageIndex,
                     filterParameter.PageSize
                 );
-                var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
-                List<OfferModel> localizedOffers;
+                    var offerIds = offersResult.Data.Select(offer => offer.Id).ToList();
+                    List<OfferModel> localizedOffers;
 
-                if (sourceLanguageCode != "vi")
+                    if (sourceLanguageCode != "vi")
+                    {
+                        var offersWithTranslations =
+                            await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(sourceLanguageCode, offerIds);
+                        localizedOffers = offersWithTranslations.Select(offer => new OfferModel
+                        {
+                            Id = offer.Id,
+                            Status = offer.Status,
+                            Message = offer.Message,
+                            MinWeight = offer.MinWeight,
+                            MaxWeight = offer.MaxWeight,
+                            OfferAttachments = offer.OfferAttachments?.ToList(),
+                            RequestId = offer.RequestId,
+                            ServiceId = offer.ServiceId,
+                            Package = new PackageModel
+                            {
+                                Name = offer.Package!.Name,
+                                Description = offer.Package!.Description,
+                                Price = offer.Package!.Price,
+                                DeliveryTime = offer.Package!.DeliveryTime,
+                                MaxQuantity = offer.Package!.MaxQuantity,
+                                SketchRevision = offer.Package!.SketchRevision,
+                                ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                                Features = offer.Package.PackageFeatures?
+                .Select(pf => pf.Feature)
+                .Distinct()
+                .Select(feature => new FeatureModel
                 {
-                    var offersWithTranslations =
-                        await _unitOfWork.OfferRepository.GetOffersWithTranslationsAsync(sourceLanguageCode, offerIds);
-                    localizedOffers = offersWithTranslations.Select(offer => new OfferModel
-                    {
-                        Id = offer.Id,
-                        Status = offer.Status,
-                        Message = offer.Message,
-                        MinWeight = offer.MinWeight,
-                        MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments?.ToList(),
-                        RequestId = offer.RequestId,
-                        ServiceId = offer.ServiceId,
-                        Package = new PackageModel
+                    Id = feature.Id,
+                    Name = feature.Name,
+                    Question = feature.Question,
+                    QuestionType = feature.QuestionType,
+                    IsInformationRequired = feature.IsInformationRequired,
+                    IsQuantity = feature.IsQuantity,
+                    PackageFeatures = offer.Package.PackageFeatures
+                        .Where(pf => pf.FeatureId == feature.Id)
+                        .Select(pf => new PackageFeature
                         {
-                            Name = offer.Package!.Name,
-                            Description = offer.Package!.Description,
-                            Price = offer.Package!.Price,
-                            DeliveryTime = offer.Package!.DeliveryTime,
-                            MaxQuantity = offer.Package!.MaxQuantity,
-                            SketchRevision = offer.Package!.SketchRevision,
-                            ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
-                            Features = offer.Package.PackageFeatures?
-            .Select(pf => pf.Feature)
-            .Distinct()
-            .Select(feature => new FeatureModel
-            {
-                Id = feature.Id,
-                Name = feature.Name,
-                Question = feature.Question,
-                QuestionType = feature.QuestionType,
-                IsInformationRequired = feature.IsInformationRequired,
-                IsQuantity = feature.IsQuantity,
-                PackageFeatures = offer.Package.PackageFeatures
-                    .Where(pf => pf.FeatureId == feature.Id)
-                    .Select(pf => new PackageFeature
-                    {
-                        Id = pf.Id,
-                        Name = pf.Name,
-                        AdditionalCost = pf.AdditionalCost,
-                        AdditionalDay = pf.AdditionalDay,
-                        IsExtra = pf.IsExtra,
-                        IsChecked = pf.IsChecked,
-                        MaxQuantity = pf.MaxQuantity,
-                    }).ToList()
-            }).ToList()
-                        },
-                        CreatedBy = new AccountLiteModel
-                        {
-                            Email = offer.CreatedBy.Email,
-                            FirstName = offer.CreatedBy.FirstName,
-                            LastName = offer.CreatedBy.LastName,
-                            Image = offer.CreatedBy.Image
-                        },
-                        CreationDate = offer.CreationDate
-                    }).ToList();
-                }
-
-                else
-                {
-                    localizedOffers = offersResult.Data.Select(offer => new OfferModel
-                    {
-                        Id = offer.Id,
-                        Status = offer.Status,
-                        Message = offer.Message,
-                        MinWeight = offer.MinWeight,
-                        MaxWeight = offer.MaxWeight,
-                        OfferAttachments = offer.OfferAttachments?.ToList(),
-                        RequestId = offer.RequestId,
-                        ServiceId = offer.ServiceId,
-                        Package = new PackageModel
-                        {
-                            Name = offer.Package!.Name,
-                            Description = offer.Package!.Description,
-                            Price = offer.Package!.Price,
-                            DeliveryTime = offer.Package!.DeliveryTime,
-                            MaxQuantity = offer.Package!.MaxQuantity,
-                            SketchRevision = offer.Package!.SketchRevision,
-                            ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
-                            Features = offer.Package.PackageFeatures?
-            .Select(pf => pf.Feature)
-            .Distinct()
-            .Select(feature => new FeatureModel
-            {
-                Id = feature.Id,
-                Name = feature.Name,
-                Question = feature.Question,
-                QuestionType = feature.QuestionType,
-                IsInformationRequired = feature.IsInformationRequired,
-                IsQuantity = feature.IsQuantity,
-                PackageFeatures = offer.Package.PackageFeatures
-                    .Where(pf => pf.FeatureId == feature.Id)
-                    .Select(pf => new PackageFeature
-                    {
-                        Id = pf.Id,
-                        Name = pf.Name,
-                        AdditionalCost = pf.AdditionalCost,
-                        AdditionalDay = pf.AdditionalDay,
-                        IsExtra = pf.IsExtra,
-                        IsChecked = pf.IsChecked,
-                        MaxQuantity = pf.MaxQuantity,
-                    }).ToList()
-            }).ToList()
-                        },
-                        CreatedBy = new AccountLiteModel
-                        {
-                            Email = offer.CreatedBy.Email,
-                            FirstName = offer.CreatedBy.FirstName,
-                            LastName = offer.CreatedBy.LastName,
-                            Image = offer.CreatedBy.Image
-                        },
-                        CreationDate = offer.CreationDate
-                    }).ToList();
-                }
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Offers retrieved successfully.",
-                    Data = new
-                    {
-                        offersResult.TotalCount,
-                        Results = localizedOffers
+                            Id = pf.Id,
+                            Name = pf.Name,
+                            AdditionalCost = pf.AdditionalCost,
+                            AdditionalDay = pf.AdditionalDay,
+                            IsExtra = pf.IsExtra,
+                            IsChecked = pf.IsChecked,
+                            MaxQuantity = pf.MaxQuantity,
+                        }).ToList()
+                }).ToList()
+                            },
+                            CreatedBy = new AccountLiteModel
+                            {
+                                Email = offer.CreatedBy.Email,
+                                FirstName = offer.CreatedBy.FirstName,
+                                LastName = offer.CreatedBy.LastName,
+                                Image = offer.CreatedBy.Image
+                            },
+                            CreationDate = offer.CreationDate
+                        }).ToList();
                     }
-                };
+
+                    else
+                    {
+                        localizedOffers = offersResult.Data.Select(offer => new OfferModel
+                        {
+                            Id = offer.Id,
+                            Status = offer.Status,
+                            Message = offer.Message,
+                            MinWeight = offer.MinWeight,
+                            MaxWeight = offer.MaxWeight,
+                            OfferAttachments = offer.OfferAttachments?.ToList(),
+                            RequestId = offer.RequestId,
+                            ServiceId = offer.ServiceId,
+                            Package = new PackageModel
+                            {
+                                Name = offer.Package!.Name,
+                                Description = offer.Package!.Description,
+                                Price = offer.Package!.Price,
+                                DeliveryTime = offer.Package!.DeliveryTime,
+                                MaxQuantity = offer.Package!.MaxQuantity,
+                                SketchRevision = offer.Package!.SketchRevision,
+                                ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                                Features = offer.Package.PackageFeatures?
+                .Select(pf => pf.Feature)
+                .Distinct()
+                .Select(feature => new FeatureModel
+                {
+                    Id = feature.Id,
+                    Name = feature.Name,
+                    Question = feature.Question,
+                    QuestionType = feature.QuestionType,
+                    IsInformationRequired = feature.IsInformationRequired,
+                    IsQuantity = feature.IsQuantity,
+                    PackageFeatures = offer.Package.PackageFeatures
+                        .Where(pf => pf.FeatureId == feature.Id)
+                        .Select(pf => new PackageFeature
+                        {
+                            Id = pf.Id,
+                            Name = pf.Name,
+                            AdditionalCost = pf.AdditionalCost,
+                            AdditionalDay = pf.AdditionalDay,
+                            IsExtra = pf.IsExtra,
+                            IsChecked = pf.IsChecked,
+                            MaxQuantity = pf.MaxQuantity,
+                        }).ToList()
+                }).ToList()
+                            },
+                            CreatedBy = new AccountLiteModel
+                            {
+                                Email = offer.CreatedBy.Email,
+                                FirstName = offer.CreatedBy.FirstName,
+                                LastName = offer.CreatedBy.LastName,
+                                Image = offer.CreatedBy.Image
+                            },
+                            CreationDate = offer.CreationDate
+                        }).ToList();
+                    }
+
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Offers retrieved successfully.",
+                        Data = new
+                        {
+                            offersResult.TotalCount,
+                            Results = localizedOffers
+                        }
+                    };
+                });
             }
             catch (Exception ex)
             {
@@ -237,77 +249,81 @@ namespace Chillde.Services.Services
 
             try
             {
-                var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, sourceLanguageCode);
-
-                if (offer == null)
+                var cacheKey = $"offers_{id}";
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
+                    var offer = await _unitOfWork.OfferRepository.GetOfferAsync(id, sourceLanguageCode);
+
+                    if (offer == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Offer not found."
+                        };
+                    }
+
+                    var offerModel = new OfferModel
+                    {
+                        Id = offer.Id,
+                        Status = offer.Status,
+                        Message = offer.Message,
+                        MinWeight = offer.MinWeight,
+                        MaxWeight = offer.MaxWeight,
+                        OfferAttachments = offer.OfferAttachments?.ToList(),
+                        RequestId = offer.RequestId,
+                        ServiceId = offer.ServiceId,
+                        CreatedBy = new AccountLiteModel
+                        {
+                            Email = offer.CreatedBy.Email,
+                            FirstName = offer.CreatedBy.FirstName,
+                            LastName = offer.CreatedBy.LastName,
+                            Image = offer.CreatedBy.Image
+                        },
+                        CreationDate = offer.CreationDate,
+                        Package = offer.Package == null ? null : new PackageModel
+                        {
+                            Name = offer.Package.Name,
+                            Description = offer.Package.Description,
+                            Price = offer.Package.Price,
+                            DeliveryTime = offer.Package.DeliveryTime,
+                            MaxQuantity = offer.Package.MaxQuantity,
+                            SketchRevision = offer.Package.SketchRevision,
+                            ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                            Features = offer.Package.PackageFeatures?
+                                .Select(pf => pf.Feature)
+                                .Distinct()
+                                .Select(feature => new FeatureModel
+                                {
+                                    Id = feature.Id,
+                                    Name = feature.Name,
+                                    Question = feature.Question,
+                                    QuestionType = feature.QuestionType,
+                                    IsInformationRequired = feature.IsInformationRequired,
+                                    IsQuantity = feature.IsQuantity,
+                                    PackageFeatures = offer.Package.PackageFeatures
+                                        .Where(pf => pf.FeatureId == feature.Id)
+                                        .Select(pf => new PackageFeature
+                                        {
+                                            Id = pf.Id,
+                                            Name = pf.Name,
+                                            AdditionalCost = pf.AdditionalCost,
+                                            AdditionalDay = pf.AdditionalDay,
+                                            IsExtra = pf.IsExtra,
+                                            IsChecked = pf.IsChecked,
+                                            MaxQuantity = pf.MaxQuantity,
+                                        }).ToList()
+                                }).ToList()
+                        }
+                    };
+
                     return new ResponseModel
                     {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Offer not found."
+                        Code = StatusCodes.Status200OK,
+                        Message = "Offer retrieved successfully.",
+                        Data = offerModel
                     };
-                }
-
-                var offerModel = new OfferModel
-                {
-                    Id = offer.Id,
-                    Status = offer.Status,
-                    Message = offer.Message,
-                    MinWeight = offer.MinWeight,
-                    MaxWeight = offer.MaxWeight,
-                    OfferAttachments = offer.OfferAttachments?.ToList(),
-                    RequestId = offer.RequestId,
-                    ServiceId = offer.ServiceId,
-                    CreatedBy = new AccountLiteModel
-                    {
-                        Email = offer.CreatedBy.Email,
-                        FirstName = offer.CreatedBy.FirstName,
-                        LastName = offer.CreatedBy.LastName,
-                        Image = offer.CreatedBy.Image
-                    },
-                    CreationDate = offer.CreationDate,
-                    Package = offer.Package == null ? null : new PackageModel
-                    {
-                        Name = offer.Package.Name,
-                        Description = offer.Package.Description,
-                        Price = offer.Package.Price,
-                        DeliveryTime = offer.Package.DeliveryTime,
-                        MaxQuantity = offer.Package.MaxQuantity,
-                        SketchRevision = offer.Package.SketchRevision,
-                        ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
-                        Features = offer.Package.PackageFeatures?
-                            .Select(pf => pf.Feature)
-                            .Distinct()
-                            .Select(feature => new FeatureModel
-                            {
-                                Id = feature.Id,
-                                Name = feature.Name,
-                                Question = feature.Question,
-                                QuestionType = feature.QuestionType,
-                                IsInformationRequired = feature.IsInformationRequired,
-                                IsQuantity = feature.IsQuantity,
-                                PackageFeatures = offer.Package.PackageFeatures
-                                    .Where(pf => pf.FeatureId == feature.Id)
-                                    .Select(pf => new PackageFeature
-                                    {
-                                        Id = pf.Id,
-                                        Name = pf.Name,
-                                        AdditionalCost = pf.AdditionalCost,
-                                        AdditionalDay = pf.AdditionalDay,
-                                        IsExtra = pf.IsExtra,
-                                        IsChecked = pf.IsChecked,
-                                        MaxQuantity = pf.MaxQuantity,
-                                    }).ToList()
-                            }).ToList()
-                    }
-                };
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Offer retrieved successfully.",
-                    Data = offerModel
-                };
+                });
             }
             catch (Exception ex)
             {
@@ -740,6 +756,8 @@ namespace Chillde.Services.Services
                     var changes = await _unitOfWork.SaveChangeAsync();
                     if (changes > 0)
                     {
+                        await _redisHelper.InvalidateCacheByPatternAsync($"offer_{offerId}");
+                        await _redisHelper.InvalidateCacheByPatternAsync("offer_*");
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status200OK,
