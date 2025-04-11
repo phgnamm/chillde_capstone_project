@@ -10,6 +10,7 @@ using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SubcategoryModels;
 using Chillde.Services.Resources;
+using Chillde.Services.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
@@ -31,12 +32,14 @@ namespace Chillde.Services.Services
         private readonly ITranslationService _translationService;
         private readonly IStringLocalizer<OfferLanguage> _localizer;
         private readonly IBadWordFilterService _badWordFilterService;
+        private readonly IRedisHelper _redisHelper;
 
         public RequestService(IUnitOfWork unitOfWork, IClaimService claimService,
             ICloudinaryHelper cloudinaryHelper,
             ITranslationService translationService,
             IStringLocalizer<OfferLanguage> localizer,
-            IBadWordFilterService badWordFilterService
+            IBadWordFilterService badWordFilterService,
+            IRedisHelper redisHelper
 
             )
         {
@@ -46,6 +49,7 @@ namespace Chillde.Services.Services
             _translationService = translationService;
             _localizer = localizer;
             _badWordFilterService = badWordFilterService;
+            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode)
@@ -271,89 +275,95 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
-                Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
-                Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
-                var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
-                    _ => _.IsDeleted == filterParameter.IsDeleted &&
-                        (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower())),
-                    requests =>
-                    {
-                        switch (filterParameter.Order.ToLower())
-                        {
-                            case "creationDate":
-                                return filterParameter.OrderByDescending
-                                    ? requests.OrderByDescending(request => request.CreationDate)
-                                    : requests.OrderBy(request => request.CreationDate);
-                            default:
-                                return filterParameter.OrderByDescending
-                                    ? requests.OrderByDescending(request => request.CreationDate)
-                                    : requests.OrderBy(request => request.CreationDate);
-                        }
-                    },
-                    include: null,
-                    pageIndex: filterParameter.PageIndex,
-                    pageSize: filterParameter.PageSize
-                );
+                var cacheKey = $"requests_{sourceLanguageCode}_{targetLanguage}_{CacheTools.GenerateCacheKey(filterParameter)}";
 
-                var requestIds = requestsResult.Data.Select(r => r.Id).ToList();
-                if (sourceLanguageCode.ToLower() == "en")
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
-                    var requestModels = requestsResult.Data.Select(_ => new RequestModel
-                    {
-                        Id = _.Id,
-                        Name = _.Name,
-                        IsDeleted = _.IsDeleted,
-                        CreationDate = _.CreationDate,
-                        MaxBudget = _.MaxBudget,
-                        MinBudget = _.MinBudget,
-                        Timeline = _.Timeline,
-                        Description = _.Description,
-                        Status = _localizer[_.Status.ToString()],
-                    }).ToList();
+                    var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+                    Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
 
-                    var result = new Pagination<RequestModel>(requestModels, filterParameter.PageIndex,
-                        filterParameter.PageSize, requestsResult.TotalCount);
-
-                    return new ResponseModel
-                    {
-                        Message = "Get all requests successfully",
-                        Data = result
-                    };
-                }
-                else
-                {
-                    var translationFields = new[] { "Name", "Description" };
-                    var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestModel>(
-                        requestIds,
-                        sourceLanguageCode,
-                        request => new RequestModel
+                    var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
+                        _ => _.IsDeleted == filterParameter.IsDeleted &&
+                            (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower())),
+                        requests =>
                         {
-                            Id = request.Id,
-                            Name = request.Name,
-                            IsDeleted = request.IsDeleted,
-                            CreationDate = request.CreationDate,
-                            MaxBudget = request.MaxBudget,
-                            MinBudget = request.MinBudget,
-                            Timeline = request.Timeline,
-                            Description = request.Description,
-                            Status = _localizer[request.Status.ToString()],
+                            switch (filterParameter.Order.ToLower())
+                            {
+                                case "creationDate":
+                                    return filterParameter.OrderByDescending
+                                        ? requests.OrderByDescending(request => request.CreationDate)
+                                        : requests.OrderBy(request => request.CreationDate);
+                                default:
+                                    return filterParameter.OrderByDescending
+                                        ? requests.OrderByDescending(request => request.CreationDate)
+                                        : requests.OrderBy(request => request.CreationDate);
+                            }
                         },
-                        null,
-                        translationFields
+                        include: null,
+                        pageIndex: filterParameter.PageIndex,
+                        pageSize: filterParameter.PageSize
                     );
 
-                    var localizedRequests = translations.Where(r => string.IsNullOrEmpty(filterParameter.Search) || r.Name!.ToLower().Contains(filterParameter.Search.ToLower())).ToList();
-                    var result = new Pagination<RequestModel>(localizedRequests, filterParameter.PageIndex,
-                        filterParameter.PageSize, localizedRequests.Count);
-
-                    return new ResponseModel
+                    var requestIds = requestsResult.Data.Select(r => r.Id).ToList();
+                    if (sourceLanguageCode.ToLower() == "en")
                     {
-                        Message = "Get all requests with translations successfully",
-                        Data = result
-                    };
+                        var requestModels = requestsResult.Data.Select(_ => new RequestModel
+                        {
+                            Id = _.Id,
+                            Name = _.Name,
+                            IsDeleted = _.IsDeleted,
+                            CreationDate = _.CreationDate,
+                            MaxBudget = _.MaxBudget,
+                            MinBudget = _.MinBudget,
+                            Timeline = _.Timeline,
+                            Description = _.Description,
+                            Status = _localizer[_.Status.ToString()],
+                        }).ToList();
+
+                        var result = new Pagination<RequestModel>(requestModels, filterParameter.PageIndex,
+                            filterParameter.PageSize, requestsResult.TotalCount);
+
+                        return new ResponseModel
+                        {
+                            Message = "Get all requests successfully",
+                            Data = result
+                        };
+                    }
+                    else
+                    {
+                        var translationFields = new[] { "Name", "Description" };
+                        var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Request, RequestModel>(
+                            requestIds,
+                            sourceLanguageCode,
+                            request => new RequestModel
+                            {
+                                Id = request.Id,
+                                Name = request.Name,
+                                IsDeleted = request.IsDeleted,
+                                CreationDate = request.CreationDate,
+                                MaxBudget = request.MaxBudget,
+                                MinBudget = request.MinBudget,
+                                Timeline = request.Timeline,
+                                Description = request.Description,
+                                Status = _localizer[request.Status.ToString()],
+                            },
+                            null,
+                            translationFields
+                        );
+
+                        var localizedRequests = translations.Where(r => string.IsNullOrEmpty(filterParameter.Search) || r.Name!.ToLower().Contains(filterParameter.Search.ToLower())).ToList();
+                        var result = new Pagination<RequestModel>(localizedRequests, filterParameter.PageIndex,
+                            filterParameter.PageSize, localizedRequests.Count);
+
+                        return new ResponseModel
+                        {
+                            Message = "Get all requests with translations successfully",
+                            Data = result
+                        };
+                    }
+                });
                 }
-            }
             catch (Exception ex)
             {
                 return new ResponseModel
