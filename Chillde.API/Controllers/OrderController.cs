@@ -137,7 +137,7 @@ namespace Chillde.API.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
                 {
                     Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
+                    Message = ex.ToString()
                 });
             }
         }
