@@ -35,7 +35,7 @@ namespace Chillde.Services.Helpers
 
             var signData = queryBuilder.ToString();
 
-            var secureHash = Encoder.AsHmacSHA512(hashSecret, signData);
+            var secureHash = Encoder.AsHmacSHA512("KFQODQOSIVQBB1XSF5MKSMLARY0F0WI2", signData);
 
             return $"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?{signData}&vnp_SecureHash={WebUtility.UrlEncode(secureHash)}";
         }
