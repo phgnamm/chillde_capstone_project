@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Text;
 using Chillde.Services.Utils;
-using static System.Net.WebRequestMethods;
 using Encoder = Chillde.Services.Utils.Encoder;
 
 namespace Chillde.Services.Helpers
@@ -35,9 +34,9 @@ namespace Chillde.Services.Helpers
 
             var signData = queryBuilder.ToString();
 
-            var secureHash = Encoder.AsHmacSHA512("KFQODQOSIVQBB1XSF5MKSMLARY0F0WI2", signData);
+            var secureHash = Encoder.AsHmacSHA512(hashSecret, signData);
 
-            return $"https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?{signData}&vnp_SecureHash={WebUtility.UrlEncode(secureHash)}";
+            return $"{baseUrl}?{signData}&vnp_SecureHash={WebUtility.UrlEncode(secureHash)}";
         }
         #endregion
 
