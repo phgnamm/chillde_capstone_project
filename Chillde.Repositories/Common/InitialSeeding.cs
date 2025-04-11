@@ -2490,10 +2490,16 @@ public static class InitialSeeding
 
         foreach (var feature in Features)
         {
-            var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
-                                  ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
+            //var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
+            //                      ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
 
-            if (existingFeature == null)
+            //if (existingFeature == null)
+            //{
+            //    feature.CreationDate = DateTime.UtcNow;
+            //    context.Features.Add(feature);
+            //}
+
+            if (!context.Features.Any(i => i.Id == feature.Id))
             {
                 feature.CreationDate = DateTime.UtcNow;
                 context.Features.Add(feature);

@@ -84,11 +84,15 @@ public class MapperProfile : Profile
         //PackageFeature
         CreateMap<PackageFeatureUpdateModel, PackageFeature>().ReverseMap();
         CreateMap<PackageFeatureAddModel, PackageFeature>().ReverseMap();
+        CreateMap<PackageFeatureAddModelForFeature, PackageFeature>().ReverseMap();
         CreateMap<PackageFeatureModel, PackageFeature>().ReverseMap();
+        CreateMap<PackageFeatureAddModelForFeature, PackageFeatureAddModel>().ReverseMap();
 
         //Feature
         CreateMap<FeatureModel, Feature>().ReverseMap();
+        CreateMap<FeatureAddModel, Feature>().ReverseMap();
         CreateMap<FeatureUpdateModel, Feature>().ReverseMap();
+        CreateMap<FeatureUpdateModelForFeatureService, Feature>().ReverseMap();
 
         //Service
         CreateMap<ServiceModel, Service>().ReverseMap();
