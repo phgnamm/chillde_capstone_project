@@ -22,7 +22,7 @@ namespace Chillde.Services.Helpers
 
         //    throw new InvalidOperationException("Không tìm thấy địa chỉ IP");
         //}
-        public string GetIpAddress(HttpContext context)
+        public static string GetIpAddress(HttpContext context)
         {
             var ipAddress = string.Empty;
             try
