@@ -3,11 +3,14 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
+using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Nest;
 
 namespace Chillde.Services.Services
@@ -18,13 +21,15 @@ namespace Chillde.Services.Services
         private readonly ITranslationService _translationService;
         private readonly IMapper _mapper;
         private readonly IBadWordFilterService _badWordFilterService;
+        private readonly IPackageService _packageService;
 
-        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService, IMapper mapper, IBadWordFilterService badWordFilterService)
+        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService, IMapper mapper, IBadWordFilterService badWordFilterService, IPackageService packageService)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
             _mapper = mapper;
             _badWordFilterService = badWordFilterService;
+            _packageService = packageService;
         }
 
         public async Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, string sourceLanguageCode, string targetLanguageCode)
@@ -55,7 +60,7 @@ namespace Chillde.Services.Services
 
                 var numberOfExistedPackageFeature = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(package.Id);
                 var maximumPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageFeatureOfOnePackage).Result;
-                if (numberOfExistedPackageFeature >= int.Parse(maximumPackageFeature!))
+                if (numberOfExistedPackageFeature > int.Parse(maximumPackageFeature!))
                 {
                     return new ResponseModel
                     {
@@ -88,38 +93,42 @@ namespace Chillde.Services.Services
                 //    };
                 //}
 
-                var feature = new Feature
+                var existingFeatures = _unitOfWork.PackageRepository.GetAllFeatureByService((Guid)package.ServiceId!).Result;
+
+                if (featureAddModel.Index == 0)
                 {
-                    //Name = sourceLanguageCode == "en" ? featureAddModel.Name : translatedName,
-                    Name = featureAddModel.Name,
-                    Question = featureAddModel.Question,
-                    QuestionType = featureAddModel.QuestionType,
-                    IsInformationRequired = featureAddModel.IsInformationRequired,
-                    IsQuantity = featureAddModel.IsQuantity
-                };
+                    featureAddModel.Index = existingFeatures.Count + 1;
+                }
+                else
+                {
+                    foreach (var existingFeature in existingFeatures)
+                    {
+                        if (existingFeature.Index >= featureAddModel.Index)
+                        {
+                            existingFeature.Index++;
+                        }
+                    }
+                }
+                _unitOfWork.FeatureRepository.UpdateRange(existingFeatures);
+
+                var feature = _mapper.Map<Feature>(featureAddModel);
 
                 await _unitOfWork.FeatureRepository.AddAsync(feature);
+                await _unitOfWork.SaveChangeAsync();
 
-                var packageFeatures = new List<PackageFeature>();
-                for (int i = 0; i < featureAddModel.PackageFeatureAddModels.Count; i++)
-                {
-                    var packageFeature = featureAddModel.PackageFeatureAddModels[i];
-                    //string translatedQuestion = translationResponse.TranslatedFields[$"PackageFeature_{i}_Name"];
-                    var newPackageFeature = new PackageFeature
-                    {
-                        //Name = sourceLanguageCode == "en" ? packageFeature.Name : translatedQuestion,
-                        Name = packageFeature.Name,
-                        AdditionalCost = packageFeature.AdditionalCost,
-                        AdditionalDay = packageFeature.AdditionalDay,
-                        IsExtra = packageFeature.IsExtra,
-                        IsChecked = packageFeature.IsChecked,
-                        MaxQuantity = packageFeature.MaxQuantity,
-                        FeatureId = feature.Id,
-                        PackageId = package.Id
-                    };
-                    packageFeatures.Add(newPackageFeature);
+
+                var packageFeatureAddModels = _mapper.Map<List<PackageFeatureAddModel>>(featureAddModel.PackageFeatureAddModels);
+                packageFeatureAddModels.ForEach(_ => _.FeatureId = feature.Id);
+                ResponseModel responseModel =  await _packageService.AddRangePackageFeatureAsync(packageFeatureAddModels, package.Id, sourceLanguageCode, targetLanguageCode);
+
+                if (responseModel.Code != StatusCodes.Status201Created) 
+                { 
+                    _unitOfWork.FeatureRepository.HardRemove(feature);
+                    await _unitOfWork.SaveChangeAsync();
+                    return responseModel;
                 }
-                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
+                
+                //await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
 
                 //var translations = new List<Translation>();
                 //Guid? languageId = null;
@@ -164,7 +173,7 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
 
                 var featureModel = _mapper.Map<FeatureModel>(feature);
-                featureModel.PackageFeatures = _mapper.Map<List<PackageFeature>>(packageFeatures);
+                featureModel.PackageFeatures = _mapper.Map<List<PackageFeature>>(packageFeatureAddModels);
 
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
@@ -173,6 +182,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Successfully created.",
+                    Data = featureModel
 
                 };
             }
@@ -187,7 +197,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModel featureUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
+        public async Task<ResponseModel> UpdateAsync(FeatureUpdateModelForFeatureService featureUpdateModel, Guid id, string sourceLanguageCode, string targetLanguageCode)
         {
             try
             {
@@ -203,7 +213,9 @@ namespace Chillde.Services.Services
                         return response;
                 }
 
-                var feature = await _unitOfWork.FeatureRepository.GetAsync(id);
+                var feature = await _unitOfWork.FeatureRepository.GetAsync(id, 
+                    include: feature => feature.Include(_ => _.PackageFeatures)
+                                               .ThenInclude(_ => _.Package));
                 if (feature == null)
                 {
                     return new ResponseModel
@@ -213,12 +225,35 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var serviceId = feature.PackageFeatures.FirstOrDefault().Package.ServiceId;
+
+                var existingFeatures = _unitOfWork.PackageRepository.GetAllFeatureByService((Guid)serviceId).Result;
+
+                if (featureUpdateModel.Index == 0)
+                {
+                    featureUpdateModel.Index = feature.Index;
+                }
+                else
+                {
+                    foreach (var existingFeature in existingFeatures)
+                    {
+                        if (existingFeature.Index >= featureUpdateModel.Index && existingFeature.Index < feature.Index)
+                        {
+                            existingFeature.Index++;
+                        }
+                    }
+                }
+                _unitOfWork.FeatureRepository.UpdateRange(existingFeatures);
+
+                FeatureModel featureModel = new FeatureModel();
+
                 var anyOrder = _unitOfWork.FeatureRepository.HasAnyOrderByFeature(id);
 
                 if (!anyOrder.Result)
                 {
                     _mapper.Map(featureUpdateModel, feature);
                     _unitOfWork.FeatureRepository.Update(feature);
+                    featureModel = _mapper.Map<FeatureModel>(feature);
                 }
                 else
                 {
@@ -230,11 +265,11 @@ namespace Chillde.Services.Services
                         filter: _ => _.FeatureId == feature.Id && _.IsDeleted == false
                         );
 
-                    foreach (var packageFeature in packageFeatures.Data)
-                    {
-                        packageFeature.IsDeleted = true;
-                    }
-                    _unitOfWork.PackageFeatureRepository.UpdateRange(packageFeatures.Data);
+                    //foreach (var packageFeature in packageFeatures.Data)
+                    //{
+                    //    packageFeature.IsDeleted = true;
+                    //}
+                    _unitOfWork.PackageFeatureRepository.SoftRemoveRange(packageFeatures.Data);
                     await _unitOfWork.SaveChangeAsync();
 
                     foreach (var packageFeature in packageFeatures.Data)
@@ -244,8 +279,9 @@ namespace Chillde.Services.Services
                         packageFeature.FeatureId = newFeature.Id;
                     }
                     await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures.Data);
+                    featureModel = _mapper.Map<FeatureModel>(newFeature);
+                    featureModel.PackageFeatures = packageFeatures.Data;
 
-                    
                     //for (int i = 0; i < packageFeatures.TotalCount; i++)
                     //{
                     //    var packageFeature = featureUpdateModel.PackageFeatureAddModels[i];
@@ -272,6 +308,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Feature successfully updated.",
+                    Data = featureModel
                 };
             }
             catch (Exception ex)

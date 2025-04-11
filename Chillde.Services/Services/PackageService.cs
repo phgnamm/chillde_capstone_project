@@ -65,6 +65,7 @@ namespace Chillde.Services.Services
                     ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
                     ServiceId = package.ServiceId,
                     IsDeleted = package.IsDeleted,
+                    MinQuantity = package.MinQuantity,
                     MaxQuantity = package.MaxQuantity,
                     CreationDate = package.CreationDate,
                     Features = package.PackageFeatures
@@ -456,6 +457,26 @@ namespace Chillde.Services.Services
                 //    PackageId = packageId
                 //};
 
+                var existingPackageFeatures = _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                    filter: _ => _.IsDeleted == false && _.PackageId == package.Id
+                    ).Result.Data;
+
+                if (packageFeatureAddModel.Index == 0)
+                {
+                    packageFeatureAddModel.Index = existingPackageFeatures.Count + 1;
+                }
+                else
+                {
+                    foreach(var existingPackageFeature in existingPackageFeatures)
+                    {
+                        if(existingPackageFeature.Index >= packageFeatureAddModel.Index)
+                        {
+                            existingPackageFeature.Index++;
+                        }
+                    }
+                }
+                _unitOfWork.PackageFeatureRepository.UpdateRange(existingPackageFeatures);
+
                 var newPackageFeature = _mapper.Map<PackageFeature>(packageFeatureAddModel);
                 newPackageFeature.FeatureId = feature.Id;
                 newPackageFeature.PackageId = packageId;
@@ -507,6 +528,112 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.CommitTransactionAsync();
 
                 var packageFeatureModel = _mapper.Map<PackageFeatureModel>(newPackageFeature);
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Successfully created.",
+                    Data = packageFeatureModel
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<ResponseModel> AddRangePackageFeatureAsync(List<PackageFeatureAddModel> packageFeatureAddModels, Guid packageId, string sourceLanguageCode, string targetLanguageCode)
+        {
+            try
+            {
+                var package = await _unitOfWork.PackageRepository.GetAsync(packageId);
+                if (package == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Package not found."
+                    };
+                }
+
+                var feature = await _unitOfWork.FeatureRepository.GetAsync(packageFeatureAddModels.First().FeatureId);
+                if (feature == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Feature not found."
+                    };
+                }
+
+                var existingPackageFeatures = _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                        filter: _ => _.IsDeleted == false && _.PackageId == package.Id
+                        ).Result.Data;
+
+                List<PackageFeature> packageFeatures = new List<PackageFeature>();
+
+                foreach(var packageFeatureAddModel in packageFeatureAddModels)
+                {
+                    string[] fieldsToCheck = { packageFeatureAddModel.Name };
+
+                    foreach (var field in fieldsToCheck)
+                    {
+                        ResponseModel response = sourceLanguageCode == "vi"
+                            ? await _badWordFilterService.FilterVietnameseBadWordsAsync(field)
+                            : await _badWordFilterService.FilterEnglishBadWordsAsync(field);
+
+                        if (response.Code == StatusCodes.Status422UnprocessableEntity)
+                            return response;
+                    }
+
+                    var numberOfExistedPackageFeature = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(package.Id);
+                    var maximumPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageFeatureOfOnePackage).Result;
+                    if ((numberOfExistedPackageFeature += packageFeatureAddModels.Count()) > int.Parse(maximumPackageFeature!))
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status422UnprocessableEntity,
+                            Message = $"Number of package features cannot exceed {maximumPackageFeature}."
+                        };
+                    }
+
+                    if (packageFeatureAddModel.Index == 0)
+                    {
+                        packageFeatureAddModel.Index = existingPackageFeatures.Count + 1;
+                    }
+                    else
+                    {
+                        foreach (var existingPackageFeature in existingPackageFeatures)
+                        {
+                            if (existingPackageFeature.Index >= packageFeatureAddModel.Index)
+                            {
+                                existingPackageFeature.Index++;
+                            }
+                        }
+                    }
+
+                    var newPackageFeature = _mapper.Map<PackageFeature>(packageFeatureAddModel);
+                    newPackageFeature.FeatureId = feature.Id;
+                    newPackageFeature.PackageId = packageId;
+
+                    packageFeatures.Add(newPackageFeature);
+
+                    existingPackageFeatures.Add(newPackageFeature);
+                }
+
+                existingPackageFeatures = existingPackageFeatures.Except(packageFeatures).ToList();
+
+                _unitOfWork.PackageFeatureRepository.UpdateRange(existingPackageFeatures);
+                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
+                await _unitOfWork.SaveChangeAsync();
+                //await _unitOfWork.CommitTransactionAsync();
+
+                var packageFeatureModel = _mapper.Map<List<PackageFeatureModel>>(packageFeatures);
 
                 return new ResponseModel
                 {
