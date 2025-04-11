@@ -8,14 +8,11 @@ public class Package : BaseEntity
     public PackageName Name { get; set; }
     public string? Description { get; set; }
     public decimal? Price { get; set; }
-
-    #region new fields
     public int? DeliveryTime { get; set; }
     public int? SketchRevision { get; set; }
+    public int MinQuantity { get; set; }
     public int? MaxQuantity { get; set; }
     public float ResponseTime { get; set; }
-
-    #endregion
 
     // Foreign key
     [JsonIgnore]
