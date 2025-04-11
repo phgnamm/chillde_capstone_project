@@ -4,7 +4,6 @@ services:
   - name: docker:24.0.7-dind
     command: ["--dns=8.8.8.8"]
 
-
 stages:
   - build
   - deploy
@@ -17,10 +16,10 @@ before_script:
   - export $(grep -v '^#' .env | xargs)
   - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
   - |
-    if [ -n "$APPSETTINGS_JSON_BASE64" ]; then
-      echo "$APPSETTINGS_JSON_BASE64" | base64 -d > appsettings.json
-      cp appsettings.json appsettings.Development.json
-    fi
+   if [ -n "$APPSETTINGS_JSON_BASE64" ]; then
+    echo "$APPSETTINGS_JSON_BASE64" | base64 -d > Chillde.API/appsettings.json
+    cp Chillde.API/appsettings.json Chillde.API/appsettings.Development.json
+   fi
 
 build:
   stage: build
