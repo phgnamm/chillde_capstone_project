@@ -14,7 +14,18 @@ namespace Chillde.Services.Models.FeatureModels
         public MediaType QuestionType { get; set; }
         public bool IsInformationRequired { get; set; }
         public bool IsQuantity { get; set; }
+        public int Index { get; set; }
         [Required]
         public required List<PackageFeatureAddModelForFeature> PackageFeatureAddModels { get; set; }
+    }
+
+    public class FeatureUpdateModelForFeatureService
+    {
+        [Required]
+        public string Name { get; set; }
+        public string? Question { get; set; }
+        public bool IsInformationRequired { get; set; }
+        public bool IsQuantity { get; set; }
+        public int Index { get; set; }
     }
 }

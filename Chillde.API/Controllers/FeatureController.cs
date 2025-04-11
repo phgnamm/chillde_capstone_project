@@ -45,7 +45,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize(Roles = "Artisan")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromBody] FeatureUpdateModel featureUpdateModel, Guid id)
+        public async Task<IActionResult> Update([FromBody] FeatureUpdateModelForFeatureService featureUpdateModel, Guid id)
         {
             try
             {

@@ -8,16 +8,13 @@ namespace Chillde.Services.Models.PackageFeatureModels
         public Guid FeatureId { get; set; }
         [Required]
         public string Name { get; set; }
-        [Required]
         public bool IsExtra { get; set; }
-        [Required]
         public decimal AdditionalCost { get; set; }
-        [Required]
         public int AdditionalDay { get; set; }
-        [Required]
         public bool IsChecked { get; set; }
-        [Required]
+        public int MinQuantity { get; set; }
         public int MaxQuantity { get; set; }
+        public int Index { get; set; }
     }
 
     public class PackageFeatureAddModelForFeature
@@ -25,15 +22,12 @@ namespace Chillde.Services.Models.PackageFeatureModels
         public Guid? FeatureId { get; set; }
         [Required]
         public string Name { get; set; }
-        [Required]
         public bool IsExtra { get; set; }
-        [Required]
         public decimal AdditionalCost { get; set; }
-        [Required]
         public int AdditionalDay { get; set; }
-        [Required]
         public bool IsChecked { get; set; }
-        [Required]
+        public int MinQuantity { get; set; }
         public int MaxQuantity { get; set; }
+        public int Index { get; set; }
     }
 }

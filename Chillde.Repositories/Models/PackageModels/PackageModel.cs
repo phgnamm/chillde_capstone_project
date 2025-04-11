@@ -14,6 +14,7 @@ namespace Chillde.Repositories.Models.PackageModels
         public int? SketchRevision { get; set; }
         public TimeSpan ResponseTime { get; set; }
         public int? MaxQuantity { get; set; }
+        public int MinQuantity { get; set; }
 
         public Guid? ServiceId { get; set; }
         public Guid? OfferId { get; set; }

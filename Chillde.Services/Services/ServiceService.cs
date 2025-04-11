@@ -310,9 +310,8 @@ namespace Chillde.Services.Services
 
                 var numberOfExistedService = _unitOfWork.ServiceRepository.GetAllAsync(
                     _ => _.CreatedById == currentUserId && _.IsDeleted == false).Result.TotalCount;
-                var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumSerivceOfOneArtisan).Result;
                 var maximumService = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumSerivceOfOneArtisan).Result;
-                if (numberOfExistedService >= int.Parse(maximumPackage!))
+                if (numberOfExistedService > int.Parse(maximumService!))
                 {
                     return new ResponseModel
                     {
@@ -868,7 +867,7 @@ namespace Chillde.Services.Services
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
-                if (numberOfExistedPackage >= int.Parse(maximumPackage!))
+                if (numberOfExistedPackage > int.Parse(maximumPackage!))
                 {
                     return new ResponseModel
                     {
@@ -1082,7 +1081,7 @@ namespace Chillde.Services.Services
 
                 Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
                          packages.Include(c => c.PackageFeatures)
-                                 .ThenInclude(pf => pf.Feature);  // Include Feature Name
+                                 .ThenInclude(pf => pf.Feature);
 
                 var packages = await _unitOfWork.PackageRepository.GetAllAsync(
                                 filter: filter,
@@ -1102,6 +1101,7 @@ namespace Chillde.Services.Services
                     ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
                     ServiceId = package.ServiceId,
                     IsDeleted = package.IsDeleted,
+                    MinQuantity = package.MinQuantity,
                     MaxQuantity = package.MaxQuantity,
                     CreationDate = package.CreationDate,
                     Features = package.PackageFeatures
@@ -1224,6 +1224,7 @@ namespace Chillde.Services.Services
                 Data = null
             };
         }
+
         private async Task<Pagination<ServiceModel>?> SearchFuzzyMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
             var fuzzySearchResponse = await _client.SearchAsync<Service>(s => s
@@ -1327,6 +1328,7 @@ namespace Chillde.Services.Services
 
             return new Pagination<ServiceModel>(serviceModels, pageIndex, pageSize, (int)exactMatchResponse.Total);
         }
+
         private async Task<Pagination<ServiceModel>?> SearchByEmbedding(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
             float[] inputEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { serviceFilterModel.Search });
@@ -1454,7 +1456,6 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
-
 
         public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode)
         {
@@ -1756,7 +1757,6 @@ namespace Chillde.Services.Services
             }).ToList();
         }
 
-
         private float[] ComputeAverageEmbedding(List<float[]> embeddings)
         {
             if (embeddings.Count == 0) return new float[0];
@@ -1780,7 +1780,6 @@ namespace Chillde.Services.Services
             return averageEmbedding;
         }
 
-
         private static double CaculateRating(double currentRating, int currentCount, double newRating)
         {
             var result = (currentRating * currentCount + newRating) / (currentCount + 1);
@@ -1801,6 +1800,7 @@ namespace Chillde.Services.Services
 
             return dotProduct / (magnitudeA * magnitudeB);
         }
+
         private async Task SaveSearchHistoryAsync(string searchText, Guid userId)
         {
             var searchHistories = await _unitOfWork.SearchHistoryRepository
