@@ -24,8 +24,8 @@ public class Order : BaseEntity
     public int? CurrentSketchRevision { get; set; }
     public OrderStage Stage { get; set; } = OrderStage.ReviewRequirement;
     // background Service
-    public bool? ReminderSent { get; set; } = null;
-    public bool? DeadlineMissed { get; set; } = null;
+    public bool? DeliveryReminderSent { get; set; } = false;
+    public bool? DeadlineMissed { get; set; } = false;
 
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
     public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;

@@ -13,9 +13,9 @@ public class OrderTracking : BaseEntity
     public OrderTrackingType Type { get; set; }
 
     // sketchReminder
-    public bool? IsReminder50Sent { get; set; } = false;
-    public bool? IsReminder80Sent { get; set; } = false;
-    public bool? IsDeadlineSent { get; set; } = false;
+    public bool? IsReminder50Sent { get; set; } = null;
+    public bool? IsReminder80Sent { get; set; } = null;
+    public bool? IsDeadlineSent { get; set; } = null;
     #endregion
 
 

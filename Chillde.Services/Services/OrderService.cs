@@ -1523,7 +1523,12 @@ namespace Chillde.Services.Services
                     CreatedById = currentUserId.Value,
                     OrderTrackingAttachments = uploadedAttachments
                 };
-
+                if(orderTracking.Type == OrderTrackingType.Sketch)
+                {
+                    orderTracking.IsDeadlineSent = false;
+                    orderTracking.IsReminder50Sent = false;
+                    orderTracking.IsReminder80Sent = false;
+                }
                 order.OrderTrackings.Add(orderTracking);
                 _unitOfWork.OrderRepository.Update(order);
 
@@ -1724,8 +1729,7 @@ namespace Chillde.Services.Services
                     CreatedById = currentUserId.Value,
                     OrderTrackingAttachments = uploadedAttachments
                 };
-
-                order.OrderTrackings.Add(orderTracking);
+                    order.OrderTrackings.Add(orderTracking);
                 _unitOfWork.OrderRepository.Update(order);
 
                 int result = await _unitOfWork.SaveChangeAsync();
