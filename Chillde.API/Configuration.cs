@@ -374,7 +374,7 @@ public static class Configuration
         services.AddHostedService<SketchReminderService>();
 
         //DeliveryReminder
-        //services.AddHostedService<DeliveryReminderService>();
+        services.AddHostedService<DeliveryReminderService>();
 
         #endregion
 

@@ -20,6 +20,7 @@ namespace Chillde.Services.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SketchReminderService> _logger;
         private DateTime? _nextRunTime;
+        private const int FIXED_DELAY_SECONDS = 30;
 
         public SketchReminderService(IServiceScopeFactory serviceScopeFactory, ILogger<SketchReminderService> logger)
         {
@@ -29,6 +30,8 @@ namespace Chillde.Services.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var delay = TimeSpan.FromSeconds(FIXED_DELAY_SECONDS);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 using (var scope = _serviceScopeFactory.CreateScope())
@@ -51,8 +54,9 @@ namespace Chillde.Services.Services
                         if (lastSketchTracking == null) continue;
 
                         var responseDeadline = lastSketchTracking.CreationDate.AddSeconds(order.Package.ResponseTime * 60);
-                        var totalResponseSeconds = order.Package.ResponseTime * 60; // responseTime đang là phút
-
+                        var totalResponseSeconds = order.Package.ResponseTime * 60; 
+                        TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); 
+                        DateTime localResponseDeadline = TimeZoneInfo.ConvertTimeFromUtc(responseDeadline, timeZoneInfo);
                         var reminder50Time = lastSketchTracking.CreationDate.AddSeconds(totalResponseSeconds * 0.5);
                         var reminder80Time = lastSketchTracking.CreationDate.AddSeconds(totalResponseSeconds * 0.8);
                         if (now >= responseDeadline)
@@ -104,24 +108,23 @@ namespace Chillde.Services.Services
                             order.ArtistRevenueAfterCancel = penalty;
                             order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
                             await emailService.SendEmailAsync(
-                            order.CreatedBy.Email,
-                            "Order Cancelled Due to No Response",
-                            $@"
-                               <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
-                               <p>We regret to inform you that your order <strong>#{order.Code}</strong> has been automatically cancelled because no response was received before the deadline.</p>
-                               <p><strong>Order Details:</strong></p>
-                               <ul>
-                                   <li><strong>Service:</strong> {order.Package.Service.Name}</li>
-                                   <li><strong>Total Price:</strong> ${order.TotalPrice}</li>
-                                   <li><strong>Response Deadline:</strong> {responseDeadline:yyyy-MM-dd HH:mm} UTC</li>
-                               </ul>
-                               <p>According to our cancellation policy, a penalty of <strong>${penalty}</strong> has been deducted. The remaining balance of <strong>${order.TotalPrice - penalty}</strong> has been refunded to your wallet.</p>
-                               <p>If you have any concerns, please contact our support team.</p>
-                               <p>Thank you for using our platform.</p>
-                               <p>Best regards,</p>
-                               <p><strong>From Chillde</strong></p>",
-                            true
-                            );
+                                 order.CreatedBy.Email,
+                                 "❌ Đơn hàng bị hủy do không phản hồi đúng hạn",
+                                 $@"
+                                <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                                <p>Đơn hàng <strong>#{order.Code}</strong> của bạn đã bị <strong>tự động hủy</strong> do không có phản hồi trước thời hạn quy định.</p>
+                                <p><strong>Thông tin đơn hàng:</strong></p>
+                                <ul>
+                                    <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                                    <li><strong>Tổng giá trị:</strong> {order.TotalPrice} VNĐ</li>
+                                    <li><strong>Hạn phản hồi:</strong> {localResponseDeadline:yyyy-MM-dd HH:mm} UTC</li>
+                                </ul>
+                                <p>Theo chính sách, bạn đã bị trừ <strong>{penalty} VNĐ</strong>. Số tiền còn lại <strong>{order.TotalPrice - penalty} VNĐ</strong> đã được hoàn vào ví của bạn.</p>
+                                <p>Nếu bạn có thắc mắc, vui lòng liên hệ đội hỗ trợ của chúng tôi.</p>
+                                <p>Trân trọng,</p>
+                                <p><strong>Đội ngũ Chillde</strong></p>",
+                                 true
+                             );
                             unitOfWork.OrderRepository.Update(order);
                             await unitOfWork.SaveChangeAsync();
 
@@ -133,24 +136,25 @@ namespace Chillde.Services.Services
                             {
                                 double timeRemainingMinutes80 = order.Package.ResponseTime * 0.2;
                                 string timeRemainingDisplay80 = FormatTimeDisplay(timeRemainingMinutes80);
-                             
+
                                 await emailService.SendEmailAsync(
-                                    order.CreatedBy.Email,
-                                    $"Urgent: Only {timeRemainingDisplay80} Left to Respond",
-                                    $@"
-                                    <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
-                                    <p>This is a reminder that you have <strong>only {timeRemainingDisplay80}</strong> left to review the sketch for your order <strong>#{order.Code}</strong>.</p>
-                                    <p><strong>Order Details:</strong></p>
-                                    <ul>
-                                        <li><strong>Service:</strong> {order.Package.Service.Name}</li>
-                                        <li><strong>Total Price:</strong> ${order.TotalPrice}</li>
-                                        <li><strong>Response Deadline:</strong> {responseDeadline:yyyy-MM-dd HH:mm} UTC</li>
-                                    </ul>
-                                    <p>If you do not respond before the deadline, the order will be automatically cancelled, and a penalty may be applied.</p>
-                                    <p>Best regards,</p>
-                                    <p><strong>From Chillde</strong></p>",
-                                    true
-                                );
+                                order.CreatedBy.Email,
+                                $"⚠️ Khẩn cấp: Chỉ còn {timeRemainingDisplay80} để phản hồi",
+                                $@"
+                                <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                                <p>Đây là lời nhắc: bạn chỉ còn <strong>{timeRemainingDisplay80}</strong> để xem xét bản phác thảo cho đơn hàng <strong>#{order.Code}</strong>.</p>
+                                <p><strong>Thông tin đơn hàng:</strong></p>
+                                <ul>
+                                    <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                                    <li><strong>Tổng giá trị:</strong> {order.TotalPrice} VNĐ</li>
+                                    <li><strong>Hạn phản hồi:</strong> {localResponseDeadline:yyyy - MM-dd HH:mm} UTC</li>
+                                </ul>
+                                <p>Nếu bạn không phản hồi trước thời hạn, đơn hàng sẽ bị hủy tự động và có thể bị áp dụng phí phạt.</p>
+                                <p>Trân trọng,</p>
+                                <p><strong>Đội ngũ Chillde</strong></p>",
+                                true
+                            );
+
                                 lastSketchTracking.IsReminder80Sent = true;
                                 unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);
                                 await unitOfWork.SaveChangeAsync();
@@ -160,24 +164,25 @@ namespace Chillde.Services.Services
                                 double timeRemainingMinutes50 = order.Package.ResponseTime * 0.5;
                                 string timeRemainingDisplay50 = FormatTimeDisplay(timeRemainingMinutes50);
 
+                              
                                 await emailService.SendEmailAsync(
                                     order.CreatedBy.Email,
-                                    $"Reminder: {timeRemainingDisplay50} Left to Respond",
+                                    $"⏰ Nhắc nhở: Còn {timeRemainingDisplay50} để phản hồi",
                                     $@"
-                                    <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
-                                    <p>We noticed that you have used up <strong>50% of your allocated response time</strong> for order <strong>#{order.Code}</strong>.</p>
-                                    <p><strong>Order Details:</strong></p>
+                                    <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                                    <p>Bạn hiện còn <strong>{timeRemainingDisplay50}</strong> để xem xét và phê duyệt bản phác thảo.</p>
+                                    <p><strong>Thông tin đơn hàng:</strong></p>
                                     <ul>
-                                        <li><strong>Service:</strong> {order.Package.Service.Name}</li>
-                                        <li><strong>Total Price:</strong> ${order.TotalPrice}</li>
-                                        <li><strong>Response Deadline:</strong> {responseDeadline:yyyy-MM-dd HH:mm} UTC</li>
+                                        <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                                        <li><strong>Tổng giá trị:</strong> {order.TotalPrice} VNĐ</li>
+                                        <li><strong>Hạn phản hồi:</strong> {localResponseDeadline:yyyy-MM-dd HH:mm}</li>
                                     </ul>
-                                    <p>You now have <strong>{timeRemainingDisplay50}</strong> left to review and approve the sketch.</p>
-                                    <p>We encourage you to review the sketch as soon as possible to avoid potential cancellation.</p>
-                                    <p>Best regards,</p>
-                                    <p><strong>From Chillde</strong></p>",
+                                    <p>Vui lòng phản hồi sớm để tránh đơn hàng bị hủy.</p>
+                                    <p>Trân trọng,</p>
+                                    <p><strong>Đội ngũ Chillde</strong></p>",
                                     true
                                 );
+
                                 lastSketchTracking.IsReminder50Sent = true;
                                 unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);
                                 await unitOfWork.SaveChangeAsync();
@@ -187,18 +192,26 @@ namespace Chillde.Services.Services
 
                     }
                 }
-                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
+                await Task.Delay(delay, stoppingToken);
             }
         }
         private string FormatTimeDisplay(double minutes)
         {
-            if (minutes < 60)
+            var totalMinutes = (int)Math.Round(minutes);
+            var hours = totalMinutes / 60;
+            var remainingMinutes = totalMinutes % 60;
+
+            if (hours > 0 && remainingMinutes > 0)
             {
-                return $"{minutes} minutes";
+                return $"⏰ {hours} giờ ⏳ {remainingMinutes} phút";
+            }
+            else if (hours > 0)
+            {
+                return $"⏰ {hours} giờ";
             }
             else
             {
-                return $"{minutes / 60:0.##} hours";
+                return $"⏳ {remainingMinutes} phút";
             }
         }
 

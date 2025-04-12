@@ -1,4 +1,4 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,20 +11,17 @@ using Chillde.Repositories.Entities;
 using Chillde.Services.Interfaces;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories;
+using Chillde.Repositories.Interfaces;
 
-public interface IOrderReminderService
-{
-    void UpdateSchedule();
-}
-
-public class DeliveryReminderService : BackgroundService, IOrderReminderService
+public class DeliveryReminderService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DeliveryReminderService> _logger;
-    private DateTime? _nextRunTime;
-    private readonly object _lock = new object();
+    private const int FIXED_DELAY_SECONDS = 30;
 
-    public DeliveryReminderService(IServiceProvider serviceProvider, ILogger<DeliveryReminderService> logger)
+    public DeliveryReminderService(
+        IServiceProvider serviceProvider,
+        ILogger<DeliveryReminderService> logger)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -32,200 +29,289 @@ public class DeliveryReminderService : BackgroundService, IOrderReminderService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var delay = TimeSpan.FromSeconds(FIXED_DELAY_SECONDS);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
                 using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var emailService = scope.ServiceProvider.GetRequiredService<IEmailHelper>();
+                var provider = scope.ServiceProvider;
+                var unitOfWork = provider.GetRequiredService<IUnitOfWork>();
+                var emailService = provider.GetRequiredService<IEmailHelper>();
 
-                var orders = await dbContext.Orders
-                    .Where(o => o.Stage == OrderStage.DeliveryInProcess && o.StartTime.HasValue && o.DeliveryTime.HasValue)
-                     .Include(_ => _.Package)
-                    .ThenInclude(_ => _.Service)
-                    .ThenInclude(_ => _.CreatedBy)
-                    .Include(_ => _.CreatedBy)
-                    .ThenInclude(_ => _.Wallet)
-                    .Include(_ => _.CreatedBy)
-                    .ThenInclude(_ => _.AccountRoles)
-                    .Include(_ => _.OrderTrackings)
-                    .ToListAsync(stoppingToken);
-
-                var upcomingTimes = new List<DateTime>();
-                var now = DateTime.UtcNow;
+                var orders = await unitOfWork.OrderRepository
+                    .GetOrderToRemindDeadline();
 
                 foreach (var order in orders)
                 {
-                    var startTime = order.StartTime.Value;
-                    var deliveryTime = TimeSpan.FromMinutes(order.DeliveryTime.Value * 1440);
-                    var deadline = startTime + deliveryTime;
-                    var reminderTime = startTime + TimeSpan.FromTicks((long)(deliveryTime.Ticks * 0.9));
-
-                    if (now >= reminderTime && now < deadline && order.Stage == OrderStage.DeliveryInProcess)
-                    {
-                        //var artisan = order?.Package?.Service?.CreatedBy;
-                        //if (artisan == null)
-                        //{
-                        //    _logger.LogWarning($"Order {order.Code}: Cannot send email because CreatedBy is null.");
-                        //    return;
-                        //}
-                        if ((bool)!order.ReminderSent)
-                        {
-                            if (order.CreatedBy?.Email != null)
-                            {
-                                await SendReminderEmail(order, emailService, deadline, false);
-                                order.ReminderSent = true;
-                                dbContext.Orders.Update(order);
-                                await dbContext.SaveChangesAsync(stoppingToken);
-                            }
-                        }
-                    }
-
-                    if (now >= deadline && order.Stage == OrderStage.DeliveryInProcess)
-                    {
-                        //var artisan = order?.Package?.Service?.CreatedBy;
-                        //if (artisan == null)
-                        //{
-                        //    _logger.LogWarning($"Order {order.Code}: Cannot send email because CreatedBy is null.");
-                        //    return;
-                        //}
-                        if ((bool)!order.DeadlineMissed)
-                        {
-                            if (order.CreatedBy?.Email != null)
-                            {
-                                await SendReminderEmail(order, emailService, deadline, true);
-                            }
-
-                            await CancelOrderAndRefund(order, dbContext, stoppingToken);
-                            order.DeadlineMissed = true;
-                            dbContext.Orders.Update(order);
-                            await dbContext.SaveChangesAsync(stoppingToken);
-                        }
-                    }
-                    else
-                    {
-                        upcomingTimes.Add(reminderTime);
-                        upcomingTimes.Add(deadline);
-                    }
+                    await ProcessOrderAsync(order, unitOfWork, emailService);
                 }
 
-                if (upcomingTimes.Any())
-                {
-                    _nextRunTime = upcomingTimes.Min();
-                }
-                else
-                {
-                    _nextRunTime = now.AddMinutes(30);
-                }
+                await unitOfWork.SaveChangeAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in OrderReminderService");
+                _logger.LogError(ex, "Error processing delivery reminders");
             }
 
-            var delay = _nextRunTime.HasValue ? _nextRunTime.Value - DateTime.UtcNow : TimeSpan.FromMinutes(30);
-            if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
-
-
-            _logger.LogInformation($"Next run scheduled at: {_nextRunTime}");
+            _logger.LogInformation($"Next check in {FIXED_DELAY_SECONDS} seconds");
             await Task.Delay(delay, stoppingToken);
         }
     }
 
-    private async Task SendReminderEmail(Order order, IEmailHelper emailService, DateTime responseDeadline, bool isDeadlineMissed)
+    private async Task ProcessOrderAsync(
+        Order order,
+        IUnitOfWork unitOfWork,
+        IEmailHelper emailService)
     {
-        var timeRemaining = responseDeadline - DateTime.UtcNow;
-        string timeRemainingDisplay;
+        try
+        {
+            var now = DateTime.UtcNow;
+            var startTime = order.StartTime.Value;
+            var deliverySeconds = order.DeliveryTime * 86400;
 
-        if (timeRemaining.TotalMinutes < 60)
-        {
-            timeRemainingDisplay = $"{timeRemaining.TotalMinutes:F0} minutes";
+            if (startTime == DateTime.MinValue || deliverySeconds <= 0)
+            {
+                _logger.LogWarning($"Invalid time configuration for order {order.Code}");
+                return;
+            }
+
+            var deadline = startTime.AddSeconds((double)deliverySeconds);
+            var reminderTime = startTime.AddSeconds((double)(deliverySeconds * 0.9));
+
+            if (now >= reminderTime && !(bool)order.DeliveryReminderSent)
+            {
+                await HandleReminderPhase(order, unitOfWork, emailService, deadline);
+            }
+            else if (now >= deadline && !(bool)order.DeadlineMissed)
+            {
+                await HandleDeadlinePhase(order, unitOfWork, emailService, deadline);
+            }
         }
-        else if (timeRemaining.TotalHours < 24)
+        catch (Exception ex)
         {
-            timeRemainingDisplay = $"{timeRemaining.Hours} hours {timeRemaining.Minutes} minutes";
+            _logger.LogError(ex, $"Error processing order {order.Code}");
         }
-        else
+    }
+
+    private async Task HandleReminderPhase(
+        Order order,
+        IUnitOfWork unitOfWork,
+        IEmailHelper emailService,
+        DateTime deadline)
+    {
+        if (order.DeliveryReminderSent == true) return;
+        if (!ValidateOrderProperties(order)) return;
+
+        await SendReminderEmail(order, emailService, deadline, false);
+        order.DeliveryReminderSent = true;
+        unitOfWork.OrderRepository.Update(order);
+    }
+
+    private async Task HandleDeadlinePhase(
+        Order order,
+        IUnitOfWork unitOfWork,
+        IEmailHelper emailService,
+        DateTime deadline)
+    {
+        if (order.DeadlineMissed == true) return;
+        if (!ValidateOrderProperties(order)) return;
+
+        await SendReminderEmail(order, emailService, deadline, true);
+        await CancelOrderAndRefund(order, unitOfWork);
+        order.DeadlineMissed = true;
+        unitOfWork.OrderRepository.Update(order);
+    }
+
+    private bool ValidateOrderProperties(Order order)
+    {
+        var isValid = order.Package?.Service?.CreatedBy != null
+            && order.CreatedBy?.Email != null
+            && !string.IsNullOrWhiteSpace(order.CreatedBy.Email);
+
+        if (!isValid)
         {
-            timeRemainingDisplay = $"{timeRemaining.Days} days {timeRemaining.Hours} hours {timeRemaining.Minutes} minutes";
+            _logger.LogWarning($"Invalid order properties for {order.Code}");
         }
 
+        return isValid;
+    }
 
-        if (!isDeadlineMissed)
+
+    private async Task SendReminderEmail(
+        Order order,
+        IEmailHelper emailService,
+        DateTime deadline,
+        bool isDeadlineMissed)
+    {
+        var timeRemaining = deadline - DateTime.UtcNow;
+        var timeDisplay = FormatTimeRemaining(timeRemaining);
+
+        string subject = "";
+        string content = "";
+
+        if (isDeadlineMissed)
         {
+            var artisanEmailData = GenerateDeadlineMissedEmailForArtisan(order, deadline, timeDisplay);
+            var customerEmailData = GenerateDeadlineMissedEmailForCustomer(order, deadline, timeDisplay);
+
+            subject = artisanEmailData.Subject;
+            content = artisanEmailData.Content;
+            await emailService.SendEmailAsync(
+                order.Package.Service.CreatedBy.Email,
+                subject,
+                content,
+                true);
+
+            subject = customerEmailData.Subject;
+            content = customerEmailData.Content;
             await emailService.SendEmailAsync(
                 order.CreatedBy.Email,
-                $"Reminder: {timeRemainingDisplay} Left to Post Delivery",
-                        $@"
-                 <p>Dear {order.CreatedBy.FirstName} {order.CreatedBy.LastName},</p>
-                 <p>This is a reminder that <strong>90% of your allocated response time</strong> for order <strong>#{order.Code}</strong> has been used.</p>
-                 <p><strong>Order Details:</strong></p>
-                 <ul>
-                     <li><strong>Service:</strong> {order.Package.Service.Name}</li>
-                     <li><strong>Total Price:</strong> ${order.TotalPrice}</li>
-                     <li><strong>Response Deadline:</strong> {responseDeadline:yyyy-MM-dd HH:mm} UTC</li>
-                 </ul>
-                 <p>You now have <strong>{timeRemainingDisplay}</strong> left to post the delivery for this order.</p>
-                 <p>Please ensure that the delivery is posted before the deadline to avoid penalties.</p>
-                 <p>Best regards,</p>
-                 <p><strong>From Chillde</strong></p>",
-                        true
-            );
+                subject,
+                content,
+                true);
         }
         else
         {
+            var reminderEmailData = GenerateReminderEmail(order, deadline, timeDisplay);
+            subject = reminderEmailData.Subject;
+            content = reminderEmailData.Content;
+
             await emailService.SendEmailAsync(
-                 order.CreatedBy.Email,
-                $"Action Required: Missed Delivery Deadline for Order #{order.Code}",
-                $@"
-                 <p>Dear {order.CreatedBy.FirstName} {order.CreatedBy.LastName},</p>
-                 <p>We regret to inform you that you have <strong>missed the delivery deadline</strong> for order <strong>#{order.Code}</strong>.</p>
-                 <p><strong>Order Details:</strong></p>
-                 <ul>
-                     <li><strong>Service:</strong> {order.Package.Service.Name}</li>
-                     <li><strong>Total Price:</strong> ${order.TotalPrice}</li>
-                     <li><strong>Response Deadline:</strong> {responseDeadline:yyyy-MM-dd HH:mm} UTC</li>
-                 </ul>
-                 <p>As a result of this missed deadline, penalties may be applied according to our policy. Please contact support if you have any questions or need assistance.</p>
-                 <p>We strongly encourage you to ensure timely deliveries in the future to maintain a positive standing.</p>
-                 <p>Best regards,</p>
-                 <p><strong>From Chillde</strong></p>",
-                true
-            );
+                order.Package.Service.CreatedBy.Email,
+                subject,
+                content,
+                true);
         }
     }
 
-
-
-    private async Task CancelOrderAndRefund(Order order, AppDbContext dbContext, CancellationToken stoppingToken)
+    private (string Subject, string Content) GenerateReminderEmail(
+    Order order,
+    DateTime deadline,
+    string timeDisplay)
     {
-        var accountCustomer = await dbContext.Accounts.Where(_ => _.CreatedById == order.CreatedById).Include(_ => _.Wallet).FirstOrDefaultAsync();
-        var accountRoleArtisan = order.Package.Service.CreatedBy?.AccountRoles
-           .FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
-        var transaction = new Transaction
-        {
-            Amount = order.TotalPrice,
-            Type = TransactionType.TransferIn,
-            CreatedById = null,
-            Status = TransactionStatus.Completed,
-            WalletId = accountCustomer.Wallet.Id
-        };
-        accountRoleArtisan.TotalReputation -= 5;
-        accountCustomer.Wallet.Balance += (decimal)order.TotalPrice;
-        order.Transactions.Add(transaction);
-        order.Status = OrderStatus.Cancelled;
-        order.Stage = OrderStage.Cancelled;
-        order.CancelOrderReason = CancelOrderReason.NotPostDeliveryInTime;
-        dbContext.Orders.Update(order);
-        dbContext.AccountRoles.Update(accountRoleArtisan);
-        await dbContext.SaveChangesAsync(stoppingToken);
+        return (
+            $"Nhắc nhở: Còn {timeDisplay} để hoàn thành đơn #{order.Code}",
+            $@"
+        <p>Chào bạn {EscapeHtml(order.CreatedBy.FirstName)} {EscapeHtml(order.CreatedBy.LastName)},</p>
+        <p><strong>Còn {timeDisplay} nữa</strong> để bạn gửi tệp hình ảnh sản phẩm cho đơn hàng #{order.Code}.</p>
+        <p>Vui lòng tải lên tệp hình ảnh sản phẩm trước thời gian hết hạn vào <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong> để đảm bảo đơn hàng được xử lý kịp thời.</p>
+        <p>Nếu bạn đã nộp bản thảo, hãy bỏ qua email này. Nếu chưa, xin vui lòng thực hiện càng sớm càng tốt.</p>
+        <p>Cảm ơn bạn đã hợp tác!</p>
+        <p>Trân trọng,</p>
+        <p>Đội ngũ Chillde</p>"
+        );
     }
-  
 
 
+    private (string Subject, string Content) GenerateDeadlineMissedEmailForArtisan(
+    Order order,
+    DateTime deadline,
+    string timeDisplay)
+    {
+        return (
+            $"⚠️ Cảnh báo: Đơn #{order.Code} đã quá hạn và bị hủy",
+            $@"
+        <p>Chào bạn {EscapeHtml(order.CreatedBy.FirstName)} {EscapeHtml(order.CreatedBy.LastName)},</p>
+        <p>Rất tiếc, chúng tôi thông báo rằng thời gian gửi hình ảnh sản phẩm cho đơn hàng #{order.Code} đã hết hạn và đơn hàng của bạn đã bị hủy.</p>
+        <p>Đơn hàng lẽ ra phải có hình ảnh sản phẩm được nộp trước <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong>, nhưng chúng tôi chưa nhận được bản thảo. Vì vậy, đơn hàng đã bị hủy và chúng tôi sẽ hoàn tiền đầy đủ cho bạn.</p>
+        <p>**Hoàn tiền**: Số tiền bạn đã thanh toán cho đơn hàng sẽ được hoàn lại đầy đủ vào tài khoản của bạn trong thời gian sớm nhất.</p>
+        <p>**Điểm uy tín nghệ nhân**: Do không tuân thủ thời gian nộp bản thảo, điểm uy tín của nghệ nhân đã bị trừ 15 điểm trong hệ thống.</p>
+        <p>Chúng tôi hiểu rằng có thể xảy ra một số vấn đề ngoài ý muốn và rất mong bạn thông cảm.</p>
+        <p>Nếu bạn muốn tiếp tục với đơn hàng mới, xin vui lòng liên hệ với chúng tôi.</p>
+        <p>Trân trọng,</p>
+        <p>Đội ngũ Chillde</p>"
+        );
+    }
 
+    private (string Subject, string Content) GenerateDeadlineMissedEmailForCustomer(
+    Order order,
+    DateTime deadline,
+    string timeDisplay)
+    {
+        return (
+            $"⚠️ Cảnh báo: Đơn #{order.Code} đã quá hạn và bị hủy",
+            $@"
+        <p>Chào bạn {EscapeHtml(order.Package.Service.CreatedBy.FirstName)} {EscapeHtml(order.Package.Service.CreatedBy.LastName)},</p>
+        <p>Rất tiếc, chúng tôi thông báo rằng do nghệ nhân đã không gửi hình ảnh sản phẩm lên đúng hạn của đơn hàng #{order.Code} và đơn hàng của bạn đã bị hủy.</p>
+        <p>Đơn hàng lẽ ra phải có hình ảnh sản phẩm được nộp trước <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong>, nhưng chúng tôi chưa nhận được bản thảo. Vì vậy, đơn hàng đã bị hủy và chúng tôi sẽ hoàn tiền đầy đủ cho bạn.</p>
+        <p>**Hoàn tiền**: Số tiền bạn đã thanh toán cho đơn hàng sẽ được hoàn lại đầy đủ vào tài khoản của bạn trong thời gian sớm nhất.</p>
+        <p>**Điểm uy tín nghệ nhân**: Do không tuân thủ thời gian nộp bản thảo, điểm uy tín của nghệ nhân đã bị trừ trong hệ thống.</p>
+        <p>Chúng tôi hiểu rằng có thể xảy ra một số vấn đề ngoài ý muốn và rất mong bạn thông cảm.</p>
+        <p>Nếu bạn muốn tiếp tục với đơn hàng mới, xin vui lòng liên hệ với chúng tôi.</p>
+        <p>Trân trọng,</p>
+        <p>Đội ngũ Chillde</p>"
+        );
+    }
+
+
+    private string FormatTimeRemaining(TimeSpan timeSpan)
+    {
+        var days = timeSpan.Days;
+        var hours = timeSpan.Hours;
+        var minutes = timeSpan.Minutes;
+
+        var parts = new List<string>();
+
+        if (days > 0)
+            parts.Add($"🗓️ {days} ngày");
+        if (hours > 0)
+            parts.Add($"⏰ {hours} giờ");
+        if (minutes > 0 || parts.Count == 0) 
+            parts.Add($"⏳ {minutes} phút");
+
+        return string.Join(" ", parts);
+    }
+    private async Task CancelOrderAndRefund(Order order, IUnitOfWork unitOfWork)
+    {
+        try
+        {
+            var customerAccount = await unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById, include: _ => _.Include(_ => _.Wallet));
+
+
+            var artisanAccount = order.Package.Service.CreatedBy.AccountRoles
+                .FirstOrDefault(ar => ar.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
+
+            if (customerAccount?.Wallet == null || artisanAccount == null)
+            {
+                _logger.LogError($"Refund failed for order {order.Code}");
+                return;
+            }
+
+            var refundTransaction = new Transaction
+            {
+                Amount = order.TotalPrice,
+                Type = TransactionType.TransferIn,
+                Status = TransactionStatus.Completed,
+                WalletId = customerAccount.Wallet.Id,
+            };
+
+            customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
+            artisanAccount.TotalReputation = Math.Max(artisanAccount.TotalReputation - 15, 0);
+            var reputationLog = new ReputationLog
+            {
+                PointChange = -(int)15,
+                Reason = SystemCancelReason.NotReponseDeadlineInTime.ToString(),
+                OrderId = order.Id,
+            };
+            artisanAccount.Reputations.Add(reputationLog);
+            order.Transactions.Add(refundTransaction);
+            order.Status = OrderStatus.Cancelled;
+            order.Stage = OrderStage.Cancelled;
+            order.SystemCancelReason = SystemCancelReason.NotPostDeliveryInTime;
+            unitOfWork.AccountRoleRepository.Update(artisanAccount);
+            unitOfWork.OrderRepository.Update(order);
+
+            await unitOfWork.SaveChangeAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to cancel order {order.Code}");
+            throw;
+        }
+    }
+
+    private static string EscapeHtml(string input) =>
+        System.Net.WebUtility.HtmlEncode(input?.Trim() ?? string.Empty);
 }
-
-}
-*/

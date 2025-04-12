@@ -17,7 +17,6 @@ namespace Chillde.Services.Models.VoucherModels
         public decimal? MinOrderValue { get; set; }
         public decimal? MaxDiscountValue { get; set; }
         public int? TotalQuantity { get; set; }
-        public int? RemainingQuantity { get; set; }
         [DataType(DataType.DateTime, ErrorMessage = "Invalid date format.")]
         public DateTime? StartTime { get; set; }
         [DataType(DataType.DateTime, ErrorMessage = "Invalid date format.")]

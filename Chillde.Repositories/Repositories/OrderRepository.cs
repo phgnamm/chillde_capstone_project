@@ -65,19 +65,23 @@ namespace Chillde.Repositories.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetOrderInDeliveryProcess(CancellationToken stoppingToken)
+        public async Task<IEnumerable<Order>> GetOrderToRemindDeadline()
         {
             var orders = await _dbSet
-                         .Where(o => o.Stage == OrderStage.DeliveryInProcess && o.StartTime.HasValue && o.DeliveryTime.HasValue)
+                         .Where(o => (o.Stage == OrderStage.SketchInProcess || o.Stage == OrderStage.ReviewSketch || o.Stage == OrderStage.DeliveryInProcess ) && o.Status == OrderStatus.Accepted && o.StartTime.HasValue && o.DeliveryTime.HasValue)
                          .Include(_ => _.Package)
                         .ThenInclude(_ => _.Service)
                         .ThenInclude(_ => _.CreatedBy).ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Role)
+                         .Include(_ => _.Package)
+                        .ThenInclude(_ => _.Service)
+                        .ThenInclude(_ => _.CreatedBy).ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Reputations)
                         .Include(_ => _.CreatedBy)
                         .ThenInclude(_ => _.Wallet)
                         .Include(_ => _.CreatedBy)
                         .Include(_ => _.OrderTrackings)
-                        .ToListAsync(stoppingToken);
+                        .ToListAsync();
             return orders;
+        
         }
     }
 }

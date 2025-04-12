@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250412144003_EntityV16")]
+    [Migration("20250412174741_EntityV16")]
     partial class EntityV16
     {
         /// <inheritdoc />
@@ -926,6 +926,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool?>("DeliveryReminderSent")
+                        .HasColumnType("boolean");
+
                     b.Property<float?>("DeliveryTime")
                         .HasColumnType("real");
 
@@ -953,9 +956,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int?>("Quantity")
                         .HasColumnType("integer");
-
-                    b.Property<bool?>("ReminderSent")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("ShipmentCode")
                         .HasColumnType("text");

@@ -59,7 +59,6 @@ namespace Chillde.Services.Services
 
                 var newVoucher = new Voucher
                 {
-                    Id = Guid.NewGuid(),
                     ReceiverId = voucherAddModel.ReceiverId,
                     Code = GenerateCodeHelper.GenerateVoucherCode(),
                     MinOrderRequired = voucherAddModel.MinOrderRequired ?? 0,
@@ -67,7 +66,7 @@ namespace Chillde.Services.Services
                     DiscountValue = voucherAddModel.DiscountValue,
                     MinOrderValue = voucherAddModel.MinOrderValue ?? 0,
                     MaxDiscountValue = voucherAddModel.MaxDiscountValue,
-                    TotalQuantity = voucherAddModel.TotalQuantity,
+                    TotalQuantity = voucherAddModel.TotalQuantity ?? null,
                     StartTime = voucherAddModel.StartTime,
                     ExpiredTime = voucherAddModel.ExpiredTime,
                     CreatedById = currentUserId.Value,

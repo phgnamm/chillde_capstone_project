@@ -1252,7 +1252,6 @@ public class AccountService : IAccountService
             };
         }
         var artisan = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
-        var artisanReputation = artisan?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())?.TotalReputation ?? 0;
         var voucherModelLists = voucher?.Data?.Select(_ => new VoucherModel
         {
             Id = _.Id,
