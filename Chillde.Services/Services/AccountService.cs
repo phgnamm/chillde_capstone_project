@@ -1169,6 +1169,7 @@ public class AccountService : IAccountService
                                            filter: _ => _.CreatedById == artisanId
                                            && _.VoucherType == Repositories.Enums.VoucherType.ArtistToCustomer
                                            && _.ExpiredTime >= DateTime.UtcNow
+                                           && _.StartTime <= DateTime.UtcNow
                                            && _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending);
         if (vouchersByArtisan.Data.Count == 0)
         {
@@ -1181,8 +1182,9 @@ public class AccountService : IAccountService
         }
 
         var orderedQuantity = await _unitOfWork.OrderRepository.NumberCompletedOrder(currentUserId.Value, artisanId);
-        var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles));
-        var customerReputation = customer?.AccountRoles?.Select(_ => _.TotalReputation).FirstOrDefault() ?? 0;
+        var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
+        var customerReputation = customer?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString())?.TotalReputation ?? 0;
+
         var showVoucher = vouchersByArtisan.Data.Where(_ =>
         {
             bool isValid = true;
@@ -1202,14 +1204,15 @@ public class AccountService : IAccountService
             return isValid;
         }).ToList();
 
-        var voucherModelLists = showVoucher.Select(voucher => new VoucherModel
+        var voucherModelLists = showVoucher.Select(_ => new VoucherModel
         {
-            Id = voucher.Id,
-            Code = voucher.Code,
-            MinOrderValue = voucher.MinOrderValue,
-            MaxDiscountValue = voucher.MaxDiscountValue,
-            DiscountValue = voucher.DiscountValue,
-            ExpiredTime = voucher.ExpiredTime
+            Id = _.Id,
+            Code = _.Code,
+            MinOrderValue = _.MinOrderValue,
+            MaxDiscountValue = _.MaxDiscountValue,
+            DiscountValue = _.DiscountValue,
+            StartTime = _.StartTime,
+            ExpiredTime = _.ExpiredTime
         });
 
         return new ResponseModel
@@ -1233,6 +1236,7 @@ public class AccountService : IAccountService
         var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
         var voucher = await _unitOfWork.VoucherRepository.GetAllAsync(filter: _ => _.ReceiverId == currentUserId
                                            && _.ExpiredTime >= DateTime.UtcNow
+                                           && _.StartTime <= DateTime.UtcNow
                                            && _.VoucherType == Repositories.Enums.VoucherType.AdminToArtist
                                            && _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending
                                            && (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0)
@@ -1247,14 +1251,17 @@ public class AccountService : IAccountService
                 Message = "No vouchers available."
             };
         }
-        var voucherModelLists = voucher?.Data?.Select(voucher => new VoucherModel
+        var artisan = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
+        var artisanReputation = artisan?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())?.TotalReputation ?? 0;
+        var voucherModelLists = voucher?.Data?.Select(_ => new VoucherModel
         {
-            Id = voucher.Id,
-            Code = voucher.Code,
-            MinOrderValue = voucher.MinOrderValue,
-            MaxDiscountValue = voucher.MaxDiscountValue,
-            DiscountValue = voucher.DiscountValue,
-            ExpiredTime = voucher.ExpiredTime
+            Id = _.Id,
+            Code = _.Code,
+            MinOrderValue = _.MinOrderValue,
+            MaxDiscountValue = _.MaxDiscountValue,
+            DiscountValue = _.DiscountValue,
+            StartTime = _.StartTime,
+            ExpiredTime = _.ExpiredTime
         });
 
         return new ResponseModel

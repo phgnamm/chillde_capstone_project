@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Enums
 {
-    public enum VoucherStatus
+    public enum DepositStatus
     {
         Pending,
-        Expired,
+        Success,
+        Fail
     }
 }

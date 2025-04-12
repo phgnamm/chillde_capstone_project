@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250412084403_EntityV17")]
+    partial class EntityV17
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -487,9 +490,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<DateTime?>("DeletionDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Index")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -1241,9 +1241,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("MaxQuantity")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MinQuantity")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime?>("ModificationDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -1306,9 +1303,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("FeatureId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("Index")
-                        .HasColumnType("integer");
-
                     b.Property<bool?>("IsChecked")
                         .HasColumnType("boolean");
 
@@ -1319,9 +1313,6 @@ namespace Chillde.Repositories.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<int?>("MaxQuantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("MinQuantity")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("ModificationDate")

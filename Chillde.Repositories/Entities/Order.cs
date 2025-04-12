@@ -13,6 +13,7 @@ public class Order : BaseEntity
     public decimal? TotalPrice { get; set; }
     public decimal? ShippingPrice { get; set; }
     public int? Quantity { get; set; } = 1;
+    public bool? WithBalance { get; set; } = false;
     public string? ShipmentCode { get; set; }
 
     //ly do huy
@@ -27,10 +28,11 @@ public class Order : BaseEntity
     public bool? DeadlineMissed { get; set; } = null;
 
     public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
     // start time accepted order
     public DateTime? StartTime { get; set; }
     // Reason Cancel 
-    public CancelOrderReason? CancelOrderReason { get; set; } 
+    public SystemCancelReason? SystemCancelReason { get; set; } 
     // Automatically cancel
     public decimal? ArtistRevenueAfterCancel { get; set; } = null;
     #endregion
@@ -58,4 +60,5 @@ public class Order : BaseEntity
     public virtual ICollection<OrderInformation>? OrderInformations { get; set; } = new List<OrderInformation>();
     public virtual ICollection<OrderTracking> OrderTrackings { get; set; } = new List<OrderTracking>();
     public virtual ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    public virtual ICollection<ReputationLog> ReputationLogs { get; set; } = new List<ReputationLog>();
 }

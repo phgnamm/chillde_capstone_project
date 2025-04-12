@@ -54,14 +54,13 @@ namespace Chillde.Repositories.Repositories
         {
             return await _dbSet
                 .Where(_ => _.Status == OrderStatus.Accepted
-                             && _.Stage == OrderStage.ReviewSketch
-                             && _.OrderTrackings.Any(_ => _.Type == OrderTrackingType.Sketch && _.IsAccepted == null))
+                             && _.Stage == OrderStage.ReviewSketch)
                 .Include(_ => _.Package)
                 .ThenInclude(_ => _.Service)
                 .Include(_ => _.CreatedBy)
                     .ThenInclude(_ => _.Wallet)
-                    .Include(_ => _.CreatedBy)
-                    .ThenInclude(_ => _.AccountRoles)
+                 .Include(_ => _.CreatedBy)
+                 .ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Role)
                 .Include(_ => _.OrderTrackings)
                 .ToListAsync();
         }

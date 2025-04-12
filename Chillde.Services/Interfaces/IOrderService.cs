@@ -17,7 +17,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> CancelShipmentAsync(Guid orderId, string shipmentCode);
         Task<ResponseModel> GetAll(OrderFilterModel orderFilterModel);
         Task<ResponseModel> UpdateStatus(Guid orderId, OrderStatus? orderStatus);
-        Task<ResponseModel> Cancel(Guid orderId, Guid cancellationReasonId);
+        Task<ResponseModel> Cancel(Guid orderId, Guid? cancellationReasonId);
         Task<ResponseModel> GetAllOrderTrackings(Guid orderId, OrderStage? orderStage);
         Task<ResponseModel> AddSketch(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
         Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel);
