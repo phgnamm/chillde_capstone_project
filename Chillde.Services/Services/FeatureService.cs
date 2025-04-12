@@ -181,7 +181,7 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
 
                 var featureModel = _mapper.Map<FeatureModel>(feature);
-                featureModel.PackageFeatures = _mapper.Map<List<PackageFeature>>(packageFeatureAddModels);
+                featureModel.PackageFeatures = _mapper.Map<List<PackageFeature>>(responseModel.Data);
 
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
