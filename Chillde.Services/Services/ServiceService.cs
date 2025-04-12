@@ -518,12 +518,14 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                ServiceModel serviceModel = new ServiceModel();
                 var anyOrderOfService = _unitOfWork.OrderRepository.HasAnyOrderByService(id);
 
                 if (!anyOrderOfService.Result)
                 {
                     _mapper.Map(serviceUpdateModel, service);
                     _unitOfWork.ServiceRepository.Update(service);
+                    serviceModel = _mapper.Map<ServiceModel>(service);
                 }
                 else
                 {
@@ -545,6 +547,9 @@ namespace Chillde.Services.Services
                         serviceAttachmentWithNewService.Add(serviceAttachment);
                     }
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(serviceAttachmentWithNewService);
+
+                    serviceModel = _mapper.Map<ServiceModel>(newService);
+                    serviceModel.ServiceAttachments = serviceAttachmentWithNewService;
                 }
 
                 if (serviceUpdateModel.ServiceAttachments != null)
@@ -603,13 +608,26 @@ namespace Chillde.Services.Services
                     _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
                 }
 
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Service successfully updated.",
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("services_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Service successfully updated.",
+                        Data = serviceModel
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -703,13 +721,25 @@ namespace Chillde.Services.Services
                     _unitOfWork.ServiceRepository.SoftRemove(service);
                 }
 
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully delete."
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("services_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully delete."
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -1035,23 +1065,28 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                Expression<Func<FAQ, bool>> filter = faq =>
+                var cacheKey = $"faqs_{CacheTools.GenerateCacheKey(faqFilterModel)}";
+
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    Expression<Func<FAQ, bool>> filter = faq =>
                    faq.ServiceId == serviceId &&
                    faq.IsDeleted == faqFilterModel.IsDeleted;
 
-                var faqs = await _unitOfWork.FAQRepository.GetAllAsync(
-                    filter: filter,
-                    include: null
-                );
+                    var faqs = await _unitOfWork.FAQRepository.GetAllAsync(
+                        filter: filter,
+                        include: null
+                    );
 
-                var faqsModel = _mapper.Map<List<FAQModel>>(faqs.Data);
+                    var faqsModel = _mapper.Map<List<FAQModel>>(faqs.Data);
 
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully.",
-                    Data = faqsModel
-                };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully.",
+                        Data = faqsModel
+                    };
+                });
             }
             catch (Exception ex)
             {
@@ -1077,61 +1112,66 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                Expression<Func<Package, bool>> filter = package =>
+                var cacheKey = $"packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
+
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    Expression<Func<Package, bool>> filter = package =>
                      package.ServiceId == serviceId &&
                      package.IsDeleted == packageFilterModel.IsDeleted &&
                      (string.IsNullOrEmpty(packageFilterModel.Search)
                      );
 
-                Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
-                         packages.Include(c => c.PackageFeatures)
-                                 .ThenInclude(pf => pf.Feature);
+                    Func<IQueryable<Package>, IQueryable<Package>> include = packages =>
+                             packages.Include(c => c.PackageFeatures)
+                                     .ThenInclude(pf => pf.Feature);
 
-                var packages = await _unitOfWork.PackageRepository.GetAllAsync(
-                                filter: filter,
-                                include: include,
-                                pageIndex: packageFilterModel.PageIndex,
-                                pageSize: packageFilterModel.PageSize
-                );
+                    var packages = await _unitOfWork.PackageRepository.GetAllAsync(
+                                    filter: filter,
+                                    include: include,
+                                    pageIndex: packageFilterModel.PageIndex,
+                                    pageSize: packageFilterModel.PageSize
+                    );
 
-                var packageModels = packages.Data.Select(package => new PackageModel
-                {
-                    Id = package.Id,
-                    Name = package.Name,
-                    Description = package.Description,
-                    Price = package.Price,
-                    DeliveryTime = package.DeliveryTime,
-                    SketchRevision = package.SketchRevision,
-                    ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
-                    ServiceId = package.ServiceId,
-                    IsDeleted = package.IsDeleted,
-                    MinQuantity = package.MinQuantity,
-                    MaxQuantity = package.MaxQuantity,
-                    CreationDate = package.CreationDate,
-                    Features = package.PackageFeatures
-                        .GroupBy(pf => pf.Feature.Name)
-                        .Select(g => new FeatureModel
-                        {
-                            Id = g.First().FeatureId,
-                            Name = g.Key,
-                            Question = g.First().Feature.Question,
-                            QuestionType = g.First().Feature.QuestionType,
-                            IsInformationRequired = g.First().Feature.IsInformationRequired,
-                            IsQuantity = g.First().Feature.IsQuantity,
-                            PackageFeatures = g.ToList()
-                        }).ToList()
-                }).OrderBy(_ => _.Name).ToList();
+                    var packageModels = packages.Data.Select(package => new PackageModel
+                    {
+                        Id = package.Id,
+                        Name = package.Name,
+                        Description = package.Description,
+                        Price = package.Price,
+                        DeliveryTime = package.DeliveryTime,
+                        SketchRevision = package.SketchRevision,
+                        ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
+                        ServiceId = package.ServiceId,
+                        IsDeleted = package.IsDeleted,
+                        MinQuantity = package.MinQuantity,
+                        MaxQuantity = package.MaxQuantity,
+                        CreationDate = package.CreationDate,
+                        Features = package.PackageFeatures
+                            .GroupBy(pf => pf.Feature.Name)
+                            .Select(g => new FeatureModel
+                            {
+                                Id = g.First().FeatureId,
+                                Name = g.Key,
+                                Question = g.First().Feature.Question,
+                                QuestionType = g.First().Feature.QuestionType,
+                                IsInformationRequired = g.First().Feature.IsInformationRequired,
+                                IsQuantity = g.First().Feature.IsQuantity,
+                                PackageFeatures = g.ToList()
+                            }).ToList()
+                    }).OrderBy(_ => _.Name).ToList();
 
 
-                var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
-                  packageFilterModel.PageSize, packages.TotalCount);
+                    var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
+                      packageFilterModel.PageSize, packages.TotalCount);
 
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully.",
-                    Data = result
-                };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully.",
+                        Data = result
+                    };
+                });
             }
             catch (Exception ex)
             {
@@ -1156,15 +1196,19 @@ namespace Chillde.Services.Services
                         Message = "Service not found."
                     };
                 }
+                
+                var cacheKey = $"features_{CacheTools.GenerateCacheKey(serviceId)}";
 
-                var feature = await _unitOfWork.PackageRepository.GetAllFeatureByService(serviceId);
-
-                return new ResponseModel
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully.",
-                    Data = feature
-                };
+                    var feature = await _unitOfWork.PackageRepository.GetAllFeatureByService(serviceId);
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully.",
+                        Data = feature
+                    };
+                });
             }
             catch (Exception ex)
             {
@@ -1420,7 +1464,7 @@ namespace Chillde.Services.Services
             try
             {
 
-                var cacheKey = $"servicess_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
+                var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {

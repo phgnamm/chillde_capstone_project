@@ -9,11 +9,14 @@ using Chillde.Repositories.Models.PackageModels;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
+using Chillde.Services.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Nest;
@@ -28,66 +31,76 @@ namespace Chillde.Services.Services
         private readonly IMapper _mapper;
         private readonly ITranslationService _translationService;
         private readonly IBadWordFilterService _badWordFilterService;
+        private readonly IRedisHelper _redisHelper;
 
-        public PackageService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService, IBadWordFilterService badWordFilterService)
+        public PackageService(IUnitOfWork unitOfWork, 
+            IMapper mapper,
+            ITranslationService translationService,
+            IBadWordFilterService badWordFilterService,
+            IRedisHelper redisHelper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _translationService = translationService;
             _badWordFilterService = badWordFilterService;
+            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> GetAsync(Guid id)
         {
             try
             {
-                Func<IQueryable<Package>, IQueryable<Package>> include = services =>
+                var cacheKey = $"packages_{id}";
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    Func<IQueryable<Package>, IQueryable<Package>> include = services =>
                      services.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature);
 
-                var package = await _unitOfWork.PackageRepository.GetAsync(id, include);
-                if (package == null)
-                {
+                    var package = await _unitOfWork.PackageRepository.GetAsync(id, include);
+                    if (package == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Package not found."
+                        };
+                    }
+
+                    var packageModel = new PackageModel()
+                    {
+                        Id = package.Id,
+                        Name = package.Name,
+                        Description = package.Description,
+                        Price = package.Price,
+                        DeliveryTime = package.DeliveryTime,
+                        SketchRevision = package.SketchRevision,
+                        ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
+                        ServiceId = package.ServiceId,
+                        IsDeleted = package.IsDeleted,
+                        MinQuantity = package.MinQuantity,
+                        MaxQuantity = package.MaxQuantity,
+                        CreationDate = package.CreationDate,
+                        Features = package.PackageFeatures
+                            .GroupBy(pf => pf.Feature.Name)
+                            .Select(g => new FeatureModel
+                            {
+                                Id = g.First().FeatureId,
+                                Name = g.Key,
+                                Question = g.First().Feature.Question,
+                                QuestionType = g.First().Feature.QuestionType,
+                                IsInformationRequired = g.First().Feature.IsInformationRequired,
+                                IsQuantity = g.First().Feature.IsQuantity,
+                                PackageFeatures = g.ToList()
+                            }).ToList()
+                    };
+
                     return new ResponseModel
                     {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Package not found."
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully.",
+                        Data = packageModel
                     };
-                }
-
-                var packageModel = new PackageModel()
-                {
-                    Id = package.Id,
-                    Name = package.Name,
-                    Description = package.Description,
-                    Price = package.Price,
-                    DeliveryTime = package.DeliveryTime,
-                    SketchRevision = package.SketchRevision,
-                    ResponseTime = TimeSpan.FromMinutes(package.ResponseTime),
-                    ServiceId = package.ServiceId,
-                    IsDeleted = package.IsDeleted,
-                    MinQuantity = package.MinQuantity,
-                    MaxQuantity = package.MaxQuantity,
-                    CreationDate = package.CreationDate,
-                    Features = package.PackageFeatures
-                        .GroupBy(pf => pf.Feature.Name)
-                        .Select(g => new FeatureModel
-                        {
-                            Id = g.First().FeatureId,
-                            Name = g.Key,
-                            Question = g.First().Feature.Question,
-                            QuestionType = g.First().Feature.QuestionType,
-                            IsInformationRequired = g.First().Feature.IsInformationRequired,
-                            IsQuantity = g.First().Feature.IsQuantity,
-                            PackageFeatures = g.ToList()
-                        }).ToList()
-                };
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully.",
-                    Data = packageModel
-                };
+                });
             }
             catch (Exception ex)
             {
@@ -207,15 +220,27 @@ namespace Chillde.Services.Services
                     packageModel = _mapper.Map<PackageModel>(newPackage);
                 }
 
-                await _unitOfWork.SaveChangeAsync();
-                //await _unitOfWork.CommitTransactionAsync();
-
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Package updated successfully.",
-                    Data = packageModel
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"packages_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("packages_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Package updated successfully.",
+                        Data = packageModel
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
+                //await _unitOfWork.CommitTransactionAsync();
             }
             catch (Exception ex)
             {
@@ -258,14 +283,26 @@ namespace Chillde.Services.Services
                     _unitOfWork.PackageFeatureRepository.SoftRemoveRange(packageFeatures.Data);
                     _unitOfWork.PackageRepository.SoftRemove(package);
                 }
-                    
-                await _unitOfWork.SaveChangeAsync();
 
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully delete."
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"packages_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("packages_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully delete."
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -294,84 +331,90 @@ namespace Chillde.Services.Services
                         Message = "Package not found."
                     };
                 }
-                Expression<Func<Feature, bool>> filter = feature =>
+
+                var cacheKey = $"features_{CacheTools.GenerateCacheKey(packageId)}";
+
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    Expression<Func<Feature, bool>> filter = feature =>
                     feature.IsDeleted == model.IsDeleted &&
                     feature.PackageFeatures.Any(_ => _.PackageId == packageId);
 
-                Func<IQueryable<Feature>, IQueryable<Feature>> include = features =>
-                    features.Include(f => f.PackageFeatures);
+                    Func<IQueryable<Feature>, IQueryable<Feature>> include = features =>
+                        features.Include(f => f.PackageFeatures);
 
-                var features = await _unitOfWork.FeatureRepository.GetAllAsync(
-                    filter: filter,
-                    include: include,
-                    pageIndex: model.PageIndex,
-                    pageSize: model.PageSize
-                );
-
-                if (!features.Data.Any())
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "No features found for the specified package."
-                    };
-                }
-
-                if (sourceLanguageCode.ToLower() == "en")
-                {
-                    var featureModels = _mapper.Map<List<FeatureModel>>(features.Data);
-                    var result = new Pagination<FeatureModel>(featureModels, model.PageIndex, model.PageSize, features.TotalCount);
-
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Successfully retrieved features.",
-                        Data = result
-                    };
-                }
-                else 
-                {
-                    var featureIds = features.Data.Select(f => f.Id).ToList();
-                    var translationFields = new[] { "Name" };
-
-                    var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Feature, FeatureModel>(
-                        featureIds,
-                        sourceLanguageCode,
-                        feature => new FeatureModel
-                        {
-                            Name = feature.Name,
-                            PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeature
-                            {
-                                Id = pf.Id,
-                                Name = pf.Name,
-                                IsExtra = pf.IsExtra,
-                                AdditionalCost = pf.AdditionalCost,
-                                AdditionalDay = pf.AdditionalDay
-                            }).ToList()
-                        },
-                        "PackageFeatures",
-                        translationFields,
-                        null!,
-                        "Question"
+                    var features = await _unitOfWork.FeatureRepository.GetAllAsync(
+                        filter: filter,
+                        include: include,
+                        pageIndex: model.PageIndex,
+                        pageSize: model.PageSize
                     );
 
-                    if (translations != null)
+                    if (!features.Data.Any())
                     {
-                        var result = new Pagination<FeatureModel>(translations.ToList(), model.PageIndex, model.PageSize, features.TotalCount);
                         return new ResponseModel
                         {
-                            Code = StatusCodes.Status200OK,
-                            Message = "Successfully retrieved features with translations.",
-                            Data = result
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "No features found for the specified package."
                         };
                     }
 
-                    return new ResponseModel
+                    if (sourceLanguageCode.ToLower() == "en")
                     {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = "Failed to retrieve translations."
-                    };
-                }
+                        var featureModels = _mapper.Map<List<FeatureModel>>(features.Data);
+                        var result = new Pagination<FeatureModel>(featureModels, model.PageIndex, model.PageSize, features.TotalCount);
+
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status200OK,
+                            Message = "Successfully retrieved features.",
+                            Data = result
+                        };
+                    }
+                    else
+                    {
+                        var featureIds = features.Data.Select(f => f.Id).ToList();
+                        var translationFields = new[] { "Name" };
+
+                        var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Feature, FeatureModel>(
+                            featureIds,
+                            sourceLanguageCode,
+                            feature => new FeatureModel
+                            {
+                                Name = feature.Name,
+                                PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeature
+                                {
+                                    Id = pf.Id,
+                                    Name = pf.Name,
+                                    IsExtra = pf.IsExtra,
+                                    AdditionalCost = pf.AdditionalCost,
+                                    AdditionalDay = pf.AdditionalDay
+                                }).ToList()
+                            },
+                            "PackageFeatures",
+                            translationFields,
+                            null!,
+                            "Question"
+                        );
+
+                        if (translations != null)
+                        {
+                            var result = new Pagination<FeatureModel>(translations.ToList(), model.PageIndex, model.PageSize, features.TotalCount);
+                            return new ResponseModel
+                            {
+                                Code = StatusCodes.Status200OK,
+                                Message = "Successfully retrieved features with translations.",
+                                Data = result
+                            };
+                        }
+
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = "Failed to retrieve translations."
+                        };
+                    }
+                });
             }
             catch (Exception ex)
             {

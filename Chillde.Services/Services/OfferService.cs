@@ -759,7 +759,7 @@ namespace Chillde.Services.Services
                     if (changes > 0)
                     {
                         await _redisHelper.InvalidateCacheByPatternAsync($"offer_{offerId}");
-                        await _redisHelper.InvalidateCacheByPatternAsync("offer_*");
+                        await _redisHelper.InvalidateCacheByPatternAsync("offers_*");
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status200OK,
