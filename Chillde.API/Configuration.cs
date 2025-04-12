@@ -33,8 +33,8 @@ public static class Configuration
         // Local database
         services.AddDbContext<AppDbContext>(options =>
         {
-             options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
-            //options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
+             //options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
+            options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
         });
 
         // Redis

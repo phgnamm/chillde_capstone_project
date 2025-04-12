@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250411030438_EntityV15")]
+    partial class EntityV15
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -376,55 +379,6 @@ namespace Chillde.Repositories.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Conversations");
-                });
-
-            modelBuilder.Entity("Chillde.Repositories.Entities.Deposit", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal?>("Amount")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid?>("CreatedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("DeletionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("ModificationDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("ModifiedById")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("WalletId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WalletId");
-
-                    b.ToTable("Deposits");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.FAQ", b =>
@@ -898,6 +852,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<decimal?>("ArtistRevenueAfterCancel")
                         .HasColumnType("numeric");
 
+                    b.Property<int?>("CancelOrderReason")
+                        .HasColumnType("integer");
+
                     b.Property<Guid?>("CancellationReasonId")
                         .HasColumnType("uuid");
 
@@ -941,9 +898,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("PackageId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Phone")
                         .HasMaxLength(15)
                         .HasColumnType("character varying(15)");
@@ -969,9 +923,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SystemCancelReason")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ToDistrict")
                         .IsRequired()
                         .HasColumnType("text");
@@ -989,9 +940,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<decimal?>("VoucherCost")
                         .HasColumnType("numeric");
-
-                    b.Property<bool?>("WithBalance")
-                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -1125,19 +1073,13 @@ namespace Chillde.Repositories.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<int>("ExtendedDays")
+                        .HasColumnType("integer");
+
                     b.Property<bool?>("IsAccepted")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("IsDeadlineSent")
-                        .HasColumnType("boolean");
-
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("IsReminder50Sent")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool?>("IsReminder80Sent")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("ModificationDate")
@@ -1513,9 +1455,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid");
-
                     b.Property<int>("PointChange")
                         .HasColumnType("integer");
 
@@ -1526,8 +1465,6 @@ namespace Chillde.Repositories.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountRoleId");
-
-                    b.HasIndex("OrderId");
 
                     b.ToTable("ReputationLogs");
                 });
@@ -2464,9 +2401,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("RemainingQuantity")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<int?>("TotalQuantity")
                         .HasColumnType("integer");
 
@@ -2636,17 +2570,6 @@ namespace Chillde.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Parent");
-                });
-
-            modelBuilder.Entity("Chillde.Repositories.Entities.Deposit", b =>
-                {
-                    b.HasOne("Chillde.Repositories.Entities.Wallet", "Wallet")
-                        .WithMany("Deposits")
-                        .HasForeignKey("WalletId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Wallet");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.FAQ", b =>
@@ -2943,15 +2866,7 @@ namespace Chillde.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Chillde.Repositories.Entities.Order", "Order")
-                        .WithMany("ReputationLogs")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("AccountRole");
-
-                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Request", b =>
@@ -3286,8 +3201,6 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("OrderTrackings");
 
-                    b.Navigation("ReputationLogs");
-
                     b.Navigation("Shipments");
 
                     b.Navigation("Transactions");
@@ -3372,8 +3285,6 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Wallet", b =>
                 {
-                    b.Navigation("Deposits");
-
                     b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618

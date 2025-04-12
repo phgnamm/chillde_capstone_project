@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
@@ -49,14 +50,46 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var package = await _unitOfWork.PackageRepository.GetAsync((Guid)packageFeatureUpdateModel.PackageId);
+                if (package == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Package not found."
+                    };
+                }
+
                 PackageFeature newPackageFeature = new PackageFeature();
 
+                var existingPackageFeatures = _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                    filter: _ => _.IsDeleted == false && _.PackageId == packageFeatureUpdateModel.PackageId
+                    ).Result.Data;
+
+                if (packageFeatureUpdateModel.Index == 0)
+                {
+                    packageFeatureUpdateModel.Index = packageFeature.Index;
+                }
+                else
+                {
+                    foreach (var existingPackageFeature in existingPackageFeatures)
+                    {
+                        if (existingPackageFeature.Index >= packageFeatureUpdateModel.Index && existingPackageFeature.Index < packageFeature.Index)
+                        {
+                            existingPackageFeature.Index++;
+                        }
+                    }
+                }
+                _unitOfWork.PackageFeatureRepository.UpdateRange(existingPackageFeatures);
+
+                PackageFeatureModel newPackageFeatureModel = new PackageFeatureModel();
                 var anyOrder = await _unitOfWork.OrderRepository.HasAnyOrderByPackage(packageFeature.PackageId!.Value);
 
                 if (!anyOrder)
                 {
                     _mapper.Map(packageFeatureUpdateModel, packageFeature);
                     _unitOfWork.PackageFeatureRepository.Update(packageFeature);
+                    newPackageFeatureModel = _mapper.Map<PackageFeatureModel>(packageFeature);
                 }
                 else
                 {
@@ -65,9 +98,10 @@ namespace Chillde.Services.Services
                     newPackageFeature.PackageId = packageFeature.PackageId;
                     newPackageFeature.FeatureId = packageFeature.FeatureId;
                     await _unitOfWork.PackageFeatureRepository.AddAsync(newPackageFeature);
+                    newPackageFeatureModel = _mapper.Map<PackageFeatureModel>(newPackageFeature);
                 }
 
-                var newPackageFeatureModel = _mapper.Map<PackageFeatureUpdateModel>(newPackageFeature);
+                //var newPackageFeatureModel = _mapper.Map<PackageFeatureModel>(newPackageFeature);
 
                 await _unitOfWork.SaveChangeAsync();
 

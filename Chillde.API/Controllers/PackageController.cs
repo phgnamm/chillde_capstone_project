@@ -126,5 +126,27 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+        //[Authorize(Roles = "Artisan")]
+        [HttpPost("{packageId}/range-package-features")]
+        public async Task<IActionResult> AddRangePackageFeatureAsync(Guid packageId, [FromBody] List<PackageFeatureAddModel> model)
+        {
+            try
+            {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _packageService.AddRangePackageFeatureAsync(model, packageId, sourceLanguageCode, targetLanguageCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

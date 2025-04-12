@@ -5,14 +5,13 @@ namespace Chillde.Repositories.Entities;
 public class PackageFeature : BaseEntity
 {
     public string? Name { get; set; }
-
-    #region new fields
     public decimal? AdditionalCost { get; set; }
     public int? AdditionalDay { get; set; }
     public bool? IsExtra { get; set; }
     public bool? IsChecked { get; set; }
+    public int MinQuantity { get; set; }
     public int? MaxQuantity { get; set; }
-    #endregion
+    public int Index { get; set; }
 
     // Foreign key
     [JsonIgnore]
