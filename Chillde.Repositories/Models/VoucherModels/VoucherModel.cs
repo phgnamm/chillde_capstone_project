@@ -15,7 +15,8 @@ namespace Chillde.Repositories.Models.VoucherModels
         public decimal? MinOrderValue { get; set; } 
         public decimal? MaxDiscountValue { get; set; }
         public int? RemainingQuantity { get; set; } 
-        public DateTime ExpiredTime { get; set; } 
+        public DateTime StartTime { get; set; } 
+        public DateTime ExpiredTime { get; set; }
         public VoucherStatus VoucherStatus { get; set; }
     }
 }

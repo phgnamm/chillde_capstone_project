@@ -33,7 +33,7 @@ public static class Configuration
         // Local database
         services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
+             options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
             //options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
         });
 
@@ -367,6 +367,14 @@ public static class Configuration
         services.AddScoped<IShipmentStatusHistoryRepository,ShipmentStatusHistoryRepository>();
         services.AddScoped<IShipmentStatusHistoryService, ShipmentStatusHistoryService>();
 
+        //ReputationLog
+        services.AddScoped<IReputationLogRepository, ReputationLogRepository>();
+
+        //SketchReminder
+        services.AddHostedService<SketchReminderService>();
+
+        //DeliveryReminder
+        //services.AddHostedService<DeliveryReminderService>();
 
         #endregion
 

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Enums
 {
-    public enum CancelOrderReason
+    public enum DepositType
     {
-        NotReponseDeadlineInTime,
-        NotPostDeliveryInTime,
+       Deposit,
+       Withdraw
     }
 }

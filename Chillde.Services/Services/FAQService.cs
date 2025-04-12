@@ -1,4 +1,7 @@
-﻿using Chillde.Repositories.Interfaces;
+﻿using AutoMapper;
+using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.FAQModels;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.ResponseModels;
@@ -10,11 +13,15 @@ namespace Chillde.Services.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBadWordFilterService _badWordFilterService;
+        private readonly IRedisHelper _redisHelper;
+        private readonly IMapper _mapper;
 
-        public FAQService(IUnitOfWork unitOfWork, IBadWordFilterService badWordFilterService)
+        public FAQService(IUnitOfWork unitOfWork, IBadWordFilterService badWordFilterService, IRedisHelper redisHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _badWordFilterService = badWordFilterService;
+            _redisHelper = redisHelper;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> UpdateAsync(FAQAddAndUpdateModel faqAddAndUpdateModel, Guid id, string sourceLanguageCode)
@@ -46,13 +53,29 @@ namespace Chillde.Services.Services
                 faq.Answer = faqAddAndUpdateModel.Answer;
 
                 _unitOfWork.FAQRepository.Update(faq);
-                await _unitOfWork.SaveChangeAsync();
 
-                return new ResponseModel
+                FAQModel faqModel = _mapper.Map<FAQModel>(faq);
+
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "FAQ successfully updated.",
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"faqs_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("faqs_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "FAQ successfully updated.",
+                        Data = faqModel
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -79,13 +102,25 @@ namespace Chillde.Services.Services
                 }
 
                 _unitOfWork.FAQRepository.HardRemove(faq);
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "FAQ successfully deleted.",
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"faqs_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("faqs_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "FAQ successfully deleted.",
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
