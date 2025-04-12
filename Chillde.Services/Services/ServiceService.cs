@@ -247,27 +247,31 @@ namespace Chillde.Services.Services
         {
             try
             {
-                Func<IQueryable<Service>, IQueryable<Service>> include = services =>
+                var cacheKey = $"services_{id}";
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    Func<IQueryable<Service>, IQueryable<Service>> include = services =>
                      services.Include(_ => _.ServiceAttachments);
 
-                var service = await _unitOfWork.ServiceRepository.GetAsync(id, include);
-                if (service == null)
-                {
+                    var service = await _unitOfWork.ServiceRepository.GetAsync(id, include);
+                    if (service == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Service not found."
+                        };
+                    }
+
+                    var serviceModel = _mapper.Map<ServiceModel>(service);
+
                     return new ResponseModel
                     {
-                        Code = StatusCodes.Status404NotFound,
-                        Message = "Service not found."
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully.",
+                        Data = serviceModel
                     };
-                }
-
-                var serviceModel = _mapper.Map<ServiceModel>(service);
-
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully.",
-                    Data = serviceModel
-                };
+                });
             }
             catch (Exception ex)
             {
@@ -1413,48 +1417,65 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAll(ServiceFilterModel serviceFilterModel)
         {
-            var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                filter: _ => !_.IsDeleted &&
-                                (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
-                include: _ => _.Include(_ => _.Packages)
-                              .Include(_ => _.ServiceAttachments)
-                              .Include(_ => _.CreatedBy),
-                pageIndex: serviceFilterModel.PageIndex,
-                pageSize: serviceFilterModel.PageSize
-            );
-
-            var serviceModels = services.Data.Select(_ => new ServiceModel
+            try
             {
-                Id = _.Id,
-                Name = _.Name!,
-                Description = _.Description ?? "",
-                FeedbackCount = _.FeedbackCount,
-                Rate = _.Rate,
-                MinWeight = _.MinWeight,
-                MaxWeight = _.MaxWeight,
-                ServiceAttachments = _.ServiceAttachments.ToList(),
-                Artisan = _.CreatedBy == null ? null : new AccountLiteModel
+
+                var cacheKey = $"servicess_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
+
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
-                    FirstName = _.CreatedBy.FirstName ?? "Unknown",
-                    LastName = _.CreatedBy.LastName ?? "Unknown",
-                    Username = _.CreatedBy.Username ?? "Unknown",
-                    Email = _.CreatedBy.Email ?? "Unknown",
-                    Image = _.CreatedBy.Image ?? "Unknown"
-                }
-            }).ToList();
+                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                    filter: _ => !_.IsDeleted &&
+                                    (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
+                    include: _ => _.Include(_ => _.Packages)
+                                  .Include(_ => _.ServiceAttachments)
+                                  .Include(_ => _.CreatedBy),
+                    pageIndex: serviceFilterModel.PageIndex,
+                    pageSize: serviceFilterModel.PageSize
+                );
 
-            var result = new Pagination<ServiceModel>(
-                serviceModels,
-                serviceFilterModel.PageIndex,
-                serviceFilterModel.PageSize,
-                serviceModels.Count
-            );
+                    var serviceModels = services.Data.Select(_ => new ServiceModel
+                    {
+                        Id = _.Id,
+                        Name = _.Name!,
+                        Description = _.Description ?? "",
+                        FeedbackCount = _.FeedbackCount,
+                        Rate = _.Rate,
+                        MinWeight = _.MinWeight,
+                        MaxWeight = _.MaxWeight,
+                        ServiceAttachments = _.ServiceAttachments.ToList(),
+                        Artisan = _.CreatedBy == null ? null : new AccountLiteModel
+                        {
+                            FirstName = _.CreatedBy.FirstName ?? "Unknown",
+                            LastName = _.CreatedBy.LastName ?? "Unknown",
+                            Username = _.CreatedBy.Username ?? "Unknown",
+                            Email = _.CreatedBy.Email ?? "Unknown",
+                            Image = _.CreatedBy.Image ?? "Unknown"
+                        }
+                    }).ToList();
 
-            return new ResponseModel
+                    var result = new Pagination<ServiceModel>(
+                        serviceModels,
+                        serviceFilterModel.PageIndex,
+                        serviceFilterModel.PageSize,
+                        serviceModels.Count
+                    );
+                    return new ResponseModel
+                    {
+                        Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
+                        Data = result
+                    };
+                });
+            }
+            catch (Exception ex)
             {
-                Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
-                Data = result
-            };
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
+
         }
 
         public async Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode)
@@ -1558,12 +1579,13 @@ namespace Chillde.Services.Services
                         Message = eventDetails!.Message,
                         Data = serviceList
                     };
-                };
+                }
+                ;
                 var json = JsonConvert.SerializeObject(eventDetails.Data);
                 var eventDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                 var eventVi = eventDict["EventVi"];
                 var eventEn = eventDict["EventEn"];
-                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> {eventVi});
+                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventVi });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
@@ -1631,10 +1653,10 @@ namespace Chillde.Services.Services
                             Services = paginatedResult
                         }
                     };
-            }, cacheDuration);
+                }, cacheDuration);
 
-            return responseModel;
-        }
+                return responseModel;
+            }
             else
             {
                 var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";

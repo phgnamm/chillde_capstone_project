@@ -56,7 +56,9 @@ namespace Chillde.Services.Services
             {
 
                 var cacheKey = $"offers_{sourceLanguageCode}_{targetLanguageCode}_{CacheTools.GenerateCacheKey(filterParameter)}";
-
+                // thêm một cái biến tên cache key như trên, biến này sẽ là kiểu $"mainOpject_{id}" hoặc $"mainOpject_{CacheTools.GenerateCacheKey(filterParameter)" cái này tùy query gì để đặt tên cho nó
+                // sau đó gọi đến hàm _redisHelper.GetOrSetAsync(cacheKey, async () => bọc cái hàm getAllAsync vào trong hàm của redisHelper
+                // gọi hàm của redisHelper này có thể return luôn hoặc tạo biến response rồi return response sau cũng được
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
