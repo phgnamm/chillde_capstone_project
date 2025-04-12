@@ -147,6 +147,12 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet("by-order/{orderId}")]
+        public async Task<IActionResult> GetShipmentByOrderId(Guid orderId)
+        {
+            var response = await _shipmentService.GetShipmentByOrderIdAsync(orderId);
+            return StatusCode(response.Code, response);
+        }
 
     }
 }

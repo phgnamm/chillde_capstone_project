@@ -28,4 +28,11 @@ public class ShipmentRepository : GenericRepository<Shipment>, IShipmentReposito
     {
         return await _dbSet.FirstOrDefaultAsync(s=> s.Label == lableId);
     }
+
+    public async Task<Shipment?> GetByOrderIdAsync(Guid orderId)
+    {
+        return await _dbSet
+            .Include(s => s.ProductShipments)
+            .FirstOrDefaultAsync(s => s.OrderId == orderId);
+    }
 }
