@@ -1,8 +1,9 @@
-﻿/*using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
@@ -14,13 +15,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Chillde.Services.Services
 {
-    public class OrderTrackingReminderService : BackgroundService
+    public class SketchReminderService : BackgroundService
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<OrderTrackingReminderService> _logger;
+        private readonly ILogger<SketchReminderService> _logger;
         private DateTime? _nextRunTime;
 
-        public OrderTrackingReminderService(IServiceScopeFactory serviceScopeFactory, ILogger<OrderTrackingReminderService> logger)
+        public SketchReminderService(IServiceScopeFactory serviceScopeFactory, ILogger<SketchReminderService> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
@@ -42,18 +43,18 @@ namespace Chillde.Services.Services
 
                     foreach (var order in orders)
                     {
-                        var responseDeadline = order.OrderTrackings
-                            .Where(_ => _.Type == OrderTrackingType.Sketch && _.IsAccepted == null)
-                            .OrderByDescending(_ => _.CreationDate)
-                            .Select(_ => _.CreationDate.AddHours(order.Package.ResponseTime))
+                        var lastSketchTracking = order.OrderTrackings
+                            .Where(t => t.Type == OrderTrackingType.Sketch && t.IsAccepted == null)
+                            .OrderByDescending(t => t.CreationDate)
                             .FirstOrDefault();
 
-                        if (responseDeadline == default) continue;
+                        if (lastSketchTracking == null) continue;
 
-                        var totalResponseTimeMinutes = order.Package.ResponseTime * 60;
-                        var reminder50 = responseDeadline.AddMinutes(-totalResponseTimeMinutes * 0.5);
-                        var reminder80 = responseDeadline.AddMinutes(-totalResponseTimeMinutes * 0.2);
+                        var responseDeadline = lastSketchTracking.CreationDate.AddSeconds(order.Package.ResponseTime * 60);
+                        var totalResponseSeconds = order.Package.ResponseTime * 60; // responseTime đang là phút
 
+                        var reminder50Time = lastSketchTracking.CreationDate.AddSeconds(totalResponseSeconds * 0.5);
+                        var reminder80Time = lastSketchTracking.CreationDate.AddSeconds(totalResponseSeconds * 0.8);
                         if (now >= responseDeadline)
                         {
                             decimal penalty = 0m;
@@ -69,14 +70,22 @@ namespace Chillde.Services.Services
 
                             var autoCancelPointPenalty = await systemConfigurationService.Get(SystemConfigKey.AutoCancelPointPenalty);
                             decimal autoCancelPointPenaltyValue = 0m;
+                            var customer = order.CreatedBy?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
 
                             if (autoCancelPointPenalty.Data is SystemConfigModel configPoint
                                 && decimal.TryParse(configPoint.Value?.ToString(), out autoCancelPointPenaltyValue))
                             {
-                                foreach (var role in order.CreatedBy.AccountRoles)
+
+                                customer.TotalReputation -= (int)autoCancelPointPenaltyValue;
+                                var reputationLog = new ReputationLog
                                 {
-                                    role.TotalReputation -= (int)autoCancelPointPenaltyValue;
-                                }
+                                    PointChange = -(int)autoCancelPointPenaltyValue,
+                                    Reason = SystemCancelReason.NotReponseDeadlineInTime.ToString(),
+                                    OrderId = order.Id,
+                                };
+                                customer.Reputations.Add(reputationLog);
+                                unitOfWork.AccountRoleRepository.Update(customer);
+
                             }
 
                             var totalPriceAfterPenalty = order.TotalPrice - penalty;
@@ -90,13 +99,10 @@ namespace Chillde.Services.Services
                                 Status = TransactionStatus.Completed,
                                 WalletId = order.CreatedBy.Wallet.Id,
                             });
-
+                            lastSketchTracking.IsDeadlineSent = true;
+                            unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);
                             order.ArtistRevenueAfterCancel = penalty;
-                            order.CancelOrderReason = CancelOrderReason.NotReponseDeadlineInTime;
-                            unitOfWork.OrderRepository.Update(order);
-                            await unitOfWork.SaveChangeAsync();
-
-
+                            order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
                             await emailService.SendEmailAsync(
                             order.CreatedBy.Email,
                             "Order Cancelled Due to No Response",
@@ -116,14 +122,18 @@ namespace Chillde.Services.Services
                                <p><strong>From Chillde</strong></p>",
                             true
                             );
+                            unitOfWork.OrderRepository.Update(order);
+                            await unitOfWork.SaveChangeAsync();
+
+
                         }
                         else
                         {
-                            if (now >= reminder80)
+                            if (now >= reminder80Time && (bool)!lastSketchTracking.IsReminder80Sent && (bool)lastSketchTracking.IsReminder50Sent)
                             {
-                                double timeRemainingMinutes80 = order.Package.ResponseTime * 60 * 0.2;
+                                double timeRemainingMinutes80 = order.Package.ResponseTime * 0.2;
                                 string timeRemainingDisplay80 = FormatTimeDisplay(timeRemainingMinutes80);
-
+                             
                                 await emailService.SendEmailAsync(
                                     order.CreatedBy.Email,
                                     $"Urgent: Only {timeRemainingDisplay80} Left to Respond",
@@ -141,10 +151,13 @@ namespace Chillde.Services.Services
                                     <p><strong>From Chillde</strong></p>",
                                     true
                                 );
+                                lastSketchTracking.IsReminder80Sent = true;
+                                unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);
+                                await unitOfWork.SaveChangeAsync();
                             }
-                            else if (now >= reminder50)
+                            else if (now >= reminder50Time && (bool)!lastSketchTracking.IsReminder50Sent)
                             {
-                                double timeRemainingMinutes50 = order.Package.ResponseTime * 60 * 0.5;
+                                double timeRemainingMinutes50 = order.Package.ResponseTime * 0.5;
                                 string timeRemainingDisplay50 = FormatTimeDisplay(timeRemainingMinutes50);
 
                                 await emailService.SendEmailAsync(
@@ -165,29 +178,16 @@ namespace Chillde.Services.Services
                                     <p><strong>From Chillde</strong></p>",
                                     true
                                 );
+                                lastSketchTracking.IsReminder50Sent = true;
+                                unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);
+                                await unitOfWork.SaveChangeAsync();
                             }
 
                         }
 
-                        var upcomingReminder = new[] { reminder50, reminder80, responseDeadline }
-                            .Where(_ => _ > now)
-                            .OrderBy(_ => _)
-                            .FirstOrDefault();
-
-                        if (upcomingReminder != default && (_nextRunTime == null || upcomingReminder < _nextRunTime))
-                        {
-                            _nextRunTime = upcomingReminder;
-                        }
                     }
                 }
-
-                if (_nextRunTime.HasValue)
-                {
-                    var delay = _nextRunTime.Value - DateTime.UtcNow;
-                    var safeDelay = TimeSpan.FromMilliseconds(Math.Max(0, delay.TotalMilliseconds));
-                    _logger.LogInformation("Next check scheduled at {NextRunTime}", _nextRunTime.Value);
-                    await Task.Delay(safeDelay, stoppingToken);
-                }
+                await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
         }
         private string FormatTimeDisplay(double minutes)
@@ -207,4 +207,3 @@ namespace Chillde.Services.Services
 
 
 }
-*/

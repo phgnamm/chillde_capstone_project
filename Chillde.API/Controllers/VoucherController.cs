@@ -62,6 +62,27 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpPut("stop")]
+        public async Task<IActionResult> StopVoucher([FromQuery] Guid id)
+        {
+            try
+            {
+                var result = await _voucherService.StopVoucher(id);
+                if (result.Status)
+                {
+                    return Ok(result);
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
 
     }
 }

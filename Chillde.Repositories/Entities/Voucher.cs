@@ -21,6 +21,7 @@ namespace Chillde.Repositories.Entities
         public decimal? MaxDiscountValue { get; set; } // giảm tối đa
         public int? TotalQuantity { get; set; } // số lượng voucher
         public int? RemainingQuantity { get; set; } // số lượng voucher còn lại
+        public DateTime StartTime { get; set; } // thời gian bắt đầu
         public DateTime ExpiredTime { get; set; } // thời gian hết hạn
         public VoucherStatus VoucherStatus { get; set; } = VoucherStatus.Pending;
         public virtual ICollection<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();

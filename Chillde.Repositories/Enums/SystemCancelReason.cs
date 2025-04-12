@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Enums
 {
-    public enum VoucherStatus
+    public enum SystemCancelReason
     {
-        Pending,
-        Expired,
+        NotReponseDeadlineInTime,
+        NotPostDeliveryInTime,
     }
 }
