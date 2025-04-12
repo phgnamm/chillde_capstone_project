@@ -428,7 +428,59 @@ namespace Chillde.Services.Services
             };
         }
 
+        public async Task<ResponseModel> GetShipmentByOrderIdAsync(Guid orderId)
+        {
+            try
+            {
+                if (orderId == Guid.Empty)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid order ID."
+                    };
+                }
 
+                var shipment = await _unitOfWork.ShipmentRepository.GetByOrderIdAsync(orderId);
 
+                if (shipment == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "No shipment found for the specified order."
+                    };
+                }
+
+                var shipmentResponse = new ShipmentDetailModel
+                {
+                    TrackingId = shipment.TrackingId,
+                    CurrentStatusId = shipment.CurrentStatusId,
+                    PartnerId = shipment.PartnerId,
+                    EstimatedPickTime = shipment.EstimatedPickTime,
+                    EstimatedDeliverTime = shipment.EstimatedDeliverTime,
+                    ProductShipments = shipment.ProductShipments.Select(ps => new ProductShipmentResponse
+                    {
+                        Name = ps.Name,
+                        Quantity = ps.Quantity
+                    }).ToList()
+                };
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Shipment retrieved successfully.",
+                    Data = shipmentResponse
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error retrieving shipment: {ex.Message}"
+                };
+            }
+        }
     }
 }
