@@ -14,14 +14,14 @@ namespace Chillde.Services.Helpers
         public static string GenerateOrderCode()
         {
             const string prefix = "ORDCHD";
-            var randomPart = new string(Enumerable.Repeat(Characters, 8)
+            var randomPart = new string(Enumerable.Repeat(Characters, 5)
                 .Select(s => s[_random.Next(s.Length)]).ToArray());
             return prefix + randomPart;
         }
         public static string GenerateVoucherCode()
         {
             const string prefix = "VCCHD";
-            var randomPart = new string(Enumerable.Repeat(Characters, 8)
+            var randomPart = new string(Enumerable.Repeat(Characters, 5)
                 .Select(s => s[_random.Next(s.Length)]).ToArray());
             return prefix + randomPart;
         }
