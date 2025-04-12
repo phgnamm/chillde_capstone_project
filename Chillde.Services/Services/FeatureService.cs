@@ -5,6 +5,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.ServiceModels;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
@@ -22,14 +23,21 @@ namespace Chillde.Services.Services
         private readonly IMapper _mapper;
         private readonly IBadWordFilterService _badWordFilterService;
         private readonly IPackageService _packageService;
+        private readonly IRedisHelper _redisHelper;
 
-        public FeatureService(IUnitOfWork unitOfWork, ITranslationService translationService, IMapper mapper, IBadWordFilterService badWordFilterService, IPackageService packageService)
+        public FeatureService(IUnitOfWork unitOfWork, 
+            ITranslationService translationService, 
+            IMapper mapper, 
+            IBadWordFilterService badWordFilterService, 
+            IPackageService packageService, 
+            IRedisHelper redisHelper)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
             _mapper = mapper;
             _badWordFilterService = badWordFilterService;
             _packageService = packageService;
+            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> AddFeatureAsync(FeatureAddModel featureAddModel, string sourceLanguageCode, string targetLanguageCode)
@@ -302,14 +310,26 @@ namespace Chillde.Services.Services
                     //}
 
                 }
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Feature successfully updated.",
-                    Data = featureModel
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"features_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("features_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Feature successfully updated.",
+                        Data = featureModel
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -357,13 +377,25 @@ namespace Chillde.Services.Services
                     _unitOfWork.PackageFeatureRepository.UpdateRange(packageFeatures.Data);
                 }
 
-                await _unitOfWork.SaveChangeAsync();
-
-                return new ResponseModel
+                var changes = await _unitOfWork.SaveChangeAsync();
+                if (changes > 0)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Successfully delete."
-                };
+                    await _redisHelper.InvalidateCacheByPatternAsync($"features_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync("features_*");
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully delete."
+                    };
+                }
+                else
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status204NoContent,
+                        Message = "No changes detected."
+                    };
+                }
             }
             catch (Exception ex)
             {
