@@ -2263,6 +2263,143 @@ new()
     ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
     AttachmentUrl = ""
 },
+// Danh mục con của Shoes
+new()
+{
+    Id = Guid.Parse("01962f58-6d4b-72e7-b3e3-c06bc9963b4d"),
+    Name = "Women's Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d95-7c4c-ad41-020e367e279b"),
+    Name = "Men's Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d99-7624-8ffc-c05698a0d173"),
+    Name = "Girls' Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d9c-7864-a0ea-b05ef8e57237"),
+    Name = "Boys' Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d9e-789b-901d-ac5e4efa5bc6"),
+    Name = "Insoles & Accessories",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Electronics & Accessories
+new()
+{
+    Id = Guid.Parse("01962f5f-398d-71f3-b27f-8e255f5e45c8"),
+    Name = "Cameras & Equipment",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39d7-7bb5-b227-b57cffc5d019"),
+    Name = "Gadgets",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39d9-70d5-9317-7350cb0e30b6"),
+    Name = "Computers & Peripherals",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39dc-7117-9390-cc7c4c3348f4"),
+    Name = "Video & Audio Games",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39de-721e-9f61-9273aeddadfc"),
+    Name = "Audio",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39e1-7dc9-be26-c85266849bd1"),
+    Name = "Car Parts & Accessories",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Weddings
+new()
+{
+    Id = Guid.Parse("01962f6a-29c2-79d5-86f5-776d15053be9"),
+    Name = "Wedding Gifts & Mementos",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a24-727f-aa29-9dc24f32fd04"),
+    Name = "Wedding Decorations",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a27-7241-88ac-13c4ab6a0e21"),
+    Name = "Wedding Accessories",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a31-7158-812e-d3df7f198037"),
+    Name = "Wedding Invitations & Paper",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a37-731f-ae95-4ceb85ec25ff"),
+    Name = "Wedding Shoes",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a39-79bd-a21a-4b45260fd13b"),
+    Name = "Wedding Jewelry",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Paper & Party Supplies
+new()
+{
+    Id = Guid.Parse("01962f6f-053b-7c0b-9d90-632e1badcf77"),
+    Name = "Party Supplies",
+    ParentId = Guid.Parse("0196234b-7963-75a0-9f5b-390f1004df9a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6f-0589-7762-b3b0-1f238e4e1e56"),
+    Name = "Paper",
+    ParentId = Guid.Parse("0196234b-7963-75a0-9f5b-390f1004df9a"),
+    AttachmentUrl = ""
+},
     };
 
     private static readonly List<SystemConfig> SystemConfigs = new()
