@@ -2366,21 +2366,78 @@ new()
             EntityType = ConfigType.Package,
             FieldName = "MaxPriceOfPackage",
             Value = JsonDocument.Parse("10000000")
-        },new()
+        },
+        new()
         {
             EntityType = ConfigType.Order,
             FieldName = "AutoCancelPercentagePenalty",
             Value = JsonDocument.Parse("10")
-        },new()
+        },
+        new()
         {
             EntityType = ConfigType.Reputation,
             FieldName = "AutoCancelPointPenalty",
             Value = JsonDocument.Parse("5")
-        },new()
+        },
+        new()
         {
             EntityType = ConfigType.Service,
             FieldName = "MaximumSerivceOfOneArtisan",
             Value = JsonDocument.Parse("5")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "MinOrdersForArtisan",
+            Value = JsonDocument.Parse("5")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "NumberOfMonthForMinOrders",
+            Value = JsonDocument.Parse("1")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "MinReputationOfArtisan",
+            Value = JsonDocument.Parse("1")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "DiscountValue",
+            Value = JsonDocument.Parse("10")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "MaxDiscountValue",
+            Value = JsonDocument.Parse("10")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "TotalQuantity",
+            Value = JsonDocument.Parse("1")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "NumberOfDateForUsingVoucher",
+            Value = JsonDocument.Parse("15")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "MinOrderValue",
+            Value = JsonDocument.Parse("15")
+        },
+        new()
+        {
+            EntityType = ConfigType.Vouvher,
+            FieldName = "Commission",
+            Value = JsonDocument.Parse("1")
         },
     };
 

@@ -376,6 +376,9 @@ public static class Configuration
         //DeliveryReminder
         services.AddHostedService<DeliveryReminderService>();
 
+        //DeliveryReminder
+        services.AddHostedService<VoucherCreationService>();
+
         #endregion
 
         return services;
