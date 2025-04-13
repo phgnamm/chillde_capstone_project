@@ -1193,7 +1193,7 @@ public class AccountService : IAccountService
 
         foreach (var voucher in vouchersByArtisan.Data)
         {
-            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucherForCustomer(voucher.Id, currentUserId.Value);
+            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id, currentUserId.Value);
 
             if (hasUsed)
                 continue; 

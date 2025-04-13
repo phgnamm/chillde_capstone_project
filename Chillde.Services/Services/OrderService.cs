@@ -252,16 +252,42 @@ namespace Chillde.Services.Services
             var requiredFeatures = package.PackageFeatures
                  .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
                  .ToList();
-            
-            foreach (var feature in orderAddModel.OrderInformationAddModels)
-            {
-                var info = package.PackageFeatures
-                    .FirstOrDefault(_ => _.Id == feature.PackageFeatureId);
+            var requiredFeatureIds = requiredFeatures.Select(_ => _.FeatureId).Distinct().ToList();
+            var providedFeatureIds = orderAddModel.OrderInformationAddModels
+                         .Join(package.PackageFeatures,
+                            orderInfo => orderInfo.PackageFeatureId,
+                            packageFeature => packageFeature.Id,
+                            (orderInfo, packageFeature) => new { orderInfo, packageFeature })
+                        .Select(_ => _.packageFeature.FeatureId)
+                        .ToList();
 
-                if (info == null || (info.Feature.IsInformationRequired && (info.IsExtra ?? true) &&
-                                     string.IsNullOrWhiteSpace(feature.Description)))
+            var missingFeatureIds = requiredFeatureIds
+                .Where(id => !providedFeatureIds.Contains(id))
+                .ToList();
+
+            if (missingFeatureIds.Any())
+            {
+                throw new InvalidOperationException($"Missing required features: {string.Join(", ", missingFeatureIds)}");
+
+            }
+            foreach (var requiredFeature in requiredFeatures)
+            {
+                var orderInfo = orderAddModel.OrderInformationAddModels
+                    ?.FirstOrDefault(_ => _.PackageFeatureId == requiredFeature.Id);
+
+                if (requiredFeature.IsChecked == true)
                 {
-                    new InvalidOperationException($"Order description for PackageFeature '{info.Name}' cannot be null or empty.");
+                    if (orderInfo == null || string.IsNullOrWhiteSpace(orderInfo.Description))
+                    {
+                        throw new InvalidOperationException($"Required description for feature '{requiredFeature.Feature.Name}' is missing.");
+                    }
+                }
+                else
+                {
+                    if (orderInfo != null && string.IsNullOrWhiteSpace(orderInfo.Description))
+                    {
+                        orderInfo.Description = requiredFeature.Name;
+                    }
                 }
             }
 
@@ -368,7 +394,7 @@ namespace Chillde.Services.Services
             {
                 if (commissionValue > 0)
                 {
-                    var adjustedCommission = Math.Max(commissionValue - (commsionVoucherValue ?? 0), 0) / 100;
+                    var adjustedCommission = (commissionValue - (commsionVoucherValue ?? 0)) / 100;
                     return totalOrder * adjustedCommission;
                 }
 
@@ -389,13 +415,13 @@ namespace Chillde.Services.Services
             {
                 return;
             }
-            var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
-                orderAddModel.OrderInformationAddModels!
-                    .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
-            if (checkMaxQuantity != null)
-            {
-                throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
-            }
+            //var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
+            //    orderAddModel.OrderInformationAddModels!
+            //        .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
+            //if (checkMaxQuantity != null)
+            //{
+            //    throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
+            //}
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
                     .Where(_ => _.PackageFeatureId == pf.Id)    
@@ -1209,12 +1235,12 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest
                 };
             }
-            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, voucherId);
+            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, currentUserId.Value);
             if (hasUsed)
             {
                 return new ResponseModel
                 {
-                    Message = "Voucher has used for this order.",
+                    Message = "One order just have one voucher.",
                     Code = StatusCodes.Status400BadRequest
                 };
             }
@@ -1227,7 +1253,6 @@ namespace Chillde.Services.Services
             {
                 adminCommAfterUsed = voucher.MaxDiscountValue.Value;
             }
-
 
             order.AdminCommUsedVch = adminCommAfterUsed;
             order.ArtistRevenue = totalPriceOrder - adminCommAfterUsed;
