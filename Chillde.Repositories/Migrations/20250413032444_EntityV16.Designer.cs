@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250412174741_EntityV16")]
+    [Migration("20250413032444_EntityV16")]
     partial class EntityV16
     {
         /// <inheritdoc />
