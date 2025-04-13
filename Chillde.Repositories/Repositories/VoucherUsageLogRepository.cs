@@ -14,14 +14,14 @@ namespace Chillde.Repositories.Repositories
         {
         }
 
-        public async Task<bool> CheckOrderHasUsedVoucher(Guid orderId, Guid voucherId)
+        public async Task<bool> CheckOrderHasUsedVoucher(Guid orderId, Guid accountId)
         {
-            return _dbSet.Any(_ => _.OrderId == orderId && _.VoucherId == voucherId);
+            return _dbSet.Any(_ => _.OrderId == orderId && _.CreatedById == accountId);
         }
 
-        public async Task<bool> CheckOrderHasUsedVoucherForCustomer(Guid orderId, Guid voucherId)
+        public async Task<bool> CheckCustomerHasUsedVoucher(Guid voucherId, Guid accountId)
         {
-            return _dbSet.Any(_ => _.OrderId == orderId && _.VoucherId == voucherId && _.UsageStatus == Enums.UsageStatus.Used);
+            return _dbSet.Any(_ => _.VoucherId == voucherId && _.UsageStatus == Enums.UsageStatus.Used && _.CreatedById == accountId);
 
         }
     }
