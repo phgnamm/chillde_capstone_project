@@ -38,6 +38,7 @@ using Chillde.Repositories.Models.FeatureModels;
 using System.Net.WebSockets;
 using static OpenAI.GPT3.ObjectModels.SharedModels.IOpenAiModels;
 using System.Security.Principal;
+using Nest;
 
 namespace Chillde.Services.Services
 {
@@ -444,7 +445,7 @@ namespace Chillde.Services.Services
                     throw new Exception($"The order has at least {voucher.MinOrderValue} to apply this voucher.");
                 }
              
-                if (voucher.RemainingQuantity.HasValue && voucher.RemainingQuantity.Value <= 0)
+                if (voucher.RemainingQuantity.HasValue && voucher.RemainingQuantity.Value < 1)
                 {
                     throw new Exception("This voucher is out of stock to use.");
 
@@ -465,13 +466,13 @@ namespace Chillde.Services.Services
                 order.VoucherUsageLogs.Add(new VoucherUsageLog
                 {
                     VoucherId = voucher.Id,
-                    CustomerId = (Guid)order.CreatedById,
+                    CreatedById = (Guid)order.CreatedById,
                     DiscountValue = discount,
                     DiscountValueOrigin = voucher.DiscountValue,
                 });
                 if (paymentType == PaymentType.Balance)
                 {
-                    if (voucher.TotalQuantity.HasValue)
+                    if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity >= 1)
                     {
                         voucher.RemainingQuantity -= 1;
                     }
@@ -579,8 +580,11 @@ namespace Chillde.Services.Services
 
             foreach (var voucherUsageLog in order.VoucherUsageLogs)
             {
-                voucherUsageLog.Voucher.RemainingQuantity -= 1;
-                voucherUsageLog.UsageStatus = UsageStatus.Used;
+                if (voucherUsageLog.Voucher.TotalQuantity.HasValue && voucherUsageLog.Voucher.RemainingQuantity >= 1)
+                {
+                    voucherUsageLog.Voucher.RemainingQuantity -= 1;
+                    voucherUsageLog.UsageStatus = UsageStatus.Used;
+                }
             }
 
             order.PaymentStatus = PaymentStatus.Success;
@@ -1124,9 +1128,9 @@ namespace Chillde.Services.Services
 
                         foreach (var voucherLog in order.VoucherUsageLogs)
                         {
-                            if (voucherLog.Voucher.TotalQuantity.HasValue)
+                            if (voucherLog.Voucher.TotalQuantity.HasValue && voucherLog.Voucher.TotalQuantity.HasValue)
                             {
-                                voucherLog.Voucher.TotalQuantity += 1; 
+                                voucherLog.Voucher.RemainingQuantity += 1; 
                             }
                             voucherLog.UsageStatus = UsageStatus.Cancelled;
                         }
@@ -1178,7 +1182,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (order.Status != OrderStatus.Success)
+            if (order.Status != OrderStatus.Accepted)
             {
                 return new ResponseModel
                 {
@@ -1197,11 +1201,20 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (voucher.TotalQuantity.HasValue && voucher.TotalQuantity.Value < 1)
+            if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity < 1)
             {
                 return new ResponseModel
                 {
                     Message = "Voucher is out of stock.",
+                    Code = StatusCodes.Status400BadRequest
+                };
+            }
+            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, voucherId);
+            if (hasUsed)
+            {
+                return new ResponseModel
+                {
+                    Message = "Voucher has used for this order.",
                     Code = StatusCodes.Status400BadRequest
                 };
             }
@@ -1222,12 +1235,12 @@ namespace Chillde.Services.Services
             order.VoucherUsageLogs.Add(new VoucherUsageLog
             {
                 VoucherId = voucher.Id,
-                CustomerId = (Guid)order.CreatedById,
+                CreatedById = (Guid)order.CreatedById,
                 DiscountValue = (decimal)(order.AdminCommDefault - adminCommAfterUsed),
                 DiscountValueOrigin = voucherDiscountValue,
                 UsageStatus = UsageStatus.Used
             });
-            if (voucher.TotalQuantity.HasValue)
+            if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity >= 1)
             {
                 voucher.RemainingQuantity -= 1;
             }

@@ -12,8 +12,7 @@ namespace Chillde.Repositories.Entities
 
         public Guid VoucherId { get; set; } // đã sử dụng voucher nào
         public Voucher Voucher { get; set; }
-        public Guid CustomerId { get; set; } // khách hàng nào sử dụng
-        public Account Customer { get; set; }
+        public Account CreatedBy { get; set; }
         public Guid OrderId { get; set; } // sử dụng cho order nào
         public Order Order { get; set; }
         public decimal DiscountValue { get; set; } // giá giảm quy ra tiền 

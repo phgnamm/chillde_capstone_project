@@ -11,6 +11,7 @@ namespace Chillde.Repositories.Interfaces
     {
         Task<bool> HasCompletedOrder(Guid accountId, Guid serviceId);
         Task<int> NumberCompletedOrder(Guid accountId, Guid artistId);
+        Task<int> NumberCompletedOrderOfArtisan(Guid artistId);
         Task<bool> HasAnyOrderByService(Guid serviceId);
         Task<bool> HasAnyOrderByPackage(Guid packageId);
         Task<bool> HasAnyOrderByFeature(Guid featureId);
