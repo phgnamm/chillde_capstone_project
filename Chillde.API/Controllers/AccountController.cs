@@ -92,11 +92,11 @@ public class AccountController : ControllerBase
     }
     [Authorize]
     [HttpGet("admin-vouchers")]
-    public async Task<IActionResult> GetVoucherAdmin(Guid orderId, decimal? totalPrice)
+    public async Task<IActionResult> GetVoucherAdmin(Guid orderId)
     {
         try
         {
-            var result = await _accountService.GetVoucherAdmin(orderId, totalPrice);
+            var result = await _accountService.GetVoucherAdmin(orderId);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

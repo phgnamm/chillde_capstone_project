@@ -38,6 +38,7 @@ using Chillde.Repositories.Models.FeatureModels;
 using System.Net.WebSockets;
 using static OpenAI.GPT3.ObjectModels.SharedModels.IOpenAiModels;
 using System.Security.Principal;
+using Nest;
 
 namespace Chillde.Services.Services
 {
@@ -465,7 +466,7 @@ namespace Chillde.Services.Services
                 order.VoucherUsageLogs.Add(new VoucherUsageLog
                 {
                     VoucherId = voucher.Id,
-                    CustomerId = (Guid)order.CreatedById,
+                    CreatedById = (Guid)order.CreatedById,
                     DiscountValue = discount,
                     DiscountValueOrigin = voucher.DiscountValue,
                 });
@@ -1127,7 +1128,7 @@ namespace Chillde.Services.Services
 
                         foreach (var voucherLog in order.VoucherUsageLogs)
                         {
-                            if (voucherLog.Voucher.TotalQuantity.HasValue)
+                            if (voucherLog.Voucher.TotalQuantity.HasValue && voucherLog.Voucher.TotalQuantity.HasValue)
                             {
                                 voucherLog.Voucher.RemainingQuantity += 1; 
                             }
@@ -1181,7 +1182,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (order.Status != OrderStatus.Success)
+            if (order.Status != OrderStatus.Accepted)
             {
                 return new ResponseModel
                 {
@@ -1208,6 +1209,15 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest
                 };
             }
+            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, voucherId);
+            if (hasUsed)
+            {
+                return new ResponseModel
+                {
+                    Message = "Voucher has used for this order.",
+                    Code = StatusCodes.Status400BadRequest
+                };
+            }
             var totalPriceOrder = order.TotalPrice - order.ShippingPrice ?? 0;
 
             var voucherDiscountValue = voucher?.DiscountValue ?? 0; 
@@ -1225,12 +1235,12 @@ namespace Chillde.Services.Services
             order.VoucherUsageLogs.Add(new VoucherUsageLog
             {
                 VoucherId = voucher.Id,
-                CustomerId = (Guid)order.CreatedById,
+                CreatedById = (Guid)order.CreatedById,
                 DiscountValue = (decimal)(order.AdminCommDefault - adminCommAfterUsed),
                 DiscountValueOrigin = voucherDiscountValue,
                 UsageStatus = UsageStatus.Used
             });
-            if (voucher.TotalQuantity.HasValue)
+            if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity >= 1)
             {
                 voucher.RemainingQuantity -= 1;
             }
