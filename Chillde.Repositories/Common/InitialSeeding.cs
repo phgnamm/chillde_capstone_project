@@ -2461,6 +2461,15 @@ new()
             CategoryId = Categories[0].Id,
             CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
         },
+        new()
+        {
+            Id = Guid.Parse("a3d5f1e0-7c56-4b93-9c9e-3a13fd8e7d4b"),
+            Name = "Dịch vụ mẫu",
+            Description = "Đây là dịch vụ mẫu dùng để test dữ liệu",
+            Status = Enums.ServiceStatus.Active,
+            CategoryId = Categories[0].Id,
+            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
+        },
     };
 
     private static readonly List<ServiceAttachment> ServiceAttachments = new()
@@ -2571,6 +2580,38 @@ new()
             Price = 350000,
             SketchRevision = 3,
             ServiceId = Services[1].Id
+        },
+
+        #endregion
+
+        #region Package of service: "Dịch vụ mẫu"
+
+        new()
+        {
+            Id = Guid.Parse("0a9b3f44-1f98-4bb3-921d-6f71c453e9a6"),
+            Name = PackageName.Basic,
+            Description = "",
+            Price = 250000,
+            SketchRevision = 1,
+            ServiceId = Services[2].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("f9a8b317-b2e5-4b1b-9980-3f9f7fbd5f25"),
+            Name = PackageName.Standard,
+            Description = "",
+            Price = 275000,
+            SketchRevision = 2,
+            ServiceId = Services[2].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("53eb9fdc-7086-4932-9dc8-e91a9e4f88c9"),
+            Name = PackageName.Premium,
+            Description = "",
+            Price = 350000,
+            SketchRevision = 3,
+            ServiceId = Services[2].Id
         },
 
         #endregion
@@ -2693,6 +2734,65 @@ new()
             IsInformationRequired = false,
             IsQuantity = false
         },
+
+        #endregion
+
+        #region Feature of service: "Dịch vụ mẫu"
+
+        new()
+        {
+            Id = Guid.Parse("b894a7e1-5473-4a3a-a9ee-83a2a5a02db1"),
+            Name = "Màu",
+            Question = "Chọn màu gì?",
+            QuestionType = MediaType.Select,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("6e45a8c1-25de-44ae-b6c4-7c52c38b9b08"),
+            Name = "Kích thước",
+            Question = "Chọn size gì?",
+            QuestionType = MediaType.Select,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("1c728510-4432-4bcf-a7bb-7b291cdb67a3"),
+            Name = "Phụ kiện đi kèm",
+            Question = "Muốn đính kèm item gì?",
+            QuestionType = MediaType.CheckBox,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("62d79049-1f69-48d0-93c1-f2ae1725407e"),
+            Name = "Khoá ví",
+            Question = "Muốn có muốn thêm khoá ví?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("449a9e07-3c9d-46c2-b78d-dcf07b1a3956"),
+            Name = "Khe đựng thẻ",
+            Question = "Muốn có muốn thêm khe đựng thẻ?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("7f9ad2f4-ef87-4c53-a7fa-5a1b3e022374"),
+            Name = "Khắc ký tự",
+            Question = "Muốn có muốn thêm ký tự gì?",
+            QuestionType = MediaType.Text,
+            IsInformationRequired = true,
+            IsQuantity = false
+        }
 
         #endregion
     };
@@ -3172,6 +3272,107 @@ new()
             PackageId = Packages[5].Id,
             FeatureId = Features[10].Id
         },
+
+        #endregion
+
+        #region PackageFeature of package Premium, service: "Dịch vụ mẫu"
+
+        new()
+        {
+            Id = Guid.Parse("39a5a7b4-0e1d-4d57-bc91-6e289321b7df"),
+            Name = "Rustic Brown",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[12].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a70a4fc9-f02b-4951-9041-f3f949948361"),
+            Name = "Brown Oily",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[12].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("e9d5f7de-4f2c-4d55-a56d-bd1123c4982a"),
+            Name = "Mini (38 mm x 64 mm)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[13].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("b7e90529-163b-4f12-b16a-4d2d9d4b28e3"),
+            Name = "Standard (64 mm x 89 mm)",
+            IsExtra = true,
+            AdditionalCost = 10000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[13].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("475aa523-b039-459b-916a-65896ac29e9b"),
+            Name = null,
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 10,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[14].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("3f561002-2dcf-4eb8-bb5b-7ac13ef2283e"),
+            Name = null,
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[15].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("fcb87c89-3703-4d45-93b1-d1a2b2df529a"),
+            Name = "10 (Đây là ví dụ IsQuantiy nhưng có name, name ở đây sẽ là max quantity)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = 2,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[16].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("f50c24f8-10ed-46fa-80df-20ba0aa0e61d"),
+            Name = null,
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = 2,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[17].Id
+        }
 
         #endregion
     };
