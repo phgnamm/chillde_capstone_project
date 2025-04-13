@@ -20,7 +20,7 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.DefaultSlidingExpiration, "DefaultSlidingExpirationInMinutes" },
             { SystemConfigKey.MaximumPackageOfOneService, "MaximumPackageOfOneService" },
             { SystemConfigKey.MaximumPackageFeatureOfOnePackage, "MaximumFeatureOfOnePackage" },
-            {SystemConfigKey.MaxPriceOfPackage, "MaxPriceOfPackage" },
+            { SystemConfigKey.MaxPriceOfPackage, "MaxPriceOfPackage" },
             // percent order for cancellation automatically
             { SystemConfigKey.AutoCancelPercentagePenalty, "AutoCancelPercentagePenalty" },
             { SystemConfigKey.AutoCancelPointPenalty, "AutoCancelPointPenalty" },
@@ -31,13 +31,13 @@ namespace Chillde.Repositories.Common
             // related to voucher
             // configuration for create voucher in background service
             { SystemConfigKey.MinOrdersForArtisan , "MinOrdersForArtisan" },
-            { SystemConfigKey.NumberOfMonthForMinOrders , "NumberOfMonthForMinOrders " },
-            { SystemConfigKey.MinReputationOfArtisan , "MinReputationOfArtisan " },
-            { SystemConfigKey.DiscountValue , "DiscountValue " },
-            { SystemConfigKey.MaxDiscountValue , "MaxDiscountValue " },
-            { SystemConfigKey.TotalQuantity , "TotalQuantity " },
-            { SystemConfigKey.NumberOfDateForUsingVoucher , "NumberOfDateForUsingVoucher " },
-            { SystemConfigKey.MinOrderValue , "MinOrderValue " },
+            { SystemConfigKey.NumberOfMonthForMinOrders , "NumberOfMonthForMinOrders" },
+            { SystemConfigKey.MinReputationOfArtisan , "MinReputationOfArtisan" },
+            { SystemConfigKey.DiscountValue, "DiscountValue" },
+            { SystemConfigKey.MaxDiscountValue , "MaxDiscountValue" },
+            { SystemConfigKey.TotalQuantity , "TotalQuantity" },
+            { SystemConfigKey.NumberOfDateForUsingVoucher, "NumberOfDateForUsingVoucher" },
+            { SystemConfigKey.MinOrderValue , "MinOrderValue" },
             { SystemConfigKey.Commission, "Commission" },
             //New values ​​related to order processing
             { SystemConfigKey.MaxSystemCancelPerYear, "MaxSystemCancelPerYear" }, // Số lần hủy tối đa trong 1 năm
@@ -49,6 +49,17 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.MaxCustomerOrdersPerMonth, "MaxCustomerOrdersPerMonth" }, // Giới hạn đơn hàng khách hàng trong tháng
             { SystemConfigKey.ReputationIncreaseOnSuccess, "ReputationIncreaseOnSuccess" }, // Điểm cộng khi đơn thành công
             { SystemConfigKey.MinReputationToAvoidBan, "MinReputationToAvoidBan" }, // Điểm tối thiểu để tránh bị ban
+
+            //Vouvher
+            //{ SystemConfigKey.NumberOfMonthForMinOrders, "NumberOfMonthForMinOrders" },
+            //{ SystemConfigKey.MinReputationOfArtisan, "MinReputationOfArtisan" },
+            //{ SystemConfigKey.DiscountValue, "DiscountValue" },
+            //{ SystemConfigKey.MaxDiscountValue, "MaxDiscountValue" },
+            //{ SystemConfigKey.TotalQuantity, "TotalQuantity" },
+            //{ SystemConfigKey.NumberOfDateForUsingVoucher, "NumberOfDateForUsingVoucher" },
+            //{ SystemConfigKey.MinOrderValue, "MinOrderValue" },
+            //{ SystemConfigKey.Commission, "Commission" },
+            //{ SystemConfigKey.MinOrdersForArtisan, "MinOrdersForArtisan" },
         };
     }
 }

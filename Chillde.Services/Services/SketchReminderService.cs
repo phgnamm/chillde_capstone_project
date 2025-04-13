@@ -20,7 +20,7 @@ namespace Chillde.Services.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SketchReminderService> _logger;
         private DateTime? _nextRunTime;
-        private const int FIXED_DELAY_SECONDS = 30;
+        private const int FIXED_DELAY_SECONDS = 30000;
 
         public SketchReminderService(IServiceScopeFactory serviceScopeFactory, ILogger<SketchReminderService> logger)
         {
