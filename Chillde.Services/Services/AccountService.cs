@@ -1181,7 +1181,7 @@ public class AccountService : IAccountService
             };
         }
 
-        var orderedQuantity = await _unitOfWork.OrderRepository.NumberCompletedOrder(currentUserId.Value, artisanId);
+        var completedOrders = await _unitOfWork.OrderRepository.NumberCompletedOrder(currentUserId.Value, artisanId);
         var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
         var customerReputation = customer?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString())?.TotalReputation ?? 0;
 
@@ -1190,7 +1190,7 @@ public class AccountService : IAccountService
             bool isValid = true;
 
             if (_.MinOrderRequired.HasValue)
-                isValid &= orderedQuantity >= _.MinOrderRequired;
+                isValid &= completedOrders >= _.MinOrderRequired;
 
             if (_.MinReputation.HasValue)
                 isValid &= customerReputation >= _.MinReputation;
@@ -1222,7 +1222,7 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ResponseModel> GetVoucherAdmin(Guid orderId)
+    public async Task<ResponseModel> GetVoucherAdmin(Guid orderId, decimal? totalPrice)
     {
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
@@ -1234,15 +1234,30 @@ public class AccountService : IAccountService
             };
         }
         var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
-        var voucher = await _unitOfWork.VoucherRepository.GetAllAsync(filter: _ => _.ReceiverId == currentUserId
-                                           && _.ExpiredTime >= DateTime.UtcNow
-                                           && _.StartTime <= DateTime.UtcNow
-                                           && _.VoucherType == Repositories.Enums.VoucherType.AdminToArtist
-                                           && _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending
-                                           && (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0)
-                                           && (!_.MinOrderValue.HasValue || (order.TotalPrice - order.ShippingPrice) >= _.MinOrderValue),
-                                           include: _ => _.Include(_ => _.Receiver));
-        if (voucher == null)
+      
+        var completedOrders = await _unitOfWork.OrderRepository.NumberCompletedOrderOfArtisan(currentUserId.Value);
+        var artisan = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
+        var artisanReputation = artisan?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())?.TotalReputation ?? 0;
+
+        var allVouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
+            filter: _ =>
+                _.ExpiredTime >= DateTime.UtcNow &&
+                _.StartTime <= DateTime.UtcNow &&
+                _.VoucherType == Repositories.Enums.VoucherType.AdminToArtist &&
+                _.VoucherStatus == Repositories.Enums.VoucherStatus.Pending &&
+                (!_.RemainingQuantity.HasValue || _.RemainingQuantity > 0) &&
+                (
+                    _.ReceiverId == currentUserId ||
+                    (
+                        _.ReceiverId == null &&
+                        (!_.MinOrderValue.HasValue || (totalPrice.HasValue && totalPrice.Value >= _.MinOrderValue)) &&
+                        (!_.MinOrderRequired.HasValue || completedOrders >= _.MinOrderRequired) &&
+                        (!_.MinReputation.HasValue || artisanReputation >= _.MinReputation)
+                    )
+                ),
+            include: _ => _.Include(_ => _.Receiver)
+        );
+        if (allVouchers == null)
         {
             return new ResponseModel
             {
@@ -1251,8 +1266,7 @@ public class AccountService : IAccountService
                 Message = "No vouchers available."
             };
         }
-        var artisan = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
-        var voucherModelLists = voucher?.Data?.Select(_ => new VoucherModel
+        var voucherModelLists = allVouchers?.Data?.Select(_ => new VoucherModel
         {
             Id = _.Id,
             Code = _.Code,

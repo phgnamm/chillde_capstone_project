@@ -67,6 +67,7 @@ namespace Chillde.Services.Services
                     MinOrderValue = voucherAddModel.MinOrderValue ?? 0,
                     MaxDiscountValue = voucherAddModel.MaxDiscountValue,
                     TotalQuantity = voucherAddModel.TotalQuantity ?? null,
+                    RemainingQuantity = voucherAddModel.TotalQuantity ?? null,
                     StartTime = voucherAddModel.StartTime,
                     ExpiredTime = voucherAddModel.ExpiredTime,
                     CreatedById = currentUserId.Value,

@@ -444,7 +444,7 @@ namespace Chillde.Services.Services
                     throw new Exception($"The order has at least {voucher.MinOrderValue} to apply this voucher.");
                 }
              
-                if (voucher.RemainingQuantity.HasValue && voucher.RemainingQuantity.Value <= 0)
+                if (voucher.RemainingQuantity.HasValue && voucher.RemainingQuantity.Value < 1)
                 {
                     throw new Exception("This voucher is out of stock to use.");
 
@@ -471,7 +471,7 @@ namespace Chillde.Services.Services
                 });
                 if (paymentType == PaymentType.Balance)
                 {
-                    if (voucher.TotalQuantity.HasValue)
+                    if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity >= 1)
                     {
                         voucher.RemainingQuantity -= 1;
                     }
@@ -579,8 +579,11 @@ namespace Chillde.Services.Services
 
             foreach (var voucherUsageLog in order.VoucherUsageLogs)
             {
-                voucherUsageLog.Voucher.RemainingQuantity -= 1;
-                voucherUsageLog.UsageStatus = UsageStatus.Used;
+                if (voucherUsageLog.Voucher.TotalQuantity.HasValue && voucherUsageLog.Voucher.RemainingQuantity >= 1)
+                {
+                    voucherUsageLog.Voucher.RemainingQuantity -= 1;
+                    voucherUsageLog.UsageStatus = UsageStatus.Used;
+                }
             }
 
             order.PaymentStatus = PaymentStatus.Success;
@@ -1126,7 +1129,7 @@ namespace Chillde.Services.Services
                         {
                             if (voucherLog.Voucher.TotalQuantity.HasValue)
                             {
-                                voucherLog.Voucher.TotalQuantity += 1; 
+                                voucherLog.Voucher.RemainingQuantity += 1; 
                             }
                             voucherLog.UsageStatus = UsageStatus.Cancelled;
                         }
@@ -1197,7 +1200,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (voucher.TotalQuantity.HasValue && voucher.TotalQuantity.Value < 1)
+            if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity < 1)
             {
                 return new ResponseModel
                 {

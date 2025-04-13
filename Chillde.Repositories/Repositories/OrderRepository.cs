@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using Nest;
 
@@ -82,6 +83,12 @@ namespace Chillde.Repositories.Repositories
                         .ToListAsync();
             return orders;
         
+        }
+
+        public async Task<int> NumberCompletedOrderOfArtisan(Guid artistId)
+        {
+            var orders = _dbSet.Where(_ => _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Success).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
+            return orders;
         }
     }
 }
