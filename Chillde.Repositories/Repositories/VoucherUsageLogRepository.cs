@@ -13,5 +13,16 @@ namespace Chillde.Repositories.Repositories
         public VoucherUsageLogRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
+
+        public async Task<bool> CheckOrderHasUsedVoucher(Guid orderId, Guid voucherId)
+        {
+            return _dbSet.Any(_ => _.OrderId == orderId && _.VoucherId == voucherId);
+        }
+
+        public async Task<bool> CheckOrderHasUsedVoucherForCustomer(Guid orderId, Guid voucherId)
+        {
+            return _dbSet.Any(_ => _.OrderId == orderId && _.VoucherId == voucherId && _.UsageStatus == Enums.UsageStatus.Used);
+
+        }
     }
 }

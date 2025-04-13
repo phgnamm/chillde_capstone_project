@@ -190,6 +190,7 @@ public class AppDbContext : DbContext
     public DbSet<AccountRole> AccountRoles { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<Deposit> Deposits { get; set; }
     public DbSet<FAQ> FAQs { get; set; }
     public DbSet<Feature> Features { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }

@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250413032444_EntityV16")]
+    partial class EntityV16
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2500,6 +2503,9 @@ namespace Chillde.Repositories.Migrations
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid?>("DeletedById")
                         .HasColumnType("uuid");
 
@@ -2532,7 +2538,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("OrderId");
 
@@ -3163,9 +3169,11 @@ namespace Chillde.Repositories.Migrations
 
             modelBuilder.Entity("Chillde.Repositories.Entities.VoucherUsageLog", b =>
                 {
-                    b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
+                    b.HasOne("Chillde.Repositories.Entities.Account", "Customer")
                         .WithMany("VoucherUsageLogs")
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Chillde.Repositories.Entities.Order", "Order")
                         .WithMany("VoucherUsageLogs")
@@ -3179,7 +3187,7 @@ namespace Chillde.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedBy");
+                    b.Navigation("Customer");
 
                     b.Navigation("Order");
 

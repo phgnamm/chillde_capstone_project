@@ -11,7 +11,8 @@ namespace Chillde.Services.Models.CategoryModels
     {
         public Guid? ParentId { get; set; } 
         public string? Slug { get; set; } 
-        public bool IncludeChildren { get; set; } 
+        public bool IncludeChildren { get; set; }
+        protected override int MinPageSize { get; set; } = 20;
     }
-}
+}   
 

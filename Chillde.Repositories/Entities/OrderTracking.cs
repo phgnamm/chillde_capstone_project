@@ -11,7 +11,11 @@ public class OrderTracking : BaseEntity
     #region new fields
     public OrderStage Stage { get; set; }
     public OrderTrackingType Type { get; set; }
-    public int ExtendedDays { get; set; } 
+
+    // sketchReminder
+    public bool? IsReminder50Sent { get; set; } = null;
+    public bool? IsReminder80Sent { get; set; } = null;
+    public bool? IsDeadlineSent { get; set; } = null;
     #endregion
 
 

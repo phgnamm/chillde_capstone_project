@@ -9,12 +9,14 @@ namespace Chillde.Repositories.Entities
 {
     public class ReputationLog : BaseEntity
     {
-        public int PointChange { get; set; } // Số điểm thay đổi (+ hoặc -)
-        public string Reason { get; set; } = null!; // Lý do thay đổi
+        public int PointChange { get; set; }
+        public string Reason { get; set; } = null!;
 
-        //Foreign key
+        // Foreign keys
+        public Guid OrderId { get; set; }
+        public virtual Order Order { get; set; } = null!;
+
         public Guid AccountRoleId { get; set; }
-        // Relationship
         public virtual AccountRole AccountRole { get; set; } = null!;
     }
 }

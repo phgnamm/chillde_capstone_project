@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using CloudinaryDotNet;
 using Microsoft.EntityFrameworkCore;
 using Nest;
 
@@ -54,30 +55,39 @@ namespace Chillde.Repositories.Repositories
         {
             return await _dbSet
                 .Where(_ => _.Status == OrderStatus.Accepted
-                             && _.Stage == OrderStage.ReviewSketch
-                             && _.OrderTrackings.Any(_ => _.Type == OrderTrackingType.Sketch && _.IsAccepted == null))
+                             && _.Stage == OrderStage.ReviewSketch)
                 .Include(_ => _.Package)
                 .ThenInclude(_ => _.Service)
                 .Include(_ => _.CreatedBy)
                     .ThenInclude(_ => _.Wallet)
-                    .Include(_ => _.CreatedBy)
-                    .ThenInclude(_ => _.AccountRoles)
+                 .Include(_ => _.CreatedBy)
+                 .ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Role)
                 .Include(_ => _.OrderTrackings)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Order>> GetOrderInDeliveryProcess(CancellationToken stoppingToken)
+        public async Task<IEnumerable<Order>> GetOrderToRemindDeadline()
         {
             var orders = await _dbSet
-                         .Where(o => o.Stage == OrderStage.DeliveryInProcess && o.StartTime.HasValue && o.DeliveryTime.HasValue)
+                         .Where(o => (o.Stage == OrderStage.SketchInProcess || o.Stage == OrderStage.ReviewSketch || o.Stage == OrderStage.DeliveryInProcess ) && o.Status == OrderStatus.Accepted && o.StartTime.HasValue && o.DeliveryTime.HasValue)
                          .Include(_ => _.Package)
                         .ThenInclude(_ => _.Service)
                         .ThenInclude(_ => _.CreatedBy).ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Role)
+                         .Include(_ => _.Package)
+                        .ThenInclude(_ => _.Service)
+                        .ThenInclude(_ => _.CreatedBy).ThenInclude(_ => _.AccountRoles).ThenInclude(_ => _.Reputations)
                         .Include(_ => _.CreatedBy)
                         .ThenInclude(_ => _.Wallet)
                         .Include(_ => _.CreatedBy)
                         .Include(_ => _.OrderTrackings)
-                        .ToListAsync(stoppingToken);
+                        .ToListAsync();
+            return orders;
+        
+        }
+
+        public async Task<int> NumberCompletedOrderOfArtisan(Guid artistId)
+        {
+            var orders = _dbSet.Where(_ => _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Success).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
             return orders;
         }
     }

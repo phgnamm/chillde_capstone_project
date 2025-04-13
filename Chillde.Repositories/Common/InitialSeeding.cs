@@ -1426,6 +1426,843 @@ public static class InitialSeeding
             AttachmentUrl =
                 "https://images.unsplash.com/photo-1533678316395-13b6b41bf542?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         },
+        //cha cua category
+        new()
+{
+    Id = Guid.Parse("01962314-3cf5-7725-b3f2-ed1cb9f3a4bb"),
+    Name = "HandBags & Purses",
+    AttachmentUrl = ""
+},
+        new()
+{
+    Id = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    Name = "Bath & Beauty",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-795c-7c14-8fa3-84dfdf4d2645"),
+    Name = "Books, Movies & Music",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    Name = "Craft Supplies & Tools",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    Name = "Electronics & Accessories",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    Name = "Home & Living",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-7963-75a0-9f5b-390f1004df9a"),
+    Name = "Paper & Party Supplies",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    Name = "Pet Supplies",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    Name = "Shoes",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-7969-78b0-802a-9e51e1f1e51f"),
+    Name = "Toys & Games",
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    Name = "Weddings",
+    AttachmentUrl = ""
+},
+// con của HandBags & Purses
+new()
+{
+    Id = Guid.Parse("0196235b-c327-7088-bd88-e1a8a5d8dc09"),
+    Name = "Handbags",
+    AttachmentUrl = "",
+    ParentId = Guid.Parse("01962314-3cf5-7725-b3f2-ed1cb9f3a4bb")
+},
+new()
+{
+    Id = Guid.Parse("0196235b-c358-7940-b983-0a17a3eeba6d"),
+    Name = "Totes",
+    AttachmentUrl = "",
+    ParentId = Guid.Parse("01962314-3cf5-7725-b3f2-ed1cb9f3a4bb")
+},
+new()
+{
+    Id = Guid.Parse("0196235b-c35a-7bf3-8672-c2ba68927c07"),
+    Name = "Backpacks",
+    AttachmentUrl = "",
+    ParentId = Guid.Parse("01962314-3cf5-7725-b3f2-ed1cb9f3a4bb")
+},
+new()
+{
+    Id = Guid.Parse("0196235b-c35b-7aa0-abae-b2c03a8264ab"),
+    Name = "Wallets & Money Clipss",
+    AttachmentUrl = "",
+    ParentId = Guid.Parse("01962314-3cf5-7725-b3f2-ed1cb9f3a4bb")
+},
+new()
+{
+    Id = Guid.Parse("0196235b-c35d-790c-9eec-402ee68eaf82"),
+    Name = "Pouches & Coin Purses",
+    AttachmentUrl = "",
+    ParentId = Guid.Parse("01962314-3cf5-7725-b3f2-ed1cb9f3a4bb")
+},
+//con hangbag
+new()
+{
+    Id = Guid.Parse("01962363-d6a8-77e5-a3e9-aab36dbbf915"),
+    Name = "Shoulder Bags",
+    ParentId = Guid.Parse("0196235b-c327-7088-bd88-e1a8a5d8dc09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962363-d6ed-7b2f-919d-88217862b820"),
+    Name = "Clutches & Evening Bags",
+    ParentId = Guid.Parse("0196235b-c327-7088-bd88-e1a8a5d8dc09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962363-d6f0-7fee-bbb2-b5270dd0d0d9"),
+    Name = "Hobo Bags",
+    ParentId = Guid.Parse("0196235b-c327-7088-bd88-e1a8a5d8dc09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962363-d6f3-7a0f-b687-c4bb5318282d"),
+    Name = "Purse Straps",
+    ParentId = Guid.Parse("0196235b-c327-7088-bd88-e1a8a5d8dc09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962363-d6f5-7a2a-82f4-3398692e3598"),
+    Name = "Top Handle Bags",
+    ParentId = Guid.Parse("0196235b-c327-7088-bd88-e1a8a5d8dc09"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Wallets & Money Clips
+new()
+{
+    Id = Guid.Parse("0196236e-876e-76fc-88c4-3df446a982ab"),
+    Name = "Wallets",
+    ParentId = Guid.Parse("0196235b-c35b-7aa0-abae-b2c03a8264ab"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196236e-87bc-72fd-8207-b351f2b2d15f"),
+    Name = "Money Clips",
+    ParentId = Guid.Parse("0196235b-c35b-7aa0-abae-b2c03a8264ab"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196236e-87be-74b6-8e3c-40c3f476eb06"),
+    Name = "Checkbook",
+    ParentId = Guid.Parse("0196235b-c35b-7aa0-abae-b2c03a8264ab"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Books, Movies & Music
+new()
+{
+    Id = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    Name = "Book",
+    ParentId = Guid.Parse("0196234b-795c-7c14-8fa3-84dfdf4d2645"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962377-9d9f-79d2-a1e1-50d1bdb99f07"),
+    Name = "Movie",
+    ParentId = Guid.Parse("0196234b-795c-7c14-8fa3-84dfdf4d2645"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962377-9da2-7e37-bfb5-834032818f70"),
+    Name = "Music",
+    ParentId = Guid.Parse("0196234b-795c-7c14-8fa3-84dfdf4d2645"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962377-9da4-733a-8f40-bdbcf9b3f08b"),
+    Name = "Video Cases & Tins",
+    ParentId = Guid.Parse("0196234b-795c-7c14-8fa3-84dfdf4d2645"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Book
+new()
+{
+    Id = Guid.Parse("019623aa-20c2-7310-9d89-0d219fb1cd1e"),
+    Name = "Book Sets & Collections",
+    ParentId = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623aa-210e-7730-8bb2-847c60590e8f"),
+    Name = "Book Accessories",
+    ParentId = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623aa-2111-7139-a93c-0943986117c6"),
+    Name = "Coloring Books",
+    ParentId = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623aa-2114-7f9c-8c5d-ee17293c7028"),
+    Name = "Blank Books",
+    ParentId = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623aa-2116-71d4-ac27-016b602836b7"),
+    Name = "Children's Books",
+    ParentId = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623aa-2119-7baa-9e9a-1c9d385b30df"),
+    Name = "Comics & Graphic Novels",
+    ParentId = Guid.Parse("01962377-9d66-7c11-ac71-ca549df16920"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Music
+new()
+{
+    Id = Guid.Parse("019623af-39b1-75bb-b7c1-7d5bf5dde22a"),
+    Name = "Musical Instruments",
+    ParentId = Guid.Parse("01962377-9da2-7e37-bfb5-834032818f70"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623af-39ec-79df-87de-917b5e0a399d"),
+    Name = "Recorded Audio",
+    ParentId = Guid.Parse("01962377-9da2-7e37-bfb5-834032818f70"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623af-39ef-76f8-aaa1-e901067f5caf"),
+    Name = "Instrument Straps",
+    ParentId = Guid.Parse("01962377-9da2-7e37-bfb5-834032818f70"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623af-39f1-7dd6-8424-5363d80b49b1"),
+    Name = "Gig Bags & Instrument Cases",
+    ParentId = Guid.Parse("01962377-9da2-7e37-bfb5-834032818f70"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623af-39f4-73e5-9bc3-7e78316b8986"),
+    Name = "Picks & Slides",
+    ParentId = Guid.Parse("01962377-9da2-7e37-bfb5-834032818f70"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Toys & Games
+new()
+{
+    Id = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    Name = "Games & Puzzles",
+    ParentId = Guid.Parse("0196234b-7969-78b0-802a-9e51e1f1e51f"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    Name = "Toys",
+    ParentId = Guid.Parse("0196234b-7969-78b0-802a-9e51e1f1e51f"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    Name = "Sports & Outdoor Recreation",
+    ParentId = Guid.Parse("0196234b-7969-78b0-802a-9e51e1f1e51f"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Games & Puzzles
+new()
+{
+    Id = Guid.Parse("019623bf-25de-78e8-b7e2-396764ad8d9c"),
+    Name = "Board Games",
+    ParentId = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623bf-261a-76ac-be73-ba1a64dbe651"),
+    Name = "Puzzles",
+    ParentId = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623bf-261d-71a1-9086-2924830e46bf"),
+    Name = "Role Playing Games",
+    ParentId = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623bf-2620-7def-a526-5bb3f615b6ff"),
+    Name = "Card Games",
+    ParentId = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623bf-2622-7d93-94ca-8882451c555d"),
+    Name = "Game Pieces",
+    ParentId = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623bf-2624-7db7-97be-5d5f7c097c16"),
+    Name = "Video Games",
+    ParentId = Guid.Parse("019623ba-ad19-7127-9f7b-6258f9585475"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Toys
+new()
+{
+    Id = Guid.Parse("019623d4-133e-732f-b66e-0c3f79d3bd73"),
+    Name = "Stuffed Animals & Plushies",
+    ParentId = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d4-137c-7dfe-8145-7ca7f1116b3e"),
+    Name = "Baby & Toddler Toys",
+    ParentId = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d4-137f-7eed-ab1e-403ba36da409"),
+    Name = "Miniature Toys",
+    ParentId = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d4-1381-7579-bf6a-84e5bcf2450d"),
+    Name = "Learning & School",
+    ParentId = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d4-1383-7da4-a125-47012a4f515d"),
+    Name = "Pretend Play",
+    ParentId = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d4-1385-7ea8-85cd-c1f3318b50fd"),
+    Name = "Stress Balls & Desk Toys",
+    ParentId = Guid.Parse("019623ba-ad5e-7b16-a818-126ab5d0fec7"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Sports & Outdoor Recreation
+new()
+{
+    Id = Guid.Parse("019623d8-daa7-7d33-b42e-e37e1c612c82"),
+    Name = "Camping",
+    ParentId = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d8-dae9-7517-b52a-74715dc994d8"),
+    Name = "Hunting & Archery",
+    ParentId = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d8-daec-72cf-a78c-2ae25913c598"),
+    Name = "Lawn Games",
+    ParentId = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d8-daef-75e6-884d-7ac9e3159b3f"),
+    Name = "Golf",
+    ParentId = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d8-daf1-7b19-8a9b-95e74145d655"),
+    Name = "Fitness & Exercise",
+    ParentId = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623d8-daf3-7009-bed9-a22b6d9e7a30"),
+    Name = "Racquet Sports",
+    ParentId = Guid.Parse("019623ba-ad61-7ec8-9441-4653f7eb7a9b"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Craft Supplies & Tools
+new()
+{
+    Id = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    Name = "Home & Hobby",
+    ParentId = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ef-0125-71b6-8368-7bb003126a1c"),
+    Name = "Sewing & Fiber",
+    ParentId = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ef-0128-7249-bab2-43ba795968eb"),
+    Name = "Jewelry & Beauty",
+    ParentId = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ef-012a-7599-8e54-bafe532ff435"),
+    Name = "Visual Arts",
+    ParentId = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ef-012e-7283-b42c-fd201fe5f911"),
+    Name = "Sculpting & Forming",
+    ParentId = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623ef-0131-74b0-b778-d6e78db3830a"),
+    Name = "Paper, Party & Kids",
+    ParentId = Guid.Parse("0196234b-795e-768b-837c-fa58eb97f34a"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Home & Hobby
+new()
+{
+    Id = Guid.Parse("019623f5-57fc-7dd8-9499-5da5e93dbb18"),
+    Name = "Woodworking & Carpentry",
+    ParentId = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623f5-5832-797a-9e19-f877d9d64eb1"),
+    Name = "Home Improvement",
+    ParentId = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623f5-5835-70a6-8013-60d22604ef7c"),
+    Name = "Electronics & Circuitry",
+    ParentId = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623f5-5837-73ec-b9da-560a20630420"),
+    Name = "Floral & Garden Crafts",
+    ParentId = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623f5-5839-7cb4-b333-d55901b8cb36"),
+    Name = "Food & Fermenting",
+    ParentId = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019623f5-583b-74e2-ac4b-9e91015b2705"),
+    Name = "Candle Making",
+    ParentId = Guid.Parse("019623ef-00bd-7df9-8fcd-e0ac86427f09"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Sewing & Fiber
+new()
+{
+    Id = Guid.Parse("0196240f-a3ab-733d-bd42-99ce6ee9e67d"),
+    Name = "Sewing & Needlecraft",
+    ParentId = Guid.Parse("019623ef-0125-71b6-8368-7bb003126a1c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196240f-a3eb-7581-b396-17fefbbeea0a"),
+    Name = "Knitting",
+    ParentId = Guid.Parse("019623ef-0125-71b6-8368-7bb003126a1c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196240f-a3ee-7991-9764-b57e3641e438"),
+    Name = "Spinning",
+    ParentId = Guid.Parse("019623ef-0125-71b6-8368-7bb003126a1c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196240f-a3f0-7516-8863-4b9ea097aeca"),
+    Name = "Weaving & Tapestry",
+    ParentId = Guid.Parse("019623ef-0125-71b6-8368-7bb003126a1c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196240f-a3f2-759d-a9c6-17bfd46b3ce9"),
+    Name = "Leatherworking",
+    ParentId = Guid.Parse("019623ef-0125-71b6-8368-7bb003126a1c"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Jewelry & Beauty
+new()
+{
+    Id = Guid.Parse("01962414-cd30-73cc-b5c6-d487d909cd2d"),
+    Name = "Jewelry Making & Beading",
+    ParentId = Guid.Parse("019623ef-0128-7249-bab2-43ba795968eb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962414-cd7a-7f02-9d36-a078020ed39f"),
+    Name = "Nail Art",
+    ParentId = Guid.Parse("019623ef-0128-7249-bab2-43ba795968eb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962414-cd7d-7c5e-9c03-e1ac4f335b33"),
+    Name = "Soap Making & Bath",
+    ParentId = Guid.Parse("019623ef-0128-7249-bab2-43ba795968eb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962414-cd80-7cc3-945f-98423db21b61"),
+    Name = "Hat Making & Hair Crafts",
+    ParentId = Guid.Parse("019623ef-0128-7249-bab2-43ba795968eb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962414-cd82-7ce4-ae61-b3327cd6ede9"),
+    Name = "Makeup & Face Painting",
+    ParentId = Guid.Parse("019623ef-0128-7249-bab2-43ba795968eb"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Paper, Party & Kids
+new()
+{
+    Id = Guid.Parse("0196241a-09cf-728f-8912-296a3625e4d6"),
+    Name = "Party & Gifting",
+    ParentId = Guid.Parse("019623ef-0131-74b0-b778-d6e78db3830a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196241a-0a17-7e05-bae1-9c0905ad0a08"),
+    Name = "Kids' Crafts",
+    ParentId = Guid.Parse("019623ef-0131-74b0-b778-d6e78db3830a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196241a-0a1a-757e-ba89-7e8c5091f735"),
+    Name = "Papercraft",
+    ParentId = Guid.Parse("019623ef-0131-74b0-b778-d6e78db3830a"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Pet Supplies
+new()
+{
+    Id = Guid.Parse("0196242d-f26d-7f7c-9f9b-74315e7a6457"),
+    Name = "Pet Collars & Leashes",
+    ParentId = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    Name = "Pet Furniture",
+    ParentId = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    Name = "Pet Bedding",
+    ParentId = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    Name = "Pet Feeding",
+    ParentId = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196242d-f2f8-7cf8-9cf1-c72ed2353608"),
+    Name = "Pet Clothing, Accessories & Shoes",
+    ParentId = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("0196242d-f2fa-7f84-a7ce-18d80f7cda4a"),
+    Name = "Pet Toys",
+    ParentId = Guid.Parse("0196234b-7965-7fc2-99cd-02852caa912c"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Pet Furniture
+new()
+{
+    Id = Guid.Parse("01962432-a2f7-7eaf-8121-8dd7903195a0"),
+    Name = "Pet Ramps",
+    ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962432-a35d-71a5-aa7b-62a5086d9748"),
+    Name = "Play Furniture",
+    ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962432-a35f-7d33-9d5c-61d466375bb6"),
+    Name = "Pet Steps",
+    ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962432-a362-7f0f-a5ea-8404d1179658"),
+    Name = "Pet Beds & Cots",
+    ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962432-a365-7864-b748-4368b50c06f0"),
+    Name = "Pet Hammocks",
+    ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962432-a366-7aac-8e6e-80718aec9100"),
+    Name = "Cage Stands",
+    ParentId = Guid.Parse("0196242d-f2e6-7a7b-9d4f-717059b4a545"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Pet Bedding
+new()
+{
+    Id = Guid.Parse("019625d0-3008-778a-91cc-77da7488122b"),
+    Name = "Pet Mats & Pads",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d0-308f-7573-886d-11299cc616fd"),
+    Name = "Pet Blankets",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d0-3092-76ec-a2ff-42f7234add1e"),
+    Name = "Nesting Supplies",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d0-3094-7857-a893-f60680a5e35f"),
+    Name = "Liners",
+    ParentId = Guid.Parse("0196242d-f2f3-7e2e-af4d-849fddc321a5"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Pet Feeding
+new()
+{
+    Id = Guid.Parse("019625d4-5de6-7e66-9f2b-d5ca87f95f94"),
+    Name = "Feeding Stands",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e40-7f3a-be21-9540f5c10262"),
+    Name = "Pet Bowls",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e44-7312-bb89-20dbf1194e16"),
+    Name = "Pet Food & Treats",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e4b-782a-972b-c8462bf7b390"),
+    Name = "Placemats",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625d4-5e4d-7911-a5a2-06104a84072d"),
+    Name = "Pet Feeders & Waterers",
+    ParentId = Guid.Parse("0196242d-f2f6-7eaa-bee4-4553884f29b1"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Home & Living
+new()
+{
+    Id = Guid.Parse("019625de-2aad-7750-bec1-e0483e3bdaab"),
+    Name = "Home Decor",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b24-7301-ae0f-9f1bee9321e0"),
+    Name = "Furniture",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b54-7ffc-b374-5a6d08777cdd"),
+    Name = "Outdoor & Gardening",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b57-7b29-b38f-8f2f62f42221"),
+    Name = "Floor & Rugs",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b59-7041-a3ff-ade37c3cdc96"),
+    Name = "Lighting",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625de-2b6a-79bc-8497-f833cd70e4b5"),
+    Name = "Storage & Organization",
+    ParentId = Guid.Parse("0196234b-7961-7813-a688-4c723f60938a"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Bath & Beauty
+new()
+{
+    Id = Guid.Parse("019625e4-d0c0-7b44-bc33-be143521ca3e"),
+    Name = "Spa & Relaxation",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d141-7daf-b65b-f0c1f9e791d8"),
+    Name = "Fragrances",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d144-7250-8847-1d169adf728e"),
+    Name = "Skin Care",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d170-7114-b9ef-c18ca7f485ee"),
+    Name = "Essential Oils",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d173-72d8-b78a-0f5d843248fc"),
+    Name = "Bath Accessories",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("019625e4-d175-71a5-be15-ce905ff33ff0"),
+    Name = "Hair Care",
+    ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
+    AttachmentUrl = ""
+},
     };
 
     private static readonly List<SystemConfig> SystemConfigs = new()
@@ -2490,10 +3327,16 @@ public static class InitialSeeding
 
         foreach (var feature in Features)
         {
-            var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
-                                  ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
+            //var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
+            //                      ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
 
-            if (existingFeature == null)
+            //if (existingFeature == null)
+            //{
+            //    feature.CreationDate = DateTime.UtcNow;
+            //    context.Features.Add(feature);
+            //}
+
+            if (!context.Features.Any(i => i.Id == feature.Id))
             {
                 feature.CreationDate = DateTime.UtcNow;
                 context.Features.Add(feature);

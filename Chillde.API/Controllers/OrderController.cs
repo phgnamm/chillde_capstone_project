@@ -160,6 +160,32 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet("IpnAction")]
+        public async Task<IActionResult> IpnAction()
+        {
+            if (Request.QueryString.HasValue)
+            {
+                try
+                {
+                    var paymentResult = await _vnpay.GetPaymentResult(Request.Query);
+                    if (paymentResult.IsSuccess)
+                    {
+                        var orderId = paymentResult.OrderId;
+                        var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
+                        return Ok();
+                    }
+
+                    // Thực hiện hành động nếu thanh toán thất bại tại đây. Ví dụ: Hủy đơn hàng.
+                    return BadRequest("Thanh toán thất bại");
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(ex.Message);
+                }
+            }
+
+            return NotFound("Không tìm thấy thông tin thanh toán.");
+        }
         [HttpGet("callback")]
         public async Task<IActionResult> Callback()
         {

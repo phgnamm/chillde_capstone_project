@@ -367,6 +367,14 @@ public static class Configuration
         services.AddScoped<IShipmentStatusHistoryRepository,ShipmentStatusHistoryRepository>();
         services.AddScoped<IShipmentStatusHistoryService, ShipmentStatusHistoryService>();
 
+        //ReputationLog
+        services.AddScoped<IReputationLogRepository, ReputationLogRepository>();
+
+        //SketchReminder
+        services.AddHostedService<SketchReminderService>();
+
+        //DeliveryReminder
+        services.AddHostedService<DeliveryReminderService>();
 
         #endregion
 

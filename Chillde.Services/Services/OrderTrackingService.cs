@@ -59,8 +59,6 @@ namespace Chillde.Services.Services
                 {
                     orderTracking.IsAccepted = true;
                     orderTracking.Order.Stage = OrderStage.DeliveryInProcess;
-                    orderTracking.Order.ReminderSent = false;
-                    orderTracking.Order.DeadlineMissed = false;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
                     //_orderReminderService.UpdateSchedule();
