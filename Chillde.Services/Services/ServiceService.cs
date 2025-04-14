@@ -1139,7 +1139,6 @@ namespace Chillde.Services.Services
                             }).ToList()
                     }).OrderBy(_ => _.Name).ToList();
 
-
                     var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
                       packageFilterModel.PageSize, packages.TotalCount);
 

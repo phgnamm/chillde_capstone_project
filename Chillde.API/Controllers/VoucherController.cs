@@ -1,5 +1,6 @@
 ﻿using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
+using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.VoucherModels;
 using Chillde.Services.Services;
@@ -72,6 +73,25 @@ namespace Chillde.API.Controllers
                 {
                     return Ok(result);
                 }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize]
+        [HttpGet()]
+        public async Task<IActionResult> GetAll([FromQuery] VoucherFilterModel voucherFilterModel)
+        {
+            try
+            {
+                var result = await _voucherService.GetAll(voucherFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

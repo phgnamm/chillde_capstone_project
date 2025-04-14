@@ -952,12 +952,16 @@ namespace Chillde.Services.Services
             if (orderFilterModel.Role == Repositories.Enums.Role.Customer)
             {
                 filter = _ => _.CreatedById == currentUserId.Value &&
-                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status);
+                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status) &&
+                             (!orderFilterModel.MinPrice.HasValue || _.TotalPrice >= orderFilterModel.MinPrice) &&
+                             (!orderFilterModel.MaxPrice.HasValue || _.TotalPrice <= orderFilterModel.MaxPrice);
             }
             else if (orderFilterModel.Role == Repositories.Enums.Role.Artisan)
             {
                 filter = _ => _.Package.Service.CreatedById == currentUserId.Value &&
-                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status);
+                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status) &&
+                             (!orderFilterModel.MinPrice.HasValue || _.TotalPrice >= orderFilterModel.MinPrice) &&
+                             (!orderFilterModel.MaxPrice.HasValue || _.TotalPrice <= orderFilterModel.MaxPrice);
             }
             else
             {
