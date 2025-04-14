@@ -806,12 +806,19 @@ public class AccountService : IAccountService
             .Include(account => account.AccountRoles)
                 .ThenInclude(accountRole => accountRole.Role)
             .Include(account => account.Wallet)
-            .Include(account => account.Orders),
+            .Include(account => account.Orders)
+            .Include(account => account.Services),
         accountFilterModel.PageIndex,
         accountFilterModel.PageSize
         );
 
         var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        accountModels.ForEach(accountModel =>
+        {
+            var originalAccount = accounts.Data.FirstOrDefault(a => a.Id == accountModel.Id);
+            accountModel.Service = originalAccount?.Services?.Count;
+        });
+
         var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
             accountFilterModel.PageSize, accounts.TotalCount);
 
@@ -821,7 +828,6 @@ public class AccountService : IAccountService
             Data = result
         };
     }
-
 
     public async Task<ResponseModel> Update(Guid id, AccountUpdateModel accountUpdateModel)
     {

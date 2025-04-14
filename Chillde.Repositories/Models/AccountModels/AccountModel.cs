@@ -37,6 +37,10 @@ public class AccountModel : BaseEntity
     
     // Order information
     public int OrderCount { get; set; }
+
+    //Service information
+    public int? Service { get; set; }
+
     // Relationship
     public List<Role> Roles { get; set; } = null!;
     public List<string> RoleNames { get; set; } = null!;
