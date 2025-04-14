@@ -653,28 +653,6 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var packages = _unitOfWork.PackageRepository.GetAllPackageFromService(service.Id).Result;
-
-                if (packages.Count() == 0)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status422UnprocessableEntity,
-                        Message = "Service does not have any package."
-                    };
-                }
-
-                var packageFeatures = packages.Select(p => _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(p.Id)).Sum();
-
-                if (packageFeatures == 0)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status422UnprocessableEntity,
-                        Message = "Service's package does not have any feature."
-                    };
-                }
-
                 service.Status = ServiceStatus.Active;
                 _unitOfWork.ServiceRepository.Update(service);
 
