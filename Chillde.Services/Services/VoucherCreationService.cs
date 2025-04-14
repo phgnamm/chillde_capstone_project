@@ -32,17 +32,17 @@ namespace Chillde.Services.Services
                 var now = DateTime.UtcNow;
                 //if (_nextRunTime == null || now >= _nextRunTime)
                 //{
-                    _nextRunTime = GetNextRunTime();
+                _nextRunTime = GetNextRunTime();
 
-                    try
+                try
+                {
+                    using (var scope = _serviceScopeFactory.CreateScope())
                     {
-                        using (var scope = _serviceScopeFactory.CreateScope())
-                        {
-                            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-                            var minOrderToCreateVoucher = int.Parse(unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MinOrdersForArtisan).Result!);
-                            var discountValue = decimal.Parse(unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.DiscountValue).Result!);
-                            var numberOfDateForUsingVoucher = int.Parse(unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.NumberOfDateForUsingVoucher).Result!);
+                        var minOrderToCreateVoucher = int.Parse(unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MinOrdersForArtisan).Result!);
+                        var discountValue = decimal.Parse(unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.DiscountValue).Result!);
+                        var numberOfDateForUsingVoucher = int.Parse(unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.NumberOfDateForUsingVoucher).Result!);
 
                         var accounts = unitOfWork.AccountRepository.GetAllAsync(
                             filter: account =>
@@ -81,25 +81,24 @@ namespace Chillde.Services.Services
 
                             }
                         }
-                    }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "An error occurred while creating vouchers.");
-                    }
+                        var delay = _nextRunTime.Value - DateTime.UtcNow;
+                        if (delay.TotalMilliseconds < 0)
+                        {
+                            _nextRunTime = GetNextRunTime();
+                            delay = _nextRunTime.Value - DateTime.UtcNow;
+                        }
 
-                    var delay = _nextRunTime.Value - DateTime.UtcNow;
-                    if (delay.TotalMilliseconds < 0)
-                    {
-                        _nextRunTime = GetNextRunTime();
-                        delay = _nextRunTime.Value - DateTime.UtcNow;
+                        //await Task.Delay(delay, stoppingToken);
+
+                        await Task.Delay(TimeSpan.FromDays(numberOfDateForUsingVoucher), stoppingToken);
                     }
-
-                    //await Task.Delay(delay, stoppingToken);
-
-                    await Task.Delay(TimeSpan.FromSeconds(FIXED_DELAY_SECONDS), stoppingToken);
                 }
-            //}
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "An error occurred while creating vouchers.");
+                }
+                //}
+            }
         }
 
         private DateTime GetNextRunTime()
