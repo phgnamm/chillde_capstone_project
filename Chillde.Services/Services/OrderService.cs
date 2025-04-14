@@ -260,11 +260,30 @@ namespace Chillde.Services.Services
                             (orderInfo, packageFeature) => new { orderInfo, packageFeature })
                         .Select(_ => _.packageFeature.FeatureId)
                         .ToList();
-
-            var missingFeatureIds = requiredFeatureIds
-                .Where(id => !providedFeatureIds.Contains(id))
-                .ToList();
-
+            ///////
+            //var missingFeatureIds = requiredFeatureIds
+            //    .Where(id => !providedFeatureIds.Contains(id))
+            //    .ToList();
+            //extraFeatureCost = extraFeatureIds.Data.Sum(pf =>
+            //      orderAddModel.OrderInformationAddModels!
+            //     .Where(_ => _.PackageFeatureId == pf.Id)
+            //     .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
+            //       );
+            //extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
+            //   orderAddModel.OrderInformationAddModels!
+            //       .Where(_ => _.PackageFeatureId == pf.Id)
+            //       .Sum(_ => (pf.AdditionalDay ?? 0))
+            // );
+            //if (extraFeatureCost > 0)
+            //{
+            //    newOrder.DeliveryTime += extraFeatureDeliveryTime;
+            //    newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+            //    newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+            //    var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
+            //    newOrder.AdminCommDefault = newCommission;
+            //    newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
+            //}
+            ///////
             if (missingFeatureIds.Any())
             {
                 throw new InvalidOperationException($"Missing required features: {string.Join(", ", missingFeatureIds)}");
@@ -275,7 +294,7 @@ namespace Chillde.Services.Services
                 var orderInfo = orderAddModel.OrderInformationAddModels
                     ?.FirstOrDefault(_ => _.PackageFeatureId == requiredFeature.Id);
 
-                if (requiredFeature.IsChecked == true)
+                if (requiredFeature.Feature.QuestionType == MediaType.Text)
                 {
                     if (orderInfo == null || string.IsNullOrWhiteSpace(orderInfo.Description))
                     {
@@ -1749,7 +1768,7 @@ namespace Chillde.Services.Services
 
                 if (order.Stage == OrderStage.DeliveryInProcess)
                 {
-                    order.Stage = OrderStage.ReviewDelivery;
+                    order.Stage = OrderStage.ReviewDelivery;    
                 }
 
                 var uploadedAttachments = await UploadAttachments(
@@ -1763,7 +1782,7 @@ namespace Chillde.Services.Services
                     Name = orderTrackingAddModel.Name ?? "New Delivery",
                     Description = orderTrackingAddModel.Description ?? "Delivery phase",
                     Type = orderTrackingAddModel.Type,
-                    Stage = OrderStage.ReviewSketch,
+                    Stage = OrderStage.ReviewDelivery,
                     CreatedById = currentUserId.Value,
                     OrderTrackingAttachments = uploadedAttachments
                 };
