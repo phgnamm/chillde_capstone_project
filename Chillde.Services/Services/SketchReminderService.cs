@@ -63,7 +63,7 @@ namespace Chillde.Services.Services
                         {
                             decimal penalty = 0m;
                             order.Status = OrderStatus.Cancelled;
-                            order.Stage = OrderStage.Cancelled;
+                            //order.Stage = OrderStage.Cancelled;
                             var autoCancelPercentagePenalty = await systemConfigurationService.Get(SystemConfigKey.AutoCancelPercentagePenalty);
 
                             if (autoCancelPercentagePenalty.Data is SystemConfigModel configPercentage
