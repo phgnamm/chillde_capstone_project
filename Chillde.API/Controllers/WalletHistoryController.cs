@@ -17,7 +17,7 @@ namespace Chillde.API.Controllers
             _walletHistoryService = walletHistoryService;
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAllWalletHistoryFromUser([FromQuery] WalletHistoryFilterModel walletHistoryFilterModel)
         {
