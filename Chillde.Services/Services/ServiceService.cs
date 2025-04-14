@@ -1464,6 +1464,8 @@ namespace Chillde.Services.Services
                         Rate = _.Rate,
                         MinWeight = _.MinWeight,
                         MaxWeight = _.MaxWeight,
+                        Status = _.Status,
+                        CategoryId = _.CategoryId,
                         ServiceAttachments = _.ServiceAttachments.ToList(),
                         Artisan = _.CreatedBy == null ? null : new AccountLiteModel
                         {
