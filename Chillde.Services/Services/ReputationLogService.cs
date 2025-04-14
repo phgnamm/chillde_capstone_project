@@ -27,25 +27,13 @@ namespace Chillde.Services.Services
     public class ReputationLogService : IReputationLogService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ITranslationService _translationService;
         private readonly IMapper _mapper;
-        private readonly IBadWordFilterService _badWordFilterService;
-        private readonly IPackageService _packageService;
-        private readonly IRedisHelper _redisHelper;
 
         public ReputationLogService(IUnitOfWork unitOfWork,
-            ITranslationService translationService,
-            IMapper mapper,
-            IBadWordFilterService badWordFilterService,
-            IPackageService packageService,
-            IRedisHelper redisHelper)
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
-            _translationService = translationService;
             _mapper = mapper;
-            _badWordFilterService = badWordFilterService;
-            _packageService = packageService;
-            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> GetAll(ReputationLogFilterModel reputationLogFilterModel)
@@ -77,7 +65,6 @@ namespace Chillde.Services.Services
                     Message = $"Internal server error: {ex.Message}"
                 };
             }
-
         }
     }
 }

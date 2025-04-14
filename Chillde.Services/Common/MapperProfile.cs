@@ -3,6 +3,7 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
+using Chillde.Repositories.Models.DepositModels;
 using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.ItemModels;
@@ -117,5 +118,8 @@ public class MapperProfile : Profile
 
         //ReputationLog
         CreateMap<ReputationLogModel, ReputationLog>().ReverseMap();
+
+        //Deposit
+        CreateMap<DepositModel, Deposit>().ReverseMap();
     }
 }

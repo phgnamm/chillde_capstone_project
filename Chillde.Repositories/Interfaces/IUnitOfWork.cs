@@ -54,6 +54,7 @@ public interface IUnitOfWork
     IShipmentStatusHistoryRepository ShipmentStatusHistoryRepository { get; }
     IOfferAttachmentRepository OfferAttachmentRepository { get; }
     IReputationLogRepository ReputationLogRepository { get; }
+    IDepositRepository DepositRepository { get; }
 
     #endregion
 }
