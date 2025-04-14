@@ -9,5 +9,6 @@ namespace Chillde.Services.Models.WalletHistoryModels
 {
     public class WalletHistoryFilterModel : FilterParameter
     {
+        public Guid? AccountId { get; set; }
     }
 }

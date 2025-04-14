@@ -738,11 +738,13 @@ public class AccountService : IAccountService
             if (Guid.TryParse(idOrUsername, out var id))
                 account = await _unitOfWork.AccountRepository.GetAsync(id, accounts =>
                     accounts
-                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role));
+                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role)
+                        .Include(a => a.ShippingAddresses));
             else
                 account = await _unitOfWork.AccountRepository.FindByUsernameAsync(idOrUsername, accounts =>
                     accounts
-                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role));
+                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role)
+                        .Include(a => a.ShippingAddresses));
 
             if (account == null)
                 return new ResponseModel
@@ -769,6 +771,7 @@ public class AccountService : IAccountService
             account =>
                 account.IsDeleted == accountFilterModel.IsDeleted &&
                 (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
+                (!accountFilterModel.Gender.HasValue || account.Status == accountFilterModel.Status) &&
                 (!accountFilterModel.Role.HasValue || account.AccountRoles
                     .Select(accountRole => accountRole.Role.Name)
                     .Contains(accountFilterModel.Role.ToString())) &&

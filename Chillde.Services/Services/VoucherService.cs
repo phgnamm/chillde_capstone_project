@@ -1,16 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.FeatureModels;
+using Chillde.Repositories.Models.FeedbackModels;
+using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.VoucherModels;
+using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.FeedbackModels;
+using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.VoucherModels;
+using Chillde.Services.Utils;
 using Elasticsearch.Net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Services.Services
 {
@@ -18,11 +30,15 @@ namespace Chillde.Services.Services
     {
         private readonly IClaimService _claimService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IRedisHelper _redisHelper;
+        private readonly IMapper _mapper;
 
-        public VoucherService(IClaimService claimService, IUnitOfWork unitOfWork)
+        public VoucherService(IClaimService claimService, IUnitOfWork unitOfWork, IRedisHelper redisHelper, IMapper mapper)
         {
             _claimService = claimService;
             _unitOfWork = unitOfWork;
+            _redisHelper = redisHelper;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> Add(VoucherAddModel voucherAddModel)
@@ -118,7 +134,6 @@ namespace Chillde.Services.Services
             return new ResponseModel { Message = "Voucher has been stopped successfully." };
         }
 
-
         public async Task<ResponseModel> Update(Guid id, VoucherUpdateModel voucherUpdateModel)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -205,6 +220,53 @@ namespace Chillde.Services.Services
             await _unitOfWork.SaveChangeAsync();
 
             return new ResponseModel { Message = "Voucher updated successfully." };
+        }
+
+        public async Task<ResponseModel> GetAll(VoucherFilterModel voucherFilterModel)
+        {
+            try
+            {
+                //var cacheKey = $"vouchers_{CacheTools.GenerateCacheKey(voucherFilterModel)}";
+
+                //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                //{
+                    Expression<Func<Voucher, bool>> filter = voucher =>
+                     (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                     (!voucherFilterModel.Status.HasValue || voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                     (!voucherFilterModel.Status.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                     (!voucherFilterModel.Status.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue);
+
+                    Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers =>
+                             vouchers.Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Order);
+
+                    var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
+                                    filter: filter,
+                                    include: include,
+                                    pageIndex: voucherFilterModel.PageIndex,
+                                    pageSize: voucherFilterModel.PageSize
+                    );
+
+                    var voucherModels = _mapper.Map<List<VoucherModel>>(vouchers.Data);
+
+                    var result = new Pagination<VoucherModel>(voucherModels, voucherFilterModel.PageIndex,
+                      voucherFilterModel.PageSize, vouchers.TotalCount);
+
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully.",
+                        Data = result
+                    };
+                //});
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
         }
 
     }

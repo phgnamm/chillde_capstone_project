@@ -63,7 +63,7 @@ namespace Chillde.Services.Services
                 PackageFeature newPackageFeature = new PackageFeature();
 
                 var existingPackageFeatures = _unitOfWork.PackageFeatureRepository.GetAllAsync(
-                    filter: _ => _.IsDeleted == false && _.PackageId == packageFeatureUpdateModel.PackageId
+                    filter: _ => _.IsDeleted == false && _.PackageId == packageFeatureUpdateModel.PackageId && _.FeatureId == packageFeature.FeatureId
                     ).Result.Data;
 
                 if (packageFeatureUpdateModel.Index == 0)
