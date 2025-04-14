@@ -10,6 +10,7 @@ using Chillde.Repositories.Models.MessageModels;
 using Chillde.Repositories.Models.OrderModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ReputationLogModels;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Repositories.Models.ShippingAddressModels;
@@ -113,5 +114,8 @@ public class MapperProfile : Profile
         //Voucher
         CreateMap<VoucherModel, Voucher>().ReverseMap();
         CreateMap<Voucher, VoucherModel>().ReverseMap();
+
+        //ReputationLog
+        CreateMap<ReputationLogModel, ReputationLog>().ReverseMap();
     }
 }

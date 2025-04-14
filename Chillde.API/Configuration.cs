@@ -369,6 +369,7 @@ public static class Configuration
 
         //ReputationLog
         services.AddScoped<IReputationLogRepository, ReputationLogRepository>();
+        services.AddScoped<IReputationLogService, ReputationLogService>();
 
         //SketchReminder
         services.AddHostedService<SketchReminderService>();
