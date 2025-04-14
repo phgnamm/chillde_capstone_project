@@ -47,7 +47,8 @@ public class UnitOfWork : IUnitOfWork
         IOrderTrackingRepository orderTrackingRepository,
         IShipmentStatusHistoryRepository shipmentStatusHistoryRepository,
         IOfferAttachmentRepository offerAttachmentRepository,
-        IReputationLogRepository reputationLogRepository
+        IReputationLogRepository reputationLogRepository,
+        IDepositRepository depositRepository
         )
     {
         Context = context;
@@ -94,7 +95,7 @@ public class UnitOfWork : IUnitOfWork
         ShipmentStatusHistoryRepository = shipmentStatusHistoryRepository;
         OfferAttachmentRepository = offerAttachmentRepository;
         ReputationLogRepository = reputationLogRepository;
-
+        DepositRepository = depositRepository;
     }
 
     public AppDbContext Context { get; }
@@ -129,29 +130,19 @@ public class UnitOfWork : IUnitOfWork
     //public IPaymentRepository PaymentRepository { get; }
     public IUserActivityLogRepository UserActivityLogRepository { get; }
     public ISystemConfigRepository SystemConfigRepository { get; }
-
     public ISearchHistoryRepository SearchHistoryRepository { get; }
-
     public IRequestAttachmentRepository RequestAttachmentRepository { get; }
-
     public IRequestAttributeAttachmentRepository RequestAttributeAttachmentRepository{ get; }
-
     public IRequestAttributeValueRepository RequestAttributeValueRepository { get; }
-
     public IRequestAttributeRepository RequestAttributeRepository { get; }
-
     public IVoucherRepository VoucherRepository { get; }
-
     public IVoucherUsageLogRepository VoucherUsageLogRepository { get; }
-
     public IOrderTrackingRepository OrderTrackingRepository { get; }
-
     public ICancellationReasonRepository CancellationReasonRepository { get; }
-
     public IShipmentStatusHistoryRepository ShipmentStatusHistoryRepository { get; }
     public IOfferAttachmentRepository OfferAttachmentRepository { get; }
-
     public IReputationLogRepository ReputationLogRepository { get; }
+    public IDepositRepository DepositRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

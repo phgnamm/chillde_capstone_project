@@ -371,6 +371,10 @@ public static class Configuration
         services.AddScoped<IReputationLogRepository, ReputationLogRepository>();
         services.AddScoped<IReputationLogService, ReputationLogService>();
 
+        //Deposit
+        services.AddScoped<IDepositRepository, DepositRepository>();
+        services.AddScoped<IDepositService, DepositService>();
+
         //SketchReminder
         services.AddHostedService<SketchReminderService>();
 
