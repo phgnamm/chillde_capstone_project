@@ -292,7 +292,7 @@ public class DeliveryReminderService : BackgroundService
             var reputationLog = new ReputationLog
             {
                 PointChange = -(int)15,
-                Reason = SystemCancelReason.NotReponseDeadlineInTime.ToString(),
+                Reason = $"Không đăng sản phẩm lên đúng thời gian của đơn hàng - {order.Code}",
                 OrderId = order.Id,
             };
             artisanAccount.Reputations.Add(reputationLog);

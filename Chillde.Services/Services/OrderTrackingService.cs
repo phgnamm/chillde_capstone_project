@@ -72,8 +72,6 @@ namespace Chillde.Services.Services
                 {
                     orderTracking.IsAccepted = true;
                     orderTracking.Order.Stage = OrderStage.Shipping;
-                    orderTracking.Stage = OrderStage.Shipping;
-                    orderTracking.IsAccepted = true;
                 }
                 return new ResponseModel
                 {

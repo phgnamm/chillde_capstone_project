@@ -7,10 +7,8 @@
         ReviewSketch,
         DeliveryInProcess,
         ReviewDelivery,
-        Late,
-        Cancelled,
         Shipping,
-        Completed,
-        Return
+        AwaitingClosure,
+        Completed
     }
 }
