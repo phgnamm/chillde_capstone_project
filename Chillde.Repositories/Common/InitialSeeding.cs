@@ -2263,6 +2263,143 @@ new()
     ParentId = Guid.Parse("0196234b-7956-79e1-82dc-5626be161232"),
     AttachmentUrl = ""
 },
+// Danh mục con của Shoes
+new()
+{
+    Id = Guid.Parse("01962f58-6d4b-72e7-b3e3-c06bc9963b4d"),
+    Name = "Women's Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d95-7c4c-ad41-020e367e279b"),
+    Name = "Men's Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d99-7624-8ffc-c05698a0d173"),
+    Name = "Girls' Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d9c-7864-a0ea-b05ef8e57237"),
+    Name = "Boys' Shoes",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f58-6d9e-789b-901d-ac5e4efa5bc6"),
+    Name = "Insoles & Accessories",
+    ParentId = Guid.Parse("0196234b-7967-798c-a052-df975721b2cb"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Electronics & Accessories
+new()
+{
+    Id = Guid.Parse("01962f5f-398d-71f3-b27f-8e255f5e45c8"),
+    Name = "Cameras & Equipment",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39d7-7bb5-b227-b57cffc5d019"),
+    Name = "Gadgets",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39d9-70d5-9317-7350cb0e30b6"),
+    Name = "Computers & Peripherals",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39dc-7117-9390-cc7c4c3348f4"),
+    Name = "Video & Audio Games",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39de-721e-9f61-9273aeddadfc"),
+    Name = "Audio",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f5f-39e1-7dc9-be26-c85266849bd1"),
+    Name = "Car Parts & Accessories",
+    ParentId = Guid.Parse("0196234b-795f-7848-ad1b-838a29010026"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Weddings
+new()
+{
+    Id = Guid.Parse("01962f6a-29c2-79d5-86f5-776d15053be9"),
+    Name = "Wedding Gifts & Mementos",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a24-727f-aa29-9dc24f32fd04"),
+    Name = "Wedding Decorations",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a27-7241-88ac-13c4ab6a0e21"),
+    Name = "Wedding Accessories",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a31-7158-812e-d3df7f198037"),
+    Name = "Wedding Invitations & Paper",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a37-731f-ae95-4ceb85ec25ff"),
+    Name = "Wedding Shoes",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6a-2a39-79bd-a21a-4b45260fd13b"),
+    Name = "Wedding Jewelry",
+    ParentId = Guid.Parse("0196234b-796b-7d58-ad2b-ebe079e3d022"),
+    AttachmentUrl = ""
+},
+// Danh mục con của Paper & Party Supplies
+new()
+{
+    Id = Guid.Parse("01962f6f-053b-7c0b-9d90-632e1badcf77"),
+    Name = "Party Supplies",
+    ParentId = Guid.Parse("0196234b-7963-75a0-9f5b-390f1004df9a"),
+    AttachmentUrl = ""
+},
+new()
+{
+    Id = Guid.Parse("01962f6f-0589-7762-b3b0-1f238e4e1e56"),
+    Name = "Paper",
+    ParentId = Guid.Parse("0196234b-7963-75a0-9f5b-390f1004df9a"),
+    AttachmentUrl = ""
+},
     };
 
     private static readonly List<SystemConfig> SystemConfigs = new()
@@ -2461,6 +2598,15 @@ new()
             CategoryId = Categories[0].Id,
             CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
         },
+        new()
+        {
+            Id = Guid.Parse("a3d5f1e0-7c56-4b93-9c9e-3a13fd8e7d4b"),
+            Name = "Dịch vụ mẫu",
+            Description = "Đây là dịch vụ mẫu dùng để test dữ liệu",
+            Status = Enums.ServiceStatus.Active,
+            CategoryId = Categories[0].Id,
+            CreatedById = Guid.Parse("0b95fbfe-b958-47ef-9672-3dd0131fa13b"),
+        },
     };
 
     private static readonly List<ServiceAttachment> ServiceAttachments = new()
@@ -2571,6 +2717,38 @@ new()
             Price = 350000,
             SketchRevision = 3,
             ServiceId = Services[1].Id
+        },
+
+        #endregion
+
+        #region Package of service: "Dịch vụ mẫu"
+
+        new()
+        {
+            Id = Guid.Parse("0a9b3f44-1f98-4bb3-921d-6f71c453e9a6"),
+            Name = PackageName.Basic,
+            Description = "",
+            Price = 250000,
+            SketchRevision = 1,
+            ServiceId = Services[2].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("f9a8b317-b2e5-4b1b-9980-3f9f7fbd5f25"),
+            Name = PackageName.Standard,
+            Description = "",
+            Price = 275000,
+            SketchRevision = 2,
+            ServiceId = Services[2].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("53eb9fdc-7086-4932-9dc8-e91a9e4f88c9"),
+            Name = PackageName.Premium,
+            Description = "",
+            Price = 350000,
+            SketchRevision = 3,
+            ServiceId = Services[2].Id
         },
 
         #endregion
@@ -2693,6 +2871,65 @@ new()
             IsInformationRequired = false,
             IsQuantity = false
         },
+
+        #endregion
+
+        #region Feature of service: "Dịch vụ mẫu"
+
+        new()
+        {
+            Id = Guid.Parse("b894a7e1-5473-4a3a-a9ee-83a2a5a02db1"),
+            Name = "Màu",
+            Question = "Chọn màu gì?",
+            QuestionType = MediaType.Select,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("6e45a8c1-25de-44ae-b6c4-7c52c38b9b08"),
+            Name = "Kích thước",
+            Question = "Chọn size gì?",
+            QuestionType = MediaType.Select,
+            IsInformationRequired = true,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("1c728510-4432-4bcf-a7bb-7b291cdb67a3"),
+            Name = "Phụ kiện đi kèm",
+            Question = "Muốn đính kèm item gì?",
+            QuestionType = MediaType.CheckBox,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("62d79049-1f69-48d0-93c1-f2ae1725407e"),
+            Name = "Khoá ví",
+            Question = "Muốn có muốn thêm khoá ví?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = false
+        },
+        new()
+        {
+            Id = Guid.Parse("449a9e07-3c9d-46c2-b78d-dcf07b1a3956"),
+            Name = "Khe đựng thẻ",
+            Question = "Muốn có muốn thêm khe đựng thẻ?",
+            QuestionType = MediaType.Switch,
+            IsInformationRequired = false,
+            IsQuantity = true
+        },
+        new()
+        {
+            Id = Guid.Parse("7f9ad2f4-ef87-4c53-a7fa-5a1b3e022374"),
+            Name = "Khắc ký tự",
+            Question = "Muốn có muốn thêm ký tự gì?",
+            QuestionType = MediaType.Text,
+            IsInformationRequired = true,
+            IsQuantity = false
+        }
 
         #endregion
     };
@@ -3172,6 +3409,107 @@ new()
             PackageId = Packages[5].Id,
             FeatureId = Features[10].Id
         },
+
+        #endregion
+
+        #region PackageFeature of package Premium, service: "Dịch vụ mẫu"
+
+        new()
+        {
+            Id = Guid.Parse("39a5a7b4-0e1d-4d57-bc91-6e289321b7df"),
+            Name = "Rustic Brown",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[12].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("a70a4fc9-f02b-4951-9041-f3f949948361"),
+            Name = "Brown Oily",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[12].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("e9d5f7de-4f2c-4d55-a56d-bd1123c4982a"),
+            Name = "Mini (38 mm x 64 mm)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[13].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("b7e90529-163b-4f12-b16a-4d2d9d4b28e3"),
+            Name = "Standard (64 mm x 89 mm)",
+            IsExtra = true,
+            AdditionalCost = 10000,
+            AdditionalDay = null,
+            IsChecked = false,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[13].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("475aa523-b039-459b-916a-65896ac29e9b"),
+            Name = null,
+            IsExtra = true,
+            AdditionalCost = 20000,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 10,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[14].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("3f561002-2dcf-4eb8-bb5b-7ac13ef2283e"),
+            Name = null,
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = null,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[15].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("fcb87c89-3703-4d45-93b1-d1a2b2df529a"),
+            Name = "10 (Đây là ví dụ IsQuantiy nhưng có name, name ở đây sẽ là max quantity)",
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = 2,
+            IsChecked = false,
+            MaxQuantity = 10,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[16].Id
+        },
+        new()
+        {
+            Id = Guid.Parse("f50c24f8-10ed-46fa-80df-20ba0aa0e61d"),
+            Name = null,
+            IsExtra = false,
+            AdditionalCost = 0,
+            AdditionalDay = 2,
+            IsChecked = true,
+            MaxQuantity = 0,
+            PackageId = Packages[6].Id,
+            FeatureId = Features[17].Id
+        }
 
         #endregion
     };
