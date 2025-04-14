@@ -7,12 +7,14 @@ using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
+using Chillde.Repositories.Models.OrderModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Repositories.Models.SubCategoryModels;
+using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
 using Chillde.Services.Models.FeatureModels;
@@ -103,8 +105,13 @@ public class MapperProfile : Profile
 
         //Order
         CreateMap<OrderAddModel, Order>().ReverseMap();
+        CreateMap<OrderModel, Order>().ReverseMap();
 
         //Shipment
         CreateMap<ShipmentModel, Shipment>().ReverseMap();
+
+        //Voucher
+        CreateMap<VoucherModel, Voucher>().ReverseMap();
+        CreateMap<Voucher, VoucherModel>().ReverseMap();
     }
 }
