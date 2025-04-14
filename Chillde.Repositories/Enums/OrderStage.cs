@@ -9,6 +9,7 @@
         ReviewDelivery,
         Shipping,
         AwaitingClosure,
-        Completed
+        Completed,
+        Cancelled
     }
 }

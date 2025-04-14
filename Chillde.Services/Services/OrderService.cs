@@ -261,9 +261,9 @@ namespace Chillde.Services.Services
                         .Select(_ => _.packageFeature.FeatureId)
                         .ToList();
             ///////
-            //var missingFeatureIds = requiredFeatureIds
-            //    .Where(id => !providedFeatureIds.Contains(id))
-            //    .ToList();
+            var missingFeatureIds = requiredFeatureIds
+                .Where(id => !providedFeatureIds.Contains(id))
+                .ToList();
             //extraFeatureCost = extraFeatureIds.Data.Sum(pf =>
             //      orderAddModel.OrderInformationAddModels!
             //     .Where(_ => _.PackageFeatureId == pf.Id)
@@ -684,7 +684,7 @@ namespace Chillde.Services.Services
             }
 
 
-            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.Return)
+            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.AwaitingClosure)
             {
                 return new ResponseModel
                 {
