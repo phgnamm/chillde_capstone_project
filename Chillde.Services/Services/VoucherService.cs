@@ -231,10 +231,12 @@ namespace Chillde.Services.Services
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
                     Expression<Func<Voucher, bool>> filter = voucher =>
-                     (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
-                     (!voucherFilterModel.Status.HasValue || voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
-                     (!voucherFilterModel.Status.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
-                     (!voucherFilterModel.Status.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue);
+                     ( voucher.ReceiverId == voucherFilterModel.ArtisanId ) &&
+                     ( voucher.VoucherStatus == voucherFilterModel.Status ) &&
+                     ( voucher.IsDeleted == voucherFilterModel.IsDeleted ) &&
+                     ( voucher.DiscountValue >= voucherFilterModel.MinDiscountValue ) &&
+                     ( voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue ) &&
+                     ( voucher.VoucherType == voucherFilterModel.VoucherType );
 
                     Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers =>
                              vouchers.Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Order);
