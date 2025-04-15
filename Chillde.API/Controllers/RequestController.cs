@@ -165,7 +165,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        [Authorize]
+        [Authorize(Roles ="Customer,Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
