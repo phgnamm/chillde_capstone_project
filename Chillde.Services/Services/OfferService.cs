@@ -62,7 +62,7 @@ namespace Chillde.Services.Services
                 {
                     var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
                     offer =>
-                        (!filterParameter.IsDeleted.HasValue || offer.IsDeleted == filterParameter.IsDeleted) &&
+                        offer.IsDeleted == filterParameter.IsDeleted &&
                         (!filterParameter.CategoryId.HasValue ||
                         offer.Request!.CategoryId == filterParameter.CategoryId) &&
                         (!filterParameter.MinPrice.HasValue ||
@@ -827,7 +827,6 @@ namespace Chillde.Services.Services
                 {
                     _unitOfWork.TranslationRepository.SoftRemove(translation);
                 }
-
                 _unitOfWork.OfferRepository.SoftRemove(existingOffer);
                 var changes = await _unitOfWork.SaveChangeAsync();
                 return changes > 0

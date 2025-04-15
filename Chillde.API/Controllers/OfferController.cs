@@ -77,7 +77,7 @@ namespace Chillde.API.Controllers
         }
 
 
-         [Authorize]
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] OfferUpdateModel model)
         {
@@ -100,7 +100,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-         [Authorize]
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
