@@ -12,6 +12,6 @@ namespace Chillde.Repositories.Entities
         public string? ImageUrl { get; set; }
 
         public Account Account { get; set; }
-        public NotificationContent NotificationType { get; set; }
+        public NotificationContent NotificationContent { get; set; }
     }
 }

@@ -107,6 +107,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<AccountRole>(entity => { entity.Property(e => e.TotalReputation).HasDefaultValue(100); });
         modelBuilder.Entity<Package>(entity => { entity.Property(e => e.Name).HasColumnType("int"); });
         modelBuilder.Entity<Report>();
+        
+
         #endregion
 
         #region Relationship Configuration
@@ -123,6 +125,25 @@ public class AppDbContext : DbContext
                 .WithMany(l => l.Translations)
                 .HasForeignKey(t => t.LanguageId);
         });
+        modelBuilder.Entity<NotificationContent>(entity =>
+        {
+            entity.HasIndex(nc => nc.Code).IsUnique();
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasOne(v => v.NotificationContent)
+            .WithMany(a => a.Notifications)
+            .HasForeignKey(v => v.NotificationTypeId);
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasOne(v => v.Account)
+            .WithMany(a => a.Notifications)
+            .HasForeignKey(v => v.AccountId);
+        });
+
         modelBuilder.Entity<Voucher>(entity =>
         {
             entity.HasIndex(voucher => voucher.Code).IsUnique();
@@ -230,6 +251,8 @@ public class AppDbContext : DbContext
     public DbSet<Voucher> Vouchers { get; set; }
     public DbSet<VoucherUsageLog> VoucherUsageLogs { get; set; }
     public DbSet<ShipmentStatusHistory> ShipmentStatusHistory { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<NotificationContent> NotificationContents { get; set; }
 
     #endregion
 }
