@@ -23,7 +23,7 @@ namespace Chillde.Services.Models.RequestModels
         public int Timeline { get; set; }
 
         [Required]
-        public required Guid ItemId { get; set; }
+        public required Guid CategoryId { get; set; }
 
         [Required]
         public ICollection<RequestAttributeAddModel> RequestAttributeAddModels { get; set; } = new List<RequestAttributeAddModel>();

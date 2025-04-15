@@ -13,7 +13,7 @@ namespace Chillde.Repositories.Models.RequestModels
         public decimal MaxBudget { get; set; }
         public int Timeline { get; set; }
         public RequestStatus Status { get; set; } 
-        public Guid ItemId { get; set; }
+        public Guid CategoryId { get; set; }
         public string ItemName { get; set; }
         public string ItemCode { get; set; }
         public string ItemImageUrl { get; set; }

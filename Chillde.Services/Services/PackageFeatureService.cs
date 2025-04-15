@@ -28,7 +28,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                string[] fieldsToCheck = { packageFeatureUpdateModel.Name };
+                    string[] fieldsToCheck = { packageFeatureUpdateModel.Name };
 
                 foreach (var field in fieldsToCheck)
                 {

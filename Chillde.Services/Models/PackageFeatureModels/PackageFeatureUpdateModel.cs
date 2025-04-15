@@ -6,13 +6,13 @@ namespace Chillde.Services.Models.PackageFeatureModels
     {
         public Guid? PackageId { get; set; }
         [Required]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public decimal? AdditionalCost { get; set; }
         public int? AdditionalDay { get; set; }
         public bool? IsExtra { get; set; }
         public bool? IsChecked { get; set; }
         public int MinQuantity { get; set; }
-        public int MaxQuantity { get; set; }
+        public int? MaxQuantity { get; set; }
         public int Index { get; set; }
     }
 }
