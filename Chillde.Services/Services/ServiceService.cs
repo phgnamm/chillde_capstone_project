@@ -1440,7 +1440,6 @@ namespace Chillde.Services.Services
         {
             try
             {
-
                 var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
