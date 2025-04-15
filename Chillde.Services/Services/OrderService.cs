@@ -684,7 +684,7 @@ namespace Chillde.Services.Services
             }
 
 
-            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.AwaitingClosure)
+            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.Cancelled)
             {
                 return new ResponseModel
                 {
@@ -2074,6 +2074,72 @@ namespace Chillde.Services.Services
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+        public async Task<ResponseModel> UpdateOrderAfterDeliveryAsync(Guid orderId)
+        {
+            try
+            {
+                if (orderId == Guid.Empty)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid order ID."
+                    };
+                }
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+                if (order.Stage != OrderStage.AwaitingClosure)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Order is not in AwaitingClosure stage. Current stage: {order.Stage}."
+                    };
+                }
+                if (order.Status != OrderStatus.Accepted)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Order is not in Accepted status. Current status: {order.Status}."
+                    };
+                }
+                order.Stage = OrderStage.Completed;
+                order.Status = OrderStatus.Success;
+                _unitOfWork.OrderRepository.Update(order);
+                var saveResult = await _unitOfWork.SaveChangeAsync();
+
+                if (saveResult <= 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to update order in database."
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Order updated to Completed and Success successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error updating order: {ex.Message}"
+                };
             }
         }
 

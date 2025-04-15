@@ -359,9 +359,25 @@ namespace Chillde.Services.Services
                 StatusId = (ShipmentStatus)request.StatusId,
             };
             shipment.ShipmentStatusHistorys.Add(history);
-
+            if (request.StatusId == (int)ShipmentStatus.Reconciled)
+            {
+                var order = await _unitOfWork.OrderRepository.GetAsync(shipment.OrderId);
+                if (order != null)
+                {
+                    order.Stage = OrderStage.AwaitingClosure;
+                    _unitOfWork.OrderRepository.Update(order);
+                }
+                else
+                {
+                    return false;
+                }
+            }
             _unitOfWork.ShipmentRepository.Update(shipment);
-            await _unitOfWork.SaveChangeAsync();
+            var saveResult = await _unitOfWork.SaveChangeAsync();
+            if (saveResult <= 0)
+            {
+                return false;
+            }
 
             return true;
         }
