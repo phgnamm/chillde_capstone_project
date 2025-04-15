@@ -22,6 +22,7 @@ using Chillde.Services.Helpers;
 using Chillde.Services.Utils;
 using CloudinaryDotNet;
 using Chillde.Services.Common;
+using System.Linq;
 
 
 namespace Chillde.Services.Services
@@ -54,16 +55,14 @@ namespace Chillde.Services.Services
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
             try
             {
-
+                var currentUserRoles = _claimService.GetCurrentRoles;
+                var currentUserId = _claimService.GetCurrentUserId!.Value;
                 var cacheKey = $"offers_{sourceLanguageCode}_{targetLanguageCode}_{CacheTools.GenerateCacheKey(filterParameter)}";
-                // thêm một cái biến tên cache key như trên, biến này sẽ là kiểu $"mainOpject_{id}" hoặc $"mainOpject_{CacheTools.GenerateCacheKey(filterParameter)" cái này tùy query gì để đặt tên cho nó
-                // sau đó gọi đến hàm _redisHelper.GetOrSetAsync(cacheKey, async () => bọc cái hàm getAllAsync vào trong hàm của redisHelper
-                // gọi hàm của redisHelper này có thể return luôn hoặc tạo biến response rồi return response sau cũng được
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
                     offer =>
-                        offer.IsDeleted == filterParameter.IsDeleted &&
+                        (!filterParameter.IsDeleted.HasValue || offer.IsDeleted == filterParameter.IsDeleted) &&
                         (!filterParameter.CategoryId.HasValue ||
                         offer.Request!.CategoryId == filterParameter.CategoryId) &&
                         (!filterParameter.MinPrice.HasValue ||
@@ -77,7 +76,12 @@ namespace Chillde.Services.Services
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (!filterParameter.RequestId.HasValue || offer.RequestId == filterParameter.RequestId) &&
-                        (!filterParameter.CreatedById.HasValue || offer.CreatedById == filterParameter.CreatedById),
+                        (
+                            (currentUserRoles!.Contains(Repositories.Enums.Role.Customer) && offer.Request!.CreatedById == currentUserId) ||
+                            (currentUserRoles.Contains(Repositories.Enums.Role.Artisan) && offer.CreatedById == currentUserId) ||
+                            (currentUserRoles.Contains(Repositories.Enums.Role.Artisan) && offer.Service!.CreatedById == currentUserId) ||
+                            (currentUserRoles.Contains(Repositories.Enums.Role.Admin))
+                        ),
                     offers =>
                     {
                         switch (filterParameter.Order.ToLower())
@@ -843,19 +847,6 @@ namespace Chillde.Services.Services
                     Message = $"Internal server error: {ex.Message}"
                 };
             }
-        }
-
-        private async Task<string> UploadFile(IFormFile fileUrl, string folderName)
-        {
-            if (fileUrl == null)
-            {
-                throw new ArgumentException("File URL cannot be null or empty.");
-            }
-
-            return await _cloudinaryHelper.UploadImageAsync(
-                fileUrl,
-                folderName: folderName
-            );
         }
     }
 }

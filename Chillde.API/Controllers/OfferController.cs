@@ -21,6 +21,7 @@ namespace Chillde.API.Controllers
             _offerService = offerService;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter)
         {
@@ -52,6 +53,7 @@ namespace Chillde.API.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -75,7 +77,7 @@ namespace Chillde.API.Controllers
         }
 
 
-        // [Authorize]
+         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] OfferUpdateModel model)
         {
@@ -98,7 +100,7 @@ namespace Chillde.API.Controllers
             }
         }
 
-        // [Authorize]
+         [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
