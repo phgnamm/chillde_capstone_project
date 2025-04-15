@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/requests")]
+    [Route("api/v1/request-attributes")]
     [ApiController]
     public class RequestAttributeController : ControllerBase
     {
