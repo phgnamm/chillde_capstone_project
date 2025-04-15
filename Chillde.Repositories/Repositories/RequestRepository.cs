@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Entities;
+﻿using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
@@ -49,6 +50,16 @@ namespace Chillde.Repositories.Repositories
                         };
 
             return await query.FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> HasUserOfferedForRequestAsync(Guid currentUserId, Guid requestId)
+        {
+            return await _dbSet
+                .AnyAsync(request =>
+                    !request.IsDeleted &&
+                    request.Id == requestId &&
+                    request.Offers.Any(offer => offer.CreatedById == currentUserId)
+                );
         }
     }
 }

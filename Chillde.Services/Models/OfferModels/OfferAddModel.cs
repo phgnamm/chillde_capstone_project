@@ -8,9 +8,9 @@ namespace Chillde.Services.Models.OfferModels
 {
     public class OfferAddModel
     {
+        public Guid? RequestId { get; set; }
         [StringLength(500, ErrorMessage = "Message cannot exceed 500 characters.")]
         public string? Message { get; set; } 
-        public Guid? ServiceId { get; set; }
         public List<OfferAttachmentAddModel>? OfferAttachmentAddModels { get; set; } = new List<OfferAttachmentAddModel>();
         public List<FeatureAddModel>? FeatureAddModels { get; set; } = new List<FeatureAddModel>();
         public PackageAddModel? PackageAddModel { get; set; }

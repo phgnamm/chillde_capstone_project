@@ -13,7 +13,7 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> GetByIdAsync(Guid id, string sourceLanguageCode, string targetLanguageCode);
-        Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode);
+        Task<ResponseModel> AddAsync(OfferAddModel model, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> UpdateAsync(Guid offerId, OfferUpdateModel model, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> DeleteAsync(Guid offerId);
     }

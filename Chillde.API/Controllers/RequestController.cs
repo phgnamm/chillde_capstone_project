@@ -141,36 +141,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
-        [HttpPost("{requestId}/offers")]
-        public async Task<IActionResult> Add([FromForm] OfferAddModel model, Guid requestId)
-        {
-            try
-            {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-
-                var result = await _offerService.AddAsync(model, requestId, sourceLanguageCode, targetLanguageCode);
-                if (result.Code != StatusCodes.Status201Created)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                    {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = result.Message
-                    });
-                }
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }
+       
         [HttpPost("ai-generate-forms")]
         public async Task<IActionResult> AiGenerateForm(List<string> attributes)
         {

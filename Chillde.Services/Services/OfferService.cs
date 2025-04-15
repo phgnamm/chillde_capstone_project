@@ -255,6 +255,7 @@ namespace Chillde.Services.Services
 
             try
             {
+                var currentUserId = _claimService.GetCurrentUserId!.Value;
                 var cacheKey = $"offers_{id}";
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
@@ -341,9 +342,24 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddAsync(OfferAddModel model, Guid requestId, string sourceLanguageCode, string targetLanguageCode)
+        public async Task<ResponseModel> AddAsync(OfferAddModel model, string sourceLanguageCode, string targetLanguageCode)
         {
             var currentUserId = _claimService.GetCurrentUserId;
+            if (currentUserId.HasValue && model.RequestId.HasValue)
+            {
+                var checkIsAccountOffer = await _unitOfWork.RequestRepository
+                    .HasUserOfferedForRequestAsync(currentUserId.Value, model.RequestId.Value);
+
+                if (!checkIsAccountOffer)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "You already created an offer for this request"
+                    };
+                }
+            }
+
             if (!currentUserId.HasValue)
             {
                 return new ResponseModel
@@ -370,8 +386,7 @@ namespace Chillde.Services.Services
                 {
                     Id = offerId,
                     Status = OfferStatus.Pending,
-                    RequestId = requestId,
-                    ServiceId = model.ServiceId,
+                    RequestId = model.RequestId,
                     CreatedById = currentUserId.Value,
                     Message = model.Message,
                     MinWeight = model.MinWeight,
@@ -380,7 +395,7 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
 
-                for (int i = 0; i < model.OfferAttachmentAddModels.Count; i++)
+                for (int i = 0; i < model.OfferAttachmentAddModels!.Count; i++)
                 {
                     Models.OfferAttachmentModels.OfferAttachmentAddModel? attachment = model.OfferAttachmentAddModels[i];
                     if (attachment.AttachmentUrl == null) continue;
@@ -412,56 +427,53 @@ namespace Chillde.Services.Services
                 List<Feature> features = new List<Feature>();
                 List<PackageFeature> packageFeatures = new List<PackageFeature>();
 
-                if (!model.ServiceId.HasValue && model.PackageAddModel != null)
+                var packageId = Guid.NewGuid();
+                newPackage = new Package
                 {
-                    var packageId = Guid.NewGuid();
-                    newPackage = new Package
-                    {
-                        Id = packageId,
-                        OfferId = offerId,
-                        Name = PackageName.Customized,
-                        Description = model.PackageAddModel.Description,
-                        Price = model.PackageAddModel.Price,
-                        DeliveryTime = model.PackageAddModel.DeliveryTime,
-                        ResponseTime = (float)model.PackageAddModel.ResponseTime.TotalMinutes,
-                        SketchRevision = model.PackageAddModel.SketchRevision,
-                    };
+                    Id = packageId,
+                    OfferId = offerId,
+                    Name = PackageName.Customized,
+                    Description = model.PackageAddModel!.Description,
+                    Price = model.PackageAddModel.Price,
+                    DeliveryTime = model.PackageAddModel.DeliveryTime,
+                    ResponseTime = (float)model.PackageAddModel.ResponseTime.TotalMinutes,
+                    SketchRevision = model.PackageAddModel.SketchRevision,
+                };
 
-                    await _unitOfWork.PackageRepository.AddAsync(newPackage);
-                    textsToTranslate.Add("Package.Description", model.PackageAddModel.Description);
+                await _unitOfWork.PackageRepository.AddAsync(newPackage);
+                textsToTranslate.Add("Package.Description", model.PackageAddModel.Description);
 
-                    if (model.FeatureAddModels != null)
+                if (model.FeatureAddModels != null)
+                {
+                    foreach (var featureModel in model.FeatureAddModels)
                     {
-                        foreach (var featureModel in model.FeatureAddModels)
+                        var featureId = Guid.NewGuid();
+                        var newFeature = new Feature
                         {
-                            var featureId = Guid.NewGuid();
-                            var newFeature = new Feature
+                            Id = featureId,
+                            Name = featureModel.Name,
+                            IsInformationRequired = featureModel.IsInformationRequired,
+                            IsQuantity = featureModel.IsQuantity
+                        };
+                        features.Add(newFeature);
+
+                        textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
+
+                        if (featureModel.PackageFeatureAddModels != null)
+                        {
+                            var packageFeatureId = Guid.NewGuid();
+                            var newPackageFeature = new PackageFeature
                             {
-                                Id = featureId,
-                                Name = featureModel.Name,
-                                IsInformationRequired = featureModel.IsInformationRequired,
-                                IsQuantity = featureModel.IsQuantity
+                                Id = packageFeatureId,
+                                FeatureId = featureId,
+                                PackageId = packageId,
+                                Name = featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name,
+                                IsChecked = featureModel.PackageFeatureAddModels.FirstOrDefault()!.IsChecked,
                             };
-                            features.Add(newFeature);
+                            packageFeatures.Add(newPackageFeature);
 
-                            textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
-
-                            if (featureModel.PackageFeatureAddModels != null)
-                            {
-                                var packageFeatureId = Guid.NewGuid();
-                                var newPackageFeature = new PackageFeature
-                                {
-                                    Id = packageFeatureId,
-                                    FeatureId = featureId,
-                                    PackageId = packageId,
-                                    Name = featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name,
-                                    IsChecked = featureModel.PackageFeatureAddModels.FirstOrDefault()!.IsChecked,
-                                };
-                                packageFeatures.Add(newPackageFeature);
-
-                                textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name",
-                                    featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name);
-                            }
+                            textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name",
+                                featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name);
                         }
                     }
                 }
@@ -559,6 +571,14 @@ namespace Chillde.Services.Services
                         Message = "Offer not found."
                     };
                 }
+                if (!existingOffer.Status.Equals(OfferStatus.Pending))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Offer can not update."
+                    };
+                }
 
                 // Update basic fields
                 var textsToTranslate = new Dictionary<string, string>();
@@ -595,7 +615,7 @@ namespace Chillde.Services.Services
                 {
                     var pkg = model.PackageUpdateModel;
 
-                    existingPkg.Name = string.IsNullOrWhiteSpace(pkg.Name.ToString()) ? existingPkg.Name : pkg.Name;
+                    existingPkg!.Name = string.IsNullOrWhiteSpace(pkg.Name.ToString()) ? existingPkg.Name : pkg.Name;
                     if (!string.IsNullOrWhiteSpace(pkg.Description) && pkg.Description != existingPkg.Description)
                     {
                         existingPkg.Description = pkg.Description;
