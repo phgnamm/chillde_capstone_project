@@ -773,6 +773,7 @@ namespace Chillde.Services.Services
         #region Get Request Detail
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
+            var currentUserId = _claimService.GetCurrentUserId!.Value;
             var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
             var requestModel = new RequestGetByIdModel
             {
@@ -783,6 +784,7 @@ namespace Chillde.Services.Services
                 MaxBudget = (decimal)request.MaxBudget,
                 Timeline = (int)request.Timeline,
                 Status = request.Status,
+                IsCurrentAccountOffer = await _unitOfWork.RequestRepository.HasUserOfferedForRequestAsync(currentUserId, id),
                 RequestAttachmentGetModels = request?.RequestAttachments?.Select(_ => new RequestAttachmentGetModel
                 {
                     Id = _.Id,

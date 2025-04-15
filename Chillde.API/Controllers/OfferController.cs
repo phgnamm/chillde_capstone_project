@@ -21,6 +21,37 @@ namespace Chillde.API.Controllers
             _offerService = offerService;
         }
 
+        [Authorize (Roles = "Artisan")]
+        [HttpPost]
+        public async Task<IActionResult> Add([FromForm] OfferAddModel model)
+        {
+            try
+            {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+
+                var result = await _offerService.AddAsync(model, sourceLanguageCode, targetLanguageCode);
+                if (result.Code != StatusCodes.Status201Created)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = result.Message
+                    });
+                }
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] OfferFilterModel filterParameter)

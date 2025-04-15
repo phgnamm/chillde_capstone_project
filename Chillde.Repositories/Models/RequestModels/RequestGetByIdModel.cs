@@ -17,6 +17,7 @@ namespace Chillde.Repositories.Models.RequestModels
         public string ItemName { get; set; }
         public string ItemCode { get; set; }
         public string ItemImageUrl { get; set; }
+        public bool? IsCurrentAccountOffer { get; set; }
         public List<RequestAttributeGetModel> RequestAttributeGetModels { get; set; } = new List<RequestAttributeGetModel>();
         public List<RequestAttachmentGetModel>? RequestAttachmentGetModels { get; set; } = new List<RequestAttachmentGetModel>();
     }
