@@ -384,6 +384,8 @@ public static class Configuration
         //DeliveryReminder
         services.AddHostedService<VoucherCreationService>();
 
+        //OrderCompletionService
+        services.AddHostedService<OrderCompletionService>();
         #endregion
 
         return services;
