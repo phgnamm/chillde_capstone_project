@@ -118,6 +118,7 @@ namespace Chillde.Services.Services
                             ServiceId = offer.ServiceId,
                             Package = new PackageModel
                             {
+                                Id = offer.Package!.Id,
                                 Name = offer.Package!.Name,
                                 Description = offer.Package!.Description,
                                 Price = offer.Package!.Price,
@@ -155,7 +156,8 @@ namespace Chillde.Services.Services
                                 Email = offer.CreatedBy.Email,
                                 FirstName = offer.CreatedBy.FirstName,
                                 LastName = offer.CreatedBy.LastName,
-                                Image = offer.CreatedBy.Image
+                                Image = offer.CreatedBy.Image,
+                                Username = offer.CreatedBy.Username,
                             },
                             CreationDate = offer.CreationDate
                         }).ToList();
@@ -288,6 +290,7 @@ namespace Chillde.Services.Services
                         Package = offer.Package == null ? null : new PackageModel
                         {
                             Name = offer.Package.Name,
+                            Id = offer.Package.Id,
                             Description = offer.Package.Description,
                             Price = offer.Package.Price,
                             DeliveryTime = offer.Package.DeliveryTime,
@@ -347,7 +350,7 @@ namespace Chillde.Services.Services
                 var checkIsAccountOffer = await _unitOfWork.RequestRepository
                     .HasUserOfferedForRequestAsync(currentUserId.Value, model.RequestId.Value);
 
-                if (!checkIsAccountOffer)
+                if (checkIsAccountOffer)
                 {
                     return new ResponseModel
                     {

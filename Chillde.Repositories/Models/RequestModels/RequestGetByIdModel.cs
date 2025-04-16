@@ -1,12 +1,12 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Microsoft.AspNetCore.Http;
 
 
 namespace Chillde.Repositories.Models.RequestModels
 {
-    public class RequestGetByIdModel
+    public class RequestGetByIdModel : BaseEntity
     {
-        public Guid Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public decimal MinBudget { get; set; }
