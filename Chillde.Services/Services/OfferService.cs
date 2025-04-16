@@ -457,21 +457,19 @@ namespace Chillde.Services.Services
                         textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
                         if (featureModel.PackageFeatureAddModels != null)
                         {
-                            foreach (var pfModel in featureModel.PackageFeatureAddModels)
+                            var packageFeatureId = Guid.NewGuid();
+                            var newPackageFeature = new PackageFeature
                             {
-                                var packageFeatureId = Guid.NewGuid();
-                                var newPackageFeature = new PackageFeature
-                                {
-                                    Id = packageFeatureId,
-                                    FeatureId = featureId,
-                                    PackageId = packageId,
-                                    Name = pfModel.Name,
-                                    IsChecked = pfModel.IsChecked,
-                                };
-                                packageFeatures.Add(newPackageFeature);
+                                Id = packageFeatureId,
+                                FeatureId = featureId,
+                                PackageId = packageId,
+                                Name = featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name,
+                                IsChecked = featureModel.PackageFeatureAddModels.FirstOrDefault()!.IsChecked,
+                            };
+                            packageFeatures.Add(newPackageFeature);
 
-                                textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name", pfModel.Name!);
-                            }
+                            textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name",
+                                featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name);
                         }
                     }
                 }
