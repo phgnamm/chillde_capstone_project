@@ -520,6 +520,10 @@ namespace Chillde.Services.Services
                     if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity >= 1)
                     {
                         voucher.RemainingQuantity -= 1;
+                        if (voucher.RemainingQuantity == 0)
+                        {
+                            voucher.VoucherStatus = VoucherStatus.OutOfStock;
+                        }
                     }
                 }
                 order.AfterApplyVoucherPrice = remainingOrderPrice;
@@ -1177,11 +1181,16 @@ namespace Chillde.Services.Services
 
                         foreach (var voucherLog in order.VoucherUsageLogs)
                         {
-                            if (voucherLog.Voucher.TotalQuantity.HasValue && voucherLog.Voucher.TotalQuantity.HasValue)
+                            if (voucherLog.Voucher.TotalQuantity.HasValue && voucherLog.Voucher.RemainingQuantity.HasValue)
                             {
-                                voucherLog.Voucher.RemainingQuantity += 1; 
+                                voucherLog.UsageStatus = UsageStatus.Refunded;
+                                voucherLog.Voucher.RemainingQuantity += 1;
+                                if(voucherLog.Voucher.VoucherStatus == VoucherStatus.OutOfStock)
+                                {
+                                    voucherLog.Voucher.VoucherStatus = VoucherStatus.Pending;
+                                }
                             }
-                            voucherLog.UsageStatus = UsageStatus.Cancelled;
+                            //voucherLog.UsageStatus = UsageStatus.Cancelled;
                         }
 
                         order.CreatedBy.Wallet.Balance += (decimal)order.TotalPrice;
@@ -1250,7 +1259,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity < 1)
+            if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity < 1 && voucher.VoucherStatus == VoucherStatus.OutOfStock)
             {
                 return new ResponseModel
                 {
@@ -1291,6 +1300,10 @@ namespace Chillde.Services.Services
             if (voucher.TotalQuantity.HasValue && voucher.RemainingQuantity >= 1)
             {
                 voucher.RemainingQuantity -= 1;
+                if(voucher.RemainingQuantity == 0)
+                {
+                    voucher.VoucherStatus = VoucherStatus.OutOfStock;
+                }
             }
 
             _unitOfWork.OrderRepository.Update(order);

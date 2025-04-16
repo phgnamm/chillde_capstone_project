@@ -11,6 +11,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetByIdAsync(Guid id);
         //Task<ResponseModel> GetAll(RequestFilterModel requestFilterModel);
         Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguageCode);
+        Task<ResponseModel> Get(RequestFilterModel filterParameter);
         Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> AddAsync(RequestAddModel requestAddModel, string sourceLanguageCode);
     }

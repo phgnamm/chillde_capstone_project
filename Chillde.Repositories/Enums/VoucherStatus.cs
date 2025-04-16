@@ -10,5 +10,6 @@ namespace Chillde.Repositories.Enums
     {
         Pending,
         Expired,
+        OutOfStock
     }
 }

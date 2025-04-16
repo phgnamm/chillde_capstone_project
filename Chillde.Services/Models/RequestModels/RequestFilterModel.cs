@@ -9,5 +9,6 @@ namespace Chillde.Services.Models.RequestModels
 {
     public class RequestFilterModel : FilterParameter
     {
+        public bool ViewAll { get; set; }
     }
 }
