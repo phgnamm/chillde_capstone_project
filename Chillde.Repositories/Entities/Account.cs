@@ -62,5 +62,6 @@ public class Account : BaseEntity
     public virtual ICollection<Voucher> ReceivedVouchers { get; set; } = new List<Voucher>(); 
     public virtual ICollection<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();
     public virtual ICollection<Offer> Offers { get; set; } = new List<Offer>();
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
 }

@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250415101531_EntityV18")]
+    partial class EntityV18
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -822,7 +825,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("NotificationTypeId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.NotificationContent", b =>
@@ -830,10 +833,6 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -860,19 +859,12 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.ToTable("NotificationContents");
+                    b.ToTable("NotificationContent");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
@@ -2859,7 +2851,7 @@ namespace Chillde.Repositories.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Chillde.Repositories.Entities.NotificationContent", "NotificationContent")
+                    b.HasOne("Chillde.Repositories.Entities.NotificationContent", "NotificationType")
                         .WithMany("Notifications")
                         .HasForeignKey("NotificationTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2867,7 +2859,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("Account");
 
-                    b.Navigation("NotificationContent");
+                    b.Navigation("NotificationType");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>

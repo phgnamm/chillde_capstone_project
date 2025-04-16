@@ -367,5 +367,11 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpPut("{orderId}/complete-delivery")]
+        public async Task<IActionResult> CompleteDelivery(Guid orderId)
+        {
+            var result = await _orderService.UpdateOrderAfterDeliveryAsync(orderId);
+            return StatusCode(result.Code, result);
+        }
     }
 }

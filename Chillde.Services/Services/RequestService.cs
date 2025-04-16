@@ -815,6 +815,56 @@ namespace Chillde.Services.Services
         }
         #endregion
 
+        public async Task<ResponseModel> DeleteAsync(Guid requestId)
+        {
+            if (requestId == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid request ID."
+                };
+            }
+
+            try
+            {
+                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(requestId);
+                if (existingRequest == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Request not found."
+                    };
+                }
+
+                var translation = await _unitOfWork.TranslationRepository
+                    .GetTranslationAsync("Request", requestId, "Description",
+                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("en"))!);
+                if (translation != null)
+                {
+                    _unitOfWork.TranslationRepository.SoftRemove(translation);
+                }
+                _unitOfWork.RequestRepository.SoftRemove(existingRequest);
+                var changes = await _unitOfWork.SaveChangeAsync();
+                return changes > 0
+                    ? new ResponseModel
+                    { Code = StatusCodes.Status200OK, Message = "Request and its translation deleted successfully." }
+                    : new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to delete reqeust and translation."
+                    };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
+        }
         #region Update Request
         public async Task<ResponseModel> UpdateRequestAsync(Guid requestId, RequestUpdateModel requestUpdateModel)
         {
