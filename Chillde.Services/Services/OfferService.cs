@@ -455,22 +455,23 @@ namespace Chillde.Services.Services
                         features.Add(newFeature);
 
                         textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
-
                         if (featureModel.PackageFeatureAddModels != null)
                         {
-                            var packageFeatureId = Guid.NewGuid();
-                            var newPackageFeature = new PackageFeature
+                            foreach (var pfModel in featureModel.PackageFeatureAddModels)
                             {
-                                Id = packageFeatureId,
-                                FeatureId = featureId,
-                                PackageId = packageId,
-                                Name = featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name,
-                                IsChecked = featureModel.PackageFeatureAddModels.FirstOrDefault()!.IsChecked,
-                            };
-                            packageFeatures.Add(newPackageFeature);
+                                var packageFeatureId = Guid.NewGuid();
+                                var newPackageFeature = new PackageFeature
+                                {
+                                    Id = packageFeatureId,
+                                    FeatureId = featureId,
+                                    PackageId = packageId,
+                                    Name = pfModel.Name,
+                                    IsChecked = pfModel.IsChecked,
+                                };
+                                packageFeatures.Add(newPackageFeature);
 
-                            textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name",
-                                featureModel.PackageFeatureAddModels.FirstOrDefault()!.Name);
+                                textsToTranslate.Add($"PackageFeature.{packageFeatureId}.Name", pfModel.Name!);
+                            }
                         }
                     }
                 }
