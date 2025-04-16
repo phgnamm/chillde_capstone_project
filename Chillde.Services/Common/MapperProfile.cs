@@ -8,6 +8,7 @@ using Chillde.Repositories.Models.FAQModels;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
+using Chillde.Repositories.Models.NotificationModels;
 using Chillde.Repositories.Models.OrderModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
@@ -121,5 +122,8 @@ public class MapperProfile : Profile
 
         //Deposit
         CreateMap<DepositModel, Deposit>().ReverseMap();
+
+        //Notification
+        CreateMap<NotificationAddModel, Notification>().ReverseMap();
     }
 }

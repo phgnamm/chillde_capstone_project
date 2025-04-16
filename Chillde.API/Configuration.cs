@@ -384,6 +384,10 @@ public static class Configuration
         //DeliveryReminder
         services.AddHostedService<VoucherCreationService>();
 
+        //Notification
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<INotificationService, NotificationService>();
+
         #endregion
 
         return services;
