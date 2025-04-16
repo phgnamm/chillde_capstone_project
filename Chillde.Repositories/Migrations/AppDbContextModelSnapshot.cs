@@ -773,6 +773,108 @@ namespace Chillde.Repositories.Migrations
                     b.ToTable("MessageRecipients");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("NotificationTypeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("NotificationTypeId");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.NotificationContent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("ModificationDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ModifiedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("NotificationContents");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2749,6 +2851,25 @@ namespace Chillde.Repositories.Migrations
                     b.Navigation("Message");
                 });
 
+            modelBuilder.Entity("Chillde.Repositories.Entities.Notification", b =>
+                {
+                    b.HasOne("Chillde.Repositories.Entities.Account", "Account")
+                        .WithMany("Notifications")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Chillde.Repositories.Entities.NotificationContent", "NotificationContent")
+                        .WithMany("Notifications")
+                        .HasForeignKey("NotificationTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+
+                    b.Navigation("NotificationContent");
+                });
+
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>
                 {
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
@@ -3200,6 +3321,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.Navigation("MessageRecipients");
 
+                    b.Navigation("Notifications");
+
                     b.Navigation("Offers");
 
                     b.Navigation("Orders");
@@ -3266,6 +3389,11 @@ namespace Chillde.Repositories.Migrations
             modelBuilder.Entity("Chillde.Repositories.Entities.Message", b =>
                 {
                     b.Navigation("MessageRecipients");
+                });
+
+            modelBuilder.Entity("Chillde.Repositories.Entities.NotificationContent", b =>
+                {
+                    b.Navigation("Notifications");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.Offer", b =>

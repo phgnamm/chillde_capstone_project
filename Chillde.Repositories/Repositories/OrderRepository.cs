@@ -55,7 +55,7 @@ namespace Chillde.Repositories.Repositories
         {
             return await _dbSet
                 .Where(_ => _.Status == OrderStatus.Accepted
-                             && _.Stage == OrderStage.ReviewSketch)
+                             && _.Stage == OrderStage.ReviewSketch && _.StartTime.HasValue && _.DeliveryTime.HasValue)
                 .Include(_ => _.Package)
                 .ThenInclude(_ => _.Service)
                 .Include(_ => _.CreatedBy)

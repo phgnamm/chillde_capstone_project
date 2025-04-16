@@ -653,28 +653,6 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var packages = _unitOfWork.PackageRepository.GetAllPackageFromService(service.Id).Result;
-
-                if (packages.Count() == 0)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status422UnprocessableEntity,
-                        Message = "Service does not have any package."
-                    };
-                }
-
-                var packageFeatures = packages.Select(p => _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(p.Id)).Sum();
-
-                if (packageFeatures == 0)
-                {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status422UnprocessableEntity,
-                        Message = "Service's package does not have any feature."
-                    };
-                }
-
                 service.Status = ServiceStatus.Active;
                 _unitOfWork.ServiceRepository.Update(service);
 
@@ -1161,7 +1139,6 @@ namespace Chillde.Services.Services
                             }).ToList()
                     }).OrderBy(_ => _.Name).ToList();
 
-
                     var result = new Pagination<PackageModel>(packageModels, packageFilterModel.PageIndex,
                       packageFilterModel.PageSize, packages.TotalCount);
 
@@ -1463,7 +1440,6 @@ namespace Chillde.Services.Services
         {
             try
             {
-
                 var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
@@ -1487,6 +1463,8 @@ namespace Chillde.Services.Services
                         Rate = _.Rate,
                         MinWeight = _.MinWeight,
                         MaxWeight = _.MaxWeight,
+                        Status = _.Status,
+                        CategoryId = _.CategoryId,
                         ServiceAttachments = _.ServiceAttachments.ToList(),
                         Artisan = _.CreatedBy == null ? null : new AccountLiteModel
                         {

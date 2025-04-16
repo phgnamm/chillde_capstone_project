@@ -738,11 +738,13 @@ public class AccountService : IAccountService
             if (Guid.TryParse(idOrUsername, out var id))
                 account = await _unitOfWork.AccountRepository.GetAsync(id, accounts =>
                     accounts
-                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role));
+                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role)
+                        .Include(a => a.ShippingAddresses));
             else
                 account = await _unitOfWork.AccountRepository.FindByUsernameAsync(idOrUsername, accounts =>
                     accounts
-                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role));
+                        .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role)
+                        .Include(a => a.ShippingAddresses));
 
             if (account == null)
                 return new ResponseModel
@@ -769,6 +771,7 @@ public class AccountService : IAccountService
             account =>
                 account.IsDeleted == accountFilterModel.IsDeleted &&
                 (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
+                (!accountFilterModel.Gender.HasValue || account.Status == accountFilterModel.Status) &&
                 (!accountFilterModel.Role.HasValue || account.AccountRoles
                     .Select(accountRole => accountRole.Role.Name)
                     .Contains(accountFilterModel.Role.ToString())) &&
@@ -803,12 +806,19 @@ public class AccountService : IAccountService
             .Include(account => account.AccountRoles)
                 .ThenInclude(accountRole => accountRole.Role)
             .Include(account => account.Wallet)
-            .Include(account => account.Orders),
+            .Include(account => account.Orders)
+            .Include(account => account.Services),
         accountFilterModel.PageIndex,
         accountFilterModel.PageSize
         );
 
         var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        accountModels.ForEach(accountModel =>
+        {
+            var originalAccount = accounts.Data.FirstOrDefault(a => a.Id == accountModel.Id);
+            accountModel.Service = originalAccount?.Services?.Count;
+        });
+
         var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
             accountFilterModel.PageSize, accounts.TotalCount);
 
@@ -818,7 +828,6 @@ public class AccountService : IAccountService
             Data = result
         };
     }
-
 
     public async Task<ResponseModel> Update(Guid id, AccountUpdateModel accountUpdateModel)
     {
@@ -1193,7 +1202,7 @@ public class AccountService : IAccountService
 
         foreach (var voucher in vouchersByArtisan.Data)
         {
-            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucherForCustomer(voucher.Id, currentUserId.Value);
+            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id, currentUserId.Value);
 
             if (hasUsed)
                 continue; 

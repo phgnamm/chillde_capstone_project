@@ -9,6 +9,8 @@ using Chillde.Services.Models;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SystemConfigModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -127,7 +129,9 @@ namespace Chillde.Services.Services
 
             var result = configList.Data.Select(x => new SystemConfigModel
             {
-                FieldName = x.FieldName!,
+                Id = x.Id,
+                FieldName = ConfigKeyDisplayNames.DisplayNames
+                .FirstOrDefault(kvp => kvp.Key.ToString() == x.FieldName).Value ?? x.FieldName!,
                 EntityType = x.EntityType.ToString(),
                 Value = x.Value
             }).ToList();

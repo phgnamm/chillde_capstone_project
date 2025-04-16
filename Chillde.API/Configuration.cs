@@ -369,12 +369,27 @@ public static class Configuration
 
         //ReputationLog
         services.AddScoped<IReputationLogRepository, ReputationLogRepository>();
+        services.AddScoped<IReputationLogService, ReputationLogService>();
+
+        //Deposit
+        services.AddScoped<IDepositRepository, DepositRepository>();
+        services.AddScoped<IDepositService, DepositService>();
 
         //SketchReminder
         services.AddHostedService<SketchReminderService>();
 
         //DeliveryReminder
         services.AddHostedService<DeliveryReminderService>();
+
+        //DeliveryReminder
+        services.AddHostedService<VoucherCreationService>();
+
+        //OrderCompletionService
+        services.AddHostedService<OrderCompletionService>();
+
+        //Notification
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         #endregion
 

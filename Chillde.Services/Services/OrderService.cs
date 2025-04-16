@@ -252,16 +252,61 @@ namespace Chillde.Services.Services
             var requiredFeatures = package.PackageFeatures
                  .Where(_ => _.Feature.IsInformationRequired && (!_.IsExtra ?? true))
                  .ToList();
-            
-            foreach (var feature in orderAddModel.OrderInformationAddModels)
+            var requiredFeatureIds = requiredFeatures.Select(_ => _.FeatureId).Distinct().ToList();
+            var providedFeatureIds = orderAddModel.OrderInformationAddModels
+                         .Join(package.PackageFeatures,
+                            orderInfo => orderInfo.PackageFeatureId,
+                            packageFeature => packageFeature.Id,
+                            (orderInfo, packageFeature) => new { orderInfo, packageFeature })
+                        .Select(_ => _.packageFeature.FeatureId)
+                        .ToList();
+            ///////
+            var missingFeatureIds = requiredFeatureIds
+                .Where(id => !providedFeatureIds.Contains(id))
+                .ToList();
+            //extraFeatureCost = extraFeatureIds.Data.Sum(pf =>
+            //      orderAddModel.OrderInformationAddModels!
+            //     .Where(_ => _.PackageFeatureId == pf.Id)
+            //     .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
+            //       );
+            //extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
+            //   orderAddModel.OrderInformationAddModels!
+            //       .Where(_ => _.PackageFeatureId == pf.Id)
+            //       .Sum(_ => (pf.AdditionalDay ?? 0))
+            // );
+            //if (extraFeatureCost > 0)
+            //{
+            //    newOrder.DeliveryTime += extraFeatureDeliveryTime;
+            //    newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+            //    newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+            //    var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
+            //    newOrder.AdminCommDefault = newCommission;
+            //    newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
+            //}
+            ///////
+            if (missingFeatureIds.Any())
             {
-                var info = package.PackageFeatures
-                    .FirstOrDefault(_ => _.Id == feature.PackageFeatureId);
+                throw new InvalidOperationException($"Missing required features: {string.Join(", ", missingFeatureIds)}");
 
-                if (info == null || (info.Feature.IsInformationRequired && (info.IsExtra ?? true) &&
-                                     string.IsNullOrWhiteSpace(feature.Description)))
+            }
+            foreach (var requiredFeature in requiredFeatures)
+            {
+                var orderInfo = orderAddModel.OrderInformationAddModels
+                    ?.FirstOrDefault(_ => _.PackageFeatureId == requiredFeature.Id);
+
+                if (requiredFeature.Feature.QuestionType == MediaType.Text)
                 {
-                    new InvalidOperationException($"Order description for PackageFeature '{info.Name}' cannot be null or empty.");
+                    if (orderInfo == null || string.IsNullOrWhiteSpace(orderInfo.Description))
+                    {
+                        throw new InvalidOperationException($"Required description for feature '{requiredFeature.Feature.Name}' is missing.");
+                    }
+                }
+                else
+                {
+                    if (orderInfo != null && string.IsNullOrWhiteSpace(orderInfo.Description))
+                    {
+                        orderInfo.Description = requiredFeature.Name;
+                    }
                 }
             }
 
@@ -368,7 +413,7 @@ namespace Chillde.Services.Services
             {
                 if (commissionValue > 0)
                 {
-                    var adjustedCommission = Math.Max(commissionValue - (commsionVoucherValue ?? 0), 0) / 100;
+                    var adjustedCommission = (commissionValue - (commsionVoucherValue ?? 0)) / 100;
                     return totalOrder * adjustedCommission;
                 }
 
@@ -389,13 +434,13 @@ namespace Chillde.Services.Services
             {
                 return;
             }
-            var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
-                orderAddModel.OrderInformationAddModels!
-                    .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
-            if (checkMaxQuantity != null)
-            {
-                throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
-            }
+            //var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
+            //    orderAddModel.OrderInformationAddModels!
+            //        .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
+            //if (checkMaxQuantity != null)
+            //{
+            //    throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
+            //}
             var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
                 orderAddModel.OrderInformationAddModels!
                     .Where(_ => _.PackageFeatureId == pf.Id)    
@@ -639,7 +684,7 @@ namespace Chillde.Services.Services
             }
 
 
-            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.Return)
+            if (order.Stage != OrderStage.Shipping && order.Stage != OrderStage.Cancelled)
             {
                 return new ResponseModel
                 {
@@ -926,12 +971,16 @@ namespace Chillde.Services.Services
             if (orderFilterModel.Role == Repositories.Enums.Role.Customer)
             {
                 filter = _ => _.CreatedById == currentUserId.Value &&
-                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status);
+                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status) &&
+                             (!orderFilterModel.MinPrice.HasValue || _.TotalPrice >= orderFilterModel.MinPrice) &&
+                             (!orderFilterModel.MaxPrice.HasValue || _.TotalPrice <= orderFilterModel.MaxPrice);
             }
             else if (orderFilterModel.Role == Repositories.Enums.Role.Artisan)
             {
                 filter = _ => _.Package.Service.CreatedById == currentUserId.Value &&
-                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status);
+                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status) &&
+                             (!orderFilterModel.MinPrice.HasValue || _.TotalPrice >= orderFilterModel.MinPrice) &&
+                             (!orderFilterModel.MaxPrice.HasValue || _.TotalPrice <= orderFilterModel.MaxPrice);
             }
             else
             {
@@ -1209,12 +1258,12 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status400BadRequest
                 };
             }
-            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, voucherId);
+            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, currentUserId.Value);
             if (hasUsed)
             {
                 return new ResponseModel
                 {
-                    Message = "Voucher has used for this order.",
+                    Message = "One order just have one voucher.",
                     Code = StatusCodes.Status400BadRequest
                 };
             }
@@ -1227,7 +1276,6 @@ namespace Chillde.Services.Services
             {
                 adminCommAfterUsed = voucher.MaxDiscountValue.Value;
             }
-
 
             order.AdminCommUsedVch = adminCommAfterUsed;
             order.ArtistRevenue = totalPriceOrder - adminCommAfterUsed;
@@ -1724,7 +1772,7 @@ namespace Chillde.Services.Services
 
                 if (order.Stage == OrderStage.DeliveryInProcess)
                 {
-                    order.Stage = OrderStage.ReviewDelivery;
+                    order.Stage = OrderStage.ReviewDelivery;    
                 }
 
                 var uploadedAttachments = await UploadAttachments(
@@ -1738,7 +1786,7 @@ namespace Chillde.Services.Services
                     Name = orderTrackingAddModel.Name ?? "New Delivery",
                     Description = orderTrackingAddModel.Description ?? "Delivery phase",
                     Type = orderTrackingAddModel.Type,
-                    Stage = OrderStage.ReviewSketch,
+                    Stage = OrderStage.ReviewDelivery,
                     CreatedById = currentUserId.Value,
                     OrderTrackingAttachments = uploadedAttachments
                 };
@@ -2026,6 +2074,72 @@ namespace Chillde.Services.Services
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+        public async Task<ResponseModel> UpdateOrderAfterDeliveryAsync(Guid orderId)
+        {
+            try
+            {
+                if (orderId == Guid.Empty)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid order ID."
+                    };
+                }
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+                if (order.Stage != OrderStage.AwaitingClosure)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Order is not in AwaitingClosure stage. Current stage: {order.Stage}."
+                    };
+                }
+                if (order.Status != OrderStatus.Accepted)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Order is not in Accepted status. Current status: {order.Status}."
+                    };
+                }
+                order.Stage = OrderStage.Completed;
+                order.Status = OrderStatus.Success;
+                _unitOfWork.OrderRepository.Update(order);
+                var saveResult = await _unitOfWork.SaveChangeAsync();
+
+                if (saveResult <= 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to update order in database."
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Order updated to Completed and Success successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error updating order: {ex.Message}"
+                };
             }
         }
 

@@ -501,7 +501,7 @@ namespace Chillde.Services.Services
                 //};
 
                 var existingPackageFeatures = _unitOfWork.PackageFeatureRepository.GetAllAsync(
-                    filter: _ => _.IsDeleted == false && _.PackageId == package.Id
+                    filter: _ => _.IsDeleted == false && _.PackageId == package.Id && _.FeatureId == feature.Id
                     ).Result.Data;
 
                 if (packageFeatureAddModel.Index == 0)
@@ -615,7 +615,7 @@ namespace Chillde.Services.Services
                 }
 
                 var existingPackageFeatures = _unitOfWork.PackageFeatureRepository.GetAllAsync(
-                        filter: _ => _.IsDeleted == false && _.PackageId == package.Id
+                        filter: _ => _.IsDeleted == false && _.PackageId == package.Id && _.FeatureId == feature.Id
                         ).Result.Data;
 
                 List<PackageFeature> packageFeatures = new List<PackageFeature>();

@@ -672,7 +672,7 @@ namespace Chillde.Services.Services
             {
                 Name = model.Name,
                 Description = model.Description,
-                CategoryId =model.ItemId,
+                CategoryId =model.CategoryId,
                 MinBudget = model.MinBudget,
                 MaxBudget = model.MaxBudget,
                 Timeline = model.Timeline,
@@ -773,6 +773,7 @@ namespace Chillde.Services.Services
         #region Get Request Detail
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
+            var currentUserId = _claimService.GetCurrentUserId!.Value;
             var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
             var requestModel = new RequestGetByIdModel
             {
@@ -783,6 +784,7 @@ namespace Chillde.Services.Services
                 MaxBudget = (decimal)request.MaxBudget,
                 Timeline = (int)request.Timeline,
                 Status = request.Status,
+                IsCurrentAccountOffer = await _unitOfWork.RequestRepository.HasUserOfferedForRequestAsync(currentUserId, id),
                 RequestAttachmentGetModels = request?.RequestAttachments?.Select(_ => new RequestAttachmentGetModel
                 {
                     Id = _.Id,
@@ -812,6 +814,56 @@ namespace Chillde.Services.Services
         }
         #endregion
 
+        public async Task<ResponseModel> DeleteAsync(Guid requestId)
+        {
+            if (requestId == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid request ID."
+                };
+            }
+
+            try
+            {
+                var existingRequest = await _unitOfWork.RequestRepository.GetAsync(requestId);
+                if (existingRequest == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Request not found."
+                    };
+                }
+
+                var translation = await _unitOfWork.TranslationRepository
+                    .GetTranslationAsync("Request", requestId, "Description",
+                        (Guid)(await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync("en"))!);
+                if (translation != null)
+                {
+                    _unitOfWork.TranslationRepository.SoftRemove(translation);
+                }
+                _unitOfWork.RequestRepository.SoftRemove(existingRequest);
+                var changes = await _unitOfWork.SaveChangeAsync();
+                return changes > 0
+                    ? new ResponseModel
+                    { Code = StatusCodes.Status200OK, Message = "Request and its translation deleted successfully." }
+                    : new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to delete reqeust and translation."
+                    };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
+        }
         #region Update Request
         public async Task<ResponseModel> UpdateRequestAsync(Guid requestId, RequestUpdateModel requestUpdateModel)
         {

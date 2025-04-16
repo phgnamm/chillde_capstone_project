@@ -141,24 +141,17 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [Authorize]
-        [HttpPost("{requestId}/offers")]
-        public async Task<IActionResult> Add([FromForm] OfferAddModel model, Guid requestId)
+       
+        [HttpPost("ai-generate-forms")]
+        public async Task<IActionResult> AiGenerateForm(List<string> attributes)
         {
             try
             {
-                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
-                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
-                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
-
-                var result = await _offerService.AddAsync(model, requestId, sourceLanguageCode, targetLanguageCode);
-                if (result.Code != StatusCodes.Status201Created)
+               
+                var result = await _openAiService.GetStructuredDataAsync(attributes);
+                if (result.Status)
                 {
-                    return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                    {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = result.Message
-                    });
+                    return Ok(result);
                 }
                 return StatusCode(result.Code, result);
             }
@@ -171,17 +164,14 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpPost("ai-generate-forms")]
-        public async Task<IActionResult> AiGenerateForm(List<string> attributes)
+
+        [Authorize(Roles ="Customer,Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAsync(Guid id)
         {
             try
             {
-               
-                var result = await _openAiService.GetStructuredDataAsync(attributes);
-                if (result.Status)
-                {
-                    return Ok(result);
-                }
+                var result = await _requestService.DeleteAsync(id);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

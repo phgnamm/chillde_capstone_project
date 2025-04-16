@@ -24,6 +24,7 @@ namespace Chillde.Repositories.Enums
         MaximumPackageFeatureOfOnePackage,
         MaximumFeatureOfOnePackage,
         MaximumSerivceOfOneArtisan,
+        MaxPriceOfPackage,
 
         // percent order for cancellation automatically
         AutoCancelPercentagePenalty,
@@ -63,6 +64,6 @@ namespace Chillde.Repositories.Enums
         MaxCustomerOrdersPerMonth,
         ReputationIncreaseOnSuccess,
         MinReputationToAvoidBan,
-        MaxPriceOfPackage
+        
     }
 }

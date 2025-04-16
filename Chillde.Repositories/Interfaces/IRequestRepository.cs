@@ -9,5 +9,6 @@ namespace Chillde.Repositories.Interfaces
 {
     public interface IRequestRepository : IGenericRepository<Request>
     {
+        Task<bool> HasUserOfferedForRequestAsync(Guid currentUserId, Guid requestId);
     }
 }

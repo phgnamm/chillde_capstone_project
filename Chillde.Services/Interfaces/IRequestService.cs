@@ -13,5 +13,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetAll(RequestFilterModel filterParameter, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> Add(RequestAddModel requestAddModel, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> AddAsync(RequestAddModel requestAddModel, string sourceLanguageCode);
+        Task<ResponseModel> DeleteAsync(Guid id);
     }
 }

@@ -18,5 +18,6 @@ namespace Chillde.Repositories.Models.VoucherModels
         public DateTime StartTime { get; set; } 
         public DateTime ExpiredTime { get; set; }
         public VoucherStatus VoucherStatus { get; set; }
+        public List<VoucherUsageLog> VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();
     }
 }

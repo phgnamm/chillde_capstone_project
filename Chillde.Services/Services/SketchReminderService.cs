@@ -20,7 +20,7 @@ namespace Chillde.Services.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SketchReminderService> _logger;
         private DateTime? _nextRunTime;
-        private const int FIXED_DELAY_SECONDS = 30;
+        private const int FIXED_DELAY_SECONDS = 30000;
 
         public SketchReminderService(IServiceScopeFactory serviceScopeFactory, ILogger<SketchReminderService> logger)
         {
@@ -63,7 +63,7 @@ namespace Chillde.Services.Services
                         {
                             decimal penalty = 0m;
                             order.Status = OrderStatus.Cancelled;
-                            order.Stage = OrderStage.Cancelled;
+                            //order.Stage = OrderStage.Cancelled;
                             var autoCancelPercentagePenalty = await systemConfigurationService.Get(SystemConfigKey.AutoCancelPercentagePenalty);
 
                             if (autoCancelPercentagePenalty.Data is SystemConfigModel configPercentage
@@ -84,7 +84,7 @@ namespace Chillde.Services.Services
                                 var reputationLog = new ReputationLog
                                 {
                                     PointChange = -(int)autoCancelPointPenaltyValue,
-                                    Reason = SystemCancelReason.NotReponseDeadlineInTime.ToString(),
+                                    Reason = $"Không phản hồi bản thảo đúng thời gian của đơn hàng - {order.Code}",
                                     OrderId = order.Id,
                                 };
                                 customer.Reputations.Add(reputationLog);
@@ -113,7 +113,7 @@ namespace Chillde.Services.Services
                                  $@"
                                 <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
                                 <p>Đơn hàng <strong>#{order.Code}</strong> của bạn đã bị <strong>tự động hủy</strong> do không có phản hồi trước thời hạn quy định.</p>
-                                <p><strong>Thông tin đơn hàng:</strong></p>
+                                <p><strong>Thông tin đơn hàng: </strong></p>
                                 <ul>
                                     <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
                                     <li><strong>Tổng giá trị:</strong> {order.TotalPrice} VNĐ</li>

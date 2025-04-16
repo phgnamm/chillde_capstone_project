@@ -19,7 +19,7 @@ namespace Chillde.Services.Models.ShipmentModels
         public int StatusId { get; set; }
 
         [FromForm(Name = "action_time")]
-        public string ActionTime { get; set; } = string.Empty;
+        public string? ActionTime { get; set; } = string.Empty;
 
         [FromForm(Name = "reason_code")]
         public string? ReasonCode { get; set; }
@@ -28,15 +28,15 @@ namespace Chillde.Services.Models.ShipmentModels
         public string? Reason { get; set; }
 
         [FromForm(Name = "weight")]
-        public decimal Weight { get; set; }
+        public decimal? Weight { get; set; }
 
         [FromForm(Name = "fee")]
-        public decimal Fee { get; set; }
+        public decimal? Fee { get; set; }
 
         [FromForm(Name = "pick_money")]
-        public decimal PickMoney { get; set; }
+        public decimal? PickMoney { get; set; }
 
         [FromForm(Name = "return_part_package")]
-        public int ReturnPartPackage { get; set; }
+        public int? ReturnPartPackage { get; set; }
     }
 }

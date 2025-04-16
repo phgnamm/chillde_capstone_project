@@ -17,7 +17,7 @@ public class DeliveryReminderService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DeliveryReminderService> _logger;
-    private const int FIXED_DELAY_SECONDS = 30;
+    private const int FIXED_DELAY_SECONDS = 3000;
 
     public DeliveryReminderService(
         IServiceProvider serviceProvider,
@@ -258,7 +258,7 @@ public class DeliveryReminderService : BackgroundService
             parts.Add($"🗓️ {days} ngày");
         if (hours > 0)
             parts.Add($"⏰ {hours} giờ");
-        if (minutes > 0 || parts.Count == 0) 
+        if (minutes > 0 || parts.Count == 0)
             parts.Add($"⏳ {minutes} phút");
 
         return string.Join(" ", parts);
@@ -292,7 +292,7 @@ public class DeliveryReminderService : BackgroundService
             var reputationLog = new ReputationLog
             {
                 PointChange = -(int)15,
-                Reason = SystemCancelReason.NotReponseDeadlineInTime.ToString(),
+                Reason = $"Không đăng sản phẩm lên đúng thời gian của đơn hàng - {order.Code}",
                 OrderId = order.Id,
             };
             artisanAccount.Reputations.Add(reputationLog);
