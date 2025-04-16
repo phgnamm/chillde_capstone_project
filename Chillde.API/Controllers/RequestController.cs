@@ -28,7 +28,7 @@ namespace Chillde.API.Controllers
         }
 
         [Authorize]
-        [HttpGet]
+        [HttpGet("get-all")]
         public async Task<IActionResult> GetAll([FromQuery] RequestFilterModel requestFilterModel)
         {
             try
@@ -37,6 +37,24 @@ namespace Chillde.API.Controllers
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
                 var result = await _requestService.GetAll(requestFilterModel, sourceLanguageCode, targetLanguageCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery] RequestFilterModel requestFilterModel)
+        {
+            try
+            {         
+                var result = await _requestService.Get(requestFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

@@ -10,6 +10,6 @@ namespace Chillde.Repositories.Enums
     {
         Pending,
         Used,
-        Cancelled
+        Refunded
     }
 }
