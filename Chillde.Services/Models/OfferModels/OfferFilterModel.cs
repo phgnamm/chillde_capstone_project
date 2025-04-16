@@ -6,6 +6,7 @@ namespace Chillde.Services.Models.OfferModels
     public class OfferFilterModel : FilterParameter
     {
         public Guid? RequestId { get; set; }
+        public bool ViewAll { get; set; }
         public Guid? ServiceId { get; set; }
         public OfferStatus? Status { get; set; }
         public int? MinDeliveryTime { get; set; }
