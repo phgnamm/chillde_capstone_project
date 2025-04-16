@@ -386,6 +386,7 @@ public static class Configuration
 
         //OrderCompletionService
         services.AddHostedService<OrderCompletionService>();
+
         //Notification
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationService>();
