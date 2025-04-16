@@ -23,6 +23,7 @@ using Chillde.Services.Utils;
 using CloudinaryDotNet;
 using Chillde.Services.Common;
 using System.Linq;
+using Chillde.Repositories.Models.RequestModels;
 
 
 namespace Chillde.Services.Services
@@ -55,11 +56,10 @@ namespace Chillde.Services.Services
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
             try
             {
-                var currentUserRoles = _claimService.GetCurrentRoles;
                 var currentUserId = _claimService.GetCurrentUserId!.Value;
                 var cacheKey = $"offers_{sourceLanguageCode}_{targetLanguageCode}_{CacheTools.GenerateCacheKey(filterParameter)}";
-                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                {
+                //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                //{
                     var offersResult = await _unitOfWork.OfferRepository.GetAllAsync(
                     offer =>
                         offer.IsDeleted == filterParameter.IsDeleted &&
@@ -76,13 +76,8 @@ namespace Chillde.Services.Services
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (!filterParameter.RequestId.HasValue || offer.RequestId == filterParameter.RequestId) &&
-                        (
-                            (currentUserRoles!.Contains(Repositories.Enums.Role.Customer) && offer.Request!.CreatedById == currentUserId) ||
-                            (currentUserRoles.Contains(Repositories.Enums.Role.Artisan) && offer.CreatedById == currentUserId) ||
-                            (currentUserRoles.Contains(Repositories.Enums.Role.Artisan) && offer.Service!.CreatedById == currentUserId) ||
-                            (currentUserRoles.Contains(Repositories.Enums.Role.Admin))
-                        ),
-                    offers =>
+                        filterParameter.ViewAll || offer.CreatedById == currentUserId,
+                offers =>
                     {
                         switch (filterParameter.Order.ToLower())
                         {
@@ -222,18 +217,20 @@ namespace Chillde.Services.Services
                             CreationDate = offer.CreationDate
                         }).ToList();
                     }
-
+                    var result = new Pagination<OfferModel>
+                    (
+                       localizedOffers,
+                       filterParameter.PageIndex,
+                       filterParameter.PageSize,
+                       localizedOffers.Count
+                    );
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
                         Message = "Offers retrieved successfully.",
-                        Data = new
-                        {
-                            offersResult.TotalCount,
-                            Results = localizedOffers
-                        }
+                        Data = result
                     };
-                });
+                //});
             }
             catch (Exception ex)
             {
