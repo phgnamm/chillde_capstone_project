@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.OfferModels;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Services.Models.OfferModels;
 using Chillde.Services.Models.ResponseModels;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetByIdAsync(Guid id, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> AddAsync(OfferAddModel model, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> UpdateAsync(Guid offerId, OfferUpdateModel model, string sourceLanguageCode, string targetLanguageCode);
+        Task<ResponseModel> UpdateStatusAsync(Guid offerId, OfferStatus status);
         Task<ResponseModel> DeleteAsync(Guid offerId);
     }
 }

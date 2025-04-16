@@ -39,6 +39,7 @@ namespace Chillde.Repositories.Repositories
                             OfferAttachments = offer.OfferAttachments.ToList(),
                             RequestId = offer.RequestId,
                             ServiceId = offer.ServiceId,
+                            ShippingAddress = offer.CreatedBy.ShippingAddresses.FirstOrDefault()!,
                             CreatedBy = new AccountLiteModel
                             {
                                 Email = offer.CreatedBy.Email,

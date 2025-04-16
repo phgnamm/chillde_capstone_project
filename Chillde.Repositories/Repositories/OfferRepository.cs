@@ -103,6 +103,7 @@ namespace Chillde.Repositories.Repositories
             var offer = await _context.Offers
                  .Include(o => o.OfferAttachments)
                 .Include(o => o.CreatedBy)
+                .ThenInclude(cr => cr.ShippingAddresses)
                 .Include(o => o.Package)
                     .ThenInclude(p => p.PackageFeatures)
                         .ThenInclude(pf => pf.Feature)
