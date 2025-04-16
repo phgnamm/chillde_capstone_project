@@ -2127,7 +2127,7 @@ namespace Chillde.Services.Services
                     };
                 }
                 order.Stage = OrderStage.Completed;
-                order.Status = OrderStatus.Success;
+                order.Status = OrderStatus.Completed;
                 _unitOfWork.OrderRepository.Update(order);
                 var saveResult = await _unitOfWork.SaveChangeAsync();
 
