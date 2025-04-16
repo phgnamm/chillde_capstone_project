@@ -610,16 +610,18 @@ namespace Chillde.Services.Services
                 if (model.PackageUpdateModel != null && existingOffer.Package != null)
                 {
                     var pkg = model.PackageUpdateModel;
-
-                    existingPkg!.Name = string.IsNullOrWhiteSpace(pkg.Name.ToString()) ? existingPkg.Name : pkg.Name;
                     if (!string.IsNullOrWhiteSpace(pkg.Description) && pkg.Description != existingPkg.Description)
                     {
                         existingPkg.Description = pkg.Description;
                         textsToTranslate.Add("Package.Description", pkg.Description);
                     }
-                    existingPkg.Price = pkg.Price != 0 ? pkg.Price : existingPkg.Price;
-                    existingPkg.DeliveryTime = pkg.DeliveryTime ?? existingPkg.DeliveryTime;
+                    existingPkg!.Price = pkg.Price != 0 ? pkg.Price : existingPkg?.Price;
+                    existingPkg!.DeliveryTime = pkg.DeliveryTime ?? existingPkg.DeliveryTime;
                     existingPkg.SketchRevision = pkg.SketchRevision ?? existingPkg.SketchRevision;
+                    if (pkg.MinQuantity != 0)
+                    {
+                        existingPkg.MinQuantity = pkg.MinQuantity;
+                    }
                     existingPkg.MaxQuantity = pkg.MaxQuantity ?? existingPkg.MaxQuantity;
                     existingPkg.ResponseTime = (float)pkg.ResponseTime.TotalMinutes;
                 }
