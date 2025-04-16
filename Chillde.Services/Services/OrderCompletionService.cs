@@ -69,7 +69,7 @@ namespace Chillde.Services.Services
                         _logger.LogInformation("Processing order {OrderId} for auto-completion.", order.Id);
 
                         order.Stage = OrderStage.Completed;
-                        order.Status = OrderStatus.Success;
+                        order.Status = OrderStatus.Completed;
                         unitOfWork.OrderRepository.Update(order);
                         var saveResult = await unitOfWork.SaveChangeAsync();
 
