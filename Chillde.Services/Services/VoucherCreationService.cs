@@ -55,7 +55,7 @@ namespace Chillde.Services.Services
                         {
                             var successfulOrders = unitOfWork.OrderRepository
                                 .GetAllAsync(order =>
-                                             order.Status == OrderStatus.Success &&
+                                             order.Status == OrderStatus.Completed &&
                                              order.Package.Service.CreatedById == account.Id)
                                 .Result.TotalCount;
 

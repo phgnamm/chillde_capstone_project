@@ -2578,6 +2578,106 @@ new()
         },
     };
 
+    private static readonly List<NotificationContent> NotificationContents = new()
+    {
+        new()
+        {
+            Id = Guid.Parse("5c2e74f6-9af8-4b3f-b262-fad2d1351c5e"),
+            Code = "ORD_01",
+            Content = "✨ Tèn ten~ Nghệ nhân đã gật đầu đồng ý làm đơn hàng orderCode cho bạn rồi nè.",
+            Name = "Chấp nhận đơn hàng",
+            Type = NotificationType.Order,
+        },
+        new()
+        {
+            Id = Guid.Parse("e1b52f9d-d2b4-4aa6-a33f-f6e3e1c2f746"),
+            Code = "ORD_02",
+            Content = "💔 Oops! Nghệ nhân chưa thể thực hiện đơn hàng orderCode lần này rồi. Nhưng đừng lo, vẫn còn nhiều nghệ nhân khác đang chờ đón bạn!",
+            Name = "Từ chối đơn hàng",
+            Type = NotificationType.Order,
+        },
+        new()
+        {
+            Id = Guid.Parse("d1a8c5a7-51d9-44a4-b5d4-3163514c946a"),
+            Code = "ORD_03",
+            Content = "📦 Có đơn mới rồi nè! Một khách hàng vừa đặt dịch vụ của bạn, cùng bắt tay vào làm thôi!",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.Order,
+        },
+        new()
+        {
+            Id = Guid.Parse("2b0f59a4-61ce-421b-b376-f9aab04f1d16"),
+            Code = "ORD_TRC_01",
+            Content = "✨ Tèn ten~ Bản thảo đầu tiên của đơn orderCode đã đến tay bạn! Cùng xem thử và gửi chút góp ý cho nghệ nhân liền nào!",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("cba3ec59-5cd9-40d7-9ab7-189e257f0a8f"),
+            Code = "ORD_TRC_02",
+            Content = "🛠️ Đèn xanh rồi đó nghệ nhân ơi. Khách đã “gật đầu” với bản thảo đơn [#123456]. Triển thôi nào!",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("b81ea1dc-003a-4953-a896-fd0c458d55cd"),
+            Code = "ORD_TRC_03",
+            Content = "🌀 Ui… bản thảo lần này của đơn orderCode chưa “đốn tim” khách hàng rồi. Cùng xem góp ý và làm lại một phiên bản mới tuyệt hơn nhé!",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("06d319c0-06de-49df-a5d2-1135c8b2a0a5"),
+            Code = "ORD_TRC_04",
+            Content = "🎆 Ta-da~ Sản phẩm của đơn [orderCode] đã được hoàn thành rồi nè! Cùng chiêm ngưỡng sản phẩm của bạn và gửi chút cảm nhận cho nghệ nhân nha 💖",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("4f05cc96-3bfc-48a3-a78b-794d110ea21f"),
+            Code = "ORD_TRC_05",
+            Content = "🎁 Vèo vèo~ Đơn [#orderCode] đang “phi” tới chỗ bạn nè! Nghệ nhân gửi gắm cả tâm huyết vào đó đó, hóng chưa nào?",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("174ccba1-3a3c-447f-a82a-8e1f3f4c8992"),
+            Code = "ORD_TRC_06",
+            Content = "🥳 Boom! Đơn hàng [#orderCode] đã hạ cánh an toàn. Cùng mở hộp và khám phá sản phẩm nào!",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("3ce42aa3-8c56-4b56-b882-0189f8e91dd5"),
+            Code = "REP_01",
+            Content = "⚠️ Đơn hàng [#orderCode] đã bị khách hàng report. Vui lòng kiểm tra và xem xét vấn đề để có giải pháp phù hợp.",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.Report,
+        },
+        new()
+        {
+            Id = Guid.Parse("5b553e8c-c8f2-4c7c-a0f9-83d4df4e16d1"),
+            Code = "REP_02",
+            Content = "✅ Đơn hàng [#orderCode] sẽ được hoàn và tiền sẽ được trả lại cho khách hàng. Hãy chuẩn bị cho quá trình hoàn trả sản phẩm theo đúng quy định.",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.Report,
+        },
+        new()
+        {
+            Id = Guid.Parse("9c71ae14-d748-4c26-88e8-5f9394934cfd"),
+            Code = "FEEDBACK_01",
+            Content = "📣 Khách đã chia sẻ cảm nhận về dịch vụ của bạn. Hãy xem thử xem họ thích gì và cần cải thiện điều gì nhé!",
+            Name = "Đơn hàng mới",
+            Type = NotificationType.Feedback,
+        }
+    };
+
     private static readonly List<Service> Services = new()
     {
         new()
@@ -3672,6 +3772,15 @@ new()
             {
                 account.CreationDate = DateTime.UtcNow;
                 context.Accounts.Add(account);
+            }
+        }
+
+        foreach (var notificationContent in NotificationContents)
+        {
+            if (!context.NotificationContents.Any(c => c.Id == notificationContent.Id))
+            {
+                notificationContent.CreationDate = DateTime.UtcNow;
+                context.NotificationContents.Add(notificationContent);
             }
         }
 

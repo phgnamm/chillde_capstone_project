@@ -10,6 +10,7 @@ namespace Chillde.Repositories.Entities
         public Guid NotificationTypeId { get; set; }
         public Guid SourceId { get; set; } //Id của Entity cần thông báo. Ví dụ: OrderId, FeedbackId,...
         public string? ImageUrl { get; set; }
+        public bool IsRead { get; set; } = false;
 
         public Account Account { get; set; }
         public NotificationContent NotificationContent { get; set; }

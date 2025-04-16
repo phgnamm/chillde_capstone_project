@@ -55,6 +55,7 @@ public interface IUnitOfWork
     IOfferAttachmentRepository OfferAttachmentRepository { get; }
     IReputationLogRepository ReputationLogRepository { get; }
     IDepositRepository DepositRepository { get; }
+    INotificationRepository NotificationRepository { get; }
 
     #endregion
 }
