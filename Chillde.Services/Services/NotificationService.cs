@@ -3,6 +3,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.NotificationModels;
 using Chillde.Services.Hubs;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.MessageModels;
@@ -35,9 +36,9 @@ namespace Chillde.Services.Services
             _cloudinaryHelper = cloudinaryHelper;
         }
 
-        public async Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel)
+        public async Task<ResponseModel> PushNotification (NotificationAddModel notificationAddModel)
         {
-            if (string.IsNullOrWhiteSpace(messageAddModel.Content) && messageAddModel.Attachment == null)
+            if (string.IsNullOrWhiteSpace(notificationAddModel.Content))
             {
                 return new ResponseModel
                 {
@@ -46,26 +47,15 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized"
-                };
+            //var currentUserId = _claimService.GetCurrentUserId;
+            //if (!currentUserId.HasValue)
+            //    return new ResponseModel
+            //    {
+            //        Code = StatusCodes.Status401Unauthorized,
+            //        Message = "Unauthorized"
+            //    };
 
-            var message = _mapper.Map<Message>(messageAddModel);
-            if (messageAddModel.Attachment != null)
-            {
-                if (string.IsNullOrWhiteSpace(messageAddModel.Content))
-                {
-                    message.MessageType = MediaType.Image;
-                }
-
-                message.AttachmentUrl =
-                    await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment,
-                        folderName: FolderAttachment.MESSAGES);
-            }
+            var notification = _mapper.Map<Notification>(notificationAddModel);
 
             //var accountConversations = new List<AccountConversation>();
             //foreach (var accountConversation in existedConversation.AccountConversations)
@@ -85,11 +75,10 @@ namespace Chillde.Services.Services
             //}
 
             //_unitOfWork.AccountConversationRepository.UpdateRange(accountConversations);
-            await _unitOfWork.MessageRepository.AddAsync(message);
+            await _unitOfWork.NotificationRepository.AddAsync(notification);
             if (await _unitOfWork.SaveChangeAsync() > 0)
             {
-                var recipientIds = message.MessageRecipients.Select(messageRecipient => messageRecipient.AccountId)
-                    .ToList();
+                //var recipientId = notification.AccountId;
                 // foreach (var recipientId in recipientIds)
                 // {
                 // var updateConversation =
@@ -110,24 +99,15 @@ namespace Chillde.Services.Services
                 // }
 
                 await _hubContext.Clients
-                    .Clients(_connections.GetConnections(recipientIds))
-                    .SendAsync("NotificationConversation",
-                        new
-                        {
-                            ConversationId = conversationId
-                        });
+                    .Clients(_connections.GetConnections(notification.AccountId))
+                    .SendAsync("NotificationConversation");
                 await _hubContext.Clients
-                    .Clients(_connections.GetConnections(recipientIds)).SendAsync("ReceiveMessage",
-                        new
-                        {
-                            ConversationId = conversationId,
-                            //Message = MapFromMessageToMessageModel(message, currentUserId)
-                        });
+                    .Clients(_connections.GetConnections(notification.AccountId)).SendAsync("ReceiveMessage");
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Create message successfully"
+                    Message = "Send notication successfully"
                 };
             }
 
