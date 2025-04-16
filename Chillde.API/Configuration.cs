@@ -386,6 +386,8 @@ public static class Configuration
 
         //OrderCompletionService
         services.AddHostedService<OrderCompletionService>();
+        //ShippingTimeoutService
+        services.AddHostedService<ShippingTimeoutService>();
         #endregion
 
         return services;
