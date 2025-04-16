@@ -18,6 +18,7 @@ using Nest;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Net.WebSockets;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -1057,6 +1058,67 @@ namespace Chillde.Services.Services
             );
         }
 
-       
+        public async Task<ResponseModel> Get(RequestFilterModel filterParameter)
+        {
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized"
+                };
+            }
+
+            Expression<Func<Request, bool>> filterExpression = _ =>
+                _.IsDeleted == filterParameter.IsDeleted &&
+                (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
+
+            Func<IQueryable<Request>, IQueryable<Request>> includeWithOrder = query =>
+            {
+                var ordered = filterParameter.OrderByDescending
+                    ? query.OrderByDescending(_ => _.CreationDate)
+                    : query.OrderBy(_ => _.CreationDate);
+                return ordered;
+            };
+
+            var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
+                filter: filterExpression,
+                include: includeWithOrder,
+                pageIndex: filterParameter.PageIndex,
+                pageSize: filterParameter.PageSize
+            );
+
+            var filteredData = filterParameter.ViewAll
+                ? requestsResult.Data
+                : requestsResult.Data.Where(_ => _.CreatedById == currentUserId.Value).ToList();
+
+            var requestModels = filteredData.Select(_ => new RequestModel
+            {
+                Id = _.Id,
+                Name = _.Name,
+                IsDeleted = _.IsDeleted,
+                CreationDate = _.CreationDate,
+                MaxBudget = _.MaxBudget,
+                MinBudget = _.MinBudget,
+                Timeline = _.Timeline,
+                Description = _.Description,
+                Status = _localizer[_.Status.ToString()],
+            }).ToList();
+
+            var result = new Pagination<RequestModel>(
+                requestModels,
+                filterParameter.PageIndex,
+                filterParameter.PageSize,
+                requestsResult.TotalCount
+            );
+
+            return new ResponseModel
+            {
+                Message = "Get all requests successfully",
+                Data = result
+            };
+        }
+
     }
 }
