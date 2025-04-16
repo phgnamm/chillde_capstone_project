@@ -110,7 +110,7 @@ namespace Chillde.API.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] OfferUpdateModel model)
+        public async Task<IActionResult> Update(Guid id, [FromForm] OfferUpdateModel model)
         {
             try
             {
