@@ -5,6 +5,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,6 @@ namespace Chillde.Repositories.Repositories
                             OfferAttachments = offer.OfferAttachments.ToList(),
                             RequestId = offer.RequestId,
                             ServiceId = offer.ServiceId,
-                            ShippingAddress = offer.CreatedBy.ShippingAddresses.FirstOrDefault()!,
                             CreatedBy = new AccountLiteModel
                             {
                                 Email = offer.CreatedBy.Email,

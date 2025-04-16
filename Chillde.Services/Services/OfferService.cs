@@ -24,6 +24,8 @@ using CloudinaryDotNet;
 using Chillde.Services.Common;
 using System.Linq;
 using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
+using AutoMapper;
 
 
 namespace Chillde.Services.Services
@@ -36,9 +38,10 @@ namespace Chillde.Services.Services
         private readonly IStringLocalizer<OfferLanguage> _localizer;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IRedisHelper _redisHelper;
+        private readonly IMapper _mapper;
 
         public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService,
-            IStringLocalizer<OfferLanguage> localizer, ICloudinaryHelper cloudinaryHelper, IRedisHelper redisHelper)
+            IStringLocalizer<OfferLanguage> localizer, ICloudinaryHelper cloudinaryHelper, IRedisHelper redisHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
@@ -46,6 +49,7 @@ namespace Chillde.Services.Services
             _localizer = localizer;
             _cloudinaryHelper = cloudinaryHelper;
             _redisHelper = redisHelper;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter,
@@ -116,7 +120,7 @@ namespace Chillde.Services.Services
                             OfferAttachments = offer.OfferAttachments?.ToList(),
                             RequestId = offer.RequestId,
                             ServiceId = offer.ServiceId,
-                            ShippingAddress = offer.CreatedBy.ShippingAddresses.FirstOrDefault()!,
+                            ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                             Package = new PackageModel
                             {
                                 Id = offer.Package!.Id,
@@ -176,7 +180,7 @@ namespace Chillde.Services.Services
                             OfferAttachments = offer.OfferAttachments?.ToList(),
                             RequestId = offer.RequestId,
                             ServiceId = offer.ServiceId,
-                            ShippingAddress = offer.CreatedBy.ShippingAddresses.FirstOrDefault()!,
+                            ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                             Package = new PackageModel
                             {
                                 Name = offer.Package!.Name,
@@ -281,7 +285,7 @@ namespace Chillde.Services.Services
                         OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
-                        ShippingAddress = offer.CreatedBy.ShippingAddresses.FirstOrDefault()!,
+                        ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
