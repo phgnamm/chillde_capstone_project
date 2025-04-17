@@ -35,11 +35,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-
 using Nest;
-
 using RabbitMQ.Client;
-
 
 //using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -64,7 +61,8 @@ public class AccountService : IAccountService
     private readonly string _stringeeSenderPhone;
 
     public AccountService(IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IConfiguration configuration,
-        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork, IShippingAddressService shippingAddressService, HttpClient httpClient)
+        IEmailHelper iIEmailHelper, IMapper mapper, IRedisHelper redisHelper, IUnitOfWork unitOfWork,
+        IShippingAddressService shippingAddressService, HttpClient httpClient)
     {
         _claimService = claimService;
         _cloudinaryHelper = cloudinaryHelper;
@@ -390,7 +388,9 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> VerifyEmail(string email, string verificationCode)
     {
-        var account = await _unitOfWork.AccountRepository.FindByEmailAsync(email);
+        var account = await _unitOfWork.AccountRepository.FindByEmailAsync(email,
+            include: account =>
+                account.Include(a => a.AccountRoles.Where(ar => ar.Role.Name == Role.Customer.ToString())));
         if (account == null)
             return new ResponseModel
             {
@@ -416,7 +416,10 @@ public class AccountService : IAccountService
             account.EmailConfirmed = true;
             account.VerificationCode = null;
             account.VerificationCodeExpiryTime = null;
+            account.Status = AccountStatus.Active;
+            account.AccountRoles.First().Status = AccountStatus.Active;
             _unitOfWork.AccountRepository.Update(account);
+            _unitOfWork.AccountRoleRepository.Update(account.AccountRoles.First());
             if (await _unitOfWork.SaveChangeAsync() > 0)
             {
                 await _redisHelper.InvalidateCacheByPatternAsync($"account_{account.Id}");
@@ -564,7 +567,7 @@ public class AccountService : IAccountService
             Code = StatusCodes.Status200OK
             //Message = responseString
         };
-    //}
+        //}
     }
 
     public async Task<ResponseModel> ChangePassword(AccountChangePasswordModel accountChangePasswordModel)
@@ -769,9 +772,9 @@ public class AccountService : IAccountService
     {
         var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
             account =>
-                account.IsDeleted == accountFilterModel.IsDeleted &&
+                (!accountFilterModel.IsDeleted.HasValue || account.IsDeleted == accountFilterModel.IsDeleted) &&
                 (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
-                (!accountFilterModel.Gender.HasValue || account.Status == accountFilterModel.Status) &&
+                (!accountFilterModel.Status.HasValue || account.Status == accountFilterModel.Status) &&
                 (!accountFilterModel.Role.HasValue || account.AccountRoles
                     .Select(accountRole => accountRole.Role.Name)
                     .Contains(accountFilterModel.Role.ToString())) &&
@@ -802,23 +805,16 @@ public class AccountService : IAccountService
                             : accounts.OrderBy(account => account.CreationDate);
                 }
             },
-           accounts => accounts
-            .Include(account => account.AccountRoles)
+            accounts => accounts
+                .Include(account => account.AccountRoles)
                 .ThenInclude(accountRole => accountRole.Role)
-            .Include(account => account.Wallet)
-            .Include(account => account.Orders)
-            .Include(account => account.Services),
-        accountFilterModel.PageIndex,
-        accountFilterModel.PageSize
+                .Include(account => account.Wallet)
+                .Include(account => account.Orders)
+                .Include(account => account.Services),
+            accountFilterModel.PageIndex,
+            accountFilterModel.PageSize
         );
-
         var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
-        accountModels.ForEach(accountModel =>
-        {
-            var originalAccount = accounts.Data.FirstOrDefault(a => a.Id == accountModel.Id);
-            accountModel.Service = originalAccount?.Services?.Count;
-        });
-
         var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
             accountFilterModel.PageSize, accounts.TotalCount);
 
@@ -905,7 +901,8 @@ public class AccountService : IAccountService
             };
 
         var rolesToRemove = existedAccountRoles.Data.Select(accountRole => accountRole.Role).Except(newRoles).ToList();
-        var rolesToAdd = newRoles.Except(existedAccountRoles.Data.Select(accountRole => accountRole.Role)).ToList();
+        // var rolesToAdd = newRoles.Except(existedAccountRoles.Data.Select(accountRole => accountRole.Role)).ToList();
+        var rolesToAdd = newRoles;
         if (!rolesToRemove.Any() && !rolesToAdd.Any())
             return new ResponseModel
             {
@@ -916,19 +913,41 @@ public class AccountService : IAccountService
         // Remove roles
         var accountRolesToRemove = existedAccountRoles.Data
             .Where(accountRole => rolesToRemove.Contains(accountRole.Role)).ToList();
-        if (rolesToRemove.Any()) _unitOfWork.AccountRoleRepository.HardRemoveRange(accountRolesToRemove);
+        foreach (var accountRole in accountRolesToRemove)
+        {
+            accountRole.Status = AccountStatus.Suspended;
+            accountRole.IsDeleted = true;
+        }
+
+        if (rolesToRemove.Any()) _unitOfWork.AccountRoleRepository.UpdateRange(accountRolesToRemove);
 
         // Add roles
         if (rolesToAdd.Any())
         {
             var accountRolesToAdd = new List<AccountRole>();
+            var accountRolesToRestore = new List<AccountRole>();
             foreach (var role in rolesToAdd)
-                accountRolesToAdd.Add(new AccountRole
+            {
+                var existedAccountRole =
+                    existedAccountRoles.Data.FirstOrDefault(accountRole => accountRole.Role.Id == role.Id);
+                if (existedAccountRole != null)
                 {
-                    Account = account,
-                    Role = role
-                });
+                    existedAccountRole.Status = AccountStatus.Active;
+                    existedAccountRole.IsDeleted = false;
+                    accountRolesToRestore.Add(existedAccountRole);
+                }
+                else
+                {
+                    accountRolesToAdd.Add(new AccountRole
+                    {
+                        Account = account,
+                        Role = role,
+                        Status = AccountStatus.Active
+                    });
+                }
+            }
 
+            _unitOfWork.AccountRoleRepository.UpdateRange(accountRolesToRestore);
             await _unitOfWork.AccountRoleRepository.AddRangeAsync(accountRolesToAdd);
         }
 
@@ -1062,7 +1081,8 @@ public class AccountService : IAccountService
                 new AccountRole
                 {
                     Account = account,
-                    Role = roleArtisan!
+                    Role = roleArtisan!,
+                    Status = AccountStatus.Active,
                 }
             );
         }
@@ -1150,8 +1170,8 @@ public class AccountService : IAccountService
         return null;
     }
 
-
     #endregion
+
     public async Task<ResponseModel> GetVoucher(Guid packageId, decimal? totalPriceOfOrder)
     {
         var currentUserId = _claimService.GetCurrentUserId;
@@ -1164,7 +1184,8 @@ public class AccountService : IAccountService
             };
         }
 
-        var artisanPackage = await _unitOfWork.PackageRepository.GetAsync(packageId, include: _ => _.Include(_ => _.Service));
+        var artisanPackage =
+            await _unitOfWork.PackageRepository.GetAsync(packageId, include: _ => _.Include(_ => _.Service));
         if (artisanPackage == null)
         {
             return new ResponseModel
@@ -1195,17 +1216,22 @@ public class AccountService : IAccountService
         }
 
         var completedOrders = await _unitOfWork.OrderRepository.NumberCompletedOrder(currentUserId.Value, artisanId);
-        var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
-        var customerReputation = customer?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString())?.TotalReputation ?? 0;
+        var customer = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value,
+            include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
+        var customerReputation = customer?.AccountRoles
+            ?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString())
+            ?.TotalReputation ?? 0;
 
         var voucherModelLists = new List<VoucherModel>();
 
         foreach (var voucher in vouchersByArtisan.Data)
         {
-            var hasUsed = await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id, currentUserId.Value);
+            var hasUsed =
+                await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id,
+                    currentUserId.Value);
 
             if (hasUsed)
-                continue; 
+                continue;
 
             bool isValid = true;
 
@@ -1267,8 +1293,13 @@ public class AccountService : IAccountService
         }
 
         var completedOrders = await _unitOfWork.OrderRepository.NumberCompletedOrderOfArtisan(currentUserId.Value);
-        var artisan = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
-        var artisanReputation = artisan?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())?.TotalReputation ?? 0;
+        var artisan = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value,
+            include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
+        var artisanReputation = artisan?.AccountRoles
+                                    ?.FirstOrDefault(_ =>
+                                        _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())
+                                    ?.TotalReputation ??
+                                0;
 
         var allVouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
             filter: _ =>
@@ -1287,7 +1318,7 @@ public class AccountService : IAccountService
                     )
                 ),
             include: _ => _.Include(_ => _.Receiver)
-                           .Include(_ => _.VoucherUsageLogs)
+                .Include(_ => _.VoucherUsageLogs)
         );
 
         if (allVouchers?.Data == null || !allVouchers.Data.Any())
@@ -1332,19 +1363,23 @@ public class AccountService : IAccountService
                 Message = "Unauthorized."
             };
         }
-        var searchHistories = await _unitOfWork.SearchHistoryRepository.GetAllAsync(filter: _ => _.CreatedById == currentUserId.Value);
+
+        var searchHistories =
+            await _unitOfWork.SearchHistoryRepository.GetAllAsync(filter: _ => _.CreatedById == currentUserId.Value);
         if (!searchHistories.Data.Any())
         {
             return new ResponseModel { Message = "Not found.", Code = StatusCodes.Status400BadRequest };
         }
-        var searchHistoryModels = searchHistories.Data.OrderByDescending(_ => _.CreationDate).Select(_ => new SearchModel
-        {
-            Id = _.Id,
-            SearchText = _.SearchText
-        }).ToList();
-        return new ResponseModel { Data = searchHistoryModels };
 
+        var searchHistoryModels = searchHistories.Data.OrderByDescending(_ => _.CreationDate).Select(_ =>
+            new SearchModel
+            {
+                Id = _.Id,
+                SearchText = _.SearchText
+            }).ToList();
+        return new ResponseModel { Data = searchHistoryModels };
     }
+
     public async Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel)
     {
         try
@@ -1358,6 +1393,7 @@ public class AccountService : IAccountService
                     Message = "Account not found."
                 };
             }
+
             Expression<Func<Service, bool>> filter = s => s.CreatedById == id;
             if (!string.IsNullOrEmpty(filterModel.Search))
             {
@@ -1368,6 +1404,7 @@ public class AccountService : IAccountService
                               (s.Category.Name.ToLower().Contains(search) ||
                                s.Category.Slug.ToLower().Contains(search));
             }
+
             var serviceResult = await _unitOfWork.ServiceRepository.GetAllAsync(
                 filter: filter,
                 include: s => s.Include(x => x.Category),
