@@ -399,6 +399,8 @@ public static class Configuration
         //ReportAttachment
         services.AddScoped<IReportAttachmentRepository, ReportAttachmentRepository>();
 
+        //ShippingTimeoutService
+        services.AddHostedService<ShippingTimeoutService>();
         #endregion
 
         return services;
