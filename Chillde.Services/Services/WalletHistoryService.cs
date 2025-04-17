@@ -28,23 +28,24 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAllWalletHistoryFromUser(WalletHistoryFilterModel walletHistoryFilterModel)
         {
-            //var currentUserId = _claimService.GetCurrentUserId;
-            //if (!currentUserId.HasValue)
-            //{
-            //    return new ResponseModel
-            //    {
-            //        Code = StatusCodes.Status401Unauthorized,
-            //        Message = "Unauthorized."
-            //    };
-            //}
+            var currentUserId = _claimService.GetCurrentUserId;
+            if (!currentUserId.HasValue)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status401Unauthorized,
+                    Message = "Unauthorized."
+                };
+            }
 
             var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
                 filter: _ => 
                 _.IsDeleted == walletHistoryFilterModel.IsDeleted && 
-                (!walletHistoryFilterModel.AccountId.HasValue || _.CreatedById == walletHistoryFilterModel.AccountId),
-                include: walletHistory => walletHistory.Include(_ => _.Wallet),
+                ( _.CreatedById == currentUserId.Value),
+                include: walletHistory => walletHistory.Include(_ => _.Wallet).Include(_ => _.Order),
                 pageIndex: walletHistoryFilterModel.PageIndex,
                 pageSize: walletHistoryFilterModel.PageSize
+                
             );
 
             if (walletHistory.Data == null || !walletHistory.Data.Any())
@@ -59,6 +60,7 @@ namespace Chillde.Services.Services
             {
                 Id = _.Id,
                 WalletId = _.WalletId,
+                OrderCode = _.Order.Code,
                 Amount = _.Amount ?? 0.0m,
                 Status = _.Status,
                Type = _.Type

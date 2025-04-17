@@ -736,7 +736,7 @@ public class AccountService : IAccountService
     {
         var cacheKey = $"account_{idOrUsername}";
         var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-        {
+        { 
             Account? account;
             if (Guid.TryParse(idOrUsername, out var id))
                 account = await _unitOfWork.AccountRepository.GetAsync(id, accounts =>
