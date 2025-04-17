@@ -21,7 +21,7 @@ namespace Chillde.API.Controllers
             _orderService = orderService;
         }
         [HttpPost("ban-role")]
-        public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
+        public async Task<IActionResult> BanAccountRole([FromQuery] BanAccountRoleModel request)
         {
             try
             {

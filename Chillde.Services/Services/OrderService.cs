@@ -1883,7 +1883,7 @@ namespace Chillde.Services.Services
             }
             catch (Exception ex)
             {
-                throw;
+                throw;  
             }
         }
 
