@@ -16,6 +16,6 @@ namespace Chillde.Repositories.Models.RequestModels
         public decimal? MinBudget { get; set; }
         public decimal? MaxBudget { get; set; }
         public int? Timeline { get; set; }
-        public string? Status { get; set; }
+        public RequestStatus? Status { get; set; }
     }
 }

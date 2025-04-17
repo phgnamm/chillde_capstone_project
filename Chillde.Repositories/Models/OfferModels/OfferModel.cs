@@ -3,6 +3,8 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ShipmentModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,5 +24,6 @@ namespace Chillde.Repositories.Models.OfferModels
         public List<OfferAttachment>? OfferAttachments { get; set; }
         public PackageModel? Package { get; set; }
         public required AccountLiteModel CreatedBy { get; set; }
+        public  ShippingAddressModel? ShippingAddress { get; set; }
     }
 }
