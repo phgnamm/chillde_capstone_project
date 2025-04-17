@@ -169,22 +169,22 @@
     <value>Bib Necklaces</value>
   </data>
   <data name="Blank Books" xml:space="preserve">
-    <value>Blank Books</value>
+    <value />
   </data>
   <data name="Body Jewelry" xml:space="preserve">
     <value>Body Jewelry</value>
   </data>
   <data name="Book" xml:space="preserve">
-    <value>Book</value>
+    <value />
   </data>
   <data name="Book Accessories" xml:space="preserve">
-    <value>Book Accessories</value>
+    <value />
   </data>
   <data name="Book Sets &amp; Collections" xml:space="preserve">
-    <value>Book Sets &amp; Collections</value>
+    <value />
   </data>
   <data name="Books, Movies &amp; Music" xml:space="preserve">
-    <value>Books, Movies &amp; Music</value>
+    <value />
   </data>
   <data name="Bouquets" xml:space="preserve">
     <value>Bouquets</value>
@@ -229,7 +229,7 @@
     <value>Checkbook Covers</value>
   </data>
   <data name="Children's Books" xml:space="preserve">
-    <value>Children's Books</value>
+    <value />
   </data>
   <data name="Children's Photo Props" xml:space="preserve">
     <value>Children's Photo Props</value>
@@ -250,10 +250,10 @@
     <value>Collectibles</value>
   </data>
   <data name="Coloring Books" xml:space="preserve">
-    <value>Coloring Books</value>
+    <value />
   </data>
   <data name="Comics &amp; Graphic Novels" xml:space="preserve">
-    <value>Comics &amp; Graphic Novels</value>
+    <value />
   </data>
   <data name="Corsages" xml:space="preserve">
     <value>Corsages</value>
@@ -310,7 +310,7 @@
     <value>Ghép Hình</value>
   </data>
   <data name="Gig Bags &amp; Instrument Cases" xml:space="preserve">
-    <value>Gig Bags &amp; Instrument Cases</value>
+    <value />
   </data>
   <data name="Glass Art" xml:space="preserve">
     <value>Glass Art</value>
@@ -325,7 +325,7 @@
     <value>Hand Chain</value>
   </data>
   <data name="Instrument Straps" xml:space="preserve">
-    <value>Instrument Straps</value>
+    <value />
   </data>
   <data name="Jewelry" xml:space="preserve">
     <value>Jewelry</value>
@@ -361,16 +361,16 @@
     <value>Mosaics</value>
   </data>
   <data name="Movie" xml:space="preserve">
-    <value>Movie</value>
+    <value />
   </data>
   <data name="Multi-Stone Rings" xml:space="preserve">
     <value>Multi-Stone Rings</value>
   </data>
   <data name="Music" xml:space="preserve">
-    <value>Music</value>
+    <value />
   </data>
   <data name="Musical Instruments" xml:space="preserve">
-    <value>Musical Instruments</value>
+    <value />
   </data>
   <data name="Necklaces" xml:space="preserve">
     <value>Necklaces</value>
@@ -388,7 +388,7 @@
     <value>Photography</value>
   </data>
   <data name="Picks &amp; Slides" xml:space="preserve">
-    <value>Picks &amp; Slides</value>
+    <value />
   </data>
   <data name="Pins &amp; Badges" xml:space="preserve">
     <value>Pins &amp; Badges</value>
@@ -400,7 +400,7 @@
     <value>Prints</value>
   </data>
   <data name="Recorded Audio" xml:space="preserve">
-    <value>Recorded Audio</value>
+    <value />
   </data>
   <data name="Ring Dishes" xml:space="preserve">
     <value>Ring Dishes</value>

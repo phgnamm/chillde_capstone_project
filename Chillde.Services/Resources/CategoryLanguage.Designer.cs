@@ -214,7 +214,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Blank Books.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Blank_Books {
             get {
@@ -232,7 +232,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Book.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Book {
             get {
@@ -241,7 +241,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Book Accessories.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Book_Accessories {
             get {
@@ -250,7 +250,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Book Sets &amp; Collections.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Book_Sets___Collections {
             get {
@@ -259,7 +259,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Books, Movies &amp; Music.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Books__Movies___Music {
             get {
@@ -394,7 +394,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Children&apos;s Books.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Children_s_Books {
             get {
@@ -457,7 +457,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Coloring Books.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Coloring_Books {
             get {
@@ -466,7 +466,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Comics &amp; Graphic Novels.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Comics___Graphic_Novels {
             get {
@@ -637,7 +637,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Gig Bags &amp; Instrument Cases.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Gig_Bags___Instrument_Cases {
             get {
@@ -682,7 +682,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instrument Straps.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Instrument_Straps {
             get {
@@ -790,7 +790,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Movie.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Movie {
             get {
@@ -808,7 +808,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Music.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Music {
             get {
@@ -817,7 +817,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Musical Instruments.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Musical_Instruments {
             get {
@@ -871,7 +871,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Picks &amp; Slides.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Picks___Slides {
             get {
@@ -907,7 +907,7 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recorded Audio.
+        ///   Looks up a localized string similar to .
         /// </summary>
         public static string Recorded_Audio {
             get {
