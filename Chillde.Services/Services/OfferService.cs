@@ -23,6 +23,9 @@ using Chillde.Services.Utils;
 using CloudinaryDotNet;
 using Chillde.Services.Common;
 using System.Linq;
+using Chillde.Repositories.Models.RequestModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
+using AutoMapper;
 
 
 namespace Chillde.Services.Services
@@ -35,9 +38,10 @@ namespace Chillde.Services.Services
         private readonly IStringLocalizer<OfferLanguage> _localizer;
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IRedisHelper _redisHelper;
+        private readonly IMapper _mapper;
 
         public OfferService(IUnitOfWork unitOfWork, IClaimService claimService, ITranslationService translationService,
-            IStringLocalizer<OfferLanguage> localizer, ICloudinaryHelper cloudinaryHelper, IRedisHelper redisHelper)
+            IStringLocalizer<OfferLanguage> localizer, ICloudinaryHelper cloudinaryHelper, IRedisHelper redisHelper, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
@@ -45,6 +49,7 @@ namespace Chillde.Services.Services
             _localizer = localizer;
             _cloudinaryHelper = cloudinaryHelper;
             _redisHelper = redisHelper;
+            _mapper = mapper;
         }
 
         public async Task<ResponseModel> GetAllAsync(OfferFilterModel filterParameter,
@@ -55,7 +60,6 @@ namespace Chillde.Services.Services
             Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
             try
             {
-                var currentUserRoles = _claimService.GetCurrentRoles;
                 var currentUserId = _claimService.GetCurrentUserId!.Value;
                 var cacheKey = $"offers_{sourceLanguageCode}_{targetLanguageCode}_{CacheTools.GenerateCacheKey(filterParameter)}";
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
@@ -76,13 +80,8 @@ namespace Chillde.Services.Services
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (!filterParameter.RequestId.HasValue || offer.RequestId == filterParameter.RequestId) &&
-                        (
-                            (currentUserRoles!.Contains(Repositories.Enums.Role.Customer) && offer.Request!.CreatedById == currentUserId) ||
-                            (currentUserRoles.Contains(Repositories.Enums.Role.Artisan) && offer.CreatedById == currentUserId) ||
-                            (currentUserRoles.Contains(Repositories.Enums.Role.Artisan) && offer.Service!.CreatedById == currentUserId) ||
-                            (currentUserRoles.Contains(Repositories.Enums.Role.Admin))
-                        ),
-                    offers =>
+                        filterParameter.ViewAll || offer.CreatedById == currentUserId,
+                offers =>
                     {
                         switch (filterParameter.Order.ToLower())
                         {
@@ -100,7 +99,7 @@ namespace Chillde.Services.Services
                                     : offers.OrderBy(offer => offer.CreationDate);
                         }
                     },
-                    include: o => o.Include(_ => _.CreatedBy).Include(_ => _.Service).Include(_ => _.Request).Include(_ => _.Package).ThenInclude(_ => _.PackageFeatures).ThenInclude(_ => _.Feature),
+                    include: o => o.Include(_ => _.CreatedBy).ThenInclude(_ => _.ShippingAddresses).Include(_ => _.Service).Include(_ => _.Request).Include(_ => _.Package).ThenInclude(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.OfferAttachments),
                     filterParameter.PageIndex,
                     filterParameter.PageSize
                 );
@@ -121,8 +120,10 @@ namespace Chillde.Services.Services
                             OfferAttachments = offer.OfferAttachments?.ToList(),
                             RequestId = offer.RequestId,
                             ServiceId = offer.ServiceId,
+                            ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                             Package = new PackageModel
                             {
+                                Id = offer.Package!.Id,
                                 Name = offer.Package!.Name,
                                 Description = offer.Package!.Description,
                                 Price = offer.Package!.Price,
@@ -160,7 +161,8 @@ namespace Chillde.Services.Services
                                 Email = offer.CreatedBy.Email,
                                 FirstName = offer.CreatedBy.FirstName,
                                 LastName = offer.CreatedBy.LastName,
-                                Image = offer.CreatedBy.Image
+                                Image = offer.CreatedBy.Image,
+                                Username = offer.CreatedBy.Username,
                             },
                             CreationDate = offer.CreationDate
                         }).ToList();
@@ -178,6 +180,7 @@ namespace Chillde.Services.Services
                             OfferAttachments = offer.OfferAttachments?.ToList(),
                             RequestId = offer.RequestId,
                             ServiceId = offer.ServiceId,
+                            ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                             Package = new PackageModel
                             {
                                 Name = offer.Package!.Name,
@@ -222,19 +225,21 @@ namespace Chillde.Services.Services
                             CreationDate = offer.CreationDate
                         }).ToList();
                     }
-
+                    var result = new Pagination<OfferModel>
+                    (
+                       localizedOffers,
+                       filterParameter.PageIndex,
+                       filterParameter.PageSize,
+                       localizedOffers.Count
+                    );
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
                         Message = "Offers retrieved successfully.",
-                        Data = new
-                        {
-                            offersResult.TotalCount,
-                            Results = localizedOffers
-                        }
+                        Data = result
                     };
-                });
-            }
+            });
+        }
             catch (Exception ex)
             {
                 return new ResponseModel
@@ -280,6 +285,7 @@ namespace Chillde.Services.Services
                         OfferAttachments = offer.OfferAttachments?.ToList(),
                         RequestId = offer.RequestId,
                         ServiceId = offer.ServiceId,
+                        ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                         CreatedBy = new AccountLiteModel
                         {
                             Email = offer.CreatedBy.Email,
@@ -291,6 +297,7 @@ namespace Chillde.Services.Services
                         Package = offer.Package == null ? null : new PackageModel
                         {
                             Name = offer.Package.Name,
+                            Id = offer.Package.Id,
                             Description = offer.Package.Description,
                             Price = offer.Package.Price,
                             DeliveryTime = offer.Package.DeliveryTime,
@@ -350,7 +357,7 @@ namespace Chillde.Services.Services
                 var checkIsAccountOffer = await _unitOfWork.RequestRepository
                     .HasUserOfferedForRequestAsync(currentUserId.Value, model.RequestId.Value);
 
-                if (!checkIsAccountOffer)
+                if (checkIsAccountOffer)
                 {
                     return new ResponseModel
                     {
@@ -458,7 +465,6 @@ namespace Chillde.Services.Services
                         features.Add(newFeature);
 
                         textsToTranslate.Add($"Feature.{featureId}.Name", featureModel.Name);
-
                         if (featureModel.PackageFeatureAddModels != null)
                         {
                             var packageFeatureId = Guid.NewGuid();
@@ -614,16 +620,18 @@ namespace Chillde.Services.Services
                 if (model.PackageUpdateModel != null && existingOffer.Package != null)
                 {
                     var pkg = model.PackageUpdateModel;
-
-                    existingPkg!.Name = string.IsNullOrWhiteSpace(pkg.Name.ToString()) ? existingPkg.Name : pkg.Name;
                     if (!string.IsNullOrWhiteSpace(pkg.Description) && pkg.Description != existingPkg.Description)
                     {
                         existingPkg.Description = pkg.Description;
                         textsToTranslate.Add("Package.Description", pkg.Description);
                     }
-                    existingPkg.Price = pkg.Price != 0 ? pkg.Price : existingPkg.Price;
-                    existingPkg.DeliveryTime = pkg.DeliveryTime ?? existingPkg.DeliveryTime;
+                    existingPkg!.Price = pkg.Price != 0 ? pkg.Price : existingPkg?.Price;
+                    existingPkg!.DeliveryTime = pkg.DeliveryTime ?? existingPkg.DeliveryTime;
                     existingPkg.SketchRevision = pkg.SketchRevision ?? existingPkg.SketchRevision;
+                    if (pkg.MinQuantity != 0)
+                    {
+                        existingPkg.MinQuantity = pkg.MinQuantity;
+                    }
                     existingPkg.MaxQuantity = pkg.MaxQuantity ?? existingPkg.MaxQuantity;
                     existingPkg.ResponseTime = (float)pkg.ResponseTime.TotalMinutes;
                 }
@@ -817,6 +825,37 @@ namespace Chillde.Services.Services
         }
 
 
+        public async Task<ResponseModel> UpdateStatusAsync(Guid offerId, OfferStatus status)
+        {
+            try
+            {
+                var existingOffer = await _unitOfWork.OfferRepository.GetAsync(offerId);
+                if (existingOffer == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Offer not found."
+                    };
+                }
+                existingOffer.Status = status;
+                _unitOfWork.OfferRepository.Update(existingOffer);
+                await _unitOfWork.SaveChangeAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Offer status updated successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Internal server error: {ex.Message}"
+                };
+            }
+        }
         public async Task<ResponseModel> DeleteAsync(Guid offerId)
         {
             if (offerId == Guid.Empty)

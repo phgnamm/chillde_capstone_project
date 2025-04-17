@@ -1,28 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
-using Chillde.Repositories.Models.FeatureModels;
-using Chillde.Repositories.Models.FeedbackModels;
-using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.FeedbackModels;
-using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ResponseModels;
-using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.VoucherModels;
-using Chillde.Services.Utils;
-using Elasticsearch.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
 {
@@ -269,6 +257,24 @@ namespace Chillde.Services.Services
                     Message = $"Internal server error: {ex.Message}"
                 };
             }
+        }
+
+        public async Task<ResponseModel> Get(Guid id)
+        {
+            var voucher = await _unitOfWork.VoucherRepository.GetAsync(id, include: voucher => voucher.Include(_ => _.VoucherUsageLogs));
+            if (voucher == null)
+            {
+                return new ResponseModel { Message = "Voucher not found.", Code = StatusCodes.Status400BadRequest };
+            }
+
+            var voucherModel = _mapper.Map<VoucherModel>(voucher);
+
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Successfully.",
+                Data = voucherModel
+            };
         }
 
     }

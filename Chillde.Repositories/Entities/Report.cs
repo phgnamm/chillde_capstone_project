@@ -4,12 +4,15 @@ namespace Chillde.Repositories.Entities
 {
     public class Report : BaseEntity
     {
-        public string Description { get; set; }
+        public required string Description { get; set; }
+        public string? Response { get; set; }
         public ReportStatus Status { get; set; }
         // Foreign key
         public Guid OrderId { get; set; }
 
         // Relationship
         public Order Order { get; set; } = null!;
+
+        public virtual ICollection<ReportAttachment> ReportAttachments { get; set; } = new List<ReportAttachment>();
     }
 }

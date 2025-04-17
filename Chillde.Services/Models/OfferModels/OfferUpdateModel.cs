@@ -27,7 +27,7 @@ namespace Chillde.Services.Models.OfferModels
         public List<OfferAttachmentAddModel>? OfferAttachmentAddModels { get; set; } = new List<OfferAttachmentAddModel>();
         public List<Guid>? OfferAttachmentIdsDeleting { get; set; }
         public PackageUpdateModel? PackageUpdateModel { get; set; }
-        public List<FeatureUpdateModel>? featureUpdateModels { get; set; }
+        public List<FeatureOfferUpdateModel>? featureUpdateModels { get; set; }
 
     }
 }

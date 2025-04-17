@@ -14,5 +14,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> Update(Guid id, VoucherUpdateModel voucherUpdateModel);
         Task<ResponseModel> StopVoucher(Guid id);
         Task<ResponseModel> GetAll(VoucherFilterModel voucherFilterModel);
+        Task<ResponseModel> Get(Guid id);
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.API.Helpers;
+using Chillde.Repositories.Enums;
 
 namespace Chillde.API.Controllers
 {
@@ -110,7 +111,7 @@ namespace Chillde.API.Controllers
 
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] OfferUpdateModel model)
+        public async Task<IActionResult> Update(Guid id, [FromForm] OfferUpdateModel model)
         {
             try
             {
@@ -119,6 +120,25 @@ namespace Chillde.API.Controllers
                 var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
                 var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
                 var result = await _offerService.UpdateAsync(id, model, sourceLanguageCode, targetLanguageCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [Authorize]
+        [HttpPut("{id}/{status}")]
+        public async Task<IActionResult> UpdateStatus(Guid id, OfferStatus status)
+        {
+            try
+            {
+                var result = await _offerService.UpdateStatusAsync(id, status);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

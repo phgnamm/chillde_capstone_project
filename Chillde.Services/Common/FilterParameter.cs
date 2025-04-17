@@ -30,7 +30,14 @@ public class FilterParameter
     public string? Search { get; set; }
     public string Order { get; set; } = string.Empty;
     public bool OrderByDescending { get; set; } = true;
-    public bool IsDeleted { get; set; } = false;
+
+    public bool? IsDeleted
+    {
+        get => DefaultIsDeleted;
+        set => DefaultIsDeleted = value;
+    }
+
+    protected virtual bool? DefaultIsDeleted { get; set; } = false;
 
     #endregion
 }
