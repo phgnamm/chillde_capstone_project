@@ -375,8 +375,8 @@ public class AccountService : IAccountService
     public async Task<ResponseModel> RevokeTokens(AccountEmailModel accountEmailModel)
     {
         var refreshTokens =
-            await _unitOfWork.RefreshTokenRepository.GetAllAsync(
-                refreshToken => refreshToken.CreatedBy.Email == accountEmailModel.Email);
+            await _unitOfWork.RefreshTokenRepository.GetAllAsync(refreshToken =>
+                refreshToken.CreatedBy.Email == accountEmailModel.Email);
         _unitOfWork.RefreshTokenRepository.HardRemoveRange(refreshTokens.Data);
         await _unitOfWork.SaveChangeAsync();
 
@@ -774,8 +774,9 @@ public class AccountService : IAccountService
             account =>
                 (!accountFilterModel.IsDeleted.HasValue || account.IsDeleted == accountFilterModel.IsDeleted) &&
                 (!accountFilterModel.Gender.HasValue || account.Gender == accountFilterModel.Gender) &&
-                (!accountFilterModel.Status.HasValue || account.Status == accountFilterModel.Status) &&
-                (!accountFilterModel.Role.HasValue || account.AccountRoles
+                // (!accountFilterModel.Status.HasValue || account.Status == accountFilterModel.Status) &&
+                (!accountFilterModel.Role.HasValue || account.AccountRoles.Where(accountRole =>
+                        !accountFilterModel.Status.HasValue || accountRole.Status == accountFilterModel.Status)
                     .Select(accountRole => accountRole.Role.Name)
                     .Contains(accountFilterModel.Role.ToString())) &&
                 (string.IsNullOrWhiteSpace(accountFilterModel.Search) ||
@@ -1502,6 +1503,74 @@ public class AccountService : IAccountService
         {
             Code = StatusCodes.Status200OK,
             Message = $"Role {request.Role} has been banned successfully"
+        };
+    }
+
+    public async Task<ResponseModel> DeleteAccountRole(Guid accountId, Guid accountRoleId)
+    {
+        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId);
+        if (accountRole == null || accountRole.AccountId != accountId)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Account role not found"
+            };
+        }
+
+        if (accountRole.IsDeleted && accountRole.Status == AccountStatus.Suspended)
+        {
+            return new ResponseModel
+            {
+                Message = "Account role has been deleted"
+            };
+        }
+
+        accountRole.IsDeleted = true;
+        accountRole.Status = AccountStatus.Suspended;
+        if (await _unitOfWork.SaveChangeAsync() > 0)
+        {
+            return new ResponseModel { Message = "Delete account role successfully" };
+        }
+        
+        return new ResponseModel
+        {
+            Code = StatusCodes.Status500InternalServerError,
+            Message = "Cannot delete account role"
+        };
+    }
+
+    public async Task<ResponseModel> RestoreAccountRole(Guid accountId, Guid accountRoleId)
+    {
+        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId);
+        if (accountRole == null || accountRole.AccountId != accountId)
+        {
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status404NotFound,
+                Message = "Account role not found"
+            };
+        }
+        
+        if (!accountRole.IsDeleted && accountRole.Status == AccountStatus.Active)
+        {
+            return new ResponseModel
+            {
+                Message = "Account role has been restored"
+            };
+        }
+
+        accountRole.IsDeleted = false;
+        accountRole.Status = AccountStatus.Active;
+        if (await _unitOfWork.SaveChangeAsync() > 0)
+        {
+            return new ResponseModel { Message = "Restore account role successfully" };
+        }
+        
+        return new ResponseModel
+        {
+            Code = StatusCodes.Status500InternalServerError,
+            Message = "Cannot restore account role"
         };
     }
 }
