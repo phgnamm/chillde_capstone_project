@@ -1525,7 +1525,13 @@ namespace Chillde.Services.Services
                         {
                             Code = StatusCodes.Status404NotFound,
                             Message = "No recent activity found for recommendations.",
-                            Data = serviceList
+                            Data = new Pagination<ServiceModel>
+                             (
+                                 serviceList,
+                                 serviceFilterModel.PageIndex,
+                                 serviceFilterModel.PageSize,
+                                 serviceList.Count
+                             )
                         };
                     }
 
