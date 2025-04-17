@@ -274,7 +274,7 @@ public class AccountController : ControllerBase
     }
     
     [Authorize(Roles = "Admin")]
-    [HttpPut("{id}/roles/{accountRoleId}")]
+    [HttpPut("{id}/roles/{accountRoleId}/restore")]
     public async Task<IActionResult> RestoreAccountRole(Guid id, Guid accountRoleId)
     {
         try
