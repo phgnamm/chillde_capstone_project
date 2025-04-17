@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.AccountRoleModels;
 using Chillde.Repositories.Models.CategoriesModels;
 using Chillde.Repositories.Models.CategoryModels;
 using Chillde.Repositories.Models.DepositModels;
@@ -42,46 +43,51 @@ public class MapperProfile : Profile
         CreateMap<AccountSignUpModel, Account>();
         CreateMap<AccountSignUpModel, Account>();
         CreateMap<Account, AccountModel>()
-            .ForMember(dest => dest.Roles,
-                opt => opt.MapFrom(src =>
-                    src.AccountRoles.Select(accountRole => accountRole.Role.Name).Select(Enum.Parse<Role>)))
-            .ForMember(dest => dest.RoleNames,
-                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Role.Name)))
+            // .ForMember(dest => dest.Roles,
+            //     opt => opt.MapFrom(src =>
+            //         src.AccountRoles.Select(accountRole => accountRole.Role.Name).Select(Enum.Parse<Role>)))
+            // .ForMember(dest => dest.RoleNames,
+            //     opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Role.Name)))
             .ForMember(dest => dest.Balance,
                 opt => opt.MapFrom(src => src.Wallet.Balance))
-            .ForMember(dest => dest.TotalReputations,
-                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.TotalReputation)))
-            .ForMember(dest => dest.Status,
-                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Status)))
-            .ForMember(dest => dest.StatusNames,
-                opt => opt.MapFrom(src => src.AccountRoles.Select(accountRole => accountRole.Status.ToString())))
             .ForMember(dest => dest.OrderCount,
-                opt => opt.MapFrom(src => src.Orders.Count)); // Đếm số lượng Orders
+                opt => opt.MapFrom(src => src.Orders.Count)) // Đếm số lượng Orders
+            .ForMember(dest => dest.ServiceCount, opt => opt.MapFrom(src => src.Services.Count))
+            .ForMember(dest => dest.AccountRoles, opt => opt.MapFrom(src => src.AccountRoles));
         CreateMap<Account, AccountLiteModel>();
         CreateMap<AccountUpdateModel, Account>().ReverseMap();
         CreateMap<AccountBecomeASellerModel, Account>();
+
+        // AccountRoles
+        CreateMap<AccountRole, AccountRoleModel>()
+            .ForMember(dest => dest.Role,
+                opt => opt.MapFrom(src => Enum.Parse<Role>(src.Role.Name)))
+            .ForMember(dest => dest.RoleName,
+                opt => opt.MapFrom(src => src.Role.Name));
 
         // Message
         CreateMap<MessageAddModel, Message>();
         CreateMap<Message, MessageModel>();
 
         //Category
-        CreateMap<CategoryModel,Category>().ReverseMap();
-        CreateMap<CategoryAddModel,CategoryAddRangeModel>().ReverseMap();
+        CreateMap<CategoryModel, Category>().ReverseMap();
+        CreateMap<CategoryAddModel, CategoryAddRangeModel>().ReverseMap();
 
         //FAQ
         CreateMap<FAQModel, FAQ>().ReverseMap();
 
         //Package
         CreateMap<PackageModel, Package>()
-    .ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes))
-    .ReverseMap()
-    .ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => TimeSpan.FromMinutes(src.ResponseTime)));
-        CreateMap<PackageUpdateModel, Package>().ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes));
-        CreateMap<PackageAddModel, Package>().ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes)).ReverseMap();
+            .ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes))
+            .ReverseMap()
+            .ForMember(dest => dest.ResponseTime, opt => opt.MapFrom(src => TimeSpan.FromMinutes(src.ResponseTime)));
+        CreateMap<PackageUpdateModel, Package>().ForMember(dest => dest.ResponseTime,
+            opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes));
+        CreateMap<PackageAddModel, Package>().ForMember(dest => dest.ResponseTime,
+            opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes)).ReverseMap();
 
         //ShippingAddress
-        CreateMap<ShippingAddress,ShippingAddressAddModel>().ReverseMap();
+        CreateMap<ShippingAddress, ShippingAddressAddModel>().ReverseMap();
         CreateMap<ShippingAddress, ShippingAddressModel>().ReverseMap();
         CreateMap<ShippingAddressAddModel, ShippingAddressModel>().ReverseMap();
         CreateMap<ShippingAddressUpdateModel, ShippingAddress>().ReverseMap();

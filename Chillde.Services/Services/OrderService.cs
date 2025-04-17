@@ -39,6 +39,7 @@ using System.Net.WebSockets;
 using static OpenAI.GPT3.ObjectModels.SharedModels.IOpenAiModels;
 using System.Security.Principal;
 using Nest;
+using System;
 
 namespace Chillde.Services.Services
 {

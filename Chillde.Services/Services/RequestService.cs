@@ -319,7 +319,7 @@ namespace Chillde.Services.Services
                             MinBudget = _.MinBudget,
                             Timeline = _.Timeline,
                             Description = _.Description,
-                            Status = _localizer[_.Status.ToString()],
+                            Status = _.Status,
                         }).ToList();
 
                         var result = new Pagination<RequestModel>(requestModels, filterParameter.PageIndex,
@@ -347,7 +347,7 @@ namespace Chillde.Services.Services
                                 MinBudget = request.MinBudget,
                                 Timeline = request.Timeline,
                                 Description = request.Description,
-                                Status = _localizer[request.Status.ToString()],
+                                Status = request.Status,
                             },
                             null,
                             translationFields
@@ -780,6 +780,8 @@ namespace Chillde.Services.Services
             {
                 Id = request.Id,
                 Name = request.Name ?? "Unkown",
+                CreatedById = request.CreatedById,
+                IsDeleted = request.IsDeleted,
                 Description = request.Description ?? "Unkown",
                 MinBudget = (decimal)request.MinBudget,
                 MaxBudget = (decimal)request.MaxBudget,
@@ -800,7 +802,8 @@ namespace Chillde.Services.Services
                     RequestAttributeValueGetModels = _?.RequestAttributeValues?.Select(_ => new RequestAttributeValueGetModel
                     {
                         Id = _.Id,
-                        Value = (string)JsonConvert.DeserializeObject(_.Value),
+                        // Value = (string)JsonConvert.DeserializeObject(_.Value),
+                        Value = _.Value,
                     }).ToList(),
                     RequestAttributeAttachmentGetModels = _?.RequestAttributeAttachments?.Select(_ => new RequestAttributeAttachmentGetModel
                     {
@@ -1103,7 +1106,8 @@ namespace Chillde.Services.Services
                 MinBudget = _.MinBudget,
                 Timeline = _.Timeline,
                 Description = _.Description,
-                Status = _localizer[_.Status.ToString()],
+                // Status = _localizer[_.Status.ToString()],
+                Status = _.Status,
             }).ToList();
 
             var result = new Pagination<RequestModel>(
