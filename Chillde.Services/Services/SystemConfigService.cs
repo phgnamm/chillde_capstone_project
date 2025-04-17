@@ -109,17 +109,35 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(SystemConfigFilterModel model)
         {
             var configList = await _unitOfWork.SystemConfigRepository.GetAllAsync(
-                systemConfig =>
-                    !systemConfig.IsDeleted &&
-                    (!model.Type.HasValue || systemConfig.EntityType == model.Type.Value),
-                systemConfig =>
-                    model.OrderByDescending
-                        ? systemConfig.OrderByDescending(x => x.CreationDate)
-                        : systemConfig.OrderBy(x => x.CreationDate),
-                include: null,
-                1,
-               1000
-            );
+        x => !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type),
+        q =>
+        {
+            switch (model.OrderOption)
+            {
+                case SortOptions.EntityType:
+                    return model.OrderByDescending
+                        ? q.OrderByDescending(x => x.EntityType)
+                        : q.OrderBy(x => x.EntityType);
+
+                case SortOptions.FieldName:
+                    return model.OrderByDescending
+                        ? q.OrderByDescending(x => x.FieldName)
+                        : q.OrderBy(x => x.FieldName);
+
+                case SortOptions.CreationDate:
+                    return model.OrderByDescending
+                        ? q.OrderByDescending(x => x.CreationDate)
+                        : q.OrderBy(x => x.CreationDate);
+
+                default:
+                    return q.OrderBy(x => x.Id);
+            }
+        },
+        include: null,
+        1,
+        1000
+        );
+
 
             var mappedConfigs = configList.Data
                 .Select(x => new SystemConfigModel
@@ -137,8 +155,11 @@ namespace Chillde.Services.Services
                     .Where(x => x.FieldName.Contains(model.Search, StringComparison.OrdinalIgnoreCase))
                     .ToList();
             }
-
-            if (!mappedConfigs.Any())
+            var pagedConfigs = mappedConfigs
+           .Skip((model.PageIndex - 1) * model.PageSize)
+           .Take(model.PageSize)
+           .ToList();
+            if (!pagedConfigs.Any())
             {
                 return new ResponseModel
                 {
@@ -154,10 +175,10 @@ namespace Chillde.Services.Services
                 Message = "Get Configurations Successfully",
                 Data = new Pagination<SystemConfigModel>
                 (
-                mappedConfigs,
-                model.PageIndex,
-                model.PageSize,
-                mappedConfigs.Count
+                    pagedConfigs,
+                    model.PageIndex,
+                    model.PageSize,
+                    pagedConfigs.Count
                 )
             };
         }
