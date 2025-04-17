@@ -362,6 +362,7 @@ public static class Configuration
 
         //VoucherUsageLog
         services.AddScoped<IVoucherUsageLogRepository, VoucherUsageLogRepository>();
+        services.AddScoped<IVoucherUsageLogService, VoucherUsageLogService>();
 
         //ShipmentStatusHistory
         services.AddScoped<IShipmentStatusHistoryRepository,ShipmentStatusHistoryRepository>();
@@ -398,6 +399,8 @@ public static class Configuration
         //ReportAttachment
         services.AddScoped<IReportAttachmentRepository, ReportAttachmentRepository>();
 
+        //ShippingTimeoutService
+        services.AddHostedService<ShippingTimeoutService>();
         #endregion
 
         return services;

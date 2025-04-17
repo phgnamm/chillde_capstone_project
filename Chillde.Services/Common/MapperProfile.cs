@@ -10,6 +10,7 @@ using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.ItemModels;
 using Chillde.Repositories.Models.MessageModels;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.OrderModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
@@ -131,5 +132,56 @@ public class MapperProfile : Profile
 
         //Notification
         CreateMap<NotificationAddModel, Notification>().ReverseMap();
+
+        // Offer
+        CreateMap<Offer, OfferModel>()
+      .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+      .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+      .ForMember(dest => dest.Message, opt => opt.MapFrom(src => src.Message))
+      .ForMember(dest => dest.MinWeight, opt => opt.MapFrom(src => src.MinWeight))
+      .ForMember(dest => dest.MaxWeight, opt => opt.MapFrom(src => src.MaxWeight))
+      .ForMember(dest => dest.OfferAttachments, opt => opt.MapFrom(src => src.OfferAttachments))
+      .ForMember(dest => dest.RequestId, opt => opt.MapFrom(src => src.RequestId))
+      .ForMember(dest => dest.ServiceId, opt => opt.MapFrom(src => src.ServiceId))
+      .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => src.CreationDate))
+      .ForMember(dest => dest.ShippingAddress,
+          opt => opt.MapFrom(src => src.CreatedBy.ShippingAddresses.FirstOrDefault()))
+      .ForMember(dest => dest.Package, opt => opt.MapFrom(src => new PackageModel
+      {
+          Id = src.Package.Id,
+          Name = src.Package.Name,
+          Description = src.Package.Description,
+          Price = src.Package.Price,
+          DeliveryTime = src.Package.DeliveryTime,
+          MaxQuantity = src.Package.MaxQuantity,
+          SketchRevision = src.Package.SketchRevision,
+          ResponseTime = TimeSpan.FromMinutes(src.Package.ResponseTime),
+          Features = src.Package.PackageFeatures
+              .Select(pf => pf.Feature)
+              .Distinct()
+              .Select(feature => new FeatureModel
+              {
+                  Id = feature.Id,
+                  Name = feature.Name,
+                  Question = feature.Question,
+                  QuestionType = feature.QuestionType,
+                  IsInformationRequired = feature.IsInformationRequired,
+                  IsQuantity = feature.IsQuantity,
+                  PackageFeatures = src.Package.PackageFeatures
+                      .Where(pf => pf.FeatureId == feature.Id)
+                      .Select(pf => new PackageFeature
+                      {
+                          Id = pf.Id,
+                          Name = pf.Name,
+                          AdditionalCost = pf.AdditionalCost,
+                          AdditionalDay = pf.AdditionalDay,
+                          IsExtra = pf.IsExtra,
+                          IsChecked = pf.IsChecked,
+                          MaxQuantity = pf.MaxQuantity,
+                      }).ToList()
+              }).ToList()
+      }))
+     .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy));
+
     }
 }

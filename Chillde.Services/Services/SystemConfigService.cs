@@ -2,11 +2,13 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.SystemConfigModel;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.SystemConfigModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -107,17 +109,57 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(SystemConfigFilterModel model)
         {
             var configList = await _unitOfWork.SystemConfigRepository.GetAllAsync(
-                systemConfig => !systemConfig.IsDeleted,
-                systemConfig =>
-                    model.OrderByDescending
-                        ? systemConfig.OrderByDescending(offer => offer.CreationDate)
-                        : systemConfig.OrderBy(offer => offer.CreationDate),
-                include: null,
-                model.PageIndex,
-                model.PageSize
-            );
+        x => !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type),
+        q =>
+        {
+            switch (model.OrderOption)
+            {
+                case SortOptions.EntityType:
+                    return model.OrderByDescending
+                        ? q.OrderByDescending(x => x.EntityType)
+                        : q.OrderBy(x => x.EntityType);
 
-            if (!configList.Data.Any())
+                case SortOptions.FieldName:
+                    return model.OrderByDescending
+                        ? q.OrderByDescending(x => x.FieldName)
+                        : q.OrderBy(x => x.FieldName);
+
+                case SortOptions.CreationDate:
+                    return model.OrderByDescending
+                        ? q.OrderByDescending(x => x.CreationDate)
+                        : q.OrderBy(x => x.CreationDate);
+
+                default:
+                    return q.OrderBy(x => x.Id);
+            }
+        },
+        include: null,
+        1,
+        1000
+        );
+
+
+            var mappedConfigs = configList.Data
+                .Select(x => new SystemConfigModel
+                {
+                    Id = x.Id,
+                    FieldName = ConfigKeyDisplayNames.DisplayNames
+                        .FirstOrDefault(kvp => kvp.Key.ToString() == x.FieldName).Value ?? x.FieldName!,
+                    EntityType = x.EntityType.ToString(),
+                    Value = x.Value
+                }).ToList();
+
+            if (!string.IsNullOrWhiteSpace(model.Search))
+            {
+                mappedConfigs = mappedConfigs
+                    .Where(x => x.FieldName.Contains(model.Search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+            var pagedConfigs = mappedConfigs
+           .Skip((model.PageIndex - 1) * model.PageSize)
+           .Take(model.PageSize)
+           .ToList();
+            if (!pagedConfigs.Any())
             {
                 return new ResponseModel
                 {
@@ -127,22 +169,22 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var result = configList.Data.Select(x => new SystemConfigModel
-            {
-                Id = x.Id,
-                FieldName = ConfigKeyDisplayNames.DisplayNames
-                .FirstOrDefault(kvp => kvp.Key.ToString() == x.FieldName).Value ?? x.FieldName!,
-                EntityType = x.EntityType.ToString(),
-                Value = x.Value
-            }).ToList();
-
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
-                Message = "Get All Configurations Successfully",
-                Data = result
+                Message = "Get Configurations Successfully",
+                Data = new Pagination<SystemConfigModel>
+                (
+                    pagedConfigs,
+                    model.PageIndex,
+                    model.PageSize,
+                    pagedConfigs.Count
+                )
             };
         }
+
+
+
 
         public async Task<ResponseModel> Get(SystemConfigKey key)
         {

@@ -183,8 +183,23 @@
   <data name="Bib Necklaces" xml:space="preserve">
     <value>Dây Chuyền</value>
   </data>
+  <data name="Blank Books" xml:space="preserve">
+    <value>Sổ Trống</value>
+  </data>
   <data name="Body Jewelry" xml:space="preserve">
     <value>Trang Sức Cơ Thể</value>
+  </data>
+  <data name="Book" xml:space="preserve">
+    <value>Sách</value>
+  </data>
+  <data name="Book Accessories" xml:space="preserve">
+    <value>Phụ Kiện Sách</value>
+  </data>
+  <data name="Book Sets &amp; Collections" xml:space="preserve">
+    <value>Bộ Sách &amp; Tuyển Tập</value>
+  </data>
+  <data name="Books, Movies &amp; Music" xml:space="preserve">
+    <value>Sách, Phim &amp; Âm nhạc</value>
   </data>
   <data name="Bouquets" xml:space="preserve">
     <value>Hoa Cầm Tay</value>
@@ -234,6 +249,9 @@
   <data name="Checkbook Covers" xml:space="preserve">
     <value>Bọc Sổ </value>
   </data>
+  <data name="Children's Books" xml:space="preserve">
+    <value>Sách Thiếu Nhi</value>
+  </data>
   <data name="Children's Photo Props" xml:space="preserve">
     <value>Đạo Cụ Chụp Hình Cho Trẻ Em</value>
   </data>
@@ -254,6 +272,12 @@
   </data>
   <data name="Collectibles" xml:space="preserve">
     <value>Đồ Sưu Tầm</value>
+  </data>
+  <data name="Coloring Books" xml:space="preserve">
+    <value>Sách Tô Màu</value>
+  </data>
+  <data name="Comics &amp; Graphic Novels" xml:space="preserve">
+    <value>Truyện Tranh &amp; Tiểu Thuyết Đồ Họa</value>
   </data>
   <data name="Corsages" xml:space="preserve">
     <value>Hoa Cài Áo</value>
@@ -330,6 +354,9 @@
   <data name="Ghép Hình" xml:space="preserve">
     <value>Ghép Hình</value>
   </data>
+  <data name="Gig Bags &amp; Instrument Cases" xml:space="preserve">
+    <value>Túi Đựng &amp; Hộp Đựng Nhạc Cụ</value>
+  </data>
   <data name="Glass Art" xml:space="preserve">
     <value>Nghệ Thuật Thủy Tinh</value>
   </data>
@@ -350,6 +377,9 @@
   </data>
   <data name="Hand Chain" xml:space="preserve">
     <value>Dây Chuyền Tay</value>
+  </data>
+  <data name="Instrument Straps" xml:space="preserve">
+    <value>Dây Đeo Nhạc Cụ</value>
   </data>
   <data name="Jewelry" xml:space="preserve">
     <value>Trang Sức</value>
@@ -387,8 +417,17 @@
   <data name="Mosaics" xml:space="preserve">
     <value>Ghép Hình</value>
   </data>
+  <data name="Movie" xml:space="preserve">
+    <value>Phim Ảnh</value>
+  </data>
   <data name="Multi-Stone Rings" xml:space="preserve">
     <value>Nhẫn Đá Nhiều Màu</value>
+  </data>
+  <data name="Music" xml:space="preserve">
+    <value>Âm Nhạc</value>
+  </data>
+  <data name="Musical Instruments" xml:space="preserve">
+    <value>Nhạc Cụ</value>
   </data>
   <data name="Necklaces" xml:space="preserve">
     <value>Dây Chuyền</value>
@@ -405,6 +444,9 @@
   <data name="Photography" xml:space="preserve">
     <value>Nhiếp Ảnh</value>
   </data>
+  <data name="Picks &amp; Slides" xml:space="preserve">
+    <value>Phím Gảy &amp; Thanh Trượt</value>
+  </data>
   <data name="Pins &amp; Badges" xml:space="preserve">
     <value>Ghim &amp; Huy Hiệu</value>
   </data>
@@ -413,6 +455,9 @@
   </data>
   <data name="Prints" xml:space="preserve">
     <value>Tranh In</value>
+  </data>
+  <data name="Recorded Audio" xml:space="preserve">
+    <value>Âm Thanh Ghi Âm</value>
   </data>
   <data name="Ring Dishes" xml:space="preserve">
     <value>Khay Đựng Nhẫn</value>
@@ -449,6 +494,9 @@
   </data>
   <data name="Sweater Clips" xml:space="preserve">
     <value>Kẹp Áo Len</value>
+  </data>
+  <data name="Video Cases &amp; Tins" xml:space="preserve">
+    <value>Hộp &amp; Lọ Đựng Đĩa Phim</value>
   </data>
   <data name="Wallets &amp; Money Clips" xml:space="preserve">
     <value>Ví &amp; Kẹp Tiền</value>

@@ -1521,11 +1521,21 @@ namespace Chillde.Services.Services
                     if (!recentLogs.Data.Any())
                     {
                         var serviceList = await GetServiceListAsync(s => s.IsDeleted == false);
+                        var pagedServiceList = serviceList
+                            .Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                            .Take(serviceFilterModel.PageSize)
+                            .ToList();
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status404NotFound,
                             Message = "No recent activity found for recommendations.",
-                            Data = serviceList
+                            Data = new Pagination<ServiceModel>
+                             (
+                                 pagedServiceList,
+                                 serviceFilterModel.PageIndex,
+                                 serviceFilterModel.PageSize,
+                                 pagedServiceList.Count
+                             )
                         };
                     }
 
@@ -1533,8 +1543,8 @@ namespace Chillde.Services.Services
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy).Include(_ => _.Category),
-                        pageIndex: serviceFilterModel.PageIndex,
-                        pageSize: 1000
+                        pageIndex: 1,
+                        pageSize: 10000
                      );
 
                     var threshold = 0.8;
@@ -1562,7 +1572,12 @@ namespace Chillde.Services.Services
                         })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
-                    if (!results.Any())
+
+                    var pagedServices = results
+                        .Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                        .Take(serviceFilterModel.PageSize)
+                        .ToList();
+                    if (!pagedServices.Any())
                     {
                         return new ResponseModel
                         {
@@ -1572,10 +1587,10 @@ namespace Chillde.Services.Services
                         };
                     }
                     var paginatedResult = new Pagination<ServiceModel>(
-                        results,
+                        pagedServices,
                         serviceFilterModel.PageIndex,
                         serviceFilterModel.PageSize,
-                        results.Count
+                        pagedServices.Count
                     );
 
                     return new ResponseModel
@@ -1615,8 +1630,8 @@ namespace Chillde.Services.Services
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy).Include(_ => _.Category),
-                        pageIndex: serviceFilterModel.PageIndex,
-                        pageSize: 1000
+                        pageIndex: 1,
+                        pageSize: 10000
                      );
 
                     var threshold = 0.8;
@@ -1644,7 +1659,10 @@ namespace Chillde.Services.Services
                         })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
-
+                    var pagedServices = results
+                         .Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
+                         .Take(serviceFilterModel.PageSize)
+                         .ToList();
                     if (!results.Any())
                     {
                         return new ResponseModel
@@ -1654,15 +1672,15 @@ namespace Chillde.Services.Services
                             Data = new
                             {
                                 EventName = eventDetails.Data,
-                                Services = results
+                                Services = pagedServices
                             }
                         };
                     }
                     var paginatedResult = new Pagination<ServiceModel>(
-                        results,
+                        pagedServices,
                         serviceFilterModel.PageIndex,
                         serviceFilterModel.PageSize,
-                        results.Count
+                        pagedServices.Count
                     );
 
                     return new ResponseModel
@@ -1728,7 +1746,9 @@ namespace Chillde.Services.Services
                                        .ThenInclude(p => p.Orders)
                                        .Include(a => a.ServiceAttachments)
                                        .Include(su => su.Category)
-                                       .Include(a => a.CreatedBy)
+                                       .Include(a => a.CreatedBy),
+                        pageIndex: serviceFilterModel.PageIndex,
+                        pageSize: serviceFilterModel.PageSize
                     );
 
                     var serviceModels = services.Data.Select(s => new ServiceModel
@@ -1778,7 +1798,9 @@ namespace Chillde.Services.Services
                                .ThenInclude(p => p.Orders)
                                .Include(a => a.ServiceAttachments)
                                .Include(su => su.Category)
-                               .Include(a => a.CreatedBy)
+                               .Include(a => a.CreatedBy),
+                pageIndex: 1,
+                pageSize: 1000
             );
 
             return services.Data.Select(s => new ServiceModel
