@@ -796,6 +796,18 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.DateOfBirth)
                             : accounts.OrderBy(account => account.DateOfBirth);
+                    case "email":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Email)
+                            : accounts.OrderBy(account => account.Email);
+                    case "phoneNumber":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.PhoneNumber)
+                            : accounts.OrderBy(account => account.PhoneNumber);
+                    case "isDelete":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.IsDeleted)
+                            : accounts.OrderBy(account => account.IsDeleted);
                     default:
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.CreationDate)
@@ -1443,20 +1455,21 @@ public class AccountService : IAccountService
             };
         }
 
-        var accountRole = account.AccountRoles
-            .FirstOrDefault(ar => ar.Role.Name == request.Role.ToString());
+        //var accountRole = account.AccountRoles
+        //    .FirstOrDefault(ar => ar.Role.Name == request.Role.ToString());
 
-        if (accountRole == null)
-        {
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status404NotFound,
-                Message = $"Role {request.Role} not found for this account"
-            };
-        }
-
-        accountRole.Status = AccountStatus.Suspended;
-        accountRole.ModificationDate = DateTime.UtcNow;
+        //if (accountRole == null)
+        //{
+        //    return new ResponseModel
+        //    {
+        //        Code = StatusCodes.Status404NotFound,
+        //        Message = $"Role {request.Role} not found for this account"
+        //    };
+        //}
+        account.Status = AccountStatus.Suspended;
+        account.IsDeleted = true;
+        //accountRole.Status = AccountStatus.Suspended;
+        //accountRole.ModificationDate = DateTime.UtcNow;
 
         _unitOfWork.AccountRepository.Update(account);
         await _unitOfWork.SaveChangeAsync();
@@ -1464,7 +1477,7 @@ public class AccountService : IAccountService
         return new ResponseModel
         {
             Code = StatusCodes.Status200OK,
-            Message = $"Role {request.Role} has been banned successfully"
+            Message = $"Account has been banned successfully"
         };
     }
 }
