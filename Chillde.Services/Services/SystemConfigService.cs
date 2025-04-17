@@ -2,11 +2,13 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.SystemConfigModel;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.SystemConfigModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -107,17 +109,36 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(SystemConfigFilterModel model)
         {
             var configList = await _unitOfWork.SystemConfigRepository.GetAllAsync(
-                systemConfig => !systemConfig.IsDeleted,
+                systemConfig =>
+                    !systemConfig.IsDeleted &&
+                    (!model.Type.HasValue || systemConfig.EntityType == model.Type.Value),
                 systemConfig =>
                     model.OrderByDescending
-                        ? systemConfig.OrderByDescending(offer => offer.CreationDate)
-                        : systemConfig.OrderBy(offer => offer.CreationDate),
+                        ? systemConfig.OrderByDescending(x => x.CreationDate)
+                        : systemConfig.OrderBy(x => x.CreationDate),
                 include: null,
-                model.PageIndex,
-                model.PageSize
+                1,
+               1000
             );
 
-            if (!configList.Data.Any())
+            var mappedConfigs = configList.Data
+                .Select(x => new SystemConfigModel
+                {
+                    Id = x.Id,
+                    FieldName = ConfigKeyDisplayNames.DisplayNames
+                        .FirstOrDefault(kvp => kvp.Key.ToString() == x.FieldName).Value ?? x.FieldName!,
+                    EntityType = x.EntityType.ToString(),
+                    Value = x.Value
+                }).ToList();
+
+            if (!string.IsNullOrWhiteSpace(model.Search))
+            {
+                mappedConfigs = mappedConfigs
+                    .Where(x => x.FieldName.Contains(model.Search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            if (!mappedConfigs.Any())
             {
                 return new ResponseModel
                 {
@@ -127,22 +148,22 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var result = configList.Data.Select(x => new SystemConfigModel
-            {
-                Id = x.Id,
-                FieldName = ConfigKeyDisplayNames.DisplayNames
-                .FirstOrDefault(kvp => kvp.Key.ToString() == x.FieldName).Value ?? x.FieldName!,
-                EntityType = x.EntityType.ToString(),
-                Value = x.Value
-            }).ToList();
-
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
-                Message = "Get All Configurations Successfully",
-                Data = result
+                Message = "Get Configurations Successfully",
+                Data = new Pagination<SystemConfigModel>
+                (
+                mappedConfigs,
+                model.PageIndex,
+                model.PageSize,
+                mappedConfigs.Count
+                )
             };
         }
+
+
+
 
         public async Task<ResponseModel> Get(SystemConfigKey key)
         {
