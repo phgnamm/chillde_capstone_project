@@ -5,7 +5,7 @@ namespace Chillde.Repositories.Entities;
 public class AccountRole : BaseEntity
 {
     public int TotalReputation { get; set; }
-    public AccountStatus Status { get; set; }
+    public AccountStatus Status { get; set; } = AccountStatus.PendingVerification;
 
     // Foreign key
     public Guid AccountId { get; set; }
