@@ -99,7 +99,7 @@ namespace Chillde.Services.Services
                                     : offers.OrderBy(offer => offer.CreationDate);
                         }
                     },
-                    include: o => o.Include(_ => _.CreatedBy).ThenInclude(_ => _.ShippingAddresses).Include(_ => _.Service).Include(_ => _.Request).Include(_ => _.Package).ThenInclude(_ => _.PackageFeatures).ThenInclude(_ => _.Feature),
+                    include: o => o.Include(_ => _.CreatedBy).ThenInclude(_ => _.ShippingAddresses).Include(_ => _.Service).Include(_ => _.Request).Include(_ => _.Package).ThenInclude(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.OfferAttachments),
                     filterParameter.PageIndex,
                     filterParameter.PageSize
                 );

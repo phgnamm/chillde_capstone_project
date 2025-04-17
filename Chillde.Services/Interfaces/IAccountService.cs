@@ -32,4 +32,6 @@ public interface IAccountService
     Task<ResponseModel> GetCategoryByArtisan(Guid id, FilterModel filterModel);
     Task<ResponseModel> GetDefaultShippingAddress(Guid id);
     Task<ResponseModel> BanAccountRole(BanAccountRoleModel request);
+    Task<ResponseModel> DeleteAccountRole(Guid accountId, Guid accountRoleId);
+    Task<ResponseModel> RestoreAccountRole(Guid accountId, Guid accountRoleId);
 }
