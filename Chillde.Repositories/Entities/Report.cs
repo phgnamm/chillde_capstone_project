@@ -4,7 +4,8 @@ namespace Chillde.Repositories.Entities
 {
     public class Report : BaseEntity
     {
-        public string Description { get; set; }
+        public required string Description { get; set; }
+        public string? Response { get; set; }
         public ReportStatus Status { get; set; }
         // Foreign key
         public Guid OrderId { get; set; }
