@@ -362,6 +362,7 @@ public static class Configuration
 
         //VoucherUsageLog
         services.AddScoped<IVoucherUsageLogRepository, VoucherUsageLogRepository>();
+        services.AddScoped<IVoucherUsageLogService, VoucherUsageLogService>();
 
         //ShipmentStatusHistory
         services.AddScoped<IShipmentStatusHistoryRepository,ShipmentStatusHistoryRepository>();

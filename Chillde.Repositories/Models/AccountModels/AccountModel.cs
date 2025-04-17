@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.AccountRoleModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
 using Role = Chillde.Repositories.Enums.Role;
 
 namespace Chillde.Repositories.Models.AccountModels;
@@ -43,4 +44,5 @@ public class AccountModel : BaseEntity
     // public List<string> RoleNames { get; set; } = null!;
     public List<string> Skills { get; set; } = null!;
     public List<AccountRoleModel> AccountRoles { get; set; } = null!;
+    public virtual List<ShippingAddressModel>? ShippingAddresses { get; set; }
 }

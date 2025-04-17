@@ -806,6 +806,7 @@ public class AccountService : IAccountService
                 }
             },
             accounts => accounts
+                .Include(account => account.ShippingAddresses)
                 .Include(account => account.AccountRoles)
                 .ThenInclude(accountRole => accountRole.Role)
                 .Include(account => account.Wallet)
