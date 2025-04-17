@@ -808,6 +808,10 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.IsDeleted)
                             : accounts.OrderBy(account => account.IsDeleted);
+                    case "gender":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Gender)
+                            : accounts.OrderBy(account => account.Gender);
                     default:
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.CreationDate)
