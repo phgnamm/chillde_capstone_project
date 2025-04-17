@@ -11,5 +11,7 @@ namespace Chillde.Repositories.Entities
 
         // Relationship
         public Order Order { get; set; } = null!;
+
+        public virtual ICollection<ReportAttachment> ReportAttachments { get; set; } = new List<ReportAttachment>();
     }
 }
