@@ -997,7 +997,13 @@ namespace Chillde.Services.Services
 
             var orders = await _unitOfWork.OrderRepository.GetAllAsync(
                 filter: filter,
-                include: _ => _.Include(_ => _.Package).ThenInclude(_ => _.Service).ThenInclude(_ => _.ServiceAttachments) .Include(_ => _.Package).ThenInclude(_ => _.Service).ThenInclude(_ => _.CreatedBy),
+                include: q => q.Include(o => o.Package)
+                           .ThenInclude(p => p.Service).ThenInclude(s => s.CreatedBy)
+                           .Include(o => o.Package)
+                           .ThenInclude(p => p.Service).ThenInclude(s => s.ServiceAttachments)
+                           .Include(o => o.Package)
+                           .ThenInclude(p => p.Offer).ThenInclude(o => o.OfferAttachments)
+                           .Include(o=> o.Shipments),
                 order: orderBy,
                 pageIndex: orderFilterModel.PageIndex,
                 pageSize: orderFilterModel.PageSize
@@ -1012,13 +1018,36 @@ namespace Chillde.Services.Services
                 ToProvince = order.ToProvince ?? string.Empty,
                 ToWard = order.ToWard ?? string.Empty,
                 TotalPrice = order.TotalPrice ?? 0,
-                PackagePrice = order.OriginPrice ?? 0,
-                PackageName = order.Package.Name, 
+                PackagePrice = order.Package.Price ?? 0,
+                PackageName = order.Package.Name,
                 Quantity = order.Quantity ?? 1,
                 ShipmentCode = order.ShipmentCode ?? string.Empty,
-                OrderStage = order.Stage, 
+                OrderStage = order.Stage,
                 Status = order.Status,
+                ShipmentId = order.Shipments?.FirstOrDefault()?.Id.ToString() ?? string.Empty,
                 CreatedById = order.CreatedById,
+                Name = order.Package.ServiceId.HasValue && order.Package.Service != null
+                ? order.Package.Service.Name ?? "Unknown"
+                : order.Package.OfferId.HasValue && order.Package.Offer != null
+                    ? order.Package.Offer.Message ?? "Unknown"
+                    : "Unknown",
+                Attachments = order.Package.ServiceId.HasValue && order.Package.Service != null
+                ? order.Package.Service.ServiceAttachments?.Select(att => new ServiceAttachment
+                {
+                    Id = att.Id,
+                    AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                    AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                    ServiceId = att.ServiceId
+                }).ToList() ?? new List<ServiceAttachment>()
+                : order.Package.OfferId.HasValue && order.Package.Offer != null
+                    ? order.Package.Offer.OfferAttachments?.Select(att => new ServiceAttachment
+                    {
+                        Id = att.Id,
+                        AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                        AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                        ServiceId = Guid.Empty 
+                    }).ToList() ?? new List<ServiceAttachment>()
+                    : new List<ServiceAttachment>(),
                 ServiceModel = order.Package?.Service == null ? null : new ServiceModel
                 {
                     Id = order.Package.Service.Id,
@@ -1048,8 +1077,6 @@ namespace Chillde.Services.Services
                     }).ToList() ?? new List<ServiceAttachment>()
                 }
             }).ToList();
-
-
 
             var result = new Pagination<OrderModel>(
                 orderModels,
