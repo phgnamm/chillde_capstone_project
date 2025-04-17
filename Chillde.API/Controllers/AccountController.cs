@@ -253,6 +253,44 @@ public class AccountController : ControllerBase
             });
         }
     }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id}/roles/{accountRoleId}")]
+    public async Task<IActionResult> DeleteAccountRole(Guid id, Guid accountRoleId)
+    {
+        try
+        {
+            var result = await _accountService.DeleteAccountRole(id, accountRoleId);;
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+    
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id}/roles/{accountRoleId}/restore")]
+    public async Task<IActionResult> RestoreAccountRole(Guid id, Guid accountRoleId)
+    {
+        try
+        {
+            var result = await _accountService.RestoreAccountRole(id, accountRoleId);;
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
     /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
