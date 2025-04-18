@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Enums;
 using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.OrderTrackingModels;
+using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Microsoft.AspNetCore.Http;
@@ -24,6 +25,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel);
         Task<ResponseModel> GetOrderDetail(Guid orderId);
         Task<ResponseModel> UpdateOrderAfterDeliveryAsync(Guid orderId);
-
+        Task<ResponseModel> Report(Guid orderId, ReportAddModel reportAddModel);
     }
 }

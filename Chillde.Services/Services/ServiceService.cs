@@ -768,7 +768,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddListServiceAttachmentAsync(List<ServiceAttachmentAddModel> attachmentModel, Guid serviceId)
+        public async Task<ResponseModel> AddListServiceAttachmentAsync(List<AttachmentAddModel> attachmentModel, Guid serviceId)
         {
             try
             {
