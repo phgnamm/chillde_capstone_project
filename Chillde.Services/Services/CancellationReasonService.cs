@@ -88,8 +88,12 @@ namespace Chillde.Services.Services
                     return cancellationReasonFilterModel.OrderByDescending
                         ? x.OrderByDescending(x => x.Value)
                         : x.OrderBy(x => x.Value);
+                 case "applyForRole":
+                     return cancellationReasonFilterModel.OrderByDescending
+                         ? x.OrderByDescending(x => x.RoleType)
+                         : x.OrderBy(x => x.RoleType);
 
-                case "createdate":
+                 case "creationDate":
                     return cancellationReasonFilterModel.OrderByDescending
                         ? x.OrderByDescending(x => x.CreationDate)
                         : x.OrderBy(x => x.CreationDate);

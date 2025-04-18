@@ -808,7 +808,7 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.PhoneNumber)
                             : accounts.OrderBy(account => account.PhoneNumber);
-                    case "isDelete":
+                    case "isDeleted":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.IsDeleted)
                             : accounts.OrderBy(account => account.IsDeleted);
