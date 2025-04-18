@@ -11,7 +11,7 @@ namespace Chillde.Repositories.Models.VoucherModels
     public class VoucherModel : BaseEntity
     {
         public required string Code { get; set; }
-        public  string ReceiverName { get; set; }
+        public  string? ReceiverName { get; set; }
         public Guid? ReceiverId { get; set; }
         public decimal DiscountValue { get; set; } 
         public decimal? MinOrderValue { get; set; } 
