@@ -274,12 +274,12 @@ public class AccountController : ControllerBase
     }
     
     [Authorize(Roles = "Admin")]
-    [HttpPut("{id}/roles/{accountRoleId}/restore")]
-    public async Task<IActionResult> RestoreAccountRole(Guid id, Guid accountRoleId)
+    [HttpPut("{id}/roles/{accountRoleId}/toggle")]
+    public async Task<IActionResult> ToggleAccountRoleStatus(Guid id, Guid accountRoleId)
     {
         try
         {
-            var result = await _accountService.RestoreAccountRole(id, accountRoleId);;
+            var result = await _accountService.ToggleAccountRoleStatus(id, accountRoleId);;
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)
@@ -291,6 +291,7 @@ public class AccountController : ControllerBase
             });
         }
     }
+    
     /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
