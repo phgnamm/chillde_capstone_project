@@ -53,20 +53,29 @@ namespace Chillde.Services.Services
             if (cancellationReason == null) {
                 return new ResponseModel { Code = StatusCodes.Status404NotFound, Message = "Not found" };
             }
-            _unitOfWork.CancellationReasonRepository.SoftRemove(cancellationReason);
+            if (cancellationReason.IsDeleted == false)
+            {
+                _unitOfWork.CancellationReasonRepository.SoftRemove(cancellationReason);
+            }
+            else
+            {
+                cancellationReason.IsDeleted = false;
+                _unitOfWork.CancellationReasonRepository.Update(cancellationReason);
+            }
             var result = await _unitOfWork.SaveChangeAsync();
             return result > 0 ? new ResponseModel { Message = "Delete successfully" } : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Delete unsuccessfully"};
         }
 
         public async Task<ResponseModel> GetAllAsync(CancellationReasonFilterModel cancellationReasonFilterModel)
         {
-            var cancellationLists = await _unitOfWork.CancellationReasonRepository.GetAllAsync(filter: _ => _.IsDeleted ==  false);
+            var cancellationLists = await _unitOfWork.CancellationReasonRepository.GetAllAsync( pageSize: cancellationReasonFilterModel.PageSize, pageIndex: cancellationReasonFilterModel.PageIndex);
             var cancellationModels = cancellationLists.Data.Select(_ => new CancellationReasonModel
             {
                 Id = _.Id,
                 Name = _.Name,
                 Value = _.Value,
-                RoleType = _.RoleType
+                RoleType = _.RoleType,
+                IsDeleted = _.IsDeleted
             });
             if (!cancellationModels.Any())
             {
@@ -75,7 +84,7 @@ namespace Chillde.Services.Services
 
             var result = new Pagination<CancellationReasonModel>(cancellationModels.ToList(), cancellationReasonFilterModel.PageIndex,
                       cancellationReasonFilterModel.PageSize, cancellationLists.TotalCount);
-            return new ResponseModel { Data = cancellationModels };
+            return new ResponseModel { Data = result };
         }
 
         public async Task<ResponseModel> UpdateAsync(Guid id, CancellationReasonAddModel model)
