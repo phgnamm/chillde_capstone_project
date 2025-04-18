@@ -54,7 +54,15 @@ namespace Chillde.Services.Services
             if (cancellationReason == null) {
                 return new ResponseModel { Code = StatusCodes.Status404NotFound, Message = "Not found" };
             }
-            _unitOfWork.CancellationReasonRepository.SoftRemove(cancellationReason);
+            if (cancellationReason.IsDeleted == false)
+            {
+                _unitOfWork.CancellationReasonRepository.SoftRemove(cancellationReason);
+            }
+            else
+            {
+                cancellationReason.IsDeleted = false;
+                _unitOfWork.CancellationReasonRepository.Update(cancellationReason);
+            }
             var result = await _unitOfWork.SaveChangeAsync();
             return result > 0 ? new ResponseModel { Message = "Delete successfully" } : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Delete unsuccessfully"};
         }
@@ -80,8 +88,12 @@ namespace Chillde.Services.Services
                     return cancellationReasonFilterModel.OrderByDescending
                         ? x.OrderByDescending(x => x.Value)
                         : x.OrderBy(x => x.Value);
+                 case "applyForRole":
+                     return cancellationReasonFilterModel.OrderByDescending
+                         ? x.OrderByDescending(x => x.RoleType)
+                         : x.OrderBy(x => x.RoleType);
 
-                case "createdate":
+                 case "creationDate":
                     return cancellationReasonFilterModel.OrderByDescending
                         ? x.OrderByDescending(x => x.CreationDate)
                         : x.OrderBy(x => x.CreationDate);
@@ -106,7 +118,8 @@ namespace Chillde.Services.Services
                 Id = _.Id,
                 Name = _.Name,
                 Value = _.Value,
-                RoleType = _.RoleType
+                RoleType = _.RoleType,
+                IsDeleted = _.IsDeleted
             });
             if (!cancellationModels.Any())
             {
