@@ -13,6 +13,7 @@ using Chillde.Services.Models.SystemConfigModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -183,6 +184,14 @@ namespace Chillde.Services.Services
             };
         }
 
+        public async Task<List<object[]>> GetAllAsKeyValueAsync()
+        {
+            var configs = await _unitOfWork.SystemConfigRepository.GetAllAsync();
+
+            return configs.Data
+                .Select(c => new object[] { (int)c.EntityType, c.EntityType.ToString() })
+                .ToList();
+        }
 
 
 

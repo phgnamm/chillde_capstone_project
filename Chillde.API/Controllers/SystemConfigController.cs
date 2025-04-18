@@ -93,5 +93,28 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+        [HttpGet("enum-list")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var result = await _systemConfigService.GetAllAsKeyValueAsync();
+                return StatusCode(StatusCodes.Status200OK, new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Success",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

@@ -10,5 +10,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> Update(Guid id, SystemConfigUpdateModel model);
         Task<ResponseModel> GetAll(SystemConfigFilterModel model);
         Task<ResponseModel> Get(SystemConfigKey key);
+        Task<List<object[]>> GetAllAsKeyValueAsync();
     }
 }
