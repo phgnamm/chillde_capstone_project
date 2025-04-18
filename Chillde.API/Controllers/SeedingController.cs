@@ -62,9 +62,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 100,
                             MaxWeight = 2000,
                             CategoryId = Guid.Parse("ba815129-7ad6-4d2d-ba7b-a43977bc310e"), // Earrings
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("simona-sergi-WNn5xbWfkLI-unsplash.jpg"),
                                     AttachmentAlt = "Khuyên tai đính đá lấp lánh"
@@ -79,9 +79,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 200,
                             MaxWeight = 1500,
                             CategoryId = Guid.Parse("2c7f9a1d-3e45-46ac-c57e-1c4c5d6e8901"), // Necklaces
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("gabrielle-henderson-Z0KoI2aysro-unsplash.jpg"),
                                     AttachmentAlt = "Dây chuyền khắc tên cá nhân hóa"
@@ -96,9 +96,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 3,
                             MaxWeight = 20,
                             CategoryId = Guid.Parse("6e1b3c5f-7a89-48ce-e91a-5e8e9f0a2345"), // Rings
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("luigi-pozzoli-jZrfY30y6Kc-unsplash.jpg"),
                                     AttachmentAlt = "Nhẫn đính hôn kim cương"
@@ -113,9 +113,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 50,
                             MaxWeight = 200,
                             CategoryId = Guid.Parse("5b0e2f4c-6d78-4ffb-b80d-4b7b8c9d1234"), // Watches
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("vvs--KRN2kU9e1s-unsplash.jpg"),
                                     AttachmentAlt = "Đồng hồ cổ điển phong cách vintage"
@@ -130,9 +130,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 100,
                             MaxWeight = 500,
                             CategoryId = Guid.Parse("8f3b2c1d-4e56-4a9b-b78c-2d5e6f7a9012"), // Money Clips
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("mayank-gaur-aXlkSSPakJk-unsplash.jpg"),
                                     AttachmentAlt = "Kẹp tiền kim loại sang trọng"
@@ -147,9 +147,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 100,
                             MaxWeight = 1000,
                             CategoryId = Guid.Parse("8c3f5a7d-9e01-4fce-c13e-7c0c1d2e4567"), // Beaded Bracelets
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("freestocks-ziiUkV9LpdU-unsplash.jpg"),
                                     AttachmentAlt = "Vòng tay hạt đá phong thủy"
@@ -165,9 +165,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 500,
                             MaxWeight = 2000,
                             CategoryId = Guid.Parse("4c9f1a3d-5e67-48ce-c79e-3c6c7d8e0123"), // Brooches
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("parisa-safaei-H8c0XcyN_PA-unsplash.jpg"),
                                     AttachmentAlt = "Gài áo thời trang tinh xảo"
@@ -182,9 +182,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 200,
                             MaxWeight = 1000,
                             CategoryId = Guid.Parse("9f4c6d8a-0b12-49df-f24b-8f1f2a3b5678"), // Jewelry Boxes
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("clem-onojeghuo-HpK0nVi7xOw-unsplash.jpg"),
                                     AttachmentAlt = "Hộp đựng trang sức gỗ sang trọng"
@@ -199,9 +199,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 200,
                             MaxWeight = 1000,
                             CategoryId = Guid.Parse("0b5d4e3f-6a78-4c1d-d90e-4f7a8b9c1234"), // Chain Wallets
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("chain_wallet.jpg"),
                                     AttachmentAlt = "Ví chuỗi thời trang phong cách"
@@ -217,9 +217,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 300,
                             MaxWeight = 1200,
                             CategoryId = Guid.Parse("1b6e8f0c-2d34-47fb-b46d-0b3b4c5d7890"), // Ring Trees
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("ring_tree.jpg"),
                                     AttachmentAlt = "Giá đỡ nhẫn nghệ thuật"
@@ -235,9 +235,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 150,
                             MaxWeight = 800,
                             CategoryId = Guid.Parse("4a9d1e3b-5c67-4f4f-ad9c-9e6f7a8b0123"), // Arm Bands
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("arm_band.jpg"),
                                     AttachmentAlt = "Vòng tay bắp tay sang trọng"
@@ -253,9 +253,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 250,
                             MaxWeight = 1200,
                             CategoryId = Guid.Parse("6551bec5-12eb-49e1-ba72-134545db85dc"), // Belt Buckles
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("belt_buckle.jpg"),
                                     AttachmentAlt = "Mặt khóa thắt lưng sang trọng"
@@ -272,9 +272,9 @@ namespace Chillde.API.Controllers
                             MinWeight = 100,
                             MaxWeight = 700,
                             CategoryId = Guid.Parse("947d3c1d-2e29-45ea-a965-d6dbc9d5a503"), // Costume Gloves
-                            ServiceAttachments = new List<ServiceAttachmentAddModel>
+                            ServiceAttachments = new List<AttachmentAddModel>
                             {
-                                new ServiceAttachmentAddModel
+                                new AttachmentAddModel
                                 {
                                     AttachmentUrl = CreateFormFileFromPath("costume_gloves.jpg"),
                                     AttachmentAlt = "Găng tay biểu diễn thời trang"

@@ -5,13 +5,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.VoucherUsageModels;
 
 namespace Chillde.Repositories.Models.VoucherModels
 {
     public class VoucherModel : BaseEntity
     {
         public required string Code { get; set; }
-        public  string ReceiverName { get; set; }
+        public  string? ReceiverName { get; set; }
         public Guid? ReceiverId { get; set; }
         public decimal DiscountValue { get; set; } 
         public decimal? MinOrderValue { get; set; } 
@@ -21,6 +22,6 @@ namespace Chillde.Repositories.Models.VoucherModels
         public DateTime StartTime { get; set; } 
         public DateTime ExpiredTime { get; set; }
         public VoucherStatus VoucherStatus { get; set; }
-        public List<VoucherUsageLog>? VoucherUsageLogs { get; set; } = new List<VoucherUsageLog>();
+        public List<VoucherUsageLogModel>? VoucherUsageLogs { get; set; }
     }
 }

@@ -56,6 +56,8 @@ public interface IUnitOfWork
     IReputationLogRepository ReputationLogRepository { get; }
     IDepositRepository DepositRepository { get; }
     INotificationRepository NotificationRepository { get; }
+    IReportRepository ReportRepository { get; }
+    IReportAttachmentRepository ReportAttachmentRepository { get; }
 
     #endregion
 }

@@ -57,11 +57,11 @@ namespace Chillde.API.Controllers
         }
         //[Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<IActionResult> GetAllAsync([FromQuery] CancellationReasonFilterModel cancellationReasonFilterModel)
         {
             try
             {
-                var result = await _cancellationReasonService.GetAllAsync();
+                var result = await _cancellationReasonService.GetAllAsync(cancellationReasonFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

@@ -243,7 +243,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize(Roles = "Artisan")]
         [HttpPost("{serviceId}/service-attachments")]
-        public async Task<IActionResult> AddListServiceAttachmentAsync([FromForm] List<ServiceAttachmentAddModel> attachmentModels, Guid serviceId)
+        public async Task<IActionResult> AddListServiceAttachmentAsync([FromForm] List<AttachmentAddModel> attachmentModels, Guid serviceId)
         {
             try
             { 
