@@ -6,24 +6,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/wallet-histories")]
+    [Route("api/v1/transactions")]
     [ApiController]
-    public class WalletHistoryController : ControllerBase
+    public class TransactionController : ControllerBase
     {
-        private readonly IWalletHistoryService _walletHistoryService;
+        private readonly ITransactionService _walletHistoryService;
 
-        public WalletHistoryController(IWalletHistoryService walletHistoryService)
+        public TransactionController(ITransactionService walletHistoryService)
         {
             _walletHistoryService = walletHistoryService;
         }
 
         //[Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAllWalletHistoryFromUser([FromQuery] WalletHistoryFilterModel walletHistoryFilterModel)
+        public async Task<IActionResult> GetAllTransactionsFromUser([FromQuery] TransactionFilterModel transactionFilterModel)
         {
             try
             {
-                var result = await _walletHistoryService.GetAllWalletHistoryFromUser(walletHistoryFilterModel);
+                var result = await _walletHistoryService.GetAllTransactionsFromUser(transactionFilterModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)
