@@ -1,6 +1,15 @@
 ﻿using AutoMapper;
+using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.ReportAttachmentModels;
+using Chillde.Repositories.Models.ReportModels;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.ReportModels;
+using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Http;
 
 namespace Chillde.Services.Services
 {
@@ -28,6 +37,60 @@ namespace Chillde.Services.Services
             _redisHelper = redisHelper;
         }
 
+        public async Task<ResponseModel> Reject(Guid reportId, ReportRejectModel reportRejectModel)
+        {
+            try
+            {
+                var report = await _unitOfWork.ReportRepository.GetAsync(reportId);
+                if (report == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Report not found."
+                    };
+                }
 
+                if (string.IsNullOrWhiteSpace(reportRejectModel.Response))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Response is required."
+                    };
+                }
+
+                report.Response = reportRejectModel.Response;
+                report.Status = ReportStatus.Reject;
+                _unitOfWork.ReportRepository.Update(report);
+
+                int result = await _unitOfWork.SaveChangeAsync();
+                if (result > 0)
+                {
+                    var reportModel = _mapper.Map<ReportModel>(report);
+
+                    return new ResponseModel
+                    {
+                        Data = reportModel,
+                        Code = StatusCodes.Status200OK,
+                        Message = "Report is rejected"
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Failed to reject."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
     }
 }
