@@ -15,28 +15,28 @@ using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
-    public class WalletHistoryService : IWalletHistoryService
+    public class TransactionService : ITransactionService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IClaimService _claimService;
 
-        public WalletHistoryService(IUnitOfWork unitOfWork, IClaimService claimService)
+        public TransactionService(IUnitOfWork unitOfWork, IClaimService claimService)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
         }
 
-        public async Task<ResponseModel> GetAllWalletHistoryFromUser(WalletHistoryFilterModel walletHistoryFilterModel)
+        public async Task<ResponseModel> GetAllTransactionsFromUser(TransactionFilterModel transactionFilterModel)
         {
 
             //var currentUserId = _claimService.GetCurrentUserId;
             var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
                   filter: _ =>
-                  _.IsDeleted == walletHistoryFilterModel.IsDeleted &&
-                  (!walletHistoryFilterModel.AccountId.HasValue || _.CreatedById == walletHistoryFilterModel.AccountId),
+                  _.IsDeleted == transactionFilterModel.IsDeleted &&
+                  (!transactionFilterModel.AccountId.HasValue || _.CreatedById == transactionFilterModel.AccountId),
                   include: walletHistory => walletHistory.Include(_ => _.Wallet) .Include(_ => _.Order),
-                  pageIndex: walletHistoryFilterModel.PageIndex,
-                  pageSize: walletHistoryFilterModel.PageSize
+                  pageIndex: transactionFilterModel.PageIndex,
+                  pageSize: transactionFilterModel.PageSize
               );
 
             if (walletHistory.Data == null || !walletHistory.Data.Any())
@@ -57,8 +57,8 @@ namespace Chillde.Services.Services
                Type = _.Type
             }).ToList();
 
-            var result = new Pagination<WalletHistoryModel>(walletHistoryModels, walletHistoryFilterModel.PageIndex,
-                 walletHistoryFilterModel.PageSize, walletHistory.TotalCount);
+            var result = new Pagination<WalletHistoryModel>(walletHistoryModels, transactionFilterModel.PageIndex,
+                 transactionFilterModel.PageSize, walletHistory.TotalCount);
 
             return new ResponseModel
             {
@@ -66,5 +66,6 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+
     }
 }

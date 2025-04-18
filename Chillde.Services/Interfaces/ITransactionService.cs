@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace Chillde.Services.Interfaces
 {
-    public interface IWalletHistoryService
+    public interface ITransactionService
     {
-        Task<ResponseModel> GetAllWalletHistoryFromUser(WalletHistoryFilterModel walletHistoryFilterModel);
+        Task<ResponseModel> GetAllTransactionsFromUser(TransactionFilterModel transactionFilterModel);
     }
 }

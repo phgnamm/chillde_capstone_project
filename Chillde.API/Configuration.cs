@@ -268,7 +268,7 @@ public static class Configuration
 
         //WalletHistory
         services.AddScoped<ITransactionRepository, TransactionRepository>();
-        services.AddScoped<IWalletHistoryService, WalletHistoryService>();
+        services.AddScoped<ITransactionService, TransactionService>();
 
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
