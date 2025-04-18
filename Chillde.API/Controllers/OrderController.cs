@@ -197,26 +197,26 @@ namespace Chillde.API.Controllers
 
                     if (paymentResult.IsSuccess)
                     {
-                        var orderId = paymentResult.OrderId; 
+                        //var orderId = paymentResult.OrderId; 
 
-                        var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
+                        //var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
 
-                        if (updateResult.Code == StatusCodes.Status200OK)
-                        {
+                        //if (updateResult.Code == StatusCodes.Status200OK)
+                        //{
                             return Ok(new
                             {
                                 Message = "Payment and order update successful.",
                                 PaymentResult = paymentResult,
-                                OrderUpdateResult = updateResult
+                                //OrderUpdateResult = updateResult
                             });
-                        }
+                        //}
 
-                        return BadRequest(new
-                        {
-                            Message = "Payment successful but order update failed.",
-                            PaymentResult = paymentResult,
-                            OrderUpdateResult = updateResult
-                        });
+                        //return BadRequest(new
+                        //{
+                        //    Message = "Payment successful but order update failed.",
+                        //    PaymentResult = paymentResult,
+                        //    OrderUpdateResult = updateResult
+                        //});
                     }
                     return BadRequest(new
                     {
