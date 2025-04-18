@@ -77,7 +77,10 @@ namespace Chillde.Services.Services
                     ExpiredTime = voucherAddModel.ExpiredTime,
                     CreatedById = currentUserId.Value,
                 };
-
+                if(voucherAddModel.ReceiverId != null)
+                {
+                    newVoucher.VoucherType = VoucherType.AdminToArtist;
+                }
                 await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
                 var result = await _unitOfWork.SaveChangeAsync();
                 return result > 0
