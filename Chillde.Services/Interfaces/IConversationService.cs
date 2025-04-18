@@ -11,7 +11,7 @@ public interface IConversationService
     Task<ResponseModel> GetAll(ConversationFilterModel conversationFilterModel);
     Task<ResponseModel> Archive(Guid id);
     Task<ResponseModel> Delete(Guid id);
-    Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel);
-    Task<ResponseModel> GetAllMessages(Guid conversationId, MessageFilterModel messageFilterModel);
+    Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel, string sourceLanguageCode, string targetLanguageCode);
+    Task<ResponseModel> GetAllMessages(Guid conversationId, MessageFilterModel messageFilterModel, string sourceLanguageCode, string targetLanguageCode);
     Task<ResponseModel> ReadMessages(Guid conversationId);
 }

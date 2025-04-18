@@ -5,6 +5,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CancellationReasonModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 
 namespace Chillde.Services.Services
@@ -68,7 +69,46 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAllAsync(CancellationReasonFilterModel cancellationReasonFilterModel)
         {
-            var cancellationLists = await _unitOfWork.CancellationReasonRepository.GetAllAsync( pageSize: cancellationReasonFilterModel.PageSize, pageIndex: cancellationReasonFilterModel.PageIndex);
+            var cancellationLists = await _unitOfWork.CancellationReasonRepository.GetAllAsync(
+         filter: x =>
+             (!cancellationReasonFilterModel.IsDeleted.HasValue || x.IsDeleted == cancellationReasonFilterModel.IsDeleted) &&
+             (string.IsNullOrEmpty(cancellationReasonFilterModel.Search) || x.Name.Contains(cancellationReasonFilterModel.Search) || x.Value.Equals(cancellationReasonFilterModel.Search)) &&
+             (!cancellationReasonFilterModel.Role.HasValue || x.RoleType == cancellationReasonFilterModel.Role) &&
+             (!cancellationReasonFilterModel.Value.HasValue || x.Value == cancellationReasonFilterModel.Value),
+         order: x =>
+         {
+           switch (cancellationReasonFilterModel.Order.ToLower())
+            {
+                case "name":
+                    return cancellationReasonFilterModel.OrderByDescending
+                        ? x.OrderByDescending(x => x.Name)
+                        : x.OrderBy(x => x.Name);
+
+                case "value":
+                    return cancellationReasonFilterModel.OrderByDescending
+                        ? x.OrderByDescending(x => x.Value)
+                        : x.OrderBy(x => x.Value);
+
+                case "createdate":
+                    return cancellationReasonFilterModel.OrderByDescending
+                        ? x.OrderByDescending(x => x.CreationDate)
+                        : x.OrderBy(x => x.CreationDate);
+
+                case "isdeleted":
+                    return cancellationReasonFilterModel.OrderByDescending
+                        ? x.OrderByDescending(x => x.IsDeleted)
+                        : x.OrderBy(x => x.IsDeleted);
+
+                default:
+                    return cancellationReasonFilterModel.OrderByDescending
+                        ? x.OrderByDescending(x => x.Name)
+                        : x.OrderBy(x => x.Name);
+             }
+         },
+            pageIndex: cancellationReasonFilterModel.PageIndex,
+            pageSize: cancellationReasonFilterModel.PageSize
+     );
+
             var cancellationModels = cancellationLists.Data.Select(_ => new CancellationReasonModel
             {
                 Id = _.Id,

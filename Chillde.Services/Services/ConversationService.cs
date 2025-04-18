@@ -6,6 +6,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ConversationModels;
 using Chillde.Repositories.Models.MessageModels;
+using Chillde.Repositories.Models.OfferModels;
 using Chillde.Services.Common;
 using Chillde.Services.Hubs;
 using Chillde.Services.Interfaces;
@@ -27,10 +28,11 @@ public class ConversationService : IConversationService
     private readonly IRedisHelper _redisHelper;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICloudinaryHelper _cloudinaryHelper;
+    private readonly IOfferService _offerService;
 
     public ConversationService(IClaimService claimService, IMapper mapper,
         IRedisHelper redisHelper, IUnitOfWork unitOfWork, IHubContext<RealTimeHub> hubContext,
-        ICloudinaryHelper cloudinaryHelper)
+        ICloudinaryHelper cloudinaryHelper, IOfferService offerService)
     {
         _claimService = claimService;
         _mapper = mapper;
@@ -38,6 +40,7 @@ public class ConversationService : IConversationService
         _unitOfWork = unitOfWork;
         _hubContext = hubContext;
         _cloudinaryHelper = cloudinaryHelper;
+        _offerService = offerService;
     }
 
     public async Task<ResponseModel> Add(ConversationAddModel conversationAddModel)
@@ -265,7 +268,7 @@ public class ConversationService : IConversationService
         };
     }
 
-    public async Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel)
+    public async Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel, string sourceLanguageCode, string targetLanguageCode)
     {
         if (string.IsNullOrWhiteSpace(messageAddModel.Content) && messageAddModel.Attachment == null)
         {
@@ -300,7 +303,11 @@ public class ConversationService : IConversationService
                 Message = "Conversation not found"
             };
 
-        var message = _mapper.Map<Message>(messageAddModel);
+        // var message = _mapper.Map<Message>(messageAddModel);
+        Message message = new Message
+        {
+            Content = messageAddModel.Content,
+        };
         if (messageAddModel.Attachment != null)
         {
             if (string.IsNullOrWhiteSpace(messageAddModel.Content))
@@ -311,6 +318,31 @@ public class ConversationService : IConversationService
             message.AttachmentUrl =
                 await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment,
                     folderName: FolderAttachment.MESSAGES);
+        }
+
+        OfferModel? offerModel = null;
+        if (messageAddModel.Offer != null)
+        {
+            var addOfferResponse = await _offerService.AddAsync(messageAddModel.Offer, sourceLanguageCode, targetLanguageCode);
+            if (!addOfferResponse.Status)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "Cannot create message"
+                };
+            }
+
+            if (addOfferResponse.Data != null)
+            {
+                message.OfferId = (Guid)addOfferResponse.Data;
+                var offerResponse = await _offerService.GetByIdAsync((Guid)addOfferResponse.Data, sourceLanguageCode, targetLanguageCode);;
+                if (offerResponse.Status)
+                {
+                    offerModel = (OfferModel)offerResponse.Data;
+                }
+            }
+            
         }
 
         var accountConversations = new List<AccountConversation>();
@@ -367,7 +399,7 @@ public class ConversationService : IConversationService
                     new
                     {
                         ConversationId = conversationId,
-                        Message = MapFromMessageToMessageModel(message, currentUserId)
+                        Message = MapFromMessageToMessageModel(message, offerModel, currentUserId)
                     });
 
             return new ResponseModel
@@ -384,7 +416,7 @@ public class ConversationService : IConversationService
         };
     }
 
-    public async Task<ResponseModel> GetAllMessages(Guid conversationId, MessageFilterModel messageFilterModel)
+    public async Task<ResponseModel> GetAllMessages(Guid conversationId, MessageFilterModel messageFilterModel, string sourceLanguageCode, string targetLanguageCode)
     {
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
@@ -418,7 +450,18 @@ public class ConversationService : IConversationService
                 unreadMessages.Add(currentUserMessageRecipient);
             }
 
-            messageModels.Add(MapFromMessageToMessageModel(message, currentUserId));
+            OfferModel? offerModel = null;
+            if (message.OfferId.HasValue)
+            {
+                message.OfferId = message.OfferId;
+                var offerResponse = await _offerService.GetByIdAsync(message.OfferId.Value, sourceLanguageCode, targetLanguageCode);;
+                if (offerResponse.Status)
+                {
+                    offerModel = (OfferModel)offerResponse.Data;
+                }
+            }
+
+            messageModels.Add(MapFromMessageToMessageModel(message, offerModel, currentUserId));
         }
 
         if (unreadMessages.Any())
@@ -497,7 +540,7 @@ public class ConversationService : IConversationService
         };
     }
 
-    private MessageModel MapFromMessageToMessageModel(Message message, Guid? currentUserId = null)
+    private MessageModel MapFromMessageToMessageModel(Message message, OfferModel? offerModel, Guid? currentUserId = null)
     {
         return new MessageModel
         {
@@ -511,6 +554,7 @@ public class ConversationService : IConversationService
             IsPinned = message.IsPinned,
             IsModified = message.ModificationDate != null || message.ModifiedById != null,
             ParentMessageId = message.ParentMessageId,
+            Offer = offerModel,
             IsReadBy = _mapper.Map<List<AccountLiteModel>>(
                 message.MessageRecipients
                     .Where(messageRecipient =>

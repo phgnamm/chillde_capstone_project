@@ -113,6 +113,7 @@ namespace Chillde.Services.Services
                         localizedOffers = offersWithTranslations.Select(offer => new OfferModel
                         {
                             Id = offer.Id,
+                            IsDeleted = offer.IsDeleted,
                             Status = offer.Status,
                             Message = offer.Message,
                             MinWeight = offer.MinWeight,
@@ -173,6 +174,7 @@ namespace Chillde.Services.Services
                         localizedOffers = offersResult.Data.Select(offer => new OfferModel
                         {
                             Id = offer.Id,
+                            IsDeleted = offer.IsDeleted,
                             Status = offer.Status,
                             Message = offer.Message,
                             MinWeight = offer.MinWeight,
@@ -542,7 +544,8 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Offer created successfully."
+                    Message = "Offer created successfully.",
+                    Data = newOffer.Id
                 };
             }
             catch (Exception ex)
