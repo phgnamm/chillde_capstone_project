@@ -14,6 +14,8 @@ using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.OrderModels;
 using Chillde.Repositories.Models.PackageFeatureModels;
 using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ReportAttachmentModels;
+using Chillde.Repositories.Models.ReportModels;
 using Chillde.Repositories.Models.ReputationLogModels;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.ShipmentModels;
@@ -27,6 +29,7 @@ using Chillde.Services.Models.MessageModels;
 using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.PackageModels;
+using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ServiceAttachmentModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.ShippingAddressModels;
@@ -111,7 +114,7 @@ public class MapperProfile : Profile
         CreateMap<ServiceUpdateModel, Service>().ForMember(x => x.ServiceAttachments, otp => otp.Ignore()).ReverseMap();
 
         //Service
-        CreateMap<ServiceAttachmentAddModel, ServiceAttachment>().ReverseMap();
+        CreateMap<AttachmentAddModel, ServiceAttachment>().ReverseMap();
 
         //Order
         CreateMap<OrderAddModel, Order>().ReverseMap();
@@ -132,6 +135,11 @@ public class MapperProfile : Profile
 
         //Notification
         CreateMap<NotificationAddModel, Notification>().ReverseMap();
+
+        //Report
+        CreateMap<ReportAddModel, Report>().ReverseMap();
+        CreateMap<ReportModel, Report>().ReverseMap();
+        CreateMap<ReportAttachmentModel, ReportAttachment>().ReverseMap();
 
         // Offer
         CreateMap<Offer, OfferModel>()

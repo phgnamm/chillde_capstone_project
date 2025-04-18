@@ -1,10 +1,9 @@
-﻿using Chillde.Services.Models.CategoryModels;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Chillde.Services.Models.ServiceAttachmentModels
 {
-    public class ServiceAttachmentAddModel
+    public class AttachmentAddModel
     {
         [Required]
         public string AttachmentAlt { get; set; }
