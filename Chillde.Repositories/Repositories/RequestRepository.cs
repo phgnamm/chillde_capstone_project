@@ -59,7 +59,7 @@ namespace Chillde.Repositories.Repositories
                 .AnyAsync(request =>
                     !request.IsDeleted &&
                     request.Id == requestId &&
-                    request.Offers.Any(offer => offer.CreatedById == currentUserId)
+                    request.Offers.Any(offer => offer.CreatedById == currentUserId && !offer.IsDeleted)
                 );
         }
     }
