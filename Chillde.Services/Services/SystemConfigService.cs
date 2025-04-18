@@ -178,7 +178,7 @@ namespace Chillde.Services.Services
                     pagedConfigs,
                     model.PageIndex,
                     model.PageSize,
-                    pagedConfigs.Count
+                    mappedConfigs.Count
                 )
             };
         }
