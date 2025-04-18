@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Chillde.API.Controllers
 {
-    [Route("api/v1/reputation-log")]
+    [Route("api/v1/reputation-logs")]
     [ApiController]
     public class ReputationLogController : ControllerBase
     {
