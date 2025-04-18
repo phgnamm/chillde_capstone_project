@@ -9,6 +9,7 @@ namespace Chillde.Services.Models.VoucherModels
 {
     public class VoucherUpdateModel
     {
+        public Guid? ReceiverId { get; set; }
         public int? MinOrderRequired { get; set; }
         public int? MinReputation { get; set; }
 
@@ -21,5 +22,6 @@ namespace Chillde.Services.Models.VoucherModels
         public DateTime? StartTime { get; set; }
         [DataType(DataType.DateTime, ErrorMessage = "Invalid date format.")]
         public DateTime? ExpiredTime { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }
