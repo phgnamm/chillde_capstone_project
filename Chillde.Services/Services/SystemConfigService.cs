@@ -188,10 +188,15 @@ namespace Chillde.Services.Services
         {
             var configs = await _unitOfWork.SystemConfigRepository.GetAllAsync();
 
-            return configs.Data
-                .Select(c => new object[] { (int)c.EntityType, c.EntityType.ToString() })
+            var distinctEntityTypes = configs.Data
+                .Select(c => c.EntityType)
+                .Distinct();
+
+            return distinctEntityTypes
+                .Select(entityType => new object[] { (int)entityType, entityType.ToString() })
                 .ToList();
         }
+
 
 
 
