@@ -2014,14 +2014,25 @@ namespace Chillde.Services.Services
                         Image = order.CreatedBy.Image ?? string.Empty,
                     }
                     : null,
-                    Artisan = new AccountLiteModel
+                    Artisan = order.Package.ServiceId.HasValue && order.Package.Service?.CreatedBy != null
+                    ? new AccountLiteModel
                     {
-                        FirstName = order.Package.Service.CreatedBy.FirstName,
+                        FirstName = order.Package.Service.CreatedBy.FirstName ?? string.Empty,
                         LastName = order.Package.Service.CreatedBy.LastName ?? string.Empty,
                         Username = order.Package.Service.CreatedBy.Username ?? string.Empty,
                         Email = order.Package.Service.CreatedBy.Email ?? string.Empty,
-                        Image = order.Package.Service.CreatedBy.Image ?? string.Empty,
+                        Image = order.Package.Service.CreatedBy.Image ?? string.Empty
                     }
+                    : order.Package.OfferId.HasValue && order.Package.Offer?.CreatedBy != null
+                    ? new AccountLiteModel
+                    {
+                        FirstName = order.Package.Offer.CreatedBy.FirstName ?? string.Empty,
+                        LastName = order.Package.Offer.CreatedBy.LastName ?? string.Empty,
+                        Username = order.Package.Offer.CreatedBy.Username ?? string.Empty,
+                        Email = order.Package.Offer.CreatedBy.Email ?? string.Empty,
+                        Image = order.Package.Offer.CreatedBy.Image ?? string.Empty
+                    }
+                    : null
                 };
 
                 if (order.Package?.Offer != null)

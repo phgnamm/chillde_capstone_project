@@ -135,8 +135,18 @@
   <data name="Artist Trading Cards" xml:space="preserve">
     <value>Thẻ Giao Dịch Nghệ Sĩ</value>
   </data>
+  <data name="Audio" xml:space="preserve">
+    <value>Âm Thanh</value>
+  </data>
+  <data name="Baby &amp; Toddler Toys" xml:space="preserve">
+    <value>Đồ Chơi Trẻ Em &amp; Mới Biết Đi</value>
+  </data>
   <data name="Baby Accessories" xml:space="preserve">
     <value>Phụ Kiện Cho Bé</value>
+  </data>
+  <data name="Backpacks" xml:space="preserve">
+    <value>Ba Lô
+</value>
   </data>
   <data name="Bags &amp; Purses" xml:space="preserve">
     <value>Túi &amp; Ví</value>
@@ -146,6 +156,12 @@
   </data>
   <data name="Barbells" xml:space="preserve">
     <value>Thanh Tạ</value>
+  </data>
+  <data name="Bath &amp; Beauty" xml:space="preserve">
+    <value>Phòng Tắm &amp; Làm Đẹp</value>
+  </data>
+  <data name="Bath Accessories" xml:space="preserve">
+    <value>Phụ Kiện Phòng Tắm</value>
   </data>
   <data name="Beaded Necklaces" xml:space="preserve">
     <value>Dây Chuyền Bằng Hạt</value>
@@ -170,6 +186,9 @@
   </data>
   <data name="Blank Books" xml:space="preserve">
     <value>Sổ Trống</value>
+  </data>
+  <data name="Board Games" xml:space="preserve">
+    <value>Trò Chơi Trên Bàn</value>
   </data>
   <data name="Body Jewelry" xml:space="preserve">
     <value>Trang Sức Cơ Thể</value>
@@ -213,6 +232,18 @@
   <data name="Cameo Necklaces" xml:space="preserve">
     <value>Dây Chuyền Cameo</value>
   </data>
+  <data name="Cameras &amp; Equipment" xml:space="preserve">
+    <value>Máy Ảnh &amp; Thiết Bị</value>
+  </data>
+  <data name="Camping" xml:space="preserve">
+    <value>Cắm Trại</value>
+  </data>
+  <data name="Car Parts &amp; Accessories" xml:space="preserve">
+    <value>Phụ Tùng &amp; Phụ Kiện Ô Tô</value>
+  </data>
+  <data name="Card Games" xml:space="preserve">
+    <value>Trò Chơi Bài</value>
+  </data>
   <data name="Chain Wallets" xml:space="preserve">
     <value>Ví Dây Xích</value>
   </data>
@@ -224,6 +255,9 @@
   </data>
   <data name="Charm Necklaces" xml:space="preserve">
     <value>Dây Chuyền Charm</value>
+  </data>
+  <data name="Checkbook" xml:space="preserve">
+    <value>Sổ Séc</value>
   </data>
   <data name="Checkbook Covers" xml:space="preserve">
     <value>Bọc Sổ </value>
@@ -246,6 +280,9 @@
   <data name="Cluster Earrings" xml:space="preserve">
     <value>Bông Tai Hình Cụm</value>
   </data>
+  <data name="Clutches &amp; Evening Bags" xml:space="preserve">
+    <value>Túi Cầm Tay &amp; Túi Xách Nhỏ</value>
+  </data>
   <data name="Collectibles" xml:space="preserve">
     <value>Đồ Sưu Tầm</value>
   </data>
@@ -254,6 +291,9 @@
   </data>
   <data name="Comics &amp; Graphic Novels" xml:space="preserve">
     <value>Truyện Tranh &amp; Tiểu Thuyết Đồ Họa</value>
+  </data>
+  <data name="Computers &amp; Peripherals" xml:space="preserve">
+    <value>Máy Tính &amp; Thiết Bị Ngoại Vi</value>
   </data>
   <data name="Corsages" xml:space="preserve">
     <value>Hoa Cài Áo</value>
@@ -288,6 +328,12 @@
   <data name="Earrings" xml:space="preserve">
     <value>Bông Tai</value>
   </data>
+  <data name="Electronics &amp; Accessories" xml:space="preserve">
+    <value>Điện Tử &amp; Phụ Kiện</value>
+  </data>
+  <data name="Essential Oils" xml:space="preserve">
+    <value>Tinh Dầu</value>
+  </data>
   <data name="Facial Hair" xml:space="preserve">
     <value>Râu (Phụ Kiện)</value>
   </data>
@@ -297,8 +343,29 @@
   <data name="Fine Art Ceramics" xml:space="preserve">
     <value>Gốm Nghệ Thuật</value>
   </data>
+  <data name="Fitness &amp; Exercise" xml:space="preserve">
+    <value>Thể Dục &amp; Tập Thể Thao</value>
+  </data>
+  <data name="Floor &amp; Rugs" xml:space="preserve">
+    <value>Sàn &amp; Thảm</value>
+  </data>
+  <data name="Fragrances" xml:space="preserve">
+    <value>Hương Thơm</value>
+  </data>
   <data name="Fraternal &amp; Class Rings" xml:space="preserve">
     <value>Nhẫn Cho Hội Nhóm (Nhẫn Lớp)</value>
+  </data>
+  <data name="Furniture" xml:space="preserve">
+    <value>Nội Thất</value>
+  </data>
+  <data name="Gadgets" xml:space="preserve">
+    <value>Thiết Bị Công Nghệ</value>
+  </data>
+  <data name="Game Pieces" xml:space="preserve">
+    <value>Trò Chơi Mảnh Ghép</value>
+  </data>
+  <data name="Games &amp; Puzzles" xml:space="preserve">
+    <value>Trò Chơi &amp; Giải Đố</value>
   </data>
   <data name="Gardening &amp; Work Gloves" xml:space="preserve">
     <value>Găng Tay Làm Vườn &amp; Lao Động</value>
@@ -318,11 +385,35 @@
   <data name="Gloves &amp; Mittens" xml:space="preserve">
     <value>Găng Tay &amp; Bao Tay</value>
   </data>
+  <data name="Golf" xml:space="preserve">
+    <value>Golf</value>
+  </data>
+  <data name="Hair Care" xml:space="preserve">
+    <value>Chăm Sóc Tóc</value>
+  </data>
   <data name="Halloween Candy Bags" xml:space="preserve">
     <value>Túi Kẹo Halloween</value>
   </data>
   <data name="Hand Chain" xml:space="preserve">
     <value>Dây Chuyền Tay</value>
+  </data>
+  <data name="Handbags" xml:space="preserve">
+    <value>Túi Xách</value>
+  </data>
+  <data name="HandBags &amp; Purses" xml:space="preserve">
+    <value>Túi Xách &amp; Ví</value>
+  </data>
+  <data name="Hobo Bags" xml:space="preserve">
+    <value>Túi Hobo</value>
+  </data>
+  <data name="Home &amp; Living" xml:space="preserve">
+    <value>Nhà Ở &amp; Đời Sống</value>
+  </data>
+  <data name="Home Decor" xml:space="preserve">
+    <value>Trang Trí Nhà Cửa</value>
+  </data>
+  <data name="Hunting &amp; Archery" xml:space="preserve">
+    <value>Săn Bắn &amp; Bắn Cung</value>
   </data>
   <data name="Instrument Straps" xml:space="preserve">
     <value>Dây Đeo Nhạc Cụ</value>
@@ -342,6 +433,15 @@
   <data name="Lariat &amp; Y Necklaces" xml:space="preserve">
     <value>Dây Chuyền Sợi Dài &amp; Dây Chuyền Y</value>
   </data>
+  <data name="Lawn Games" xml:space="preserve">
+    <value>Trò Chơi Bãi Cỏ</value>
+  </data>
+  <data name="Learning &amp; School" xml:space="preserve">
+    <value>Học Tập &amp; Trường Học</value>
+  </data>
+  <data name="Lighting" xml:space="preserve">
+    <value>Đèn &amp; Chiếu Sáng</value>
+  </data>
   <data name="Lip Rings" xml:space="preserve">
     <value>Nhẫn Xỏ Môi</value>
   </data>
@@ -354,8 +454,14 @@
   <data name="Midi Rings" xml:space="preserve">
     <value>Nhẫn Midi</value>
   </data>
+  <data name="Miniature Toys" xml:space="preserve">
+    <value>Đồ Chơi Thu Nhỏ</value>
+  </data>
   <data name="Mittens &amp; Muffs" xml:space="preserve">
     <value>Găng Tay &amp; Ống Tay Giữ Ấm</value>
+  </data>
+  <data name="Money Clips" xml:space="preserve">
+    <value>Kẹp Tiền</value>
   </data>
   <data name="Mosaics" xml:space="preserve">
     <value>Ghép Hình</value>
@@ -381,6 +487,9 @@
   <data name="Nose Rings &amp; Studs" xml:space="preserve">
     <value>Khuyên Mũi &amp; Đinh Mũi</value>
   </data>
+  <data name="Outdoor &amp; Gardening" xml:space="preserve">
+    <value>Ngoài Trời &amp; Làm Vườn</value>
+  </data>
   <data name="Painting" xml:space="preserve">
     <value>Tranh Vẽ</value>
   </data>
@@ -396,8 +505,23 @@
   <data name="Pocket Watches" xml:space="preserve">
     <value>Đồng Hồ Bỏ Túi</value>
   </data>
+  <data name="Pouches &amp; Coin Purses" xml:space="preserve">
+    <value>Túi &amp; Ví Đựng Tiền Xu</value>
+  </data>
+  <data name="Pretend Play" xml:space="preserve">
+    <value>Đồ Chơi Sáng Tạo</value>
+  </data>
   <data name="Prints" xml:space="preserve">
     <value>Tranh In</value>
+  </data>
+  <data name="Purse Straps" xml:space="preserve">
+    <value>Dây Đeo Ví</value>
+  </data>
+  <data name="Puzzles" xml:space="preserve">
+    <value>Câu Đố</value>
+  </data>
+  <data name="Racquet Sports" xml:space="preserve">
+    <value>Vợt Thể Thao</value>
   </data>
   <data name="Recorded Audio" xml:space="preserve">
     <value>Âm Thanh Ghi Âm</value>
@@ -414,17 +538,41 @@
   <data name="Rings" xml:space="preserve">
     <value>Nhẫn</value>
   </data>
+  <data name="Role Playing Games" xml:space="preserve">
+    <value>Trò Chơi Nhập Vai</value>
+  </data>
   <data name="Shawl Pins" xml:space="preserve">
     <value>Ghim Cài Khăn</value>
   </data>
   <data name="Shoe Clips" xml:space="preserve">
     <value>Kẹp Giày</value>
   </data>
+  <data name="Shoulder Bags" xml:space="preserve">
+    <value>Túi Đeo Vai</value>
+  </data>
+  <data name="Skin Care" xml:space="preserve">
+    <value>Chăm Sóc Da</value>
+  </data>
   <data name="Solitaire Rings" xml:space="preserve">
     <value>Nhẫn Đính Đá Đơn</value>
   </data>
+  <data name="Spa &amp; Relaxation" xml:space="preserve">
+    <value>Spa &amp; Thư Giãn</value>
+  </data>
+  <data name="Sports &amp; Outdoor Recreation" xml:space="preserve">
+    <value>Thể Thao &amp; Giải Trí Ngoài Trời</value>
+  </data>
   <data name="Stackable Rings" xml:space="preserve">
     <value>Nhẫn Xếp Lớp</value>
+  </data>
+  <data name="Storage &amp; Organization" xml:space="preserve">
+    <value>Lưu Trữ &amp; Sắp Xếp</value>
+  </data>
+  <data name="Stress Balls &amp; Desk Toys" xml:space="preserve">
+    <value>Bóng Giảm Căng Thẳng &amp; Làm Việc</value>
+  </data>
+  <data name="Stuffed Animals &amp; Plush" xml:space="preserve">
+    <value>Thú Nhồi Bông &amp; Sang Trọng</value>
   </data>
   <data name="Sunglasses &amp; Eyewear" xml:space="preserve">
     <value>Kính Mắt &amp; Kính Mát</value>
@@ -432,11 +580,33 @@
   <data name="Sweater Clips" xml:space="preserve">
     <value>Kẹp Áo Len</value>
   </data>
+  <data name="Top Handle Bags" xml:space="preserve">
+    <value>Túi Xách Tay</value>
+  </data>
+  <data name="Totes" xml:space="preserve">
+    <value>Túi Tote</value>
+  </data>
+  <data name="Toys" xml:space="preserve">
+    <value>Đồ Chơi</value>
+  </data>
+  <data name="Video &amp; Audio Games" xml:space="preserve">
+    <value>Trò Chơi Video &amp; Âm Thanh</value>
+  </data>
   <data name="Video Cases &amp; Tins" xml:space="preserve">
     <value>Hộp &amp; Lọ Đựng Đĩa Phim</value>
   </data>
+  <data name="Video Games" xml:space="preserve">
+    <value>Trò Chơi Điện Tử</value>
+  </data>
+  <data name="Wallets" xml:space="preserve">
+    <value>Ví</value>
+  </data>
   <data name="Wallets &amp; Money Clips" xml:space="preserve">
     <value>Ví &amp; Kẹp Tiền</value>
+  </data>
+  <data name="Wallets &amp; Money Clipss" xml:space="preserve">
+    <value>Ví &amp; Kẹp Tiền
+</value>
   </data>
   <data name="Wands" xml:space="preserve">
     <value>Đũa Phép (Phụ Kiện)</value>
@@ -452,6 +622,27 @@
   </data>
   <data name="Watches" xml:space="preserve">
     <value>Đồng Hồ</value>
+  </data>
+  <data name="Wedding Accessories" xml:space="preserve">
+    <value>Phụ Kiện Cưới</value>
+  </data>
+  <data name="Wedding Decorations" xml:space="preserve">
+    <value>Đồ Trang Trí Cưới</value>
+  </data>
+  <data name="Wedding Gifts &amp; Mementos" xml:space="preserve">
+    <value>Quà Tặng &amp; Kỉ Vật Cưới</value>
+  </data>
+  <data name="Wedding Invitations &amp; Paper" xml:space="preserve">
+    <value>Thiệp Cưới &amp; Giấy</value>
+  </data>
+  <data name="Wedding Jewelry" xml:space="preserve">
+    <value>Trang Sức</value>
+  </data>
+  <data name="Wedding Shoes" xml:space="preserve">
+    <value>Giày Cưới</value>
+  </data>
+  <data name="Weddings" xml:space="preserve">
+    <value>Cưới</value>
   </data>
   <data name="Wings" xml:space="preserve">
     <value>Canh (Phụ Kiện)</value>
