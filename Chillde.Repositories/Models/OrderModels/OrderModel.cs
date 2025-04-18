@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.OfferModels;
 using Chillde.Repositories.Models.ServiceModels;
 
 namespace Chillde.Repositories.Models.OrderModels
@@ -27,6 +29,8 @@ namespace Chillde.Repositories.Models.OrderModels
         public required OrderStatus Status { get; set; }
         public required OrderStage OrderStage { get; set; }
         public Guid? CreatedById { get; set; }
+        public AccountLiteModel Artisan { get; set; }
         public ServiceModel ServiceModel { get; set; }
+        public OfferModel OfferModel { get; set; }
     }
 }

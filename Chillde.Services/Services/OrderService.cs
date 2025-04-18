@@ -952,42 +952,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            Func<IQueryable<Repositories.Entities.Order>, IOrderedQueryable<Repositories.Entities.Order>> orderBy = _ =>
-            {
-                switch (orderFilterModel.Order?.ToLower())
-                {
-                    case "recentdays":
-                        return orderFilterModel.OrderByDescending
-                            ? _.OrderByDescending(_ => _.CreationDate)
-                            : _.OrderBy(_ => _.CreationDate);
-                    case "olddays":
-                        return orderFilterModel.OrderByDescending
-                            ? _.OrderBy(_ => _.CreationDate)
-                            : _.OrderByDescending(_ => _.CreationDate);
-                    default:
-                        return orderFilterModel.OrderByDescending
-                            ? _.OrderByDescending(_ => _.CreationDate)
-                            : _.OrderBy(_ => _.CreationDate);
-                }
-            };
-
-            Expression<Func<Repositories.Entities.Order, bool>> filter = _ => true;
-
-            if (orderFilterModel.Role == Repositories.Enums.Role.Customer)
-            {
-                filter = _ => _.CreatedById == currentUserId.Value &&
-                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status) &&
-                             (!orderFilterModel.MinPrice.HasValue || _.TotalPrice >= orderFilterModel.MinPrice) &&
-                             (!orderFilterModel.MaxPrice.HasValue || _.TotalPrice <= orderFilterModel.MaxPrice);
-            }
-            else if (orderFilterModel.Role == Repositories.Enums.Role.Artisan)
-            {
-                filter = _ => _.Package.Service.CreatedById == currentUserId.Value &&
-                             (!orderFilterModel.Status.HasValue || _.Status == orderFilterModel.Status) &&
-                             (!orderFilterModel.MinPrice.HasValue || _.TotalPrice >= orderFilterModel.MinPrice) &&
-                             (!orderFilterModel.MaxPrice.HasValue || _.TotalPrice <= orderFilterModel.MaxPrice);
-            }
-            else
+            if (!Enum.IsDefined(typeof(Repositories.Enums.Role), orderFilterModel.Role))
             {
                 return new ResponseModel
                 {
@@ -996,101 +961,212 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var orders = await _unitOfWork.OrderRepository.GetAllAsync(
-                filter: filter,
-                include: q => q.Include(o => o.Package)
-                           .ThenInclude(p => p.Service).ThenInclude(s => s.CreatedBy)
-                           .Include(o => o.Package)
-                           .ThenInclude(p => p.Service).ThenInclude(s => s.ServiceAttachments)
-                           .Include(o => o.Package)
-                           .ThenInclude(p => p.Offer).ThenInclude(o => o.OfferAttachments)
-                           .Include(o => o.Shipments),
-                order: orderBy,
-                pageIndex: orderFilterModel.PageIndex,
-                pageSize: orderFilterModel.PageSize
-            );
-
-            var orderModels = orders.Data.Select(order => new OrderModel
+            if (orderFilterModel.PageIndex < 0 || orderFilterModel.PageSize <= 0)
             {
-                Id = order.Id,
-                Phone = order.Phone ?? string.Empty,
-                Address = order.Address ?? string.Empty,
-                ToDistrict = order.ToDistrict,
-                ToProvince = order.ToProvince ?? string.Empty,
-                ToWard = order.ToWard ?? string.Empty,
-                TotalPrice = order.TotalPrice ?? 0,
-                PackagePrice = order.Package.Price ?? 0,
-                PackageName = order.Package.Name,
-                Quantity = order.Quantity ?? 1,
-                ShipmentCode = order.ShipmentCode ?? string.Empty,
-                OrderStage = order.Stage,
-                Status = order.Status,
-                ShipmentId = order.Shipments?.FirstOrDefault()?.Id.ToString() ?? string.Empty,
-                CreatedById = order.CreatedById,
-                Name = order.Package.ServiceId.HasValue && order.Package.Service != null
-                ? order.Package.Service.Name ?? "Unknown"
-                : order.Package.OfferId.HasValue && order.Package.Offer != null
-                    ? order.Package.Offer.Message ?? "Unknown"
-                    : "Unknown",
-                Attachments = order.Package.ServiceId.HasValue && order.Package.Service != null
-                ? order.Package.Service.ServiceAttachments?.Select(att => new ServiceAttachment
+                return new ResponseModel
                 {
-                    Id = att.Id,
-                    AttachmentUrl = att.AttachmentUrl ?? string.Empty,
-                    AttachmentAlt = att.AttachmentAlt ?? string.Empty,
-                    ServiceId = att.ServiceId
-                }).ToList() ?? new List<ServiceAttachment>()
-                : order.Package.OfferId.HasValue && order.Package.Offer != null
-                    ? order.Package.Offer.OfferAttachments?.Select(att => new ServiceAttachment
-                    {
-                        Id = att.Id,
-                        AttachmentUrl = att.AttachmentUrl ?? string.Empty,
-                        AttachmentAlt = att.AttachmentAlt ?? string.Empty,
-                        ServiceId = Guid.Empty
-                    }).ToList() ?? new List<ServiceAttachment>()
-                    : new List<ServiceAttachment>(),
-                ServiceModel = order.Package?.Service == null ? null : new ServiceModel
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid pagination parameters"
+                };
+            }
+
+            Func<IQueryable<Repositories.Entities.Order>, IOrderedQueryable<Repositories.Entities.Order>> orderBy = query =>
+            {
+                switch (orderFilterModel.Order?.ToLower())
                 {
-                    Id = order.Package.Service.Id,
-                    Name = order.Package.Service.Name ?? "Unknown",
-                    Description = order.Package.Service.Description ?? string.Empty,
-                    Status = order.Package.Service.Status,
-                    CategoryId = order.Package.Service.CategoryId,
-                    Rate = order.Package.Service.Rate ?? 0,
-                    FeedbackCount = order.Package.Service.FeedbackCount ?? 0,
-                    Price = order.Package.Price ?? 0,
-                    MinWeight = order.Package.Service.MinWeight ?? 0,
-                    MaxWeight = order.Package.Service.MaxWeight ?? 0,
-                    Artisan = order.Package.Service.CreatedBy == null ? null : new AccountLiteModel
-                    {
-                        FirstName = order.Package.Service.CreatedBy.FirstName ?? "Unknown",
-                        LastName = order.Package.Service.CreatedBy.LastName ?? "Unknown",
-                        Email = order.Package.Service.CreatedBy.Email ?? "Unknown",
-                        Username = order.Package.Service.CreatedBy.Username ?? "Unknown",
-                        Image = order.Package.Service.CreatedBy.Image ?? string.Empty,
-                    },
-                    ServiceAttachments = order.Package.Service.ServiceAttachments?.Select(att => new ServiceAttachment
-                    {
-                        Id = att.Id,
-                        AttachmentUrl = att.AttachmentUrl ?? string.Empty,
-                        AttachmentAlt = att.AttachmentAlt ?? string.Empty,
-                        ServiceId = att.ServiceId
-                    }).ToList() ?? new List<ServiceAttachment>()
+                    case "recentdays":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderByDescending(o => o.CreationDate)
+                            : query.OrderBy(o => o.CreationDate);
+                    case "olddays":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.CreationDate)
+                            : query.OrderByDescending(o => o.CreationDate);
+                    default:
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderByDescending(o => o.CreationDate)
+                            : query.OrderBy(o => o.CreationDate);
                 }
-            }).ToList();
-
-            var result = new Pagination<OrderModel>(
-                orderModels,
-                orderFilterModel.PageIndex,
-                orderFilterModel.PageSize,
-                orders.TotalCount
-            );
-
-            return new ResponseModel
-            {
-                Message = "Get all orders successfully",
-                Data = result
             };
+
+            Expression<Func<Repositories.Entities.Order, bool>> filter = orderFilterModel.Role switch
+            {
+                Repositories.Enums.Role.Customer => o => o.CreatedById == currentUserId.Value &&
+                                                         (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                                                         (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                                                         (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
+                Repositories.Enums.Role.Artisan => o => (o.Package.Service != null && o.Package.Service.CreatedById == currentUserId.Value) ||
+                                                        (o.Package.Offer != null && o.Package.Offer.CreatedById == currentUserId.Value) &&
+                                                        (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                                                        (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                                                        (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
+                _ => o => false
+            };
+
+            try
+            {
+                var orders = await _unitOfWork.OrderRepository.GetAllAsync(
+                    filter: filter,
+                    include: q => q.Include(o => o.Package)
+                                   .ThenInclude(p => p.Service).ThenInclude(s => s.CreatedBy)
+                                   .Include(o => o.Package)
+                                   .ThenInclude(p => p.Service).ThenInclude(s => s.ServiceAttachments)
+                                   .Include(o => o.Package)
+                                   .ThenInclude(p => p.Offer).ThenInclude(o => o.OfferAttachments)
+                                   .Include(o => o.Package)
+                                   .ThenInclude(p => p.Offer).ThenInclude(o => o.CreatedBy)
+                                   .Include(o => o.Shipments),
+                    order: orderBy,
+                    pageIndex: orderFilterModel.PageIndex,
+                    pageSize: orderFilterModel.PageSize
+                );
+
+                var orderModels = orders.Data.Select(order => new OrderModel
+                {
+                    Id = order.Id,
+                    Name = order.Package.ServiceId.HasValue && order.Package.Service != null
+                        ? order.Package.Service.Name ?? "Unknown"
+                        : order.Package.OfferId.HasValue && order.Package.Offer != null
+                            ? order.Package.Offer.Message ?? "Unknown"
+                            : "Unknown",
+                    ShipmentId = order.Shipments?.FirstOrDefault()?.Id.ToString() ?? string.Empty,
+                    Attachments = order.Package.ServiceId.HasValue && order.Package.Service != null
+                        ? order.Package.Service.ServiceAttachments?.Select(att => new ServiceAttachment
+                        {
+                            Id = att.Id,
+                            AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                            AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                            ServiceId = att.ServiceId
+                        }).ToList() ?? new List<ServiceAttachment>()
+                        : order.Package.OfferId.HasValue && order.Package.Offer != null
+                            ? order.Package.Offer.OfferAttachments?.Select(att => new ServiceAttachment
+                            {
+                                Id = att.Id,
+                                AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                                AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                                ServiceId = Guid.Empty
+                            }).ToList() ?? new List<ServiceAttachment>()
+                            : new List<ServiceAttachment>(),
+                    Phone = order.Phone ?? string.Empty,
+                    Address = order.Address ?? string.Empty,
+                    ToDistrict = order.ToDistrict,
+                    ToProvince = order.ToProvince ?? string.Empty,
+                    ToWard = order.ToWard ?? string.Empty,
+                    TotalPrice = order.TotalPrice ?? 0,
+                    PackagePrice = order.Package.Price ?? 0,
+                    PackageName = order.Package.Name,
+                    Quantity = order.Quantity ?? 1,
+                    ShipmentCode = order.ShipmentCode ?? string.Empty,
+                    OrderStage = order.Stage,
+                    Status = order.Status,
+                    CreatedById = order.CreatedById,
+                    Artisan = order.Package.ServiceId.HasValue && order.Package.Service?.CreatedBy != null
+                        ? new AccountLiteModel
+                        {
+                            FirstName = order.Package.Service.CreatedBy.FirstName ?? string.Empty,
+                            LastName = order.Package.Service.CreatedBy.LastName ?? string.Empty,
+                            Username = order.Package.Service.CreatedBy.Username ?? string.Empty,
+                            Email = order.Package.Service.CreatedBy.Email ?? string.Empty,
+                            Image = order.Package.Service.CreatedBy.Image ?? string.Empty
+                        }
+                        : order.Package.OfferId.HasValue && order.Package.Offer?.CreatedBy != null
+                            ? new AccountLiteModel
+                            {
+                                FirstName = order.Package.Offer.CreatedBy.FirstName ?? string.Empty,
+                                LastName = order.Package.Offer.CreatedBy.LastName ?? string.Empty,
+                                Username = order.Package.Offer.CreatedBy.Username ?? string.Empty,
+                                Email = order.Package.Offer.CreatedBy.Email ?? string.Empty,
+                                Image = order.Package.Offer.CreatedBy.Image ?? string.Empty
+                            }
+                            : null,
+                    ServiceModel = order.Package?.Service == null ? null : new ServiceModel
+                    {
+                        Id = order.Package.Service.Id,
+                        Name = order.Package.Service.Name ?? "Unknown",
+                        Description = order.Package.Service.Description ?? string.Empty,
+                        Status = order.Package.Service.Status,
+                        CategoryId = order.Package.Service.CategoryId,
+                        Rate = order.Package.Service.Rate ?? 0,
+                        FeedbackCount = order.Package.Service.FeedbackCount ?? 0,
+                        Price = order.Package.Price ?? 0,
+                        MinWeight = order.Package.Service.MinWeight ?? 0,
+                        MaxWeight = order.Package.Service.MaxWeight ?? 0,
+                        ServiceAttachments = order.Package.Service.ServiceAttachments?.Select(att => new ServiceAttachment
+                        {
+                            Id = att.Id,
+                            AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                            AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                            ServiceId = att.ServiceId
+                        }).ToList() ?? new List<ServiceAttachment>()
+                    },
+                    OfferModel = order.Package?.Offer == null ? null : new OfferModel
+                    {
+                        Id = order.Package.Offer.Id,
+                        Message = order.Package.Offer.Message ?? string.Empty,
+                        Status = order.Package.Offer.Status,
+                        MinWeight = order.Package.Offer.MinWeight ?? 0,
+                        MaxWeight = order.Package.Offer.MaxWeight ?? 0,
+                        RequestId = order.Package.Offer.RequestId ?? Guid.Empty,
+                        ServiceId = order.Package.Offer.ServiceId ?? Guid.Empty,
+                        OfferAttachments = order.Package.Offer.OfferAttachments?.Select(att => new OfferAttachment
+                        {
+                            Id = att.Id,
+                            AttachmentUrl = att.AttachmentUrl ?? string.Empty,
+                            AttachmentAlt = att.AttachmentAlt ?? string.Empty,
+                            OfferId = att.OfferId
+                        }).ToList() ?? new List<OfferAttachment>(),
+                        CreatedBy = order.Package.Offer.CreatedBy != null
+                            ? new AccountLiteModel
+                            {
+                                FirstName = order.Package.Offer.CreatedBy.FirstName ?? string.Empty,
+                                LastName = order.Package.Offer.CreatedBy.LastName ?? string.Empty,
+                                Username = order.Package.Offer.CreatedBy.Username ?? string.Empty,
+                                Email = order.Package.Offer.CreatedBy.Email ?? string.Empty,
+                                Image = order.Package.Offer.CreatedBy.Image ?? string.Empty
+                            }
+                            : null,
+                        Package = order.Package != null
+                            ? new PackageModel
+                            {
+                                Id = order.Package.Id,
+                                Name = order.Package.Name,
+                                Description = order.Package.Description,
+                                DeliveryTime = order.Package.DeliveryTime,
+                                SketchRevision = order.Package.SketchRevision,
+                                ResponseTime = order.Package.ResponseTime != null
+                                    ? TimeSpan.FromHours(order.Package.ResponseTime)
+                                    : TimeSpan.Zero,
+                                MaxQuantity = order.Package.MaxQuantity,
+                                MinQuantity = order.Package.MinQuantity,
+                                Price = order.Package.Price ?? 0,
+                                ServiceId = order.Package.ServiceId,
+                                OfferId = order.Package.OfferId
+                            }
+                            : null
+                    }
+                }).ToList();
+
+                var result = new Pagination<OrderModel>(
+                    orderModels,
+                    orderFilterModel.PageIndex,
+                    orderFilterModel.PageSize,
+                    orders.TotalCount
+                );
+
+                return new ResponseModel
+                {
+                    Message = "Get all orders successfully",
+                    Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while retrieving orders"
+                };
+            }
         }
 
         public async Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel)
