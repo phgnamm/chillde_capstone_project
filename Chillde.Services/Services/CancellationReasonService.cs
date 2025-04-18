@@ -5,6 +5,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CancellationReasonModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Microsoft.AspNetCore.Http;
 
 namespace Chillde.Services.Services
@@ -94,9 +95,10 @@ namespace Chillde.Services.Services
                     return cancellationReasonFilterModel.OrderByDescending
                         ? x.OrderByDescending(x => x.Name)
                         : x.OrderBy(x => x.Name);
-            }
-
-         }
+             }
+         },
+            pageIndex: cancellationReasonFilterModel.PageIndex,
+            pageSize: cancellationReasonFilterModel.PageSize
      );
 
             var cancellationModels = cancellationLists.Data.Select(_ => new CancellationReasonModel
@@ -113,7 +115,7 @@ namespace Chillde.Services.Services
 
             var result = new Pagination<CancellationReasonModel>(cancellationModels.ToList(), cancellationReasonFilterModel.PageIndex,
                       cancellationReasonFilterModel.PageSize, cancellationLists.TotalCount);
-            return new ResponseModel { Data = cancellationModels };
+            return new ResponseModel { Data = result };
         }
 
         public async Task<ResponseModel> UpdateAsync(Guid id, CancellationReasonAddModel model)
