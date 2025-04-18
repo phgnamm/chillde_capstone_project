@@ -184,15 +184,13 @@ namespace Chillde.Services.Services
             };
         }
 
-        public async Task<List<KeyValuePair<int, string>>> GetSystemConfigsAsync()
+        public async Task<List<object[]>> GetAllAsKeyValueAsync()
         {
-            var configs = await _unitOfWork.SystemConfigRepository.GetAllAsync(pageSize: 100);
+            var configs = await _unitOfWork.SystemConfigRepository.GetAllAsync();
 
-            var result = configs.Data
-                .Select(c => new KeyValuePair<int, string>((int)c.EntityType, c.EntityType.ToString()))
+            return configs.Data
+                .Select(c => new object[] { (int)c.EntityType, c.EntityType.ToString() })
                 .ToList();
-
-            return result;
         }
 
 

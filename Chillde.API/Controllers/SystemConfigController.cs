@@ -99,7 +99,7 @@ namespace Chillde.API.Controllers
         {
             try
             {
-                var result = await _systemConfigService.GetSystemConfigsAsync();
+                var result = await _systemConfigService.GetAllAsKeyValueAsync();
                 return StatusCode(StatusCodes.Status200OK, new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
