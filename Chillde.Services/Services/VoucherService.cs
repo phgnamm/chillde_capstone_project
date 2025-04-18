@@ -219,15 +219,18 @@ namespace Chillde.Services.Services
 
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
-                    Expression<Func<Voucher, bool>> filter = voucher =>
-                     ( voucher.VoucherStatus == voucherFilterModel.Status ) &&
-                     ( voucher.IsDeleted == voucherFilterModel.IsDeleted ) &&
-                     ( voucher.DiscountValue >= voucherFilterModel.MinDiscountValue ) &&
-                     ( voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue ) &&
-                     ( voucher.VoucherType == Repositories.Enums.VoucherType.AdminToArtist );
+                Expression<Func<Voucher, bool>> filter = voucher =>
+                 (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                 (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                 (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                 (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                 (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
+                 (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType);
 
-                    Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers =>
-                             vouchers.Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Order) .Include(_ => _.Receiver);
+                Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
+                             .Include(_ => _.Receiver)
+                             .Include(_ => _.VoucherUsageLogs)
+                             .ThenInclude(_ => _.Order);
 
                     var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: filter,
@@ -236,21 +239,22 @@ namespace Chillde.Services.Services
                                     pageSize: voucherFilterModel.PageSize
                     );
 
-                    //var voucherModels = _mapper.Map<List<VoucherModel>>(vouchers.Data);
-                    var voucherModels = vouchers.Data.Select(_ => new VoucherModel
-                    {
-                        Id = _.Id,
-                        Code = _.Code,
-                        ReceiverName = _.Receiver.FirstName + " " + _.Receiver.LastName,
-                        DiscountValue = _.DiscountValue,
-                        MinOrderValue = _.MinOrderValue,
-                        MaxDiscountValue = _.MaxDiscountValue,
-                        RemainingQuantity = _.RemainingQuantity,
-                        TotalQuantity = _.TotalQuantity,
-                        StartTime = _.StartTime,
-                        ExpiredTime = _.ExpiredTime,
-                        VoucherStatus = _.VoucherStatus
-                    }).ToList();
+                var voucherModels = _mapper.Map<List<VoucherModel>>(vouchers.Data);
+                voucherModels.ForEach(voucherModel => voucherModel.ReceiverName = (vouchers.Data.Where(voucher => voucher.Id == voucherModel.Id).Select(_ => _.Receiver.Username).FirstOrDefault()));
+                //var voucherModels = vouchers.Data.Select(_ => new VoucherModel
+                //{
+                //    Id = _.Id,
+                //    Code = _.Code,
+                //    ReceiverName = _.Receiver.FirstName + " " + _.Receiver.LastName,
+                //    DiscountValue = _.DiscountValue,
+                //    MinOrderValue = _.MinOrderValue,
+                //    MaxDiscountValue = _.MaxDiscountValue,
+                //    RemainingQuantity = _.RemainingQuantity,
+                //    TotalQuantity = _.TotalQuantity,
+                //    StartTime = _.StartTime,
+                //    ExpiredTime = _.ExpiredTime,
+                //    VoucherStatus = _.VoucherStatus
+                //}).ToList();
 
                 var result = new Pagination<VoucherModel>(voucherModels, voucherFilterModel.PageIndex,
                       voucherFilterModel.PageSize, vouchers.TotalCount);
