@@ -1869,29 +1869,22 @@ namespace Chillde.Services.Services
 
         private async Task SaveSearchHistoryAsync(string searchText, Guid userId)
         {
+            const int maxSearchHistory = 10;
+
             var searchHistories = await _unitOfWork.SearchHistoryRepository
                 .GetAllAsync(filter: _ => _.CreatedById == userId);
-            var maxSearchHistoryResponse = await _systemConfigService.Get(SystemConfigKey.MaxSearchHistory);
-            var config = maxSearchHistoryResponse.Data as SystemConfigModel;
-
-            int maxSearchHistoryValue = 0;
-
 
             var existingSearchHistory = searchHistories.Data
                 .FirstOrDefault(_ => _.SearchText!.Equals(searchText, StringComparison.OrdinalIgnoreCase));
 
             if (existingSearchHistory == null)
             {
-                if (config != null && int.TryParse(config.Value?.ToString(), out int value))
-                {
-                    maxSearchHistoryValue = value;
-                }
-
-                if (searchHistories.Data.Count() >= maxSearchHistoryValue && searchHistories.Data.Any())
+                if (searchHistories.Data.Count() >= maxSearchHistory)
                 {
                     var oldestSearchHistory = searchHistories.Data.OrderBy(_ => _.CreationDate).First();
                     _unitOfWork.SearchHistoryRepository.HardRemove(oldestSearchHistory);
                 }
+
                 await _unitOfWork.SearchHistoryRepository.AddAsync(new SearchHistory
                 {
                     SearchText = searchText,
@@ -1908,6 +1901,7 @@ namespace Chillde.Services.Services
 
             await _unitOfWork.SaveChangeAsync();
         }
+
 
     }
 }
