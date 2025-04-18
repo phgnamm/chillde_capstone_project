@@ -49,7 +49,9 @@ public class UnitOfWork : IUnitOfWork
         IOfferAttachmentRepository offerAttachmentRepository,
         IReputationLogRepository reputationLogRepository,
         IDepositRepository depositRepository,
-        INotificationRepository notificationRepository
+        INotificationRepository notificationRepository,
+        IReportRepository reportRepository,
+        IReportAttachmentRepository reportAttachmentRepository
         )
     {
         Context = context;
@@ -98,6 +100,8 @@ public class UnitOfWork : IUnitOfWork
         ReputationLogRepository = reputationLogRepository;
         DepositRepository = depositRepository;
         NotificationRepository = notificationRepository;
+        ReportRepository = reportRepository;
+        ReportAttachmentRepository = reportAttachmentRepository;
     }
 
     public AppDbContext Context { get; }
@@ -146,6 +150,8 @@ public class UnitOfWork : IUnitOfWork
     public IReputationLogRepository ReputationLogRepository { get; }
     public IDepositRepository DepositRepository { get; }
     public INotificationRepository NotificationRepository { get; }
+    public IReportRepository ReportRepository { get; }
+    public IReportAttachmentRepository ReportAttachmentRepository { get; }
 
     public async Task<int> SaveChangeAsync()
     {

@@ -34,7 +34,7 @@ public static class Configuration
         services.AddDbContext<AppDbContext>(options =>
         {
             options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
-            //options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
+            // options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
         });
 
         // Redis
@@ -268,7 +268,7 @@ public static class Configuration
 
         //WalletHistory
         services.AddScoped<ITransactionRepository, TransactionRepository>();
-        services.AddScoped<IWalletHistoryService, WalletHistoryService>();
+        services.AddScoped<ITransactionService, TransactionService>();
 
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();

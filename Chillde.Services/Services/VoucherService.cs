@@ -240,7 +240,7 @@ namespace Chillde.Services.Services
                     );
 
                 var voucherModels = _mapper.Map<List<VoucherModel>>(vouchers.Data);
-                voucherModels.ForEach(voucherModel => voucherModel.ReceiverName = (vouchers.Data.Where(voucher => voucher.Id == voucherModel.Id).Select(_ => _.Receiver.Username).FirstOrDefault()));
+                voucherModels.ForEach(voucherModel => voucherModel.ReceiverName = (vouchers.Data.Where(voucher => voucher.Id == voucherModel.Id).Select(_ => _.Receiver?.Username).FirstOrDefault()));
                 //var voucherModels = vouchers.Data.Select(_ => new VoucherModel
                 //{
                 //    Id = _.Id,

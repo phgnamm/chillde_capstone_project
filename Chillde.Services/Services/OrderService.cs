@@ -40,6 +40,10 @@ using static OpenAI.GPT3.ObjectModels.SharedModels.IOpenAiModels;
 using System.Security.Principal;
 using Nest;
 using System;
+using Chillde.Services.Models.ReportModels;
+using Chillde.Repositories.Models.ReportModels;
+using Chillde.Services.Models.ServiceModels;
+using Chillde.Repositories.Models.ReportAttachmentModels;
 
 namespace Chillde.Services.Services
 {
@@ -1428,117 +1432,128 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> Cancel(Guid orderId, Guid? cancellationReasonId)
         {
-            var currentUserId = _claimService.GetCurrentUserId;
-            if (!currentUserId.HasValue)
+            try
             {
-                return new ResponseModel
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
                 {
-                    Code = StatusCodes.Status401Unauthorized,
-                    Message = "Unauthorized"
-                };
-            }
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized"
+                    };
+                }
 
-            var account = await _unitOfWork.AccountRepository.GetAsync(
-                currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
+                var account = await _unitOfWork.AccountRepository.GetAsync(
+                    currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
 
-            if (account?.Wallet == null)
-            {
-                return new ResponseModel
+                if (account?.Wallet == null)
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Wallet not found."
-                };
-            }
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Wallet not found."
+                    };
+                }
 
-            var order = await _unitOfWork.OrderRepository.GetAsync(
-                orderId, include: _ => _.Include(_ => _.OrderTrackings)
-                                        .Include(_ => _.Package.Service.CreatedBy.AccountRoles).ThenInclude(_ => _.Role)
-                                        .Include(_ => _.CreatedBy.AccountRoles).ThenInclude(_ => _.Role));
+                var order = await _unitOfWork.OrderRepository.GetAsync(
+                    orderId, include: _ => _.Include(_ => _.OrderTrackings)
 
-            if (order == null)
-            {
-                return new ResponseModel
+                                            .Include(_ => _.Package.Service.CreatedBy.AccountRoles).ThenInclude(_ => _.Role)
+                                            .Include(_ => _.CreatedBy.AccountRoles).ThenInclude(_ => _.Role));
+
+                if (order == null)
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Order not found."
-                };
-            }
-            if (order.Status == OrderStatus.Cancelled && order.Stage == OrderStage.Cancelled)
-            {
-                return new ResponseModel
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+                if (order.Status == OrderStatus.Cancelled && order.Stage == OrderStage.Cancelled)
                 {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = "Order has cancelled."
-                };
-            }
-            var cancellationReason = await _unitOfWork.CancellationReasonRepository.GetAsync((Guid)cancellationReasonId);
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Order has cancelled."
+                    };
+                }
+                var cancellationReason = await _unitOfWork.CancellationReasonRepository.GetAsync((Guid)cancellationReasonId);
 
-            if (cancellationReason == null)
-            {
-                return new ResponseModel
+                if (cancellationReason == null)
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Cancellation reason not found."
-                };
-            }
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Cancellation reason not found."
+                    };
+                }
 
-            bool appliesToCustomer = cancellationReason.RoleType.Equals(Chillde.Repositories.Enums.Role.Customer);
-            bool appliesToArtisan = cancellationReason.RoleType.Equals(Chillde.Repositories.Enums.Role.Artisan);
+                bool appliesToCustomer = cancellationReason.RoleType.Equals(Chillde.Repositories.Enums.Role.Customer);
+                bool appliesToArtisan = cancellationReason.RoleType.Equals(Chillde.Repositories.Enums.Role.Artisan);
 
-            var accountRoleArtisan = order.Package.Service.CreatedBy?.AccountRoles
-                .FirstOrDefault(_ => appliesToArtisan && _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
+                var accountId = order.Package.CreatedById;
+                var findAccount = await _unitOfWork.AccountRepository.GetAsync((Guid)accountId, include: _ => _.Include(_ => _.AccountRoles).ThenInclude(_ => _.Role));
 
-            var accountRoleCustomer = order.CreatedBy?.AccountRoles
-                .FirstOrDefault(_ => appliesToCustomer && _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
+                var accountRoleArtisan = findAccount?.AccountRoles
+                    .FirstOrDefault(_ => appliesToArtisan && _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
 
-            if (appliesToArtisan && accountRoleArtisan != null)
-            {
-                accountRoleArtisan.TotalReputation -= cancellationReason.Value;
-                var reputationLog = new ReputationLog
+                var accountRoleCustomer = order.CreatedBy?.AccountRoles
+                    .FirstOrDefault(_ => appliesToCustomer && _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
+
+                if (appliesToArtisan && accountRoleArtisan != null)
                 {
-                    PointChange = -cancellationReason.Value,
-                    Reason = cancellationReason.Name,
-                    OrderId = order.Id,
-                };
-                accountRoleArtisan.Reputations.Add(reputationLog);
-                _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
-            }
-            if (appliesToCustomer && accountRoleCustomer != null)
-            {
-                accountRoleCustomer.TotalReputation -= cancellationReason.Value;
-                var reputationLog = new ReputationLog
+                    accountRoleArtisan.TotalReputation -= cancellationReason.Value;
+                    var reputationLog = new ReputationLog
+                    {
+                        PointChange = -cancellationReason.Value,
+                        Reason = cancellationReason.Name,
+                        OrderId = order.Id,
+                    };
+                    accountRoleArtisan.Reputations.Add(reputationLog);
+                    _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
+                }
+                if (appliesToCustomer && accountRoleCustomer != null)
                 {
-                    PointChange = -cancellationReason.Value,
-                    Reason = cancellationReason.Name,
-                    OrderId = order.Id,
+                    accountRoleCustomer.TotalReputation -= cancellationReason.Value;
+                    var reputationLog = new ReputationLog
+                    {
+                        PointChange = -cancellationReason.Value,
+                        Reason = cancellationReason.Name,
+                        OrderId = order.Id,
+                    };
+                    accountRoleCustomer.Reputations.Add(reputationLog);
+                    _unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
+                }
+
+                var transaction = new Transaction
+                {
+                    Amount = order.TotalPrice,
+                    Type = TransactionType.TransferIn,
+                    CreatedById = currentUserId.Value,
+                    Status = TransactionStatus.Completed,
+                    WalletId = account.Wallet.Id
                 };
-                accountRoleCustomer.Reputations.Add(reputationLog);
-                _unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
+
+                account.Wallet.Balance += (decimal)order.TotalPrice;
+                order.Transactions.Add(transaction);
+                order.Status = OrderStatus.Cancelled;
+                order.Stage = OrderStage.Cancelled;
+                order.CancellationReason = cancellationReason;
+
+                _unitOfWork.OrderRepository.Update(order);
+                _unitOfWork.AccountRepository.Update(account);
+
+                var result = await _unitOfWork.SaveChangeAsync();
+
+                return result > 0
+                    ? new ResponseModel { Message = "Cancel order successfully" }
+                    : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Cancel order unsuccessfully" };
             }
-
-            var transaction = new Transaction
+            catch (Exception ex)
             {
-                Amount = order.TotalPrice,
-                Type = TransactionType.TransferIn,
-                CreatedById = currentUserId.Value,
-                Status = TransactionStatus.Completed,
-                WalletId = account.Wallet.Id
-            };
-
-            account.Wallet.Balance += (decimal)order.TotalPrice;
-            order.Transactions.Add(transaction);
-            order.Status = OrderStatus.Cancelled;
-            order.Stage = OrderStage.Cancelled;
-            order.CancellationReason = cancellationReason;
-
-            _unitOfWork.OrderRepository.Update(order);
-            _unitOfWork.AccountRepository.Update(account);
-
-            var result = await _unitOfWork.SaveChangeAsync();
-
-            return result > 0
-                ? new ResponseModel { Message = "Cancel order successfully" }
-                : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Cancel order unsuccessfully" };
+                throw new Exception(ex.Message);
+            }
         }
         public async Task<ResponseModel> GetAllOrderTrackings(Guid orderId, OrderStage? orderStage)
         {
@@ -1959,7 +1974,7 @@ namespace Chillde.Services.Services
             }
             catch (Exception ex)
             {
-                throw;  
+                throw;
             }
         }
 
@@ -2227,6 +2242,7 @@ namespace Chillde.Services.Services
                 throw new Exception(ex.Message);
             }
         }
+
         public async Task<ResponseModel> UpdateOrderAfterDeliveryAsync(Guid orderId)
         {
             try
@@ -2294,6 +2310,85 @@ namespace Chillde.Services.Services
             }
         }
 
+        public async Task<ResponseModel> Report(Guid orderId, ReportAddModel reportAddModel)
+        {
+            try
+            {
 
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Order not found."
+                    };
+                }
+
+                var report = _mapper.Map<Report>(reportAddModel);
+                report.OrderId = orderId;
+                report.Status = ReportStatus.Pending;
+
+                await _unitOfWork.ReportRepository.AddAsync(report);
+
+                var newAttachment = new List<ReportAttachment>();
+                var attachmentModel = reportAddModel.Attachments;
+                if (reportAddModel.Attachments != null)
+                {
+                    for (int i = 0; i < attachmentModel!.Count; i++)
+                    {
+                        var attachmentAlt = attachmentModel[i].AttachmentAlt;
+                        var attachmentUrl = attachmentModel[i].AttachmentUrl;
+
+                        string? path = null;
+                        if (attachmentUrl != null)
+                        {
+                            path = await _cloudinaryHelper.UploadImageAsync(
+                                attachmentUrl,
+                                attachmentAlt,
+                                Guid.NewGuid().ToString(),
+                                folderName: FolderAttachment.SERVICE
+                            );
+                        }
+
+                        newAttachment.Add(new ReportAttachment
+                        {
+                            AttachmentAlt = attachmentAlt,
+                            AttachmentUrl = path,
+                            ReportId = report.Id
+                        });
+                    }
+                    await _unitOfWork.ReportAttachmentRepository.AddRangeAsync(newAttachment);
+                }
+                var attachmentModels = _mapper.Map<List<ReportAttachmentModel>>(newAttachment);
+                int result = await _unitOfWork.SaveChangeAsync();
+                if (result > 0)
+                {
+                    var reportModel = _mapper.Map<ReportModel>(report);
+                    reportModel.ReportAttachments = attachmentModels;
+
+                    return new ResponseModel
+                    {
+                        Data = reportModel,
+                        Code = StatusCodes.Status201Created,
+                        Message = "Report added"
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Failed to report."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> DeleteAsync(Guid id);
         Task<ResponseModel> ActiveAsync(Guid id);
         Task<ResponseModel> GetServiceAttachmentssAsync(Guid serviceId);
-        Task<ResponseModel> AddListServiceAttachmentAsync(List<ServiceAttachmentAddModel> attachmentModels, Guid serviceId);
+        Task<ResponseModel> AddListServiceAttachmentAsync(List<AttachmentAddModel> attachmentModels, Guid serviceId);
         Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId, string sourceLanguageCode);
         Task<ResponseModel> GetAllFAQsAsync(Guid serviceId, FAQFilterModel faqFilterModel);
         Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode);
