@@ -27,6 +27,7 @@ namespace Chillde.Services.Services
             try
             {
                 var deposits = await _unitOfWork.DepositRepository.GetAllAsync(
+                                filter: _ => _.CreatedById == depositFilterModel.AccountId,
                                 pageIndex: depositFilterModel.PageIndex,
                                 pageSize: depositFilterModel.PageSize
                 );
