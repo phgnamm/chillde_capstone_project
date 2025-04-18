@@ -1732,7 +1732,7 @@ namespace Chillde.Services.Services
                         {
                             switch (serviceFilterModel.Order.ToLower())
                             {
-                                case "creating":
+                                    case "creating":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.CreationDate)
                                         : s.OrderBy(s => s.CreationDate);
