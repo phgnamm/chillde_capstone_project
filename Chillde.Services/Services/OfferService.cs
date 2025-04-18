@@ -161,8 +161,8 @@ namespace Chillde.Services.Services
                                 Email = offer.CreatedBy.Email,
                                 FirstName = offer.CreatedBy.FirstName,
                                 LastName = offer.CreatedBy.LastName,
-                                Image = offer.CreatedBy.Image,
                                 Username = offer.CreatedBy.Username,
+                                Image = offer.CreatedBy.Image,
                             },
                             CreationDate = offer.CreationDate
                         }).ToList();
@@ -183,6 +183,7 @@ namespace Chillde.Services.Services
                             ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                             Package = new PackageModel
                             {
+                                Id = offer.Package!.Id,
                                 Name = offer.Package!.Name,
                                 Description = offer.Package!.Description,
                                 Price = offer.Package!.Price,
@@ -220,6 +221,7 @@ namespace Chillde.Services.Services
                                 Email = offer.CreatedBy.Email,
                                 FirstName = offer.CreatedBy.FirstName,
                                 LastName = offer.CreatedBy.LastName,
+                                Username = offer.CreatedBy.Username,
                                 Image = offer.CreatedBy.Image
                             },
                             CreationDate = offer.CreationDate
