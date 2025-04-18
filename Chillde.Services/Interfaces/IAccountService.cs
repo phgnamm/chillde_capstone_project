@@ -33,5 +33,5 @@ public interface IAccountService
     Task<ResponseModel> GetDefaultShippingAddress(Guid id);
     Task<ResponseModel> BanAccountRole(BanAccountRoleModel request);
     Task<ResponseModel> DeleteAccountRole(Guid accountId, Guid accountRoleId);
-    Task<ResponseModel> RestoreAccountRole(Guid accountId, Guid accountRoleId);
+    Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId);
 }

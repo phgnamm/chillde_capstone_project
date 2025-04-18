@@ -40,8 +40,8 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpDelete()]
-        public async Task<IActionResult> Delete([FromQuery] Guid id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             try
             {

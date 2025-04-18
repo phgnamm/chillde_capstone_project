@@ -1558,7 +1558,7 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ResponseModel> RestoreAccountRole(Guid accountId, Guid accountRoleId)
+    public async Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId)
     {
         var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId);
         if (accountRole == null || accountRole.AccountId != accountId)
@@ -1572,23 +1572,23 @@ public class AccountService : IAccountService
         
         if (!accountRole.IsDeleted && accountRole.Status == AccountStatus.Active)
         {
-            return new ResponseModel
-            {
-                Message = "Account role has been restored"
-            };
+            accountRole.Status = AccountStatus.Suspended;
+            accountRole.IsDeleted = true;
+        } else if (accountRole.IsDeleted && accountRole.Status == AccountStatus.Suspended)
+        {
+            accountRole.Status = AccountStatus.Active;
+            accountRole.IsDeleted = false;
         }
-
-        accountRole.IsDeleted = false;
-        accountRole.Status = AccountStatus.Active;
+        
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
-            return new ResponseModel { Message = "Restore account role successfully" };
+            return new ResponseModel { Message = "Toggle account role status successfully" };
         }
         
         return new ResponseModel
         {
             Code = StatusCodes.Status500InternalServerError,
-            Message = "Cannot restore account role"
+            Message = "Cannot toggle account role status"
         };
     }
 }
