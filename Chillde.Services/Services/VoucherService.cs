@@ -174,7 +174,7 @@ namespace Chillde.Services.Services
                 var newVoucher = new Voucher
                 {
                     Code = GenerateCodeHelper.GenerateVoucherCode(),
-                    ReceiverId = existingVoucher.ReceiverId,
+                    ReceiverId = voucherUpdateModel.ReceiverId ??existingVoucher.ReceiverId,
                     MinOrderRequired = voucherUpdateModel.MinOrderRequired ?? existingVoucher.MinOrderRequired,
                     MinReputation = voucherUpdateModel.MinReputation ?? existingVoucher.MinReputation,
                     DiscountValue = voucherUpdateModel.DiscountValue > 0 ? voucherUpdateModel.DiscountValue : existingVoucher.DiscountValue,
@@ -184,7 +184,8 @@ namespace Chillde.Services.Services
                     RemainingQuantity = existingVoucher.RemainingQuantity,
                     StartTime = voucherUpdateModel.StartTime ?? existingVoucher.StartTime,
                     ExpiredTime = voucherUpdateModel.ExpiredTime ?? existingVoucher.ExpiredTime,
-                    CreatedById = currentUserId.Value
+                    CreatedById = currentUserId.Value,
+                    IsDeleted = voucherUpdateModel.IsDeleted ?? existingVoucher.IsDeleted,
                 };
 
                 await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
@@ -192,7 +193,7 @@ namespace Chillde.Services.Services
 
                 return new ResponseModel { Message = "Voucher has been used before. Old one soft-deleted. New voucher created." };
             }
-
+            existingVoucher.ReceiverId = voucherUpdateModel.ReceiverId ?? existingVoucher.ReceiverId;
             existingVoucher.MinOrderRequired = voucherUpdateModel.MinOrderRequired ?? existingVoucher.MinOrderRequired;
             existingVoucher.MinReputation = voucherUpdateModel.MinReputation ?? existingVoucher.MinReputation;
             existingVoucher.DiscountValue = voucherUpdateModel.DiscountValue > 0
@@ -204,6 +205,7 @@ namespace Chillde.Services.Services
             existingVoucher.RemainingQuantity = existingVoucher.RemainingQuantity;
             existingVoucher.StartTime = voucherUpdateModel.StartTime ?? existingVoucher.StartTime;
             existingVoucher.ExpiredTime = voucherUpdateModel.ExpiredTime ?? existingVoucher.ExpiredTime;
+            existingVoucher.IsDeleted = voucherUpdateModel?.IsDeleted ?? existingVoucher.IsDeleted;
 
             _unitOfWork.VoucherRepository.Update(existingVoucher);
             await _unitOfWork.SaveChangeAsync();
@@ -225,7 +227,10 @@ namespace Chillde.Services.Services
                  (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
                  (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
                  (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
-                 (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType);
+                 (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
+                 (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
+                 (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
+                 (!voucherFilterModel.MinReputaion.HasValue || voucher.MinReputation >= voucherFilterModel.MinReputaion);
 
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
                              .Include(_ => _.Receiver)

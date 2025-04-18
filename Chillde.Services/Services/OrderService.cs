@@ -1004,6 +1004,17 @@ namespace Chillde.Services.Services
                                                         (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
                                                         (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
                                                         (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
+                Repositories.Enums.Role.Admin => o =>
+                                                        (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                                                        (String.IsNullOrEmpty(orderFilterModel.Search) || o.Code.Contains(orderFilterModel.Search) ||
+                                                            o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                                                            o.CreatedBy.PhoneNumber!.Contains(orderFilterModel.Search) ||
+                                                            o.Address.Contains(orderFilterModel.Search) ||
+                                                            o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                                                            o.CreatedBy.LastName.Contains(orderFilterModel.Search)) &&
+                                                        (!orderFilterModel.AccountId.HasValue || o.CreatedById.Equals(orderFilterModel.AccountId))&&
+                                                        (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                                                        (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
                 _ => o => false
             };
 
