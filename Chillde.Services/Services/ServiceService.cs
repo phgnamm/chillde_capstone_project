@@ -29,6 +29,7 @@ using Chillde.Repositories.Models.UserActivityLogModels;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System;
+using Chillde.Repositories.Models.ServiceWishlistModels;
 
 namespace Chillde.Services.Services
 {
@@ -1058,11 +1059,14 @@ namespace Chillde.Services.Services
 
                     var faqsModel = _mapper.Map<List<FAQModel>>(faqs.Data);
 
+                    var result = new Pagination<FAQModel>(faqsModel, faqFilterModel.PageIndex,
+                      faqFilterModel.PageSize, faqs.TotalCount);
+
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
                         Message = "Successfully.",
-                        Data = faqsModel
+                        Data = result
                     };
                 });
             }

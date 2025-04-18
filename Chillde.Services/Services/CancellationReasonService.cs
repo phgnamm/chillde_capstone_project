@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Chillde.Repositories.Entities;
+﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.CancellationReasonModels;
+using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.CancellationReasonModels;
 using Chillde.Services.Models.ResponseModels;
@@ -62,7 +58,7 @@ namespace Chillde.Services.Services
             return result > 0 ? new ResponseModel { Message = "Delete successfully" } : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Delete unsuccessfully"};
         }
 
-        public async Task<ResponseModel> GetAllAsync()
+        public async Task<ResponseModel> GetAllAsync(CancellationReasonFilterModel cancellationReasonFilterModel)
         {
             var cancellationLists = await _unitOfWork.CancellationReasonRepository.GetAllAsync(filter: _ => _.IsDeleted ==  false);
             var cancellationModels = cancellationLists.Data.Select(_ => new CancellationReasonModel
@@ -75,8 +71,10 @@ namespace Chillde.Services.Services
             if (!cancellationModels.Any())
             {
                 return new ResponseModel { Data = null };
-
             }
+
+            var result = new Pagination<CancellationReasonModel>(cancellationModels.ToList(), cancellationReasonFilterModel.PageIndex,
+                      cancellationReasonFilterModel.PageSize, cancellationLists.TotalCount);
             return new ResponseModel { Data = cancellationModels };
         }
 
