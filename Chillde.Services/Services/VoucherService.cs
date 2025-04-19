@@ -237,7 +237,7 @@ namespace Chillde.Services.Services
                                          (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
                                          (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
                                          (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
-                                         (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                                         (!voucherFilterModel.MinOrderValue.HasValue || voucher.MinOrderValue >= voucherFilterModel.MinOrderValue) &&
                                          (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
                                          (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
                                          (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
