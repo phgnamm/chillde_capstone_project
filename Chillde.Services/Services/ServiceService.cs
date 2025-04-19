@@ -358,7 +358,9 @@ namespace Chillde.Services.Services
                     MinWeight = serviceAddModel.MinWeight,
                     MaxWeight = serviceAddModel.MaxWeight,
                     CategoryId = serviceAddModel.CategoryId,
-                    EmbeddingVector = embeddingVector
+                    EmbeddingVector = embeddingVector,
+                    FeedbackCount = 0,
+                    Rate = 0
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
