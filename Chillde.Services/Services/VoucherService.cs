@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Repositories.Models.VoucherModels;
@@ -76,7 +77,10 @@ namespace Chillde.Services.Services
                     ExpiredTime = voucherAddModel.ExpiredTime,
                     CreatedById = currentUserId.Value,
                 };
-
+                if(voucherAddModel.ReceiverId != null)
+                {
+                    newVoucher.VoucherType = VoucherType.AdminToArtist;
+                }
                 await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
                 var result = await _unitOfWork.SaveChangeAsync();
                 return result > 0
@@ -173,7 +177,7 @@ namespace Chillde.Services.Services
                 var newVoucher = new Voucher
                 {
                     Code = GenerateCodeHelper.GenerateVoucherCode(),
-                    ReceiverId = existingVoucher.ReceiverId,
+                    ReceiverId = voucherUpdateModel.ReceiverId ??existingVoucher.ReceiverId,
                     MinOrderRequired = voucherUpdateModel.MinOrderRequired ?? existingVoucher.MinOrderRequired,
                     MinReputation = voucherUpdateModel.MinReputation ?? existingVoucher.MinReputation,
                     DiscountValue = voucherUpdateModel.DiscountValue > 0 ? voucherUpdateModel.DiscountValue : existingVoucher.DiscountValue,
@@ -183,7 +187,8 @@ namespace Chillde.Services.Services
                     RemainingQuantity = existingVoucher.RemainingQuantity,
                     StartTime = voucherUpdateModel.StartTime ?? existingVoucher.StartTime,
                     ExpiredTime = voucherUpdateModel.ExpiredTime ?? existingVoucher.ExpiredTime,
-                    CreatedById = currentUserId.Value
+                    CreatedById = currentUserId.Value,
+                    IsDeleted = voucherUpdateModel.IsDeleted ?? existingVoucher.IsDeleted,
                 };
 
                 await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
@@ -191,7 +196,7 @@ namespace Chillde.Services.Services
 
                 return new ResponseModel { Message = "Voucher has been used before. Old one soft-deleted. New voucher created." };
             }
-
+            existingVoucher.ReceiverId = voucherUpdateModel.ReceiverId ?? existingVoucher.ReceiverId;
             existingVoucher.MinOrderRequired = voucherUpdateModel.MinOrderRequired ?? existingVoucher.MinOrderRequired;
             existingVoucher.MinReputation = voucherUpdateModel.MinReputation ?? existingVoucher.MinReputation;
             existingVoucher.DiscountValue = voucherUpdateModel.DiscountValue > 0
@@ -203,6 +208,7 @@ namespace Chillde.Services.Services
             existingVoucher.RemainingQuantity = existingVoucher.RemainingQuantity;
             existingVoucher.StartTime = voucherUpdateModel.StartTime ?? existingVoucher.StartTime;
             existingVoucher.ExpiredTime = voucherUpdateModel.ExpiredTime ?? existingVoucher.ExpiredTime;
+            existingVoucher.IsDeleted = voucherUpdateModel?.IsDeleted ?? existingVoucher.IsDeleted;
 
             _unitOfWork.VoucherRepository.Update(existingVoucher);
             await _unitOfWork.SaveChangeAsync();
@@ -218,16 +224,21 @@ namespace Chillde.Services.Services
 
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
-                    Expression<Func<Voucher, bool>> filter = voucher =>
-                     ( voucher.ReceiverId == voucherFilterModel.ArtisanId ) &&
-                     ( voucher.VoucherStatus == voucherFilterModel.Status ) &&
-                     ( voucher.IsDeleted == voucherFilterModel.IsDeleted ) &&
-                     ( voucher.DiscountValue >= voucherFilterModel.MinDiscountValue ) &&
-                     ( voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue ) &&
-                     ( voucher.VoucherType == voucherFilterModel.VoucherType );
+                Expression<Func<Voucher, bool>> filter = voucher =>
+                 (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                 (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                 (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                 (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                 (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
+                 (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
+                 (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
+                 (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
+                 (!voucherFilterModel.MinReputaion.HasValue || voucher.MinReputation >= voucherFilterModel.MinReputaion);
 
-                    Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers =>
-                             vouchers.Include(_ => _.VoucherUsageLogs).ThenInclude(_ => _.Order);
+                Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
+                             .Include(_ => _.Receiver)
+                             .Include(_ => _.VoucherUsageLogs)
+                             .ThenInclude(_ => _.Order);
 
                     var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: filter,
@@ -236,9 +247,24 @@ namespace Chillde.Services.Services
                                     pageSize: voucherFilterModel.PageSize
                     );
 
-                    var voucherModels = _mapper.Map<List<VoucherModel>>(vouchers.Data);
+                var voucherModels = _mapper.Map<List<VoucherModel>>(vouchers.Data);
+                voucherModels.ForEach(voucherModel => voucherModel.ReceiverName = (vouchers.Data.Where(voucher => voucher.Id == voucherModel.Id).Select(_ => _.Receiver?.Username).FirstOrDefault()));
+                //var voucherModels = vouchers.Data.Select(_ => new VoucherModel
+                //{
+                //    Id = _.Id,
+                //    Code = _.Code,
+                //    ReceiverName = _.Receiver.FirstName + " " + _.Receiver.LastName,
+                //    DiscountValue = _.DiscountValue,
+                //    MinOrderValue = _.MinOrderValue,
+                //    MaxDiscountValue = _.MaxDiscountValue,
+                //    RemainingQuantity = _.RemainingQuantity,
+                //    TotalQuantity = _.TotalQuantity,
+                //    StartTime = _.StartTime,
+                //    ExpiredTime = _.ExpiredTime,
+                //    VoucherStatus = _.VoucherStatus
+                //}).ToList();
 
-                    var result = new Pagination<VoucherModel>(voucherModels, voucherFilterModel.PageIndex,
+                var result = new Pagination<VoucherModel>(voucherModels, voucherFilterModel.PageIndex,
                       voucherFilterModel.PageSize, vouchers.TotalCount);
 
                     return new ResponseModel

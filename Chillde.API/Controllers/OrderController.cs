@@ -5,6 +5,7 @@ using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.OrderTrackingModels;
+using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ShipmentModels;
 using Chillde.Services.Services;
@@ -276,6 +277,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
         [Authorize]
         [HttpPost("{orderId}/order-tracking-sketches")]
         public async Task<IActionResult> AddSketch(Guid orderId, [FromForm] OrderTrackingAddModel orderTrackingAddModel)
@@ -372,6 +374,25 @@ namespace Chillde.API.Controllers
         {
             var result = await _orderService.UpdateOrderAfterDeliveryAsync(orderId);
             return StatusCode(result.Code, result);
+        }
+
+        //[Authorize]
+        [HttpPost("{orderId}/reports")]
+        public async Task<IActionResult> Report(Guid orderId, [FromForm] ReportAddModel reportAddModel)
+        {
+            try
+            {
+                var result = await _orderService.Report(orderId, reportAddModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Services.Models.WalletHistoryModels
 {
-    public class WalletHistoryFilterModel : FilterParameter
+    public class TransactionFilterModel : FilterParameter
     {
         public Guid? AccountId { get; set; }
     }

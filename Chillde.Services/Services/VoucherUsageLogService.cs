@@ -47,10 +47,11 @@ namespace Chillde.Services.Services
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
                 Expression<Func<VoucherUsageLog, bool>> filter = voucherUsage =>
-                 (voucherUsage.UsageStatus == voucherUsageLogFilterModel.UsageStatus) &&
+                 (!voucherUsageLogFilterModel.UsageStatus.HasValue || voucherUsage.UsageStatus == voucherUsageLogFilterModel.UsageStatus) &&
                  (voucherUsage.IsDeleted == voucherUsageLogFilterModel.IsDeleted) &&
-                 (voucherUsage.DiscountValue >= voucherUsageLogFilterModel.MinDiscountValue) &&
-                 (voucherUsage.DiscountValue <= voucherUsageLogFilterModel.MaxDiscountValue);
+                 (!voucherUsageLogFilterModel.MinDiscountValue.HasValue || voucherUsage.DiscountValue >= voucherUsageLogFilterModel.MinDiscountValue) &&
+                 (!voucherUsageLogFilterModel.MaxDiscountValue.HasValue || voucherUsage.DiscountValue <= voucherUsageLogFilterModel.MaxDiscountValue) &&
+                 (!voucherUsageLogFilterModel.OrderId.HasValue || voucherUsage.OrderId >= voucherUsageLogFilterModel.OrderId);
 
                 var voucherUsages = await _unitOfWork.VoucherUsageLogRepository.GetAllAsync(
                                 filter: filter,

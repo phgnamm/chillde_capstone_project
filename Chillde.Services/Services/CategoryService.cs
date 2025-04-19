@@ -418,7 +418,6 @@ namespace Chillde.Services.Services
 
         }
 
-
         private CategoryTreeModel BuildCategoryTree(Category category, IEnumerable<Category> allCategories)
         {
             var treeModel = new CategoryTreeModel

@@ -1,6 +1,10 @@
-﻿namespace Chillde.Services.Interfaces
+﻿using Chillde.Services.Models.ReportModels;
+using Chillde.Services.Models.ResponseModels;
+
+namespace Chillde.Services.Interfaces
 {
-    public class IReportService
+    public interface IReportService
     {
+        Task<ResponseModel> Reject(Guid reportId, ReportRejectModel reportRejectModel);
     }
 }

@@ -268,7 +268,7 @@ public static class Configuration
 
         //WalletHistory
         services.AddScoped<ITransactionRepository, TransactionRepository>();
-        services.AddScoped<IWalletHistoryService, WalletHistoryService>();
+        services.AddScoped<ITransactionService, TransactionService>();
 
         //Translation
         services.AddScoped<ITranslationService, TranslationService>();
@@ -383,7 +383,7 @@ public static class Configuration
         services.AddHostedService<DeliveryReminderService>();
 
         //DeliveryReminder
-        services.AddHostedService<VoucherCreationService>();
+        //services.AddHostedService<VoucherCreationService>();
 
         //OrderCompletionService
         services.AddHostedService<OrderCompletionService>();

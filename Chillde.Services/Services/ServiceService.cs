@@ -29,6 +29,7 @@ using Chillde.Repositories.Models.UserActivityLogModels;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System;
+using Chillde.Repositories.Models.ServiceWishlistModels;
 
 namespace Chillde.Services.Services
 {
@@ -768,7 +769,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> AddListServiceAttachmentAsync(List<ServiceAttachmentAddModel> attachmentModel, Guid serviceId)
+        public async Task<ResponseModel> AddListServiceAttachmentAsync(List<AttachmentAddModel> attachmentModel, Guid serviceId)
         {
             try
             {
@@ -1058,11 +1059,14 @@ namespace Chillde.Services.Services
 
                     var faqsModel = _mapper.Map<List<FAQModel>>(faqs.Data);
 
+                    var result = new Pagination<FAQModel>(faqsModel, faqFilterModel.PageIndex,
+                      faqFilterModel.PageSize, faqs.TotalCount);
+
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
                         Message = "Successfully.",
-                        Data = faqsModel
+                        Data = result
                     };
                 });
             }
@@ -1718,8 +1722,8 @@ namespace Chillde.Services.Services
                             (!serviceFilterModel.SubCategoryId.HasValue || s.Category.Id == serviceFilterModel.SubCategoryId ||
                             s.Category.ParentId == serviceFilterModel.SubCategoryId) &&
                             (!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
-                            (!serviceFilterModel.MinPrice.HasValue || s.Packages.Any(p => p.Price >= serviceFilterModel.MinPrice)) &&
-                            (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Any(p => p.Price <= serviceFilterModel.MaxPrice)) &&
+                            (!serviceFilterModel.MinPrice.HasValue || s.Packages.Min(p => p.Price) >= serviceFilterModel.MinPrice) &&
+                            (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Min(p => p.Price) <= serviceFilterModel.MaxPrice) &&
                             (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
                             (!serviceFilterModel.MaxRate.HasValue || s.Rate <= serviceFilterModel.MaxRate) &&
                             (!serviceFilterModel.MinDate.HasValue || s.Packages.Any(p => p.DeliveryTime >= serviceFilterModel.MinDate.Value)) &&
@@ -1728,7 +1732,7 @@ namespace Chillde.Services.Services
                         {
                             switch (serviceFilterModel.Order.ToLower())
                             {
-                                case "creating":
+                                    case "creating":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.CreationDate)
                                         : s.OrderBy(s => s.CreationDate);
@@ -1869,29 +1873,22 @@ namespace Chillde.Services.Services
 
         private async Task SaveSearchHistoryAsync(string searchText, Guid userId)
         {
+            const int maxSearchHistory = 10;
+
             var searchHistories = await _unitOfWork.SearchHistoryRepository
                 .GetAllAsync(filter: _ => _.CreatedById == userId);
-            var maxSearchHistoryResponse = await _systemConfigService.Get(SystemConfigKey.MaxSearchHistory);
-            var config = maxSearchHistoryResponse.Data as SystemConfigModel;
-
-            int maxSearchHistoryValue = 0;
-
 
             var existingSearchHistory = searchHistories.Data
                 .FirstOrDefault(_ => _.SearchText!.Equals(searchText, StringComparison.OrdinalIgnoreCase));
 
             if (existingSearchHistory == null)
             {
-                if (config != null && int.TryParse(config.Value?.ToString(), out int value))
-                {
-                    maxSearchHistoryValue = value;
-                }
-
-                if (searchHistories.Data.Count() >= maxSearchHistoryValue && searchHistories.Data.Any())
+                if (searchHistories.Data.Count() >= maxSearchHistory)
                 {
                     var oldestSearchHistory = searchHistories.Data.OrderBy(_ => _.CreationDate).First();
                     _unitOfWork.SearchHistoryRepository.HardRemove(oldestSearchHistory);
                 }
+
                 await _unitOfWork.SearchHistoryRepository.AddAsync(new SearchHistory
                 {
                     SearchText = searchText,
@@ -1908,6 +1905,7 @@ namespace Chillde.Services.Services
 
             await _unitOfWork.SaveChangeAsync();
         }
+
 
     }
 }

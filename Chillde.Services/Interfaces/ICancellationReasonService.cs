@@ -14,7 +14,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddAsync(CancellationReasonAddModel model);
         Task<ResponseModel> UpdateAsync(Guid id, CancellationReasonAddModel model); 
         Task<ResponseModel> DeleteAsync(Guid id);
-        Task<ResponseModel> GetAllAsync();
+        Task<ResponseModel> GetAllAsync(CancellationReasonFilterModel cancellationReasonFilterModel);
     }
 
 }

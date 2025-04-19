@@ -10,6 +10,6 @@ namespace Chillde.Services.Models.AccountModels
     public class BanAccountRoleModel
     {
         public Guid AccountId { get; set; }
-        public Role Role { get; set; }
+        //public Role Role { get; set; }
     }
 }

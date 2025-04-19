@@ -113,6 +113,7 @@ namespace Chillde.Services.Services
                         localizedOffers = offersWithTranslations.Select(offer => new OfferModel
                         {
                             Id = offer.Id,
+                            IsDeleted = offer.IsDeleted,
                             Status = offer.Status,
                             Message = offer.Message,
                             MinWeight = offer.MinWeight,
@@ -161,8 +162,8 @@ namespace Chillde.Services.Services
                                 Email = offer.CreatedBy.Email,
                                 FirstName = offer.CreatedBy.FirstName,
                                 LastName = offer.CreatedBy.LastName,
-                                Image = offer.CreatedBy.Image,
                                 Username = offer.CreatedBy.Username,
+                                Image = offer.CreatedBy.Image,
                             },
                             CreationDate = offer.CreationDate
                         }).ToList();
@@ -173,6 +174,7 @@ namespace Chillde.Services.Services
                         localizedOffers = offersResult.Data.Select(offer => new OfferModel
                         {
                             Id = offer.Id,
+                            IsDeleted = offer.IsDeleted,
                             Status = offer.Status,
                             Message = offer.Message,
                             MinWeight = offer.MinWeight,
@@ -183,6 +185,7 @@ namespace Chillde.Services.Services
                             ShippingAddress = _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
                             Package = new PackageModel
                             {
+                                Id = offer.Package!.Id,
                                 Name = offer.Package!.Name,
                                 Description = offer.Package!.Description,
                                 Price = offer.Package!.Price,
@@ -220,6 +223,7 @@ namespace Chillde.Services.Services
                                 Email = offer.CreatedBy.Email,
                                 FirstName = offer.CreatedBy.FirstName,
                                 LastName = offer.CreatedBy.LastName,
+                                Username = offer.CreatedBy.Username,
                                 Image = offer.CreatedBy.Image
                             },
                             CreationDate = offer.CreationDate
@@ -540,7 +544,8 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
-                    Message = "Offer created successfully."
+                    Message = "Offer created successfully.",
+                    Data = newOffer.Id
                 };
             }
             catch (Exception ex)
@@ -839,7 +844,17 @@ namespace Chillde.Services.Services
                     };
                 }
                 existingOffer.Status = status;
-                _unitOfWork.OfferRepository.Update(existingOffer);
+                if (existingOffer.Status == OfferStatus.Approved)
+                {
+                    var existedOffers = await _unitOfWork.OfferRepository.GetAllAsync(
+                        offer => offer.RequestId == existingOffer.RequestId && offer.Status != OfferStatus.Approved,
+                        order: null, include: null, pageIndex: 1, pageSize: 1000);
+
+                    foreach (var offer in existedOffers.Data)
+                        offer.Status = OfferStatus.Rejected;
+
+                    _unitOfWork.OfferRepository.UpdateRange(existedOffers.Data);
+                }
                 await _unitOfWork.SaveChangeAsync();
                 return new ResponseModel
                 {

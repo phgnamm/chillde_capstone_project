@@ -736,7 +736,7 @@ public class AccountService : IAccountService
     {
         var cacheKey = $"account_{idOrUsername}";
         var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-        {
+        { 
             Account? account;
             if (Guid.TryParse(idOrUsername, out var id))
                 account = await _unitOfWork.AccountRepository.GetAsync(id, accounts =>
@@ -800,6 +800,26 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.DateOfBirth)
                             : accounts.OrderBy(account => account.DateOfBirth);
+                    case "email":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Email)
+                            : accounts.OrderBy(account => account.Email);
+                    case "phoneNumber":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.PhoneNumber)
+                            : accounts.OrderBy(account => account.PhoneNumber);
+                    case "isDeleted":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.IsDeleted)
+                            : accounts.OrderBy(account => account.IsDeleted);
+                    case "gender":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Gender)
+                            : accounts.OrderBy(account => account.Gender);
+                    case "userName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Username)
+                            : accounts.OrderBy(account => account.Username);
                     default:
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.CreationDate)
@@ -1482,20 +1502,21 @@ public class AccountService : IAccountService
             };
         }
 
-        var accountRole = account.AccountRoles
-            .FirstOrDefault(ar => ar.Role.Name == request.Role.ToString());
+        //var accountRole = account.AccountRoles
+        //    .FirstOrDefault(ar => ar.Role.Name == request.Role.ToString());
 
-        if (accountRole == null)
-        {
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status404NotFound,
-                Message = $"Role {request.Role} not found for this account"
-            };
-        }
-
-        accountRole.Status = AccountStatus.Suspended;
-        accountRole.ModificationDate = DateTime.UtcNow;
+        //if (accountRole == null)
+        //{
+        //    return new ResponseModel
+        //    {
+        //        Code = StatusCodes.Status404NotFound,
+        //        Message = $"Role {request.Role} not found for this account"
+        //    };
+        //}
+        account.Status = AccountStatus.Suspended;
+        account.IsDeleted = true;
+        //accountRole.Status = AccountStatus.Suspended;
+        //accountRole.ModificationDate = DateTime.UtcNow;
 
         _unitOfWork.AccountRepository.Update(account);
         await _unitOfWork.SaveChangeAsync();
@@ -1503,7 +1524,7 @@ public class AccountService : IAccountService
         return new ResponseModel
         {
             Code = StatusCodes.Status200OK,
-            Message = $"Role {request.Role} has been banned successfully"
+            Message = $"Account has been banned successfully"
         };
     }
 
@@ -1541,7 +1562,7 @@ public class AccountService : IAccountService
         };
     }
 
-    public async Task<ResponseModel> RestoreAccountRole(Guid accountId, Guid accountRoleId)
+    public async Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId)
     {
         var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId);
         if (accountRole == null || accountRole.AccountId != accountId)
@@ -1555,23 +1576,23 @@ public class AccountService : IAccountService
         
         if (!accountRole.IsDeleted && accountRole.Status == AccountStatus.Active)
         {
-            return new ResponseModel
-            {
-                Message = "Account role has been restored"
-            };
+            accountRole.Status = AccountStatus.Suspended;
+            accountRole.IsDeleted = true;
+        } else if (accountRole.IsDeleted && accountRole.Status == AccountStatus.Suspended)
+        {
+            accountRole.Status = AccountStatus.Active;
+            accountRole.IsDeleted = false;
         }
-
-        accountRole.IsDeleted = false;
-        accountRole.Status = AccountStatus.Active;
+        
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
-            return new ResponseModel { Message = "Restore account role successfully" };
+            return new ResponseModel { Message = "Toggle account role status successfully" };
         }
         
         return new ResponseModel
         {
             Code = StatusCodes.Status500InternalServerError,
-            Message = "Cannot restore account role"
+            Message = "Cannot toggle account role status"
         };
     }
 }

@@ -8,6 +8,7 @@ using Chillde.Repositories.Models.ReputationLogModels;
 using Chillde.Repositories.Models.ServiceModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.DepositModels;
 using Chillde.Services.Models.PackageModels;
 using Chillde.Services.Models.ReputationLogModels;
 using Chillde.Services.Models.ResponseModels;
@@ -41,11 +42,20 @@ namespace Chillde.Services.Services
             try
             {
                 var reputationLogs = await _unitOfWork.ReputationLogRepository.GetAllAsync(
+                               filter: _ => _.AccountRoleId == reputationLogFilterModel.AccountRoleId,
                                 pageIndex: reputationLogFilterModel.PageIndex,
-                                pageSize: reputationLogFilterModel.PageSize
+                                pageSize: reputationLogFilterModel.PageSize,
+                                include: _ => _.Include(_ => _.Order)
                 );
 
-                var reputationLogModels = _mapper.Map<List<ReputationLogModel>>(reputationLogs.Data);
+                var reputationLogModels = reputationLogs.Data.Select(_ => new ReputationLogModel
+                {
+                    Id = _.Id,
+                    OrderCode = _.Order.Code,
+                    Reason = _.Reason,
+                    PointChange = _.PointChange,
+                    CreationDate = _.CreationDate
+                }).ToList();
 
                 var result = new Pagination<ReputationLogModel>(reputationLogModels, reputationLogFilterModel.PageIndex,
                   reputationLogFilterModel.PageSize, reputationLogs.TotalCount);
