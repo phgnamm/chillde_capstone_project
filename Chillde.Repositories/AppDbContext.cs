@@ -242,6 +242,7 @@ public class AppDbContext : DbContext
     public DbSet<ShippingAddress> ShippingAddresses { get; set; }
     public DbSet<Translation> Translations { get; set; }
     public DbSet<Wallet> Wallets { get; set; }
+    public DbSet<Transaction> Transaction { get; set; }
     public DbSet<SystemConfig> SystemConfigs { get; set; }
     public DbSet<UserActivityLog> UserActivityLogs { get; set; }
     public DbSet<RequestAttachment> RequestAttachments { get; set; }
