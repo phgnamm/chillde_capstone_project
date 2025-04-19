@@ -72,6 +72,8 @@ namespace Chillde.Services.Services
                 {
                     orderTracking.IsAccepted = true;
                     orderTracking.Order.Stage = OrderStage.Shipping;
+                    _unitOfWork.OrderTrackingRepository.Update(orderTracking);
+                    await _unitOfWork.SaveChangeAsync();
                 }
                 return new ResponseModel
                 {
