@@ -18,5 +18,7 @@ namespace Chillde.Services.Interfaces
         Task<bool> UpdateShipmentStatusAsync(ShipmentUpdateRequestModel request);
         Task<ResponseModel> GetAllStatusByShipmentId(Guid shipmentId, ShipmentStatusFilterModel filterModel);
         Task<ResponseModel> GetShipmentByOrderIdAsync(Guid orderId);
+        Task<ResponseModel> SeedShipmentStatusHistoryAsync(Guid shipmentId);
+
     }
 }

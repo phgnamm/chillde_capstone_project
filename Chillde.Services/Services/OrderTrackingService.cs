@@ -74,6 +74,11 @@ namespace Chillde.Services.Services
                     orderTracking.Order.Stage = OrderStage.Shipping;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
                     await _unitOfWork.SaveChangeAsync();
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Delivery tracking accepted. Order stage updated to Shipping."
+                    };
                 }
                 return new ResponseModel
                 {
