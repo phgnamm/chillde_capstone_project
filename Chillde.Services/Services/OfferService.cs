@@ -844,7 +844,17 @@ namespace Chillde.Services.Services
                     };
                 }
                 existingOffer.Status = status;
-                _unitOfWork.OfferRepository.Update(existingOffer);
+                if (existingOffer.Status == OfferStatus.Approved)
+                {
+                    var existedOffers = await _unitOfWork.OfferRepository.GetAllAsync(
+                        offer => offer.RequestId == existingOffer.RequestId && offer.Status != OfferStatus.Approved,
+                        order: null, include: null, pageIndex: 1, pageSize: 1000);
+
+                    foreach (var offer in existedOffers.Data)
+                        offer.Status = OfferStatus.Rejected;
+
+                    _unitOfWork.OfferRepository.UpdateRange(existedOffers.Data);
+                }
                 await _unitOfWork.SaveChangeAsync();
                 return new ResponseModel
                 {
