@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.FeedbackModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
@@ -26,21 +27,29 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetById(Guid id)
         {
-            var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id).Include(_ => _.FeedbackAttachments));
+            var feedbacks = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Where(_ => _.Id == id).Include(_ => _.FeedbackAttachments).Include(_ => _.CreatedBy));
 
             var feedbackModels = new FeedbackModel
             {
                 Id = feedbacks!.Id,
                 CreatedById = feedbacks.CreatedById,
                 ServiceId = feedbacks.ServiceId,
-                AuthorName = feedbacks.CreatedBy.FirstName + " " + feedbacks.CreatedBy.LastName,
+                CreatedBy = new AccountLiteModel
+                {
+                    FirstName = feedbacks.CreatedBy.FirstName,
+                    LastName = feedbacks.CreatedBy.LastName,
+                    Username = feedbacks.CreatedBy.Username,
+                    Email = feedbacks.CreatedBy.Email,
+                    Image = feedbacks.CreatedBy.Image
+                },
                 Description = feedbacks.Description,
                 CreationDate = feedbacks.CreationDate,
                 Rating = feedbacks.Rating,
                 Response = feedbacks.Response,
-                FeedbackImageModels = feedbacks.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                FeedbackAttachmentModels = feedbacks.FeedbackAttachments.Select(_ => new FeedbackAttachmentModel
                 {
-                    ImageUrl = _.AttachmentUrl ?? ""
+                    AttachmentAlt = _.AttachmentAlt,
+                    AttachmentUrl = _.AttachmentUrl,
                 }).ToList()
             };
             return new ResponseModel
