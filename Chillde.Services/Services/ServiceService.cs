@@ -1722,8 +1722,8 @@ namespace Chillde.Services.Services
                             (!serviceFilterModel.SubCategoryId.HasValue || s.Category.Id == serviceFilterModel.SubCategoryId ||
                             s.Category.ParentId == serviceFilterModel.SubCategoryId) &&
                             (!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
-                            (!serviceFilterModel.MinPrice.HasValue || s.Packages.Any(p => p.Price >= serviceFilterModel.MinPrice)) &&
-                            (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Any(p => p.Price <= serviceFilterModel.MaxPrice)) &&
+                            (!serviceFilterModel.MinPrice.HasValue || s.Packages.Min(p => p.Price) >= serviceFilterModel.MinPrice) &&
+                            (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Min(p => p.Price) <= serviceFilterModel.MaxPrice) &&
                             (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
                             (!serviceFilterModel.MaxRate.HasValue || s.Rate <= serviceFilterModel.MaxRate) &&
                             (!serviceFilterModel.MinDate.HasValue || s.Packages.Any(p => p.DeliveryTime >= serviceFilterModel.MinDate.Value)) &&
