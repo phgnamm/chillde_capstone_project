@@ -533,25 +533,35 @@ namespace Chillde.Services.Services
                         Message = $"Shipment is not in Received status. Current status: {shipment.CurrentStatusId}."
                     };
                 }
+                var receivedStatus = shipment.ShipmentStatusHistorys
+                    .FirstOrDefault(h => h.StatusId == ShipmentStatus.Received);
+                if (receivedStatus == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Shipment does not have Received status history."
+                    };
+                }
+                var baseTime = receivedStatus.CreationDate;
 
                 var statusSequence = new[]
                 {
-                    ShipmentStatus.Received,
-                    ShipmentStatus.PickupArranging,
-                    ShipmentStatus.PickedUp,
-                    ShipmentStatus.Delivering,
-                    ShipmentStatus.DeliveredNotReconciled,
-                    ShipmentStatus.Reconciled
+                    ShipmentStatus.Received,           
+                    ShipmentStatus.PickupArranging,   
+                    ShipmentStatus.PickedUp,          
+                    ShipmentStatus.Delivering,        
+                    ShipmentStatus.DeliveredNotReconciled, 
+                    ShipmentStatus.Reconciled         
                 };
 
-                var baseTime = DateTime.UtcNow.AddHours(-6);
                 for (int i = 1; i < statusSequence.Length; i++)
                 {
                     var history = new ShipmentStatusHistory
                     {
                         ShipmentId = shipment.Id,
                         StatusId = statusSequence[i],
-                        CreationDate = baseTime.AddHours(i)
+                        CreationDate = baseTime.AddHours(i) 
                     };
                     shipment.ShipmentStatusHistorys.Add(history);
                 }
