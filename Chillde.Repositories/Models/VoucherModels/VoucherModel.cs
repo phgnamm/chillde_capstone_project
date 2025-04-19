@@ -17,6 +17,7 @@ namespace Chillde.Repositories.Models.VoucherModels
         public int? MinReputation { get; set; }
         public decimal DiscountValue { get; set; } 
         public decimal? MinOrderValue { get; set; } 
+        public int? MinOrderRequired { get; set; }
         public decimal? MaxDiscountValue { get; set; }
         public int? RemainingQuantity { get; set; } 
         public int? TotalQuantity { get; set; }
