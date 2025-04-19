@@ -100,7 +100,7 @@ namespace Chillde.Services.Services
 
                 await _hubContext.Clients
                     .Clients(_connections.GetConnections(notification.AccountId))
-                    .SendAsync("NotificationConversation");
+                    .SendAsync("NotificationConversation", new { Message = "wtf"});
                 await _hubContext.Clients
                     .Clients(_connections.GetConnections(notification.AccountId)).SendAsync("ReceiveMessage");
 

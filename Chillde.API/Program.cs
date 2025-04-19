@@ -31,7 +31,7 @@ var password = builder.Configuration["Elasticsearch:Password"] ?? "pEb7hro9nXAVQ
 var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
     .BasicAuthentication(username, password) // ? Add Authentication
     .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // ? Ignore SSL errors if needed
-    .DefaultIndex("services");
+    .DefaultIndex("test_service");
 var client = new ElasticClient(settings);
 builder.Services.AddSingleton<IElasticClient>(client);
 
