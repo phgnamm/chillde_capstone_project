@@ -113,7 +113,7 @@ app.UseCors("cors");
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await InitialSeeding.Initialize(services);
+    //await InitialSeeding.Initialize(services);
 }
 
 // Configure the HTTP request pipeline.
