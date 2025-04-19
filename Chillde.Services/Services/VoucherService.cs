@@ -233,9 +233,10 @@ namespace Chillde.Services.Services
                  (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
                  (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
                  (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
-                 (!voucherFilterModel.MinReputaion.HasValue ||
-                 (voucher.MinReputation.HasValue && voucher.MinReputation.Value >= voucherFilterModel.MinReputaion));
-
+                 (!voucherFilterModel.MinReputation.HasValue ||
+                 (voucher.MinReputation.HasValue && voucher.MinReputation.Value >= voucherFilterModel.MinReputation)) &&
+                 (!voucherFilterModel.MinOrderRequired.HasValue ||
+                 (voucher.MinOrderRequired.HasValue && voucher.MinOrderRequired.Value >= voucherFilterModel.MinOrderRequired));
 
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
                              .Include(_ => _.Receiver)

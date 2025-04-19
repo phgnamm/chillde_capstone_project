@@ -11,7 +11,8 @@ namespace Chillde.Services.Models.VoucherModels
         public decimal? MaxDiscountValue { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? ExpiredTime { get; set; }
-        public int? MinReputaion {  get; set; }
+        public int? MinReputation {  get; set; }
+        public int? MinOrderRequired { get; set; }
         public VoucherType? VoucherType { get; set; }
     }
 }
