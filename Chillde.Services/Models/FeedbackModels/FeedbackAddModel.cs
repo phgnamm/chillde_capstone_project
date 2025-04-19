@@ -11,7 +11,7 @@ namespace Chillde.Services.Models.FeedbackModels
     public class FeedbackAddModel
     {
         public required int Rating { get; set; }
-        [Length(128, 1)]
+        [StringLength(128, MinimumLength = 1)]
         public string? Description { get; set; }
         public Guid ServiceId { get; set; }
         public ICollection<FeedbackAttachmentAddModel> FeedbackAttachmentAddModels { get; set; } = new List<FeedbackAttachmentAddModel>();
