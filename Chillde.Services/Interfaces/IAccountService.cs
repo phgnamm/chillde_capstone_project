@@ -37,4 +37,5 @@ public interface IAccountService
     Task<ResponseModel> DeleteAccountRole(Guid accountId, Guid accountRoleId);
     Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId);
     Task<ResponseDashboardModel<ArtisanDashboardModel>> GetArtisanDashboard(DashboardFilterModel dashboardFilterModel);
+    Task<ResponseModel> GetAllAccount(AccountFilterModel accountFilterModel);
 }

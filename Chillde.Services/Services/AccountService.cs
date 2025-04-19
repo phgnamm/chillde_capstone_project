@@ -1683,6 +1683,73 @@ public class AccountService : IAccountService
                 TotalDeliveredOrder = totalDeliveredOrder,
                 Earnings = earnings
             }
+        }; 
+    }
+
+         public async Task<ResponseModel> GetAllAccount(AccountFilterModel accountFilterModel)
+    {
+        var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
+            account =>
+                (!accountFilterModel.IsDeleted.HasValue || account.IsDeleted == accountFilterModel.IsDeleted) &&
+                (!accountFilterModel.Role.HasValue || account.AccountRoles.Where(accountRole =>
+                        !accountFilterModel.Status.HasValue || accountRole.Status == accountFilterModel.Status)
+                    .Select(accountRole => accountRole.Role.Name)
+                    .Contains(accountFilterModel.Role.ToString())),
+            accounts =>
+            {
+                switch (accountFilterModel.Order.ToLower())
+                {
+                    case "firstName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.FirstName)
+                            : accounts.OrderBy(account => account.FirstName);
+                    case "lastName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.LastName)
+                            : accounts.OrderBy(account => account.LastName);
+                    case "dateOfBirth":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.DateOfBirth)
+                            : accounts.OrderBy(account => account.DateOfBirth);
+                    case "email":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Email)
+                            : accounts.OrderBy(account => account.Email);
+                    case "phoneNumber":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.PhoneNumber)
+                            : accounts.OrderBy(account => account.PhoneNumber);
+                    case "isDeleted":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.IsDeleted)
+                            : accounts.OrderBy(account => account.IsDeleted);
+                    case "gender":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Gender)
+                            : accounts.OrderBy(account => account.Gender);
+                    case "userName":
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.Username)
+                            : accounts.OrderBy(account => account.Username);
+                    default:
+                        return accountFilterModel.OrderByDescending
+                            ? accounts.OrderByDescending(account => account.CreationDate)
+                            : accounts.OrderBy(account => account.CreationDate);
+                }
+            },
+            accounts => accounts
+                .Include(account => account.ShippingAddresses)
+                .Include(account => account.AccountRoles)
+                .ThenInclude(accountRole => accountRole.Role)
+                .Include(account => account.Wallet)
+                .Include(account => account.Orders)
+                .Include(account => account.Services)
+        );
+        var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        return new ResponseModel
+        {
+            Message = "Get all accounts successfully",
+            Data = accountModels
         };
     }
 
