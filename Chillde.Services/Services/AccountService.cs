@@ -13,6 +13,7 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.CategoryModels;
+using Chillde.Repositories.Models.DashBoardModels;
 using Chillde.Repositories.Models.SearchModels;
 using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Repositories.Models.VoucherModels;
@@ -21,6 +22,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.AccountModels.OAuth2;
 using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.DashBoardModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.TokenModels;
 using Chillde.Services.Utils;
@@ -34,6 +36,7 @@ using Microsoft.AspNetCore.Builder.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Nest;
 using RabbitMQ.Client;
@@ -736,7 +739,7 @@ public class AccountService : IAccountService
     {
         var cacheKey = $"account_{idOrUsername}";
         var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-        { 
+        {
             Account? account;
             if (Guid.TryParse(idOrUsername, out var id))
                 account = await _unitOfWork.AccountRepository.GetAsync(id, accounts =>
@@ -1554,7 +1557,7 @@ public class AccountService : IAccountService
         {
             return new ResponseModel { Message = "Delete account role successfully" };
         }
-        
+
         return new ResponseModel
         {
             Code = StatusCodes.Status500InternalServerError,
@@ -1573,26 +1576,114 @@ public class AccountService : IAccountService
                 Message = "Account role not found"
             };
         }
-        
+
         if (!accountRole.IsDeleted && accountRole.Status == AccountStatus.Active)
         {
             accountRole.Status = AccountStatus.Suspended;
             accountRole.IsDeleted = true;
-        } else if (accountRole.IsDeleted && accountRole.Status == AccountStatus.Suspended)
+        }
+        else if (accountRole.IsDeleted && accountRole.Status == AccountStatus.Suspended)
         {
             accountRole.Status = AccountStatus.Active;
             accountRole.IsDeleted = false;
         }
-        
+
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
             return new ResponseModel { Message = "Toggle account role status successfully" };
         }
-        
+
         return new ResponseModel
         {
             Code = StatusCodes.Status500InternalServerError,
             Message = "Cannot toggle account role status"
         };
     }
+    public async Task<ResponseDashboardModel<ArtisanDashboardModel>> GetArtisanDashboard(DashboardFilterModel dashboardFilterModel)
+    {
+        var currentUserId = _claimService.GetCurrentUserId!.Value;
+        // Create a date range for the specified month and year
+        var startDate = DateTime.SpecifyKind(new DateTime(dashboardFilterModel.Year, dashboardFilterModel.Month, 1), DateTimeKind.Utc);
+        var endDate = DateTime.SpecifyKind(startDate.AddMonths(1).AddDays(-1), DateTimeKind.Utc);
+        var today = DateTime.UtcNow.Date;
+
+
+        int totalOrder = await _unitOfWork.Context.Orders
+            .Where(x => x.Package.CreatedById == currentUserId && !x.IsDeleted)
+            .CountAsync();
+
+        int totalPendingOrder = await _unitOfWork.Context.Orders
+            .Where(x => x.Package.CreatedById == currentUserId && !x.IsDeleted)
+            .CountAsync();
+
+        int totalOrderPerDay = await _unitOfWork.Context.Orders
+            .Where(x => x.Package.CreatedById == currentUserId &&
+                        x.Status == OrderStatus.Pending &&
+                        !x.IsDeleted &&
+                        x.CreationDate.Date == today)
+            .CountAsync();
+
+        int totalActiveOrder = await _unitOfWork.Context.Orders
+            .Where(x => x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Pending && !x.IsDeleted)
+            .CountAsync();
+
+        int totalCancelOrder = await _unitOfWork.Context.Orders
+          .Where(x => x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Cancelled && !x.IsDeleted)
+          .CountAsync();
+
+        int totalDeliveredOrder = await _unitOfWork.Context.Orders
+            .Where(x => !x.IsDeleted && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Completed)
+            .CountAsync();
+
+        decimal totalRevenue = (decimal)await _unitOfWork.Context.Transaction
+            .Where(x => !x.IsDeleted && x.Type == TransactionType.TransferIn && x.Status == TransactionStatus.Completed && x.CreationDate >= startDate &&
+                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId)
+            .SumAsync(x => x.Amount);
+
+        // Get the sum of transactions for each day within the specified month and year
+        var earningsGroupedByDate = await _unitOfWork.Context.Transaction
+            .Where(x => !x.IsDeleted && x.Type == TransactionType.TransferIn && x.Status == TransactionStatus.Completed && x.CreationDate >= startDate &&
+                        x.CreationDate <= endDate)
+           .GroupBy(x => x.CreationDate.ToUniversalTime().Date)
+            .Select(g => new
+            {
+                Date = DateOnly.FromDateTime(g.Key),
+                TotalAmount = g.Sum(x => x.Amount)
+            })
+            .ToListAsync();
+
+        // Create a list of all days in the month
+        var allDaysInMonth = Enumerable.Range(0,
+                DateTime.DaysInMonth(dashboardFilterModel.Year, dashboardFilterModel.Month))
+            .Select(day => new DateOnly(dashboardFilterModel.Year, dashboardFilterModel.Month, day + 1))
+            .ToList();
+
+        // Create a list of Earning objects, ensuring all days are included
+        List<Earning> earnings = allDaysInMonth
+            .Select(day => new Earning
+            {
+                Date = day,
+                Amount = earningsGroupedByDate.FirstOrDefault(e => e.Date == day)?.TotalAmount ?? 0
+            })
+            .ToList();
+
+        // Return the assembled dashboard data
+        return new ResponseDashboardModel<ArtisanDashboardModel>
+        {
+            Message = "Get admin dashboard successfully",
+            Code = StatusCodes.Status200OK,
+            Data = new ArtisanDashboardModel
+            {
+                TotalOrder = totalOrder,
+                TotalRevenue = totalRevenue,
+                TotalOrderPerDay = totalOrderPerDay,
+                TotalPendingOrder = totalPendingOrder,
+                TotalActiveOrder = totalActiveOrder,
+                TotalCancelOrder = totalCancelOrder,
+                TotalDeliveredOrder = totalDeliveredOrder,
+                Earnings = earnings
+            }
+        };
+    }
+
 }
