@@ -337,15 +337,15 @@ namespace Chillde.Services.Services
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
-                await EnsureElasticsearchIndexExistsAsync("test_keywords");
+                await EnsureElasticsearchIndexExistsAsync("test_keywords1");
 
                 var keywords = _keywordGenerator.GenerateKeywords(service.Name.ToLower());
                 service.Keywords = keywords;
-                var elasticResult = await IndexKeywordsAsync("test_keywords", keywords);
+                var elasticResult = await IndexKeywordsAsync("test_keywords1", keywords);
                 if (!elasticResult)
                     return new ResponseModel { Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
                 //await _client.IndexAsync(new { id = service.Id, embeddingVector = service.EmbeddingVector }, i => i.Index("test_embedding"));
-                var serviceResult = await IndexServiceAsync("test_service", service);
+                var serviceResult = await IndexServiceAsync("test_service1", service);
                 if (!serviceResult)
                 {
                     return new ResponseModel
@@ -393,14 +393,20 @@ namespace Chillde.Services.Services
                         Data = serviceModel
                     };
                 }
-                else
+                //else
+                //{
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status400BadRequest,
+                //        Message = "Service attachments are required."
+                //    };
+                //}
+                return new ResponseModel
                 {
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status400BadRequest,
-                        Message = "Service attachments are required."
-                    };
-                }
+                    Code = StatusCodes.Status201Created,
+                    Message = "Service successfully created.",
+                    //Data = serviceModel
+                };
             }
             catch (Exception ex)
             {
