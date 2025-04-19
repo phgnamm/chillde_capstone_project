@@ -154,5 +154,12 @@ namespace Chillde.API.Controllers
             return StatusCode(response.Code, response);
         }
 
+        [HttpPost("seed-status/{shipmentId}")]
+        public async Task<IActionResult> SeedShipmentStatus(Guid shipmentId)
+        {
+            var result = await _shipmentService.SeedShipmentStatusHistoryAsync(shipmentId);
+            return StatusCode(result.Code, result);
+        }
+
     }
 }

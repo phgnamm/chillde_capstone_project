@@ -9,6 +9,7 @@ namespace Chillde.Services.Models.ShipmentStatusHistoryModels
 {
     public class ShipmentStatusFilterModel: FilterParameter
     {
-       
+        protected override int MinPageSize { get; set; } = 10;
+
     }
 }

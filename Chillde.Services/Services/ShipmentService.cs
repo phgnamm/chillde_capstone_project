@@ -23,6 +23,7 @@ using Chillde.Services.Models.AccountModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.Services.Models.ShipmentStatusHistoryModels;
+using Microsoft.EntityFrameworkCore.Storage;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -55,10 +56,10 @@ namespace Chillde.Services.Services
               $"district={Uri.EscapeDataString(requestModel.District)}&" +
               $"pick_province={Uri.EscapeDataString(requestModel.PickProvince)}&" +
               $"pick_district={Uri.EscapeDataString(requestModel.PickDistrict)}&" +
-              $"pick_ward={Uri.EscapeDataString(requestModel.PickWard ?? string.Empty)}&" +       
-              $"pick_address={Uri.EscapeDataString(requestModel.PickAddress ?? string.Empty)}&" + 
-              $"ward={Uri.EscapeDataString(requestModel.Ward ?? string.Empty)}&" +               
-              $"transport={Uri.EscapeDataString(requestModel.Transport ?? string.Empty)}&" +      
+              $"pick_ward={Uri.EscapeDataString(requestModel.PickWard ?? string.Empty)}&" +
+              $"pick_address={Uri.EscapeDataString(requestModel.PickAddress ?? string.Empty)}&" +
+              $"ward={Uri.EscapeDataString(requestModel.Ward ?? string.Empty)}&" +
+              $"transport={Uri.EscapeDataString(requestModel.Transport ?? string.Empty)}&" +
               $"weight={requestModel.Weight}&" +
               $"value={requestModel.Value}&" +
               $"deliver_option={requestModel.DeliverOption}";
@@ -138,7 +139,7 @@ namespace Chillde.Services.Services
                 var content = await response.Content.ReadAsStringAsync();
                 var cancelResponse = JsonConvert.DeserializeObject<CancelShipmentResponseModel>(content);
 
-               //var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
+                //var shipment = _unitOfWork.ShipmentRepository.GetShipmentByPartnerIdOrLabel(trackingOrder);
                 shipment!.CurrentStatusId = ShipmentStatus.Cancelled;
 
                 var statusHistory = new ShipmentStatusHistory
@@ -342,7 +343,7 @@ namespace Chillde.Services.Services
             {
                 return false;
             }
-            if(shipment.PartnerId != request.PartnerId)
+            if (shipment.PartnerId != request.PartnerId)
             {
                 return false;
             }
@@ -498,5 +499,129 @@ namespace Chillde.Services.Services
                 };
             }
         }
+        public async Task<ResponseModel> SeedShipmentStatusHistoryAsync(Guid shipmentId)
+        {
+            try
+            {
+                if (shipmentId == Guid.Empty)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Invalid shipment ID."
+                    };
+                }
+
+                var shipment = await _unitOfWork.ShipmentRepository.GetAsync(
+                    shipmentId,
+                    include: q => q.Include(s => s.ShipmentStatusHistorys)
+                );
+                if (shipment == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Shipment with ID {shipmentId} not found."
+                    };
+                }
+
+                if (shipment.CurrentStatusId != ShipmentStatus.Received)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = $"Shipment is not in Received status. Current status: {shipment.CurrentStatusId}."
+                    };
+                }
+
+                var statusSequence = new[]
+                {
+                    ShipmentStatus.Received,
+                    ShipmentStatus.PickupArranging,
+                    ShipmentStatus.PickedUp,
+                    ShipmentStatus.Delivering,
+                    ShipmentStatus.DeliveredNotReconciled,
+                    ShipmentStatus.Reconciled
+                };
+
+                var baseTime = DateTime.UtcNow.AddHours(-6);
+                for (int i = 1; i < statusSequence.Length; i++)
+                {
+                    var history = new ShipmentStatusHistory
+                    {
+                        ShipmentId = shipment.Id,
+                        StatusId = statusSequence[i],
+                        CreationDate = baseTime.AddHours(i)
+                    };
+                    shipment.ShipmentStatusHistorys.Add(history);
+                }
+
+                shipment.CurrentStatusId = ShipmentStatus.Reconciled;
+
+                var order = await _unitOfWork.OrderRepository.GetAsync(shipment.OrderId);
+                if (order == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Order with ID {shipment.OrderId} not found."
+                    };
+                }
+
+                if (order.Stage == OrderStage.Cancelled)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Cannot seed status for a cancelled order."
+                    };
+                }
+
+                order.Stage = OrderStage.AwaitingClosure;
+                _unitOfWork.OrderRepository.Update(order);
+
+                _unitOfWork.ShipmentRepository.Update(shipment);
+
+                await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    var saveResult = await _unitOfWork.SaveChangeAsync();
+                    if (saveResult <= 0)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync();
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = "Failed to seed shipment status history."
+                        };
+                    }
+
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+                catch (Exception ex)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = $"Error saving changes: {ex.Message}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"Error seeding shipment status history: {ex.Message}"
+                };
+            }
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Shipment status history seeded successfully."
+            };
+        }
     }
 }
+
