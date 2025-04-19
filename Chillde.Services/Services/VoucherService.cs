@@ -9,6 +9,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.VoucherModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -226,27 +227,55 @@ namespace Chillde.Services.Services
 
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
-                Expression<Func<Voucher, bool>> filter = voucher =>
-                 (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
-                 (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
-                 (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
-                 (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
-                 (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
-                 (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
-                 (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
-                 (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
-                 (!voucherFilterModel.MinReputation.HasValue ||
-                 (voucher.MinReputation.HasValue && voucher.MinReputation.Value >= voucherFilterModel.MinReputation)) &&
-                 (!voucherFilterModel.MinOrderRequired.HasValue ||
-                 (voucher.MinOrderRequired.HasValue && voucher.MinOrderRequired.Value >= voucherFilterModel.MinOrderRequired));
-
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
                              .Include(_ => _.Receiver)
                              .Include(_ => _.VoucherUsageLogs)
                              .ThenInclude(_ => _.Order);
 
                     var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
-                                    filter: filter,
+                                    filter: voucher =>
+                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                                         (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                                         (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                                         (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                                         (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
+                                         (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
+                                         (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
+                                         (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
+                                         (!voucherFilterModel.MinReputation.HasValue ||
+                                         (voucher.MinReputation.HasValue && voucher.MinReputation.Value >= voucherFilterModel.MinReputation)) &&
+                                         (!voucherFilterModel.MinOrderRequired.HasValue ||
+                                         (voucher.MinOrderRequired.HasValue && voucher.MinOrderRequired.Value >= voucherFilterModel.MinOrderRequired)),
+                                     order: s =>
+                                      {
+                                          switch (voucherFilterModel.Order.ToLower())
+                                          {
+                                              case "userName":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.Receiver!.Username)
+                                                      : s.OrderBy(s => s.Receiver!.Username);
+                                              case "discountValue":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.DiscountValue)
+                                                      : s.OrderBy(s => s.DiscountValue);
+                                              case "expiredTime":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.ExpiredTime)
+                                                      : s.OrderBy(s => s.ExpiredTime);
+                                              case "remainingQuantity":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.RemainingQuantity)
+                                                      : s.OrderBy(s => s.RemainingQuantity);
+                                              case "status":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.VoucherStatus)
+                                                      : s.OrderBy(s => s.VoucherStatus);
+                                              default:
+                                                  return voucherFilterModel.OrderByDescending
+                                                     ? s.OrderByDescending(s => s.CreationDate)
+                                                     : s.OrderBy(s => s.CreationDate);
+                                          }
+                                      },
                                     include: include,
                                     pageIndex: voucherFilterModel.PageIndex,
                                     pageSize: voucherFilterModel.PageSize
