@@ -1,6 +1,7 @@
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.DashBoardModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -291,7 +292,26 @@ public class AccountController : ControllerBase
             });
         }
     }
-    
+
+    [Authorize(Roles ="Artisan")]
+    [HttpGet("dash-board")]
+    public async Task<IActionResult> GetDashBoard([FromQuery] DashboardFilterModel dashboardFilterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetArtisanDashboard(dashboardFilterModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+
     /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
