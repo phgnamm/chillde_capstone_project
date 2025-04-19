@@ -1,6 +1,7 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.AccountModels;
+using Chillde.Repositories.Models.OfferModels;
 
 namespace Chillde.Repositories.Models.MessageModels;
 
@@ -11,6 +12,7 @@ public class MessageModel : BaseEntity
     public MediaType MessageType { get; set; }
     public bool IsPinned { get; set; }
     public bool IsModified { get; set; }
+    public OfferModel? Offer { get; set; }
 
     // Foreign key
     public Guid? ParentMessageId { get; set; }

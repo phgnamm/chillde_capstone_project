@@ -23,6 +23,10 @@ namespace Chillde.Repositories.Models.OrderModels
         public string ToProvince { get; set; }
         public decimal? TotalPrice { get; set; }
         public decimal? PackagePrice { get; set; }
+        public decimal? AdminCommUsedVch { get; set; }
+        public decimal? AdminCommDefault { get; set; }
+        public decimal? AdminComm { get; set; }
+        public decimal? ArtistRevenue { get; set; }
         public required PackageName PackageName { get; set; }
         public int? Quantity { get; set; }
         public string? ShipmentCode { get; set; }

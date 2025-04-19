@@ -1,5 +1,7 @@
-﻿using Chillde.Services.Models.AccountModels;
+﻿using Chillde.Repositories.Models.DashBoardModels;
+using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.CategoryModels;
+using Chillde.Services.Models.DashBoardModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,4 +36,5 @@ public interface IAccountService
     Task<ResponseModel> BanAccountRole(BanAccountRoleModel request);
     Task<ResponseModel> DeleteAccountRole(Guid accountId, Guid accountRoleId);
     Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId);
+    Task<ResponseDashboardModel<ArtisanDashboardModel>> GetArtisanDashboard(DashboardFilterModel dashboardFilterModel);
 }
