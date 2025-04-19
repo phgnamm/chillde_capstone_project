@@ -312,6 +312,24 @@ public class AccountController : ControllerBase
         }
     }
 
+    [HttpGet("not-pagination")]
+    public async Task<IActionResult> GetAllAccount([FromQuery] AccountFilterModel accountFilterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetAllAccount(accountFilterModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+
     /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
