@@ -2212,6 +2212,7 @@ namespace Chillde.Services.Services
                         {
                             Id = order.Package.Id,
                             Name = order.Package.Name,
+                            ServiceId = order.Package.ServiceId,
                             Description = order.Package.Description,
                             DeliveryTime = order.Package.DeliveryTime,
                             SketchRevision = order.Package.SketchRevision,

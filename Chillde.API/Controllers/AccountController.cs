@@ -294,7 +294,7 @@ public class AccountController : ControllerBase
     }
 
     [Authorize(Roles ="Artisan")]
-    [HttpGet("dash-board")]
+    [HttpGet("dashboard")]
     public async Task<IActionResult> GetDashBoard([FromQuery] DashboardFilterModel dashboardFilterModel)
     {
         try

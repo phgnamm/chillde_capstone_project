@@ -107,21 +107,30 @@ namespace Chillde.Services.Services
                     Message = "User has not completed an order in this service."
                 };
             }
-            /*
-                        var hasFeedback = await _unitOfWork.FeedbackRepository.HasFeedback(currentUserId.Value, feedbackAddModel.ServiceId);
-                        if (hasFeedback)
-                        {
-                            return new ResponseModel
-                            {
-                                Code = StatusCodes.Status400BadRequest,
-                                Message = "User has already given feedback for this service."
-                            };
-                        }*/
 
+            var hasFeedback = await _unitOfWork.FeedbackRepository.HasFeedback(currentUserId.Value, feedbackAddModel.ServiceId);
+            if (hasFeedback)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "User has already given feedback for this service."
+                };
+            }
+            var existService = await _unitOfWork.ServiceRepository.GetAsync(feedbackAddModel.ServiceId);
+            if (existService == null)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status404NotFound,
+                    Message = "Service not found"
+                };
+            }
             var feedback = new Feedback
             {
                 Id = Guid.NewGuid(),
                 ServiceId = feedbackAddModel.ServiceId,
+                ArtisanId = existService.CreatedById ?? Guid.Empty,
                 CreatedById = currentUserId.Value,
                 Rating = feedbackAddModel.Rating,
                 Description = feedbackAddModel.Description,
@@ -191,13 +200,21 @@ namespace Chillde.Services.Services
                 Id = _.Id,
                 CreatedById = _.CreatedById,
                 ServiceId = _.ServiceId,
-                AuthorName = _.CreatedBy.FirstName + " " + _.CreatedBy.LastName,
+                CreatedBy = new AccountLiteModel
+                {
+                    FirstName = _.CreatedBy.FirstName,
+                    LastName = _.CreatedBy.LastName,
+                    Username = _.CreatedBy.Username,
+                    Email = _.CreatedBy.Email,
+                    Image = _.CreatedBy.Image
+                },
                 Description = _.Description,
                 CreationDate = _.CreationDate,
                 Rating = _.Rating,
-                FeedbackImageModels = _.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                FeedbackAttachmentModels = _.FeedbackAttachments.Select(_ => new FeedbackAttachmentModel
                 {
-                    ImageUrl = _.AttachmentUrl ?? ""
+                   AttachmentAlt = _.AttachmentAlt,
+                   AttachmentUrl = _.AttachmentUrl,
                 }).ToList()
             }).ToList();
             var result = new Pagination<FeedbackModel>(feedbackModels, feedbackFilterModel.PageIndex,
@@ -225,13 +242,21 @@ namespace Chillde.Services.Services
                 Id = _.Id,
                 CreatedById = _.CreatedById,
                 ServiceId = _.ServiceId,
-                AuthorName = _.CreatedBy.FirstName + " " + _.CreatedBy.LastName,
+                CreatedBy = new AccountLiteModel
+                {
+                    FirstName = _.CreatedBy.FirstName,
+                    LastName = _.CreatedBy.LastName,
+                    Username = _.CreatedBy.Username,
+                    Email = _.CreatedBy.Email,
+                    Image = _.CreatedBy.Image
+                },
                 Description = _.Description,
                 CreationDate = _.CreationDate,
                 Rating = _.Rating,
-                FeedbackImageModels = _.FeedbackAttachments.Select(_ => new FeedbackImageModel
+                FeedbackAttachmentModels = _.FeedbackAttachments.Select(_ => new FeedbackAttachmentModel
                 {
-                    ImageUrl = _.AttachmentUrl ?? ""
+                    AttachmentAlt = _.AttachmentAlt,
+                    AttachmentUrl = _.AttachmentUrl,
                 }).ToList()
             }).ToList();
             var result = new Pagination<FeedbackModel>(feedbackModels, feedbackFilterModel.PageIndex,
@@ -333,7 +358,9 @@ namespace Chillde.Services.Services
                     MinWeight = serviceAddModel.MinWeight,
                     MaxWeight = serviceAddModel.MaxWeight,
                     CategoryId = serviceAddModel.CategoryId,
-                    EmbeddingVector = embeddingVector
+                    EmbeddingVector = embeddingVector,
+                    FeedbackCount = 0,
+                    Rate = 0
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
@@ -1183,7 +1210,7 @@ namespace Chillde.Services.Services
                         Message = "Service not found."
                     };
                 }
-                
+
                 var cacheKey = $"features_{CacheTools.GenerateCacheKey(serviceId)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
@@ -1738,7 +1765,7 @@ namespace Chillde.Services.Services
                         {
                             switch (serviceFilterModel.Order.ToLower())
                             {
-                                    case "creating":
+                                case "creating":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.CreationDate)
                                         : s.OrderBy(s => s.CreationDate);
