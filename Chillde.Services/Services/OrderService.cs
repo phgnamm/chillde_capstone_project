@@ -2307,7 +2307,7 @@ namespace Chillde.Services.Services
                         Message = "Invalid order ID."
                     };
                 }
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package));
                 if (order == null)
                 {
                     return new ResponseModel
@@ -2332,6 +2332,26 @@ namespace Chillde.Services.Services
                         Message = $"Order is not in Accepted status. Current status: {order.Status}."
                     };
                 }
+                var account = await _unitOfWork.AccountRepository.GetAsync((Guid)order.Package.CreatedById, include: _ => _.Include(_ => _.Wallet));
+                var wallet = account?.Wallet;
+                if (wallet == null)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Wallet not found"
+                    };
+
+                wallet.Balance += (decimal)order.ArtistRevenue;
+
+                order.Transactions.Add(new Transaction
+                {
+                    WalletId = wallet.Id,
+                    Amount = order.ArtistRevenue,
+                    Type = TransactionType.TransferIn,
+                    Status = TransactionStatus.Completed,
+                    CreatedById = account.CreatedById
+                });
+                _unitOfWork.WalletRepository.Update(wallet);
                 order.Stage = OrderStage.Completed;
                 order.Status = OrderStatus.Completed;
                 _unitOfWork.OrderRepository.Update(order);
