@@ -991,6 +991,10 @@ namespace Chillde.Services.Services
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Code)
                             : query.OrderByDescending(o => o.Code);
+                    case "serviceName":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Package.Service.Name)
+                            : query.OrderByDescending(o => o.Code);
                     case "customerName":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.CreatedBy.Username)
