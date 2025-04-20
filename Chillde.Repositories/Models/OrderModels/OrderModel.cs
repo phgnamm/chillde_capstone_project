@@ -17,6 +17,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public string Name { get; set; } 
         public List<ServiceAttachment> Attachments { get; set; } = new List<ServiceAttachment>();
         public string ShipmentId { get; set; }
+        public string CustomerName { get; set; }
         public string Address { get; set; }
         public string Phone { get; set; }
         public string ToWard { get; set; }

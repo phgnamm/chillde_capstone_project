@@ -1014,6 +1014,10 @@ namespace Chillde.Services.Services
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.ArtistRevenue)
                             : query.OrderByDescending(o => o.ArtistRevenue);
+                    case "adminCommission":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.AdminCommDefault ?? o.AdminCommUsedVch)
+                            : query.OrderByDescending(o => o.AdminCommDefault ?? o.AdminCommUsedVch);
                     default:
                         return orderFilterModel.OrderByDescending
                             ? query.OrderByDescending(o => o.CreationDate)
@@ -1050,7 +1054,8 @@ namespace Chillde.Services.Services
             {
                 var orders = await _unitOfWork.OrderRepository.GetAllAsync(
                     filter: filter,
-                    include: q => q.Include(o => o.Package)
+                    include: q => q.Include(o => o.CreatedBy)
+                                   .Include(o => o.Package)
                                    .ThenInclude(p => p.Service).ThenInclude(s => s.CreatedBy)
                                    .Include(o => o.Package)
                                    .ThenInclude(p => p.Service).ThenInclude(s => s.ServiceAttachments)
@@ -1091,6 +1096,7 @@ namespace Chillde.Services.Services
                             }).ToList() ?? new List<ServiceAttachment>()
                             : new List<ServiceAttachment>(),
                     Code = order.Code,
+                    CustomerName = order.CreatedBy.Username,
                     Phone = order.Phone ?? string.Empty,
                     Address = order.Address ?? string.Empty,
                     ToDistrict = order.ToDistrict,
