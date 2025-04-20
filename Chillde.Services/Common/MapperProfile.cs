@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.AccountRoleModels;
 using Chillde.Repositories.Models.CategoriesModels;
@@ -56,6 +57,11 @@ public class MapperProfile : Profile
                 opt => opt.MapFrom(src => src.Wallet.Balance))
             .ForMember(dest => dest.OrderCount,
                 opt => opt.MapFrom(src => src.Orders.Count)) // Đếm số lượng Orders
+            .ForMember(dest => dest.TotalAmountPaid,
+                opt => opt.MapFrom(src =>
+                     src.Wallet.Transactions
+                    .Where(t => t.Type == TransactionType.TransferOut) // enum value == 3
+                    .Sum(t => t.Amount ?? 0)))
             .ForMember(dest => dest.ServiceCount, opt => opt.MapFrom(src => src.Services.Count))
             .ForMember(dest => dest.AccountRoles, opt => opt.MapFrom(src => src.AccountRoles));
         CreateMap<Account, AccountLiteModel>();
