@@ -13,6 +13,7 @@ using Chillde.Services.Models.SystemConfigModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -178,9 +179,22 @@ namespace Chillde.Services.Services
                     pagedConfigs,
                     model.PageIndex,
                     model.PageSize,
-                    pagedConfigs.Count
+                    mappedConfigs.Count
                 )
             };
+        }
+
+        public async Task<List<object[]>> GetAllAsKeyValueAsync()
+        {
+            var configs = await _unitOfWork.SystemConfigRepository.GetAllAsync();
+
+            var distinctEntityTypes = configs.Data
+                .Select(c => c.EntityType)
+                .Distinct();
+
+            return distinctEntityTypes
+                .Select(entityType => new object[] { (int)entityType, entityType.ToString() })
+                .ToList();
         }
 
 

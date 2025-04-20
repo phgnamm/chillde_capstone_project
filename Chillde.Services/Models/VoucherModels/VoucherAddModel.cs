@@ -11,6 +11,7 @@ namespace Chillde.Services.Models.VoucherModels
     public class VoucherAddModel
     {
         public Guid? ReceiverId { get; set; }
+        public VoucherType VoucherType { get; set; }
         public int? MinOrderRequired { get; set; }
         public int? MinReputation { get; set; }
 

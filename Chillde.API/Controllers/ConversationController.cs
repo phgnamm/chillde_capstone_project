@@ -1,3 +1,4 @@
+using Chillde.API.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ConversationModels;
 using Chillde.Services.Models.MessageModels;
@@ -117,7 +118,10 @@ public class ConversationController : ControllerBase
     {
         try
         {
-            var result = await _conversationService.AddMessage(conversationId, messageAddModel);
+            var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+            var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+            var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+            var result = await _conversationService.AddMessage(conversationId, messageAddModel, sourceLanguageCode, targetLanguageCode);;
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)
@@ -137,7 +141,10 @@ public class ConversationController : ControllerBase
     {
         try
         {
-            var result = await _conversationService.GetAllMessages(conversationId, messageFilterModel);
+            var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+            var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+            var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+            var result = await _conversationService.GetAllMessages(conversationId, messageFilterModel, sourceLanguageCode, targetLanguageCode);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Models.AccountModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +12,15 @@ namespace Chillde.Repositories.Models.FeedbackModels
     {
         public int? Rating { get; set; }
         public string? Description { get; set; }
-        public string AuthorName { get; set; }
+        public required AccountLiteModel CreatedBy { get; set; }
         public Guid? ServiceId { get; set; }
         public string ? Response { get; set; }
-        public ICollection<FeedbackImageModel> FeedbackImageModels { get; set; } = new List<FeedbackImageModel>();
+        public ICollection<FeedbackAttachmentModel> FeedbackAttachmentModels { get; set; } = new List<FeedbackAttachmentModel>();
     }
-    public class FeedbackImageModel
+    public class FeedbackAttachmentModel
     {
-        public string ImageUrl { get; set; }
+        public string? AttachmentAlt { get; set; }
+        public string? AttachmentUrl { get; set; }
     }
 
 }

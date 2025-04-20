@@ -34,6 +34,7 @@ public class AccountModel : BaseEntity
     
     // Wallet information
     public decimal Balance { get; set; } // Lấy số dư ví
+    public decimal TotalAmountPaid { get; set; } // Tổng tiền đã chi trả
 
     // Order information
     public int OrderCount { get; set; }
