@@ -55,11 +55,25 @@ namespace Chillde.Services.Services
 
                 var voucherUsages = await _unitOfWork.VoucherUsageLogRepository.GetAllAsync(
                                 filter: filter,
+                                include: _ => _.Include(_ => _.Order).Include(_ => _.Voucher),
                                 pageIndex: voucherUsageLogFilterModel.PageIndex,
                                 pageSize: voucherUsageLogFilterModel.PageSize
                 );
 
-                var voucherUsageModels = _mapper.Map<List<VoucherUsageLogModel>>(voucherUsages.Data);
+                var voucherUsageModels = voucherUsages.Data.Select(v => new VoucherUsageLogModel
+                {
+                    Id = v.Id,
+                    VoucherCode = v.Voucher.Code,
+                    OrderCode = v.Order.Code,
+                    CreatedById = v.CreatedById,
+                    CreationDate = v.CreationDate,
+                    ModifiedById = v.ModifiedById,
+                    ModificationDate = v.ModificationDate,
+                    IsDeleted = v.IsDeleted,
+                    DiscountValue = v.DiscountValue,
+                    DiscountValueOrigin = v.DiscountValueOrigin,
+                    UsageStatus = v.UsageStatus
+                }).ToList();
 
                 var result = new Pagination<VoucherUsageLogModel>(voucherUsageModels, voucherUsageLogFilterModel.PageIndex,
                   voucherUsageLogFilterModel.PageSize, voucherUsages.TotalCount);
