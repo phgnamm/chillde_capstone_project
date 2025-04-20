@@ -986,6 +986,38 @@ namespace Chillde.Services.Services
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.CreationDate)
                             : query.OrderByDescending(o => o.CreationDate);
+                    case "code":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Code)
+                            : query.OrderByDescending(o => o.Code);
+                    case "customerName":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.CreatedBy.Username)
+                            : query.OrderByDescending(o => o.CreatedBy.Username);
+                    case "packageName":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Package.Name)
+                            : query.OrderByDescending(o => o.Package.Name);
+                    case "artistName":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Package.Service != null ? o.Package.Service.CreatedBy.Username : o.Package.Offer.CreatedBy.Username)
+                            : query.OrderByDescending(o => o.Package.Service != null ? o.Package.Service.CreatedBy.Username : o.Package.Offer.CreatedBy.Username);
+                    case "status":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Status)
+                            : query.OrderByDescending(o => o.Status);
+                    case "totalPrice":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.TotalPrice)
+                            : query.OrderByDescending(o => o.TotalPrice);
+                    case "artistRevenue":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.ArtistRevenue)
+                            : query.OrderByDescending(o => o.ArtistRevenue);
+                    case "adminCommission":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.AdminCommDefault ?? o.AdminCommUsedVch)
+                            : query.OrderByDescending(o => o.AdminCommDefault ?? o.AdminCommUsedVch);
                     default:
                         return orderFilterModel.OrderByDescending
                             ? query.OrderByDescending(o => o.CreationDate)
@@ -1022,7 +1054,8 @@ namespace Chillde.Services.Services
             {
                 var orders = await _unitOfWork.OrderRepository.GetAllAsync(
                     filter: filter,
-                    include: q => q.Include(o => o.Package)
+                    include: q => q.Include(o => o.CreatedBy)
+                                   .Include(o => o.Package)
                                    .ThenInclude(p => p.Service).ThenInclude(s => s.CreatedBy)
                                    .Include(o => o.Package)
                                    .ThenInclude(p => p.Service).ThenInclude(s => s.ServiceAttachments)
@@ -1062,6 +1095,8 @@ namespace Chillde.Services.Services
                                 ServiceId = Guid.Empty
                             }).ToList() ?? new List<ServiceAttachment>()
                             : new List<ServiceAttachment>(),
+                    Code = order.Code,
+                    CustomerName = order.CreatedBy.Username,
                     Phone = order.Phone ?? string.Empty,
                     Address = order.Address ?? string.Empty,
                     ToDistrict = order.ToDistrict,

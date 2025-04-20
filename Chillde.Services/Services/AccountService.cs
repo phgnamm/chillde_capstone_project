@@ -745,12 +745,18 @@ public class AccountService : IAccountService
                 account = await _unitOfWork.AccountRepository.GetAsync(id, accounts =>
                     accounts
                         .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role)
-                        .Include(a => a.ShippingAddresses));
+                        .Include(a => a.ShippingAddresses)
+                        .Include(a => a.Wallet)
+                        .ThenInclude(w => w.Transactions)
+                        .Include(a => a.Orders));
             else
                 account = await _unitOfWork.AccountRepository.FindByUsernameAsync(idOrUsername, accounts =>
                     accounts
                         .Include(a => a.AccountRoles).ThenInclude(accountRole => accountRole.Role)
-                        .Include(a => a.ShippingAddresses));
+                        .Include(a => a.ShippingAddresses)
+                        .Include(a => a.Wallet)
+                        .ThenInclude(w => w.Transactions)
+                        .Include(a => a.Orders));
 
             if (account == null)
                 return new ResponseModel

@@ -1598,6 +1598,7 @@ namespace Chillde.Services.Services
                             FeedbackCount = s.FeedbackCount,
                             Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
                             CategoryId = s.CategoryId,
+                            Status = s.Status,
                             Artisan = new AccountLiteModel()
                             {
                                 FirstName = s.CreatedBy.FirstName,
@@ -1685,6 +1686,7 @@ namespace Chillde.Services.Services
                             FeedbackCount = s.FeedbackCount,
                             Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
                             CategoryId = s.CategoryId,
+                            Status = s.Status,
                             Artisan = new AccountLiteModel()
                             {
                                 FirstName = s.CreatedBy.FirstName,
@@ -1798,6 +1800,7 @@ namespace Chillde.Services.Services
                         FeedbackCount = s.FeedbackCount,
                         Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
                         CategoryId = s.CategoryId,
+                        Status = s.Status,
                         Artisan = new AccountLiteModel()
                         {
                             FirstName = s.CreatedBy.FirstName,
