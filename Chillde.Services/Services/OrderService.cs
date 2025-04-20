@@ -665,6 +665,7 @@ namespace Chillde.Services.Services
                 _unitOfWork.WalletRepository.Update(wallet);
             }
 
+            _unitOfWork.WalletRepository.Update(wallet);
 
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -1096,7 +1097,7 @@ namespace Chillde.Services.Services
                             }).ToList() ?? new List<ServiceAttachment>()
                             : new List<ServiceAttachment>(),
                     Code = order.Code,
-                    CustomerName = order.CreatedBy.Username,
+                    CustomerName = order.CreatedBy.FirstName + " " + order.CreatedBy.LastName,
                     Phone = order.Phone ?? string.Empty,
                     Address = order.Address ?? string.Empty,
                     ToDistrict = order.ToDistrict,
