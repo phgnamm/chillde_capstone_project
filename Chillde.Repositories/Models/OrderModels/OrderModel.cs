@@ -13,6 +13,7 @@ namespace Chillde.Repositories.Models.OrderModels
 {
     public class OrderModel : BaseEntity
     {
+        public string Code { get; set; }
         public string Name { get; set; } 
         public List<ServiceAttachment> Attachments { get; set; } = new List<ServiceAttachment>();
         public string ShipmentId { get; set; }
