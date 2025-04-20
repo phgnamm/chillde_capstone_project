@@ -36,7 +36,7 @@ namespace Chillde.Services.Services
             _localizer = localizer;
             _localizerFactory = localizerFactory;
             _serviceProvider = serviceProvider;
-            _claimService = claimService;   
+            _claimService = claimService;
         }
 
         public async Task<ResponseModel> Add(CategoryAddModel categoryAddModel)
@@ -330,10 +330,9 @@ namespace Chillde.Services.Services
                 Expression<Func<Category, bool>> filter = category =>
                     (category.IsDeleted == categoryFilterModel.IsDeleted) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-                     (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
-                     (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
-                    (string.IsNullOrEmpty(categoryFilterModel.Slug) || (category.Slug != null && category.Slug == categoryFilterModel.Slug)) &&
-                    (!categoryFilterModel.ParentId.HasValue || category.ParentId == categoryFilterModel.ParentId);
+                        (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
+                        (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
+                    (string.IsNullOrEmpty(categoryFilterModel.Slug) || (category.Slug != null && category.Slug == categoryFilterModel.Slug));
 
                 var allCategoriesResult = await _unitOfWork.CategoryRepository.GetAllAsync(filter: filter);
                 var allCategories = allCategoriesResult.Data;
@@ -343,7 +342,7 @@ namespace Chillde.Services.Services
                 {
                     var rootCategories = allCategories
                         .Where(c => c.ParentId == categoryFilterModel.ParentId)
-                        .Select(c => BuildCategoryTree(c, allCategories))
+                        .Select(c => BuildCategoryTree(c, allCategories, 0))
                         .ToList();
 
                     var totalCount = rootCategories.Count;
@@ -418,7 +417,7 @@ namespace Chillde.Services.Services
 
         }
 
-        private CategoryTreeModel BuildCategoryTree(Category category, IEnumerable<Category> allCategories)
+        private CategoryTreeModel BuildCategoryTree(Category category, IEnumerable<Category> allCategories, int level = 0)
         {
             var treeModel = new CategoryTreeModel
             {
@@ -432,12 +431,15 @@ namespace Chillde.Services.Services
                 CreationDate = category.CreationDate,
                 ModificationDate = category.ModificationDate,
                 ModifiedById = category.ModifiedById,
-                IsDeleted = category.IsDeleted
+                IsDeleted = category.IsDeleted,
+                Level = level
             };
 
             var categories = allCategories.ToList();
             var children = categories.Where(c => c.ParentId == category.Id).ToList();
-            treeModel.Children = children.Select(c => BuildCategoryTree(c, categories)).ToList();
+            treeModel.Children = children
+                .Select(c => BuildCategoryTree(c, categories, level + 1))
+                .ToList();
 
             return treeModel;
         }
