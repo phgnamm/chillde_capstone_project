@@ -330,8 +330,8 @@ namespace Chillde.Services.Services
                 Expression<Func<Category, bool>> filter = category =>
                     (category.IsDeleted == categoryFilterModel.IsDeleted) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
-                        (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
-                        (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
+                      (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
+                      (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Slug) || (category.Slug != null && category.Slug == categoryFilterModel.Slug));
 
                 var allCategoriesResult = await _unitOfWork.CategoryRepository.GetAllAsync(filter: filter);
@@ -368,7 +368,7 @@ namespace Chillde.Services.Services
                 else
                 {
                     var flatCategories = allCategories
-                        .Where(c => c.ParentId == categoryFilterModel.ParentId)
+                        .Where(c => !categoryFilterModel.ParentId.HasValue || c.ParentId == categoryFilterModel.ParentId)
                         .Select(category => new CategoryTreeModel
                         {
                             Id = category.Id,
