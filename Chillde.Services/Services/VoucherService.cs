@@ -230,7 +230,8 @@ namespace Chillde.Services.Services
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
                              .Include(_ => _.Receiver)
                              .Include(_ => _.VoucherUsageLogs)
-                             .ThenInclude(_ => _.Order);
+                             .ThenInclude(_ => _.Order).Include(_ => _.VoucherUsageLogs)
+                             .ThenInclude(_ => _.Voucher);
 
                     var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: voucher =>
@@ -299,8 +300,8 @@ namespace Chillde.Services.Services
                     VoucherUsageLogs = voucher.VoucherUsageLogs?.Select(log => new VoucherUsageLogModel
                     {
                         Id = log.Id,
-                        VoucherId = log.VoucherId,
-                        OrderId = log.OrderId,
+                        VoucherCode = log.Voucher.Code,
+                        OrderCode = log.Order.Code,
                         DiscountValue = log.DiscountValue,
                         DiscountValueOrigin = log.DiscountValueOrigin,
                         UsageStatus = log.UsageStatus,
