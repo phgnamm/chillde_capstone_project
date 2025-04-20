@@ -1026,30 +1026,56 @@ namespace Chillde.Services.Services
                 }
             };
 
-            Expression<Func<Repositories.Entities.Order, bool>> filter = orderFilterModel.Role switch
+            Expression<Func<Chillde.Repositories.Entities.Order, bool>> filter = orderFilterModel.Role switch
             {
-                Repositories.Enums.Role.Customer => o => o.CreatedById == currentUserId.Value &&
-                                                         (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                                                         (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                                                         (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
-                Repositories.Enums.Role.Artisan => o => (o.Package.Service != null && o.Package.Service.CreatedById == currentUserId.Value) ||
-                                                        (o.Package.Offer != null && o.Package.Offer.CreatedById == currentUserId.Value) &&
-                                                        (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                                                        (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                                                        (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
-                Repositories.Enums.Role.Admin => o =>
-                                                        (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                                                        (String.IsNullOrEmpty(orderFilterModel.Search) || o.Code.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.PhoneNumber!.Contains(orderFilterModel.Search) ||
-                                                            o.Address.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.LastName.Contains(orderFilterModel.Search)) &&
-                                                        (!orderFilterModel.AccountId.HasValue || o.CreatedById.Equals(orderFilterModel.AccountId))&&
-                                                        (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                                                        (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
+               Chillde.Repositories.Enums.Role.Customer => o =>
+                    o.CreatedById == orderFilterModel.AccountId &&
+                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                        o.Code.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                        o.Address.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                    )),
+
+                Chillde.Repositories.Enums.Role.Artisan => o =>
+                    (
+                        (o.Package.Service != null && o.Package.Service.CreatedById == orderFilterModel.AccountId) ||
+                        (o.Package.Offer != null && o.Package.Offer.CreatedById == orderFilterModel.AccountId)
+                    ) &&
+                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                        o.Code.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                        o.Address.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                    )),
+
+                Chillde.Repositories.Enums.Role.Admin => o =>
+                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                    (!orderFilterModel.AccountId.HasValue || o.CreatedById == orderFilterModel.AccountId) &&
+                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                        o.Code.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                        o.Address.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                    )),
+
                 _ => o => false
             };
+
 
             try
             {
@@ -2124,6 +2150,7 @@ namespace Chillde.Services.Services
                     {
                         Id = _.Id,
                         VoucherId = _.Voucher?.Id ?? Guid.Empty,
+                        VoucherCode = _.Voucher?.Code ?? "N/A",
                         DiscountValue = _.DiscountValue,
                         DiscountOriginalValue = _.DiscountValueOrigin,
                         UsageStatus = _.UsageStatus,
@@ -2137,6 +2164,7 @@ namespace Chillde.Services.Services
                         FeatureId = _.PackageFeature?.Feature?.Id ?? Guid.Empty,
                         FeatureName = _.PackageFeature?.Feature?.Name ?? string.Empty,
                         Description = _.Description ?? string.Empty,
+                        IsExtra = _.PackageFeature?.IsExtra ?? false,
                         Quantity = _.Quantity ?? 0,
                         Price = _.Price ?? 0,
                         Attachments = _.OrderInformationAttachments?.Select(att => new OrderAttachmentModel
