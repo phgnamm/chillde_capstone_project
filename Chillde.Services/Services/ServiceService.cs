@@ -1543,11 +1543,11 @@ namespace Chillde.Services.Services
 
             if (currentUserId.HasValue && serviceFilterModel.IsAccountSuggestion)
             {
-                //var cacheKey = "suggested_services";
-                //var cacheDuration = TimeSpan.FromMinutes(15);
+                var cacheKey = "suggested_services";
+                var cacheDuration = TimeSpan.FromMinutes(15);
 
-                //var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                //{
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
                     var recentLogs = await _unitOfWork.UserActivityLogRepository.GetAllAsync(
                         filter: log => log.UserId == currentUserId.Value,
                         order: q => q.OrderByDescending(log => log.Timestamp),
@@ -1637,10 +1637,10 @@ namespace Chillde.Services.Services
                         Message = "Get services based on user activity log successfully",
                         Data = paginatedResult
                     };
-                //}, cacheDuration);
+            }, cacheDuration);
 
-                //return responseModel;
-            }
+            return responseModel;
+        }
             else if (serviceFilterModel.IsEvent)
             {
                 var eventDetails = _openAiService.GetEvent(sourceLanguageCode);
@@ -1663,8 +1663,8 @@ namespace Chillde.Services.Services
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventVi });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
-                //var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                //{
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy).Include(_ => _.Category),
@@ -1732,16 +1732,16 @@ namespace Chillde.Services.Services
                             Services = paginatedResult
                         }
                     };
-                //}, cacheDuration);
+            }, cacheDuration);
 
-                //return responseModel;
-            }
+            return responseModel;
+        }
             else
             {
-                //var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
+                var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
-                //var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                //{
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
                     Guid? filterId = null;
                     if (Guid.TryParse(serviceFilterModel.IdOrUserName, out var id))
                     {
@@ -1824,9 +1824,9 @@ namespace Chillde.Services.Services
                         Message = "Get all services successfully",
                         Data = paginatedResult
                     };
-                //});
-                //return responseModel;
-            }
+            });
+            return responseModel;
+        }
         }
 
         private async Task<List<ServiceModel>> GetServiceListAsync(Expression<Func<Service, bool>> filter)
