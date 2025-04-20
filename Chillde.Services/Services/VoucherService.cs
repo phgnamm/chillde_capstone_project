@@ -228,16 +228,17 @@ namespace Chillde.Services.Services
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
-                             .Include(_ => _.Receiver)
-                             .Include(_ => _.VoucherUsageLogs)
-                             .ThenInclude(_ => _.Order).Include(_ => _.VoucherUsageLogs)
-                             .ThenInclude(_ => _.Voucher);
+     .Include(v => v.Receiver)
+     .Include(v => v.VoucherUsageLogs)
+         .ThenInclude(log => log.Order); // Bỏ ThenInclude(log => log.Voucher) nếu không thực sự cần
 
-                    var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
+
+
+                var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: voucher =>
                                          (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
                                          (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
-                                         (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                                         (!voucherFilterModel.IsDeleted.HasValue || voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
                                          (!voucherFilterModel.MinOrderValue.HasValue || voucher.MinOrderValue >= voucherFilterModel.MinOrderValue) &&
                                          (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
                                          (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
