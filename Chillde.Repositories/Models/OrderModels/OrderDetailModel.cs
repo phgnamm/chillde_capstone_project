@@ -52,7 +52,7 @@ namespace Chillde.Repositories.Models.OrderModels
     public class VoucherUsageModel : BaseEntity
     {
         public Guid VoucherId { get; set; }
-        public string VouhcherCode { get; set; }
+        public string VoucherCode { get; set; }
         public decimal DiscountValue { get; set; }
         public decimal DiscountOriginalValue { get; set; }
         public UsageStatus UsageStatus { get; set; }
@@ -63,6 +63,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public Guid FeatureId { get; set; }
         public string FeatureName { get; set; }
         public string Description { get; set; }
+        public bool? IsExtra { get; set; }
         public int Quantity { get; set; }
         public decimal Price { get; set; }
 
