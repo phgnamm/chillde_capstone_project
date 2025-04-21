@@ -1603,6 +1603,8 @@ namespace Chillde.Services.Services
                             CategorySlug = s.Category.Slug,
                             PackageCount = s.Packages.Count(),
                             Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            MinWeight = s.MinWeight,
+                            MaxWeight = s.MaxWeight,
                             MaxPrice = s.Packages.Any() ? s.Packages.Max(p => p.Price) : 0,
                             Status = s.Status,
                             Artisan = new AccountLiteModel()
