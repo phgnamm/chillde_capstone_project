@@ -2413,10 +2413,9 @@ namespace Chillde.Services.Services
         {
             try
             {
-
                 var order = await _unitOfWork.OrderRepository.GetAsync(orderId, 
                     include: order => order.Include(_ => _.Package).ThenInclude(_ => _.Offer)
-                                      .Include(_ => _.Package).ThenInclude(_ => _.Service)  
+                                           .Include(_ => _.Package).ThenInclude(_ => _.Service)
                     );
                 if (order == null)
                 {
@@ -2424,6 +2423,16 @@ namespace Chillde.Services.Services
                     {
                         Code = StatusCodes.Status404NotFound,
                         Message = "Order not found."
+                    };
+                }
+
+                var existingReport = await _unitOfWork.ReportRepository.GetByOrder(orderId);
+                if(existingReport != null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Order was already reported."
                     };
                 }
 
@@ -2469,7 +2478,7 @@ namespace Chillde.Services.Services
                 order.Stage = OrderStage.Report;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.ReportOrder).Result;
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_ReportOrder).Result;
                 if (notificationContent != null)
                 {
                     var notificationAddModel = new NotificationAddModel
