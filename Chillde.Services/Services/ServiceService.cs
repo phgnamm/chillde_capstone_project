@@ -1784,6 +1784,26 @@ namespace Chillde.Services.Services
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Sum(p => p.Orders.Count))
                                         : s.OrderBy(s => s.Packages.Sum(p => p.Orders.Count));
+                                case "category":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Category.Slug)
+                                        : s.OrderBy(s => s.CreationDate);
+                                case "packageCount":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Packages.Count())
+                                        : s.OrderBy(s => s.CreationDate);
+                                case "minPrice":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Packages.Min(p => p.Price))
+                                        : s.OrderBy(s => s.CreationDate);
+                                case "maxPrice":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Packages.Max(p => p.Price))
+                                        : s.OrderBy(s => s.CreationDate);
+                                case "rating":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Rate)
+                                        : s.OrderBy(s => s.CreationDate);
                                 default:
                                     return serviceFilterModel.OrderByDescending
                                        ? s.OrderByDescending(s => s.CreationDate)
