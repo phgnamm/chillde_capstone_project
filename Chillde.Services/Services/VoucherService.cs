@@ -228,16 +228,18 @@ namespace Chillde.Services.Services
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
-                             .Include(_ => _.Receiver)
-                             .Include(_ => _.VoucherUsageLogs)
-                             .ThenInclude(_ => _.Order);
+     .Include(v => v.Receiver)
+     .Include(v => v.VoucherUsageLogs)
+         .ThenInclude(log => log.Order); // Bỏ ThenInclude(log => log.Voucher) nếu không thực sự cần
 
-                    var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
+
+
+                var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: voucher =>
-                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.CreatedById == voucherFilterModel.ArtisanId) &&
                                          (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
-                                         (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
-                                         (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                                         (!voucherFilterModel.IsDeleted.HasValue || voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                                         (!voucherFilterModel.MinOrderValue.HasValue || voucher.MinOrderValue >= voucherFilterModel.MinOrderValue) &&
                                          (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
                                          (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
                                          (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
@@ -299,8 +301,8 @@ namespace Chillde.Services.Services
                     VoucherUsageLogs = voucher.VoucherUsageLogs?.Select(log => new VoucherUsageLogModel
                     {
                         Id = log.Id,
-                        VoucherId = log.VoucherId,
-                        OrderId = log.OrderId,
+                        VoucherCode = log.Voucher.Code,
+                        OrderCode = log.Order.Code,
                         DiscountValue = log.DiscountValue,
                         DiscountValueOrigin = log.DiscountValueOrigin,
                         UsageStatus = log.UsageStatus,

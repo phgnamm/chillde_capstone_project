@@ -7,7 +7,7 @@ namespace Chillde.Services.Models.VoucherModels
     {
         public Guid? ArtisanId { get; set; }
         public VoucherStatus? Status { get; set; }
-        public decimal? MinDiscountValue { get; set; }
+        public decimal? MinOrderValue { get; set; }
         public decimal? MaxDiscountValue { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? ExpiredTime { get; set; }

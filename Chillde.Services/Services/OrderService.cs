@@ -669,6 +669,7 @@ namespace Chillde.Services.Services
                 _unitOfWork.WalletRepository.Update(wallet);
             }
 
+            _unitOfWork.WalletRepository.Update(wallet);
 
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -992,6 +993,10 @@ namespace Chillde.Services.Services
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Code)
                             : query.OrderByDescending(o => o.Code);
+                    case "serviceName":
+                        return orderFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Package.Service.Name)
+                            : query.OrderByDescending(o => o.Code);
                     case "customerName":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.CreatedBy.Username)
@@ -1027,30 +1032,56 @@ namespace Chillde.Services.Services
                 }
             };
 
-            Expression<Func<Repositories.Entities.Order, bool>> filter = orderFilterModel.Role switch
+            Expression<Func<Chillde.Repositories.Entities.Order, bool>> filter = orderFilterModel.Role switch
             {
-                Repositories.Enums.Role.Customer => o => o.CreatedById == currentUserId.Value &&
-                                                         (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                                                         (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                                                         (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
-                Repositories.Enums.Role.Artisan => o => (o.Package.Service != null && o.Package.Service.CreatedById == currentUserId.Value) ||
-                                                        (o.Package.Offer != null && o.Package.Offer.CreatedById == currentUserId.Value) &&
-                                                        (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                                                        (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                                                        (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
-                Repositories.Enums.Role.Admin => o =>
-                                                        (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                                                        (String.IsNullOrEmpty(orderFilterModel.Search) || o.Code.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.PhoneNumber!.Contains(orderFilterModel.Search) ||
-                                                            o.Address.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
-                                                            o.CreatedBy.LastName.Contains(orderFilterModel.Search)) &&
-                                                        (!orderFilterModel.AccountId.HasValue || o.CreatedById.Equals(orderFilterModel.AccountId))&&
-                                                        (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                                                        (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice),
+               Chillde.Repositories.Enums.Role.Customer => o =>
+                    o.CreatedById == orderFilterModel.AccountId &&
+                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                        o.Code.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                        o.Address.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                    )),
+
+                Chillde.Repositories.Enums.Role.Artisan => o =>
+                    (
+                        (o.Package.Service != null && o.Package.Service.CreatedById == orderFilterModel.AccountId) ||
+                        (o.Package.Offer != null && o.Package.Offer.CreatedById == orderFilterModel.AccountId)
+                    ) &&
+                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                        o.Code.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                        o.Address.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                    )),
+
+                Chillde.Repositories.Enums.Role.Admin => o =>
+                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                    (!orderFilterModel.AccountId.HasValue || o.CreatedById == orderFilterModel.AccountId) &&
+                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                        o.Code.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                        o.Address.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                    )),
+
                 _ => o => false
             };
+
 
             try
             {
@@ -1098,7 +1129,7 @@ namespace Chillde.Services.Services
                             }).ToList() ?? new List<ServiceAttachment>()
                             : new List<ServiceAttachment>(),
                     Code = order.Code,
-                    CustomerName = order.CreatedBy.Username,
+                    CustomerName = order.CreatedBy.FirstName + " " + order.CreatedBy.LastName,
                     Phone = order.Phone ?? string.Empty,
                     Address = order.Address ?? string.Empty,
                     ToDistrict = order.ToDistrict,
@@ -2120,6 +2151,7 @@ namespace Chillde.Services.Services
                     {
                         Id = _.Id,
                         VoucherId = _.Voucher?.Id ?? Guid.Empty,
+                        VoucherCode = _.Voucher?.Code ?? "N/A",
                         DiscountValue = _.DiscountValue,
                         DiscountOriginalValue = _.DiscountValueOrigin,
                         UsageStatus = _.UsageStatus,
@@ -2133,6 +2165,7 @@ namespace Chillde.Services.Services
                         FeatureId = _.PackageFeature?.Feature?.Id ?? Guid.Empty,
                         FeatureName = _.PackageFeature?.Feature?.Name ?? string.Empty,
                         Description = _.Description ?? string.Empty,
+                        IsExtra = _.PackageFeature?.IsExtra ?? false,
                         Quantity = _.Quantity ?? 0,
                         Price = _.Price ?? 0,
                         Attachments = _.OrderInformationAttachments?.Select(att => new OrderAttachmentModel
@@ -2302,7 +2335,7 @@ namespace Chillde.Services.Services
                         Message = "Invalid order ID."
                     };
                 }
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package));
                 if (order == null)
                 {
                     return new ResponseModel
@@ -2327,6 +2360,26 @@ namespace Chillde.Services.Services
                         Message = $"Order is not in Accepted status. Current status: {order.Status}."
                     };
                 }
+                var account = await _unitOfWork.AccountRepository.GetAsync((Guid)order.Package.CreatedById, include: _ => _.Include(_ => _.Wallet));
+                var wallet = account?.Wallet;
+                if (wallet == null)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Wallet not found"
+                    };
+
+                wallet.Balance += (decimal)order.ArtistRevenue;
+
+                order.Transactions.Add(new Transaction
+                {
+                    WalletId = wallet.Id,
+                    Amount = order.ArtistRevenue,
+                    Type = TransactionType.TransferIn,
+                    Status = TransactionStatus.Completed,
+                    CreatedById = account.CreatedById
+                });
+                _unitOfWork.WalletRepository.Update(wallet);
                 order.Stage = OrderStage.Completed;
                 order.Status = OrderStatus.Completed;
                 _unitOfWork.OrderRepository.Update(order);

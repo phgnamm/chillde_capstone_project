@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -846,6 +847,19 @@ public class AccountService : IAccountService
             accountFilterModel.PageSize
         );
         var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        var accountIds = accountModels.Select(a => a.Id).ToList();
+        var orderCounts = await _unitOfWork.Context.Orders
+            .Where(x => accountIds.Contains(x.Package.CreatedById!.Value) && !x.IsDeleted)
+            .GroupBy(x => x.Package.CreatedById)
+            .Select(g => new { AccountId = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var accountModel in accountModels)
+        {
+            accountModel.OrderArtisanCount = orderCounts
+                .FirstOrDefault(x => x.AccountId == accountModel.Id)?.Count ?? 0;
+        }
+
         var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
             accountFilterModel.PageSize, accounts.TotalCount);
 
