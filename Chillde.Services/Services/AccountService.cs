@@ -1587,7 +1587,7 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId)
     {
-        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId);
+        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId, a => a.Include(x => x.Account));;
         if (accountRole == null || accountRole.AccountId != accountId)
         {
             return new ResponseModel
@@ -1610,6 +1610,10 @@ public class AccountService : IAccountService
 
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
+            await _redisHelper.InvalidateCacheByPatternAsync($"account_{accountRole.AccountId}");
+            await _redisHelper.InvalidateCacheByPatternAsync($"account_{accountRole.Account.Username}");
+            await _redisHelper.InvalidateCacheByPatternAsync("accounts_*");
+            
             return new ResponseModel { Message = "Toggle account role status successfully" };
         }
 

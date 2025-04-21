@@ -382,36 +382,37 @@ namespace Chillde.Services.Services
                     };
                 }
                 var newServiceAttachment = new List<ServiceAttachment>();
-                var attachmentModel = serviceAddModel.ServiceAttachments;
-                if (serviceAddModel.ServiceAttachments != null)
+                var attachmentModel = serviceAddModel.Attachments;
+                if (serviceAddModel.Attachments != null)
                 {
                     for (int i = 0; i < attachmentModel!.Count; i++)
                     {
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
-                        string? path = null;
-                        if (attachmentUrl != null)
-                        {
-                            path = await _cloudinaryHelper.UploadImageAsync(
-                                attachmentUrl,
-                                attachmentAlt,
-                                Guid.NewGuid().ToString(),
-                                folderName: FolderAttachment.SERVICE
-                            );
-                        }
+                        // string? path = null;
+                        // if (attachmentUrl != null)
+                        // {
+                        //     path = await _cloudinaryHelper.UploadImageAsync(
+                        //         attachmentUrl,
+                        //         attachmentAlt,
+                        //         Guid.NewGuid().ToString(),
+                        //         folderName: FolderAttachment.SERVICE
+                        //     );
+                        // }
 
                         newServiceAttachment.Add(new ServiceAttachment
                         {
                             AttachmentAlt = attachmentAlt,
-                            AttachmentUrl = path,
+                            AttachmentUrl = attachmentUrl,
                             ServiceId = service.Id
                         });
                     }
 
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                     await _unitOfWork.SaveChangeAsync();
-
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_*{currentUserId}");
+                    
                     var serviceModel = _mapper.Map<ServiceModel>(service);
                     return new ResponseModel
                     {
@@ -586,33 +587,33 @@ namespace Chillde.Services.Services
                     serviceModel.ServiceAttachments = serviceAttachmentWithNewService;
                 }
 
-                if (serviceUpdateModel.ServiceAttachments != null)
+                if (serviceUpdateModel.AttachmentsToAdd != null)
                 {
                     var newServiceAttachments = new List<ServiceAttachment>();
 
-                    for (int i = 0; i < serviceUpdateModel.ServiceAttachments.Count; i++)
+                    for (int i = 0; i < serviceUpdateModel.AttachmentsToAdd.Count; i++)
                     {
-                        var attachmentAlt = serviceUpdateModel.ServiceAttachments[i].AttachmentAlt;
-                        var attachmentUrl = serviceUpdateModel.ServiceAttachments[i].AttachmentUrl;
+                        var attachmentAlt = serviceUpdateModel.AttachmentsToAdd[i].AttachmentAlt;
+                        var attachmentUrl = serviceUpdateModel.AttachmentsToAdd[i].AttachmentUrl;
 
                         Guid Id = Guid.NewGuid();
 
-                        string? path = null;
-                        if (attachmentUrl != null)
-                        {
-                            path = await _cloudinaryHelper.UploadImageAsync(
-                                attachmentUrl,
-                                attachmentAlt,
-                                Id.ToString(),
-                                folderName: FolderAttachment.SERVICE
-                            );
-                        }
+                        // string? path = null;
+                        // if (attachmentUrl != null)
+                        // {
+                        //     path = await _cloudinaryHelper.UploadImageAsync(
+                        //         attachmentUrl,
+                        //         attachmentAlt,
+                        //         Id.ToString(),
+                        //         folderName: FolderAttachment.SERVICE
+                        //     );
+                        // }
 
                         newServiceAttachments.Add(new ServiceAttachment
                         {
                             Id = Id,
                             AttachmentAlt = attachmentAlt,
-                            AttachmentUrl = path,
+                            AttachmentUrl = attachmentUrl,
                             ServiceId = service.Id
                         });
                     }
@@ -620,24 +621,24 @@ namespace Chillde.Services.Services
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachments);
                 }
 
-                if (serviceUpdateModel.ServiceAttachmentIdsDeleting != null)
+                if (serviceUpdateModel.AttachmentIdsToDelete != null)
                 {
                     var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
-                    filter: _ => serviceUpdateModel.ServiceAttachmentIdsDeleting.Contains(_.Id)
+                    filter: _ => serviceUpdateModel.AttachmentIdsToDelete.Contains(_.Id)
                     );
 
-                    if (serviceAttachments == null || !serviceAttachments.Data.Any())
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status404NotFound,
-                            Message = "Attachments not found."
-                        };
-                    }
+                    // if (serviceAttachments == null || !serviceAttachments.Data.Any())
+                    // {
+                    //     return new ResponseModel
+                    //     {
+                    //         Code = StatusCodes.Status404NotFound,
+                    //         Message = "Attachments not found."
+                    //     };
+                    // }
 
                     var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
 
-                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.ServiceAttachmentIdsDeleting.Select(id => id.ToString()).ToList());
+                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.AttachmentIdsToDelete.Select(id => id.ToString()).ToList());
 
                     _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
                 }
@@ -823,22 +824,22 @@ namespace Chillde.Services.Services
                     var attachmentAlt = attachmentModel[i].AttachmentAlt;
                     var attachmentUrl = attachmentModel[i].AttachmentUrl;
                     Guid Id = Guid.NewGuid();
-                    string? path = null;
-                    if (attachmentUrl != null)
-                    {
-                        path = await _cloudinaryHelper.UploadImageAsync(
-                            attachmentUrl,
-                            attachmentAlt,
-                            Id.ToString(),
-                            folderName: FolderAttachment.SERVICE
-                        );
-                    }
+                    // string? path = null;
+                    // if (attachmentUrl != null)
+                    // {
+                    //     path = await _cloudinaryHelper.UploadImageAsync(
+                    //         attachmentUrl,
+                    //         attachmentAlt,
+                    //         Id.ToString(),
+                    //         folderName: FolderAttachment.SERVICE
+                    //     );
+                    // }
 
                     newServiceAttachment.Add(new ServiceAttachment
                     {
                         Id = Id,
                         AttachmentAlt = attachmentAlt,
-                        AttachmentUrl = path,
+                        AttachmentUrl = attachmentUrl,
                         ServiceId = service.Id
                     });
                 }
@@ -989,9 +990,9 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
-
+                await _redisHelper.InvalidateCacheByPatternAsync($"services_{serviceId}_packages_*");
                 var packageModel = _mapper.Map<PackageModel>(package);
-
+                
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
@@ -1127,7 +1128,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
+                var cacheKey = $"services_{serviceId}_packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {

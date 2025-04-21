@@ -2452,15 +2452,17 @@ namespace Chillde.Services.Services
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
                         string? path = null;
-                        if (attachmentUrl != null)
-                        {
-                            path = await _cloudinaryHelper.UploadImageAsync(
-                                attachmentUrl,
-                                attachmentAlt,
-                                Guid.NewGuid().ToString(),
-                                folderName: FolderAttachment.SERVICE
-                            );
-                        }
+                        
+                        // TODO: Fix attachment path
+                        // if (attachmentUrl != null)
+                        // {
+                        //     path = await _cloudinaryHelper.UploadImageAsync(
+                        //         attachmentUrl,
+                        //         attachmentAlt,
+                        //         Guid.NewGuid().ToString(),
+                        //         folderName: FolderAttachment.SERVICE
+                        //     );
+                        // }
 
                         newAttachment.Add(new ReportAttachment
                         {
