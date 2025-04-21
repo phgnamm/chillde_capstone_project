@@ -10,6 +10,7 @@
         Shipping,
         AwaitingClosure,
         Completed,
-        Cancelled
+        Cancelled,
+        Report
     }
 }

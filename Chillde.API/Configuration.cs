@@ -392,6 +392,10 @@ public static class Configuration
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationService>();
 
+        //Notification
+        services.AddScoped<INotificationContentRepository, NotificationContentRepository>();
+        //services.AddScoped<INotificationService, NotificationService>();
+
         //Report
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IReportService, ReportService>();
