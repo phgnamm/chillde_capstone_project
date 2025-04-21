@@ -234,7 +234,7 @@ namespace Chillde.Services.Services
 
                     var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: voucher =>
-                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.CreatedById == voucherFilterModel.ArtisanId) &&
                                          (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
                                          (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
                                          (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
