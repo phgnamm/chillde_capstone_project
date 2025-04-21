@@ -1477,16 +1477,17 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
+                //var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
-                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                {
+                //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                //{
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                     filter: _ => !_.IsDeleted &&
                                     (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
                     include: _ => _.Include(_ => _.Packages)
                                   .Include(_ => _.ServiceAttachments)
-                                  .Include(_ => _.CreatedBy),
+                                  .Include(_ => _.CreatedBy)
+                                  .Include(_ => _.Category),
                     pageIndex: serviceFilterModel.PageIndex,
                     pageSize: serviceFilterModel.PageSize
                 );
@@ -1502,6 +1503,8 @@ namespace Chillde.Services.Services
                         MaxWeight = _.MaxWeight,
                         Status = _.Status,
                         CategoryId = _.CategoryId,
+                        CategorySlug = _.Category?.Slug,
+                        PackageCount = _.Packages.Count,
                         ServiceAttachments = _.ServiceAttachments.ToList(),
                         Artisan = _.CreatedBy == null ? null : new AccountLiteModel
                         {
@@ -1524,7 +1527,7 @@ namespace Chillde.Services.Services
                         Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
                         Data = result
                     };
-                });
+                //});
             }
             catch (Exception ex)
             {
