@@ -1761,11 +1761,8 @@ namespace Chillde.Services.Services
                             s.IsDeleted == false &&
                             (string.IsNullOrEmpty(serviceFilterModel.IdOrUserName) || (filterId.HasValue && s.CreatedById == filterId.Value)
                             || s.CreatedBy.Username.Contains(serviceFilterModel.IdOrUserName)) &&
-                            (!serviceFilterModel.CategoryId.HasValue || s.Category.Id == serviceFilterModel.CategoryId ||
-                            s.Category.ParentId == serviceFilterModel.CategoryId || s.Category.Parent!.ParentId == serviceFilterModel.CategoryId) &&
-                            (!serviceFilterModel.SubCategoryId.HasValue || s.Category.Id == serviceFilterModel.SubCategoryId ||
-                            s.Category.ParentId == serviceFilterModel.SubCategoryId) &&
-                            (!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
+                            (!serviceFilterModel.CategoryId.HasValue || s.CategoryId == serviceFilterModel.CategoryId) &&
+                            //(!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
                             (!serviceFilterModel.MinPrice.HasValue || s.Packages.Min(p => p.Price) >= serviceFilterModel.MinPrice) &&
                             (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Min(p => p.Price) <= serviceFilterModel.MaxPrice) &&
                             (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
