@@ -1,16 +1,16 @@
 ﻿using AutoMapper;
-using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.NotificationModels;
-using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.ReportModels;
-using Chillde.Services.Helpers;
+using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
 {
@@ -40,7 +40,68 @@ namespace Chillde.Services.Services
             _redisHelper = redisHelper;
             _notificationService = notificationService;
         }
+        public async Task<ResponseModel> GetAll(ReportFilterModel reportFilterModel)
+        {
 
+            Func<IQueryable<Report>, IOrderedQueryable<Report>> orderBy = query =>
+            {
+                switch (reportFilterModel.Order?.ToLower())
+                {
+                    case "recentdays":
+                        return reportFilterModel.OrderByDescending
+                            ? query.OrderByDescending(o => o.CreationDate)
+                            : query.OrderBy(o => o.CreationDate);
+                    case "status":
+                        return reportFilterModel.OrderByDescending
+                            ? query.OrderBy(o => o.Status)
+                            : query.OrderByDescending(o => o.Status);
+                    default:
+                        return reportFilterModel.OrderByDescending
+                            ? query.OrderByDescending(o => o.CreationDate)
+                            : query.OrderBy(o => o.CreationDate);
+                }
+            };
+
+            Expression<Func<Report, bool>> filter = report =>
+                (!reportFilterModel.OrderId.HasValue || report.OrderId == reportFilterModel.OrderId) &&
+                report.IsDeleted == reportFilterModel.IsDeleted &&
+                (!reportFilterModel.Status.HasValue || report.Status == reportFilterModel.Status);
+
+            try
+            {
+                var reports = await _unitOfWork.ReportRepository.GetAllAsync(
+                    filter: filter,
+                    include: report => report.Include(o => o.ReportAttachments)
+                                             .Include(_ => _.Order),
+                    order: orderBy,
+                    pageIndex: reportFilterModel.PageIndex,
+                    pageSize: reportFilterModel.PageSize
+                );
+
+                var reportModels = _mapper.Map<List<ReportModel>>(reports.Data);
+
+                var result = new Pagination<ReportModel>(
+                    reportModels,
+                    reportFilterModel.PageIndex,
+                    reportFilterModel.PageSize,
+                    reports.TotalCount
+                );
+
+                return new ResponseModel
+                {
+                    Message = "Get all reports successfully",
+                    Data = result
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred."
+                };
+            }
+        }
         public async Task<ResponseModel> Reject(Guid reportId, ReportRejectModel reportRejectModel)
         {
             try
