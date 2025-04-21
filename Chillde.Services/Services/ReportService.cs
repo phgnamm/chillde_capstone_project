@@ -3,6 +3,7 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.ReportModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
@@ -23,6 +24,7 @@ namespace Chillde.Services.Services
         private readonly IPackageService _packageService;
         private readonly IRedisHelper _redisHelper;
         private readonly INotificationService _notificationService;
+        private readonly IClaimService _claimService;
 
         public ReportService(IUnitOfWork unitOfWork,
             ITranslationService translationService,
@@ -30,7 +32,8 @@ namespace Chillde.Services.Services
             IBadWordFilterService badWordFilterService,
             IPackageService packageService,
             IRedisHelper redisHelper,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IClaimService claimService)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
@@ -39,6 +42,7 @@ namespace Chillde.Services.Services
             _packageService = packageService;
             _redisHelper = redisHelper;
             _notificationService = notificationService;
+            _claimService = claimService;
         }
         public async Task<ResponseModel> GetAll(ReportFilterModel reportFilterModel)
         {
@@ -72,13 +76,27 @@ namespace Chillde.Services.Services
                 var reports = await _unitOfWork.ReportRepository.GetAllAsync(
                     filter: filter,
                     include: report => report.Include(o => o.ReportAttachments)
-                                             .Include(_ => _.Order),
+                                             .Include(_ => _.Order).ThenInclude(order => order.CreatedBy),
                     order: orderBy,
                     pageIndex: reportFilterModel.PageIndex,
                     pageSize: reportFilterModel.PageSize
                 );
 
-                var reportModels = _mapper.Map<List<ReportModel>>(reports.Data);
+                var reportModels = reports.Data.Select(_ => new ReportModel
+                {
+                    Id = _.Id,
+                    Description = _.Description,
+                    Response = _.Response,
+                    Status = _.Status,
+                    OrderId = _.OrderId,
+                    ReportAttachments = _.ReportAttachments.Select(_ => new ReportAttachmentModel
+                    {
+                        AttachmentAlt = _.AttachmentAlt,
+                        AttachmentUrl = _.AttachmentUrl
+                    }).ToList(),
+                    OrderCreationDate = _.Order.CreationDate,
+                    CustomerName = $"{_.Order.CreatedBy.LastName} {_.Order.CreatedBy.FirstName}"
+                }).ToList();
 
                 var result = new Pagination<ReportModel>(
                     reportModels,
@@ -102,7 +120,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
-        public async Task<ResponseModel> Reject(Guid reportId, ReportRejectModel reportRejectModel)
+        public async Task<ResponseModel> Reject(Guid reportId, ReportRejectOrAcceptModel reportRejectModel)
         {
             try
             {
@@ -126,7 +144,7 @@ namespace Chillde.Services.Services
                 }
 
                 report.Response = reportRejectModel.Response;
-                report.Status = ReportStatus.Reject;
+                report.Status = ReportStatus.Rejected;
                 _unitOfWork.ReportRepository.Update(report);
 
                 var order = report.Order;
@@ -134,7 +152,20 @@ namespace Chillde.Services.Services
                 order.Status = OrderStatus.Completed;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.RejectReport).Result;
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_RejectReport).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = order.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
+
+                notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_RejectReport).Result;
                 if (notificationContent != null)
                 {
                     var notificationAddModel = new NotificationAddModel
@@ -175,65 +206,116 @@ namespace Chillde.Services.Services
                 };
             }
         }
-        //public async Task<ResponseModel> Accept(Guid reportId)
-        //{
-        //    try
-        //    {
-        //        var report = await _unitOfWork.ReportRepository.GetAsync(reportId);
-        //        if (report == null)
-        //        {
-        //            return new ResponseModel
-        //            {
-        //                Code = StatusCodes.Status404NotFound,
-        //                Message = "Report not found."
-        //            };
-        //        }
+        public async Task<ResponseModel> Accept(Guid reportId, ReportRejectOrAcceptModel reportAcceptModel)
+        {
+            try
+            {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
 
-        //        if (string.IsNullOrWhiteSpace(reportRejectModel.Response))
-        //        {
-        //            return new ResponseModel
-        //            {
-        //                Code = StatusCodes.Status422UnprocessableEntity,
-        //                Message = "Response is required."
-        //            };
-        //        }
+                var report = await _unitOfWork.ReportRepository.GetAsync(reportId, 
+                    include: report => report.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
+                                             .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer)
+                    );
+                if (report == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Report not found."
+                    };
+                }
 
-        //        report.Response = reportRejectModel.Response;
-        //        report.Status = ReportStatus.Reject;
-        //        _unitOfWork.ReportRepository.Update(report);
+                report.Response = reportAcceptModel.Response;
+                report.Status = ReportStatus.Accepted;
+                _unitOfWork.ReportRepository.Update(report);
 
-        //        var order = report.Order;
-        //        order.Stage = OrderStage.Completed;
-        //        order.Status = OrderStatus.Completed;
-        //        _unitOfWork.OrderRepository.Update(order);
+                var order = report.Order;
+                order.Stage = OrderStage.Completed;
+                order.Status = OrderStatus.Refunded;
+                _unitOfWork.OrderRepository.Update(order);
 
-        //        int result = await _unitOfWork.SaveChangeAsync();
-        //        if (result > 0)
-        //        {
-        //            var reportModel = _mapper.Map<ReportModel>(report);
+                var account = await _unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById! , include: _ => _.Include(_ => _.Wallet));
+                var wallet = account?.Wallet;
+                if (wallet == null)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Wallet not found"
+                    };
 
-        //            return new ResponseModel
-        //            {
-        //                Data = reportModel,
-        //                Code = StatusCodes.Status200OK,
-        //                Message = "Report is rejected"
-        //            };
-        //        }
+                wallet.Balance += (decimal)order.TotalPrice!;
 
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status400BadRequest,
-        //            Message = "Failed to reject."
-        //        };
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new ResponseModel
-        //        {
-        //            Code = StatusCodes.Status500InternalServerError,
-        //            Message = ex.Message
-        //        };
-        //    }
-        //}
+                order.Transactions.Add(new Transaction
+                {
+                    WalletId = wallet.Id,
+                    Amount = order.TotalPrice,
+                    Type = TransactionType.TransferOut,
+                    Status = TransactionStatus.Completed,
+                    CreatedById = currentUserId
+                });
+                _unitOfWork.WalletRepository.Update(wallet);
+
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_AcceptReport).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                        AccountId = (Guid)order.CreatedById!,
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = order.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
+
+                notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_AcceptReport).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = order.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
+
+                int result = await _unitOfWork.SaveChangeAsync();
+                if (result > 0)
+                {
+                    var reportModel = _mapper.Map<ReportModel>(report);
+
+                    return new ResponseModel
+                    {
+                        Data = reportModel,
+                        Code = StatusCodes.Status200OK,
+                        Message = "Report is accepted."
+                    };
+                }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Failed to reject."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
     }
 }

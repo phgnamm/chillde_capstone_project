@@ -8,5 +8,11 @@ namespace Chillde.Repositories.Repositories
         public ReportRepository(AppDbContext context, IClaimService claimService) : base(context, claimService)
         {
         }
+
+        public async Task<Report> GetByOrder(Guid orderId)
+        {
+            var report = _dbSet.Where(_ => _.OrderId == orderId && _.IsDeleted == false).FirstOrDefault();
+            return report;
+        }
     }
 }

@@ -2713,7 +2713,7 @@ new()
             Id = Guid.Parse("5c2e74f6-9af8-4b3f-b262-fad2d1351c5e"),
             Code = "ORD_01",
             Content = "✨ Tèn ten~ Nghệ nhân đã gật đầu đồng ý làm đơn hàng [#orderCode] cho bạn rồi nè.",
-            Name = "Chấp nhận đơn hàng",
+            Name = "Khách hàng - Chấp nhận đơn hàng",
             Type = NotificationType.Order,
         },
         new()
@@ -2721,7 +2721,7 @@ new()
             Id = Guid.Parse("e1b52f9d-d2b4-4aa6-a33f-f6e3e1c2f746"),
             Code = "ORD_02",
             Content = "💔 Oops! Nghệ nhân chưa thể thực hiện đơn hàng [#orderCode] lần này rồi. Nhưng đừng lo, vẫn còn nhiều nghệ nhân khác đang chờ đón bạn!",
-            Name = "Từ chối đơn hàng",
+            Name = "Khách hàng - Từ chối đơn hàng",
             Type = NotificationType.Order,
         },
         new()
@@ -2729,7 +2729,7 @@ new()
             Id = Guid.Parse("d1a8c5a7-51d9-44a4-b5d4-3163514c946a"),
             Code = "ORD_03",
             Content = "📦 Có đơn mới rồi nè! Một khách hàng vừa đặt dịch vụ của bạn, cùng bắt tay vào làm thôi!",
-            Name = "Đơn hàng mới",
+            Name = "Nghệ nhân - Đơn hàng mới",
             Type = NotificationType.Order,
         },
         new()
@@ -2737,7 +2737,7 @@ new()
             Id = Guid.Parse("2b0f59a4-61ce-421b-b376-f9aab04f1d16"),
             Code = "ORD_TRC_01",
             Content = "✨ Tèn ten~ Bản thảo đầu tiên của đơn [#orderCode] đã đến tay bạn! Cùng xem thử và gửi chút góp ý cho nghệ nhân liền nào!",
-            Name = "Bản thảo mới",
+            Name = "Khách hàng - Bản thảo mới",
             Type = NotificationType.OrderTracking,
         },
         new()
@@ -2745,7 +2745,7 @@ new()
             Id = Guid.Parse("cba3ec59-5cd9-40d7-9ab7-189e257f0a8f"),
             Code = "ORD_TRC_02",
             Content = "🛠️ Đèn xanh rồi đó nghệ nhân ơi. Khách đã “gật đầu” với bản thảo đơn [#orderCode]. Triển thôi nào!",
-            Name = "Chấp nhận bản thảo",
+            Name = "Nghệ nhân - Chấp nhận bản thảo",
             Type = NotificationType.OrderTracking,
         },
         new()
@@ -2753,7 +2753,7 @@ new()
             Id = Guid.Parse("b81ea1dc-003a-4953-a896-fd0c458d55cd"),
             Code = "ORD_TRC_03",
             Content = "🌀 Ui… bản thảo lần này của đơn [#orderCode] chưa “đốn tim” khách hàng rồi. Cùng xem góp ý và làm lại một phiên bản mới tuyệt hơn nhé!",
-            Name = "Từ chối bản thảo",
+            Name = "Nghệ nhân - Từ chối bản thảo",
             Type = NotificationType.OrderTracking,
         },
         new()
@@ -2761,7 +2761,7 @@ new()
             Id = Guid.Parse("06d319c0-06de-49df-a5d2-1135c8b2a0a5"),
             Code = "ORD_TRC_04",
             Content = "🎆 Ta-da~ Sản phẩm của đơn [#orderCode] đã được hoàn thành rồi nè! Cùng chiêm ngưỡng sản phẩm của bạn và gửi chút cảm nhận cho nghệ nhân nha 💖",
-            Name = "Delivery mới",
+            Name = "Khách hàng - Delivery mới",
             Type = NotificationType.OrderTracking,
         },
         new()
@@ -2769,7 +2769,7 @@ new()
             Id = Guid.Parse("4f05cc96-3bfc-48a3-a78b-794d110ea21f"),
             Code = "ORD_TRC_05",
             Content = "🎁 Vèo vèo~ Đơn [#orderCode] đang “phi” tới chỗ bạn nè! Nghệ nhân gửi gắm cả tâm huyết vào đó đó, hóng chưa nào?",
-            Name = "Đang giao hàng",
+            Name = "Khách hàng - Đang giao hàng",
             Type = NotificationType.OrderTracking,
         },
         new()
@@ -2777,23 +2777,31 @@ new()
             Id = Guid.Parse("174ccba1-3a3c-447f-a82a-8e1f3f4c8992"),
             Code = "ORD_TRC_06",
             Content = "🥳 Boom! Đơn hàng [#orderCode] đã hạ cánh an toàn. Cùng mở hộp và khám phá sản phẩm nào!",
-            Name = "Đã giao hàng",
+            Name = "Khách hàng - Đã giao hàng",
             Type = NotificationType.OrderTracking,
         },
         new()
         {
             Id = Guid.Parse("3ce42aa3-8c56-4b56-b882-0189f8e91dd5"),
             Code = "REP_01",
-            Content = "⚠️ Đơn hàng [#orderCode] đã bị khách hàng report. Vui lòng kiểm tra và xem xét vấn đề để có giải pháp phù hợp.",
-            Name = "Report đơn hàng",
+            Content = "⚠️ Đơn hàng [#orderCode] đã bị khách hàng báo cáo. Vui lòng kiểm tra và xem xét vấn đề để có giải pháp phù hợp.",
+            Name = "Nghệ nhân - Report đơn hàng",
             Type = NotificationType.Report,
         },
         new()
         {
             Id = Guid.Parse("5b553e8c-c8f2-4c7c-a0f9-83d4df4e16d1"),
             Code = "REP_02",
-            Content = "✅ Đơn hàng [#orderCode] sẽ được hoàn và tiền sẽ được trả lại cho khách hàng. Hãy chuẩn bị cho quá trình hoàn trả sản phẩm theo đúng quy định.",
-            Name = "Report được chấp nhận",
+            Content = "❌ Yêu cầu báo cáo đơn hàng [#orderCode] từ phía khách hàng đã được chấp nhận. Đơn hàng sẽ được hoàn và tiền sẽ được trả lại cho khách hàng. Hãy chuẩn bị cho quá trình hoàn trả sản phẩm theo đúng quy định.",
+            Name = "Nghệ nhân - Report được chấp nhận",
+            Type = NotificationType.Report,
+        },
+        new()
+        {
+            Id = Guid.Parse("d65489c5-929c-4bd1-98bc-62cd2367f45e"),
+            Code = "REP_04",
+            Content = "✅ Yêu cầu báo cáo đơn hàng [#orderCode] từ phía khách hàng đã bị từ chối sau quá trình xem xét. Đơn hàng được giữ nguyên trạng thái và không ảnh hưởng đến kết quả làm việc của bạn.",
+            Name = "Nghệ nhân - Report bị từ chối.",
             Type = NotificationType.Report,
         },
         new()
@@ -2801,7 +2809,15 @@ new()
             Id = Guid.Parse("98064842-2911-4ab8-87b5-c062929fa6f5"),
             Code = "REP_03",
             Content = "❌ Chúng tôi đã xem xét yêu cầu báo cáo đơn hàng [#orderCode], tuy nhiên hệ thống quyết định không chấp nhận report này vì không đủ điều kiện. Nếu bạn vẫn gặp vấn đề, đừng ngần ngại liên hệ lại với chúng tôi để được hỗ trợ thêm.",
-            Name = "Report bị từ chối",
+            Name = "Khách hàng - Report bị từ chối",
+            Type = NotificationType.Report,
+        },
+        new()
+        {
+            Id = Guid.Parse("dcc20171-35a2-45c5-8b2d-bafee1b88a0f"),
+            Code = "REP_05",
+            Content = "✅ Yêu cầu báo cáo đơn hàng [#orderCode] của bạn đã được chấp nhận sau quá trình xem xét. Chúng tôi sẽ tiến hành các bước xử lý tiếp theo và hỗ trợ thêm theo chính sách.",
+            Name = "Khách hàng - Report được chấp nhận.",
             Type = NotificationType.Report,
         },
         new()
@@ -2809,7 +2825,7 @@ new()
             Id = Guid.Parse("9c71ae14-d748-4c26-88e8-5f9394934cfd"),
             Code = "FEEDBACK_01",
             Content = "📣 Khách đã chia sẻ cảm nhận về dịch vụ [#serviceName] của bạn. Hãy xem thử xem họ thích gì và cần cải thiện điều gì nhé!",
-            Name = "Đánh giá mới",
+            Name = "Nghệ nhân - Đánh giá mới",
             Type = NotificationType.Feedback,
         }
     };

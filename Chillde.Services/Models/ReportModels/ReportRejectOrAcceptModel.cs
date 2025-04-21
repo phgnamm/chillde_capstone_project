@@ -1,6 +1,6 @@
 ﻿namespace Chillde.Services.Models.ReportModels
 {
-    public class ReportRejectModel
+    public class ReportRejectOrAcceptModel
     {
         public required string Response { get; set; }
     }
