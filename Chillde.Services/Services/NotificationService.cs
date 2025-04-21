@@ -75,9 +75,9 @@ namespace Chillde.Services.Services
             //}
 
             //_unitOfWork.AccountConversationRepository.UpdateRange(accountConversations);
-            await _unitOfWork.NotificationRepository.AddAsync(notification);
-            if (await _unitOfWork.SaveChangeAsync() > 0)
-            {
+            //await _unitOfWork.NotificationRepository.AddAsync(notification);
+            //if (await _unitOfWork.SaveChangeAsync() > 0)
+            //{
                 //var recipientId = notification.AccountId;
                 // foreach (var recipientId in recipientIds)
                 // {
@@ -109,13 +109,13 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status201Created,
                     Message = "Send notication successfully"
                 };
-            }
+            //}
 
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status500InternalServerError,
-                Message = "Cannot create message"
-            };
+            //return new ResponseModel
+            //{
+            //    Code = StatusCodes.Status500InternalServerError,
+            //    Message = "Cannot create message"
+            //};
         }
     }
 }
