@@ -6,5 +6,6 @@ namespace Chillde.Services.Interfaces
     public interface IReportService
     {
         Task<ResponseModel> Reject(Guid reportId, ReportRejectModel reportRejectModel);
+        Task<ResponseModel> GetAll(ReportFilterModel reportFilterModel);
     }
 }
