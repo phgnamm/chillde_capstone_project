@@ -8,6 +8,7 @@ using Chillde.Repositories.Models.VoucherUsageModels;
 using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.VoucherModels;
@@ -246,13 +247,23 @@ namespace Chillde.Services.Services
                                          (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
                                          (!voucherFilterModel.MinReputation.HasValue ||
                                          (voucher.MinReputation.HasValue && voucher.MinReputation.Value >= voucherFilterModel.MinReputation)) &&
+                                          (string.IsNullOrEmpty(voucherFilterModel.Search) || (
+                                              voucher.Code.Contains(voucherFilterModel.Search) ||
+                                              voucher.Receiver!.Username.Contains(voucherFilterModel.Search) ||
+                                              voucher.RemainingQuantity.Equals(voucherFilterModel.Search) 
+                                          )) &&
                                          (!voucherFilterModel.MinOrderRequired.HasValue ||
                                          (voucher.MinOrderRequired.HasValue && voucher.MinOrderRequired.Value >= voucherFilterModel.MinOrderRequired)),
                                      order: s =>
                                       {
                                           switch (voucherFilterModel.Order.ToLower())
+
                                           {
-                                              case "userName":
+                                              case "code":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.Code)
+                                                      : s.OrderBy(s => s.Code);
+                                              case "receiverName":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.Receiver!.Username)
                                                       : s.OrderBy(s => s.Receiver!.Username);
