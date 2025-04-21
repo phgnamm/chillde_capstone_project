@@ -134,7 +134,7 @@ public class AppDbContext : DbContext
         {
             entity.HasOne(v => v.NotificationContent)
             .WithMany(a => a.Notifications)
-            .HasForeignKey(v => v.NotificationTypeId);
+            .HasForeignKey(v => v.NotificationContentId);
         });
 
         modelBuilder.Entity<Notification>(entity =>

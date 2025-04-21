@@ -44,6 +44,7 @@ using Chillde.Services.Models.ReportModels;
 using Chillde.Repositories.Models.ReportModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
+using Chillde.Repositories.Models.NotificationModels;
 
 namespace Chillde.Services.Services
 {
@@ -60,13 +61,15 @@ namespace Chillde.Services.Services
         private readonly ISystemConfigService _systemConfigService;
         private readonly IEmailHelper _iIEmailHelper;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
         public OrderService(IEmailHelper iIEmailHelper, ISystemConfigService systemConfigService, IUnitOfWork unitOfWork, IClaimService claimService,
             ICloudinaryHelper cloudinaryHelper,
             IVnpay vnpay,
             IConfiguration configuration,
             IHttpClientFactory httpClientFactory,
-            IMapper mapper
+            IMapper mapper,
+            INotificationService notificationService
             )
         {
             _systemConfigService = systemConfigService;
@@ -77,6 +80,7 @@ namespace Chillde.Services.Services
             _iIEmailHelper = iIEmailHelper;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
             _mapper = mapper;
+            _notificationService = notificationService;
         }
         public async Task<ResponseModel> BalancePayment(OrderAddModel orderAddModel)
         {
@@ -680,7 +684,6 @@ namespace Chillde.Services.Services
                 Message = "Failed to update order status and wallet."
             };
         }
-
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
             var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
@@ -944,7 +947,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
         public async Task<ResponseModel> GetAll(OrderFilterModel orderFilterModel)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -1253,7 +1255,6 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
         public async Task<ResponseModel> GetAllByAdmin(OrderFilterModel orderFilterModel)
         {
 
@@ -1407,7 +1408,6 @@ namespace Chillde.Services.Services
                 throw new Exception(ex.Message);
             }
         }
-
         public async Task<ResponseModel> UsedAdminVoucher(Guid orderId, Guid voucherId)
         {
             var currentUserId = _claimService.GetCurrentUserId;
@@ -1858,7 +1858,6 @@ namespace Chillde.Services.Services
                 throw;
             }
         }
-
         private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<OrderTrackingAttachmentAddModel> attachments, string orderCode, string folderName)
         {
             var uploadedAttachments = new List<OrderTrackingAttachment>();
@@ -1925,7 +1924,6 @@ namespace Chillde.Services.Services
 
             await _iIEmailHelper.SendEmailAsync(email, subject, body, true);
         }
-
         public async Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel)
         {
             try
@@ -2058,7 +2056,6 @@ namespace Chillde.Services.Services
                 throw;
             }
         }
-
         public async Task<ResponseModel> GetOrderDetail(Guid orderId)
         {
             try
@@ -2326,7 +2323,6 @@ namespace Chillde.Services.Services
                 throw new Exception(ex.Message);
             }
         }
-
         public async Task<ResponseModel> UpdateOrderAfterDeliveryAsync(Guid orderId)
         {
             try
@@ -2413,13 +2409,15 @@ namespace Chillde.Services.Services
                 };
             }
         }
-
         public async Task<ResponseModel> Report(Guid orderId, ReportAddModel reportAddModel)
         {
             try
             {
 
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, 
+                    include: order => order.Include(_ => _.Package).ThenInclude(_ => _.Offer)
+                                      .Include(_ => _.Package).ThenInclude(_ => _.Service)  
+                    );
                 if (order == null)
                 {
                     return new ResponseModel
@@ -2465,6 +2463,23 @@ namespace Chillde.Services.Services
                     await _unitOfWork.ReportAttachmentRepository.AddRangeAsync(newAttachment);
                 }
                 var attachmentModels = _mapper.Map<List<ReportAttachmentModel>>(newAttachment);
+
+                order.Stage = OrderStage.Report;
+                _unitOfWork.OrderRepository.Update(order);
+
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.ReportOrder).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = order.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
+
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
                 {
