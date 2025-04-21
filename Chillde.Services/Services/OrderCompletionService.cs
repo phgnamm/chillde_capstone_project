@@ -1,5 +1,8 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,12 +14,12 @@ using System.Threading.Tasks;
 
 namespace Chillde.Services.Services
 {
-    public  class OrderCompletionService : BackgroundService
+    public class OrderCompletionService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<OrderCompletionService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(60); // Kiểm tra mỗi 60 phút
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); // 24 giờ
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(60); 
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); 
 
         public OrderCompletionService(IServiceProvider serviceProvider, ILogger<OrderCompletionService> logger)
         {
@@ -53,7 +56,8 @@ namespace Chillde.Services.Services
                     filter: o => o.Stage == OrderStage.AwaitingClosure
                               && o.Status == OrderStatus.Accepted
                               && o.ModificationDate != null
-                              && o.ModificationDate <= DateTime.UtcNow.Add(-_timeoutPeriod)
+                              && o.ModificationDate <= DateTime.UtcNow.Add(-_timeoutPeriod),
+                    include: o => o.Include(o => o.Package)
                 );
 
                 if (orders == null || !orders.Data.Any())
@@ -64,30 +68,138 @@ namespace Chillde.Services.Services
 
                 foreach (var order in orders.Data)
                 {
+                    if (stoppingToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("Cancellation requested, stopping order processing.");
+                        break;
+                    }
                     try
                     {
                         _logger.LogInformation("Processing order {OrderId} for auto-completion.", order.Id);
 
-                        order.Stage = OrderStage.Completed;
-                        order.Status = OrderStatus.Completed;
-                        unitOfWork.OrderRepository.Update(order);
-                        var saveResult = await unitOfWork.SaveChangeAsync();
-
-                        if (saveResult > 0)
+                        if (order.Stage != OrderStage.AwaitingClosure || order.Status != OrderStatus.Accepted)
                         {
-                            _logger.LogInformation("Order {OrderId} updated to Completed and Success.", order.Id);
+                            _logger.LogWarning($"Order {order.Id} is not in AwaitingClosure or Accepted. Skipping.");
+                            continue;
                         }
-                        else
+
+                        var artisanAccount = await unitOfWork.AccountRepository.GetAsync(
+                            (Guid)order.Package.CreatedById,
+                            include: a => a.Include(a => a.Wallet).Include(a => a.AccountRoles).ThenInclude(ar => ar.Role)
+                        );
+                        if (artisanAccount == null || artisanAccount.Wallet == null)
                         {
-                            _logger.LogWarning("Failed to update order {OrderId} in database.", order.Id);
+                            _logger.LogWarning($"Artisan account or wallet for order {order.Id} not found. Skipping.");
+                            continue;
+                        }
+
+                        var customerAccount = await unitOfWork.AccountRepository.GetAsync(
+                            (Guid)order.CreatedById,
+                            include: a => a.Include(a => a.AccountRoles).ThenInclude(ar => ar.Role)
+                        );
+                        if (customerAccount == null)
+                        {
+                            _logger.LogWarning($"Customer account for order {order.Id} not found. Skipping.");
+                            continue;
+                        }
+
+                        var accountRoleArtisan = artisanAccount.AccountRoles
+                            .FirstOrDefault(ar => ar.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
+                        if (accountRoleArtisan == null)
+                        {
+                            _logger.LogWarning($"Artisan role not found for account {artisanAccount.Id} in order {order.Id}. Skipping.");
+                            continue;
+                        }
+
+                        var accountRoleCustomer = customerAccount.AccountRoles
+                            .FirstOrDefault(ar => ar.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
+                        if (accountRoleCustomer == null)
+                        {
+                            _logger.LogWarning($"Customer role not found for account {customerAccount.Id} in order {order.Id}. Skipping.");
+                            continue;
+                        }
+
+                        await unitOfWork.BeginTransactionAsync();
+                        try
+                        {
+                            var wallet = artisanAccount.Wallet;
+                            wallet.Balance += (decimal)order.ArtistRevenue;
+                            unitOfWork.WalletRepository.Update(wallet);
+
+                            order.Transactions.Add(new Transaction
+                            {
+                                WalletId = wallet.Id,
+                                Amount = order.ArtistRevenue,
+                                Type = TransactionType.TransferIn,
+                                Status = TransactionStatus.Completed,
+                                CreatedById = artisanAccount.CreatedById
+                            });
+
+                            order.Stage = OrderStage.Completed;
+                            order.Status = OrderStatus.Completed;
+                            order.ModificationDate = DateTime.UtcNow;
+                            unitOfWork.OrderRepository.Update(order);
+
+                            if (accountRoleCustomer.TotalReputation < 100)
+                            {
+                                accountRoleCustomer.TotalReputation += 1;
+                                unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
+
+                                var customerReputationLog = new ReputationLog
+                                {
+                                    PointChange = +1,
+                                    Reason = "Đã hoàn thành đơn hàng với tư cách là khách hàng",
+                                    OrderId = order.Id,
+                                    AccountRoleId = accountRoleCustomer.Id,
+                                    CreatedById = customerAccount.Id
+                                };
+                                await unitOfWork.ReputationLogRepository.AddAsync(customerReputationLog);
+                                _logger.LogInformation($"Added 1 reputation point to customer {customerAccount.Id} for order {order.Id}.");
+                            }
+
+                            if (accountRoleArtisan.TotalReputation < 100)
+                            {
+                                accountRoleArtisan.TotalReputation += 1;
+                                unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
+
+                                var artisanReputationLog = new ReputationLog
+                                {
+                                    PointChange = +1,
+                                    Reason = "Đã hoàn thành đơn hàng với tư cách là nghệ nhân",
+                                    OrderId = order.Id,
+                                    AccountRoleId = accountRoleArtisan.Id,
+                                    CreatedById = artisanAccount.Id
+                                };
+                                await unitOfWork.ReputationLogRepository.AddAsync(artisanReputationLog);
+                                _logger.LogInformation($"Added 1 reputation point to artisan {artisanAccount.Id} for order {order.Id}.");
+                            }
+
+                            var saveResult = await unitOfWork.SaveChangeAsync();
+                            if (saveResult <= 0)
+                            {
+                                _logger.LogError($"Failed to update order {order.Id} in database.");
+                                await unitOfWork.RollbackTransactionAsync();
+                                continue;
+                            }
+
+                            await unitOfWork.CommitTransactionAsync();
+                            _logger.LogInformation($"Order {order.Id} updated to Completed. Wallet and reputation updated.");
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"Error saving changes for order {order.Id}.");
+                            await unitOfWork.RollbackTransactionAsync();
+                            continue;
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error updating order {OrderId}.", order.Id);
+                        _logger.LogError(ex, $"Error processing order {order.Id}.");
+                        continue;
                     }
                 }
             }
         }
     }
+
 }
