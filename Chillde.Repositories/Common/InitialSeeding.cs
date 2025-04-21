@@ -106,8 +106,8 @@ public static class InitialSeeding
 {
     new Voucher
     {
-        Id = Guid.NewGuid(),
-        Code = "WELCOME16",
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        Code = "WELCOME61",
         CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
         ReceiverId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
         DiscountValue = 0.1m,
@@ -124,8 +124,8 @@ public static class InitialSeeding
     },
     new Voucher
     {
-        Id = Guid.NewGuid(),
-        Code = "SUMMER22",
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e1"),
+        Code = "SUMMER33",
         CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
         ReceiverId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
         DiscountValue = 0.2m,
@@ -142,8 +142,8 @@ public static class InitialSeeding
     },
     new Voucher
     {
-        Id = Guid.NewGuid(),
-        Code = "VIP333",
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e2"),
+        Code = "VIP666",
         CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
         DiscountValue = 0.3m,
         MinOrderRequired = 5,
@@ -160,8 +160,8 @@ public static class InitialSeeding
     },
     new Voucher
     {
-        Id = Guid.NewGuid(),
-        Code = "LOYALTY666",
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e3"),
+        Code = "LOYALTY333",
         CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
         DiscountValue = 0.25m,
         MinOrderValue = 150000,
@@ -177,8 +177,8 @@ public static class InitialSeeding
     },
     new Voucher
     {
-        Id = Guid.NewGuid(),
-        Code = "NEWUSER999",
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e4"),
+        Code = "NEWUSER888",
         CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
         DiscountValue = 0.15m,
         MaxDiscountValue = 20000,
