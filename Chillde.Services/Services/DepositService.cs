@@ -9,6 +9,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.DepositModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Services.Services
 {
@@ -64,7 +65,7 @@ namespace Chillde.Services.Services
             {
                 var currentUserId = _claimService.GetCurrentUserId!.Value;
 
-                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId);
+                var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId, x => x.Include(x => x.Wallet));
 
                 if (account == null || account.Wallet == null)
                 {
@@ -88,16 +89,15 @@ namespace Chillde.Services.Services
 
                 var deposit = new Deposit
                 {
-                    Id = Guid.NewGuid(),
-                    CreatedById = currentUserId,
                     Amount = amount,
                     Type = DepositType.Withdraw,
-                    Status = DepositStatus.Success
+                    Status = DepositStatus.Success,
+                    WalletId = account.Wallet.Id,
                 };
-
+                
                 await _unitOfWork.DepositRepository.AddAsync(deposit);
 
-                _unitOfWork.AccountRepository.Update(account);
+                _unitOfWork.WalletRepository.Update(account.Wallet);
 
                 await _unitOfWork.SaveChangeAsync();
 

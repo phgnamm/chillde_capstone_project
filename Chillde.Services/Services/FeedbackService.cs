@@ -80,7 +80,7 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Include(_ => _.FeedbackAttachments));
+            var existingFeedback = await _unitOfWork.FeedbackRepository.GetAsync(id, _ => _.Include(_ => _.FeedbackAttachments).Include(_ => _.Service));
             if (existingFeedback == null || existingFeedback.IsDeleted)
             {
                 return new ResponseModel
@@ -106,11 +106,21 @@ namespace Chillde.Services.Services
                     Message = "Feedback cannot be updated after 30 days from its creation date."
                 };
             }
-            existingFeedback.Rating = feedbackUpdateModel.Rating ?? existingFeedback.Rating;
             existingFeedback.Description = feedbackUpdateModel.Description ?? existingFeedback.Description;
             existingFeedback.Response = existingFeedback.Response ?? feedbackUpdateModel.Response;
             existingFeedback.ModificationDate = DateTime.UtcNow;
+            if (feedbackUpdateModel.Rating.HasValue && feedbackUpdateModel.Rating.Value != existingFeedback.Rating)
+            {
+                var oldRating = existingFeedback.Rating ?? 0;
+                var newRating = feedbackUpdateModel.Rating.Value;
+                var currentRate = existingFeedback.Service.Rate ?? 0;
+                var feedbackCount = existingFeedback.Service.FeedbackCount ?? 0;
+                var newRate = RecalculateRating(currentRate, feedbackCount, oldRating, newRating);
+                existingFeedback.Service.Rate = newRate;
+                _unitOfWork.ServiceRepository.Update(existingFeedback.Service);
 
+                existingFeedback.Rating = newRating;
+            }
             _unitOfWork.FeedbackRepository.Update(existingFeedback);
             var result = await _unitOfWork.SaveChangeAsync();
 
@@ -154,6 +164,13 @@ namespace Chillde.Services.Services
                     Message = "Failed to add response."
                 };
         }
+        private static double RecalculateRating(double currentAverage, int count, double oldRating, double newRating)
+        {
+            var adjustedTotal = currentAverage * count - oldRating + newRating;
+            var newAverage = adjustedTotal / count;
+            return Math.Round(newAverage, 1);
+        }
+
 
     }
 }
