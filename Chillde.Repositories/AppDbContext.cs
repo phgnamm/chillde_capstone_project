@@ -188,7 +188,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Package>(entity =>
         {
             entity.HasOne(s => s.Service)
-                .WithMany(c => c.Packages);
+                .WithMany(c => c.Packages)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<PackageFeature>(entity =>
