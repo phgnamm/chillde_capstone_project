@@ -16,6 +16,7 @@ namespace Chillde.Repositories.Models.ServiceModels
         public int? FeedbackCount { get; set; }
         public int? PackageCount { get; set; }
         public decimal? Price { get; set; }
+        public decimal? MaxPrice { get; set; }
         public float? MinWeight { get; set; }
         public float? MaxWeight { get; set; }
         public AccountLiteModel? Artisan { get; set; }

@@ -37,6 +37,11 @@ public static class InitialSeeding
         {
             Id = Guid.Parse("01958fac-8839-70e4-86b5-46e245936b42"),
             Balance = 500000,
+        },
+          new Wallet()
+        {
+            Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+            Balance = 50000000,
         }
     };
 
@@ -75,8 +80,121 @@ public static class InitialSeeding
             PhoneNumberConfirmed = false,
             Status = AccountStatus.Active,
             WalletId = Guid.Parse("01958fac-8839-70e4-86b5-46e245936b42")
+        },
+         new Account()
+        {
+            Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+            FirstName = "Hải",
+            LastName = "Đặng",
+            Username = "danghaitsu",
+            Email = "danghaicntt5@gmail.com",
+            HashedPassword = "$$2y$10$bVUmnNz5MnhJaP2EahRxd.4vzN/5bcJ9Cejtc9pl2pMRtv5jaBI/i",
+            Image =
+                "https://res.cloudinary.com/dhktjmuv6/image/upload/v1741952342/01958fac-878c-7a59-b2b9-ea2521f3a1ff_image.jpg",
+            StoreAddress = "Thành phố Hồ Chí Minh",
+            Banner =
+                "https://res.cloudinary.com/dhktjmuv6/image/upload/v1741952349/01958fac-878c-7a59-b2b9-ea2521f3a1ff_banner.jpg",
+            StoreDescription =
+                "Chào mừng đến với không gian sáng tạo nơi những món quà độc đáo và ý nghĩa được sinh ra. Chúng tôi chuyên cung cấp dịch vụ làm đồ handmade, mang đến cho bạn những sản phẩm thủ công tinh tế và đầy cá tính. Từ những chiếc vòng cổ xinh xắn đến những chiếc túi tote độc đáo, mỗi món đồ đều được làm bằng tình yêu và sự tỉ mỉ. Hãy để chúng tôi giúp bạn tạo ra những món quà đặc biệt cho bản thân hoặc những người thân yêu. Liên hệ với chúng tôi ngay hôm nay để khám phá thế giới thủ công đầy màu sắc và ý nghĩa!",
+            EmailConfirmed = true,
+            PhoneNumberConfirmed = false,
+            Status = AccountStatus.Active,
+            WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0")
         }
     };
+    private static readonly List<Voucher> Vouchers = new()
+{
+    new Voucher
+    {
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        Code = "WELCOME61",
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        ReceiverId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
+        DiscountValue = 0.1m,
+        MinOrderRequired = 3,
+        MinReputation = 4,
+        TotalQuantity = 100,
+        RemainingQuantity = 95,
+        StartTime = DateTime.UtcNow,
+        ExpiredTime = DateTime.UtcNow.AddDays(30),
+        VoucherType = VoucherType.ArtistToCustomer,
+        VoucherStatus = VoucherStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Voucher
+    {
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e1"),
+        Code = "SUMMER33",
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        ReceiverId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
+        DiscountValue = 0.2m,
+        MaxDiscountValue = 30000,
+        MinOrderValue = 100000,
+        TotalQuantity = 50,
+        RemainingQuantity = 40,
+        StartTime = DateTime.UtcNow.AddDays(-5),
+        ExpiredTime = DateTime.UtcNow.AddDays(25),
+        VoucherType = VoucherType.ArtistToCustomer,
+        VoucherStatus = VoucherStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Voucher
+    {
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e2"),
+        Code = "VIP666",
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 0.3m,
+        MinOrderRequired = 5,
+        MinReputation = 4,
+        MaxDiscountValue = 50000,
+        TotalQuantity = 20,
+        RemainingQuantity = 10,
+        StartTime = DateTime.UtcNow,
+        ExpiredTime = DateTime.UtcNow.AddMonths(1),
+        VoucherType = VoucherType.ArtistToCustomer,
+        VoucherStatus = VoucherStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Voucher
+    {
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e3"),
+        Code = "LOYALTY333",
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 0.25m,
+        MinOrderValue = 150000,
+        MaxDiscountValue = 50000,
+        TotalQuantity = 70,
+        RemainingQuantity = 60,
+        StartTime = DateTime.UtcNow,
+        ExpiredTime = DateTime.UtcNow.AddDays(15),
+        VoucherType = VoucherType.ArtistToCustomer,
+        VoucherStatus = VoucherStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Voucher
+    {
+        Id = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e4"),
+        Code = "NEWUSER888",
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 0.15m,
+        MaxDiscountValue = 20000,
+        MinOrderRequired = 1,
+        TotalQuantity = 80,
+        RemainingQuantity = 80,
+        StartTime = DateTime.UtcNow.AddDays(-1),
+        ExpiredTime = DateTime.UtcNow.AddDays(60),
+        VoucherType = VoucherType.ArtistToCustomer,
+        VoucherStatus = VoucherStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    }
+};
+
+
 
     private static readonly List<AccountRole> AccountRoles = new()
     {
@@ -92,6 +210,16 @@ public static class InitialSeeding
         {
             AccountId = Guid.Parse("01958fac-878c-7a59-b2b9-ea2521f3a1ff"),
             RoleId = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b")
+        }
+        , new()
+        {
+            AccountId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+            RoleId = Guid.Parse("0195a73a-991d-70f0-aca4-78e00ff7557b")
+        },
+        new()
+        {
+            AccountId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+            RoleId = Guid.Parse("0195a73a-9919-714b-a9ad-29b849e946f7")
         }
     };
 
@@ -3727,6 +3855,187 @@ new()
             }
         }
     };
+    private static readonly List<VoucherUsageLog> VoucherUsageLogs = new()
+{
+    new VoucherUsageLog
+    {
+        Id = Guid.NewGuid(),
+        VoucherId = Vouchers[0].Id,
+        OrderId = Orders[0].Id,
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 10000,
+        DiscountValueOrigin = 0.1m,
+        UsageStatus = UsageStatus.Used,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new VoucherUsageLog
+    {
+        Id = Guid.NewGuid(),
+        VoucherId = Vouchers[1].Id,
+        OrderId = Orders[0].Id,
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 20000,
+        DiscountValueOrigin = 0.2m,
+        UsageStatus = UsageStatus.Used,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new VoucherUsageLog
+    {
+        Id = Guid.NewGuid(),
+        VoucherId = Vouchers[2].Id,
+        OrderId = Orders[0].Id,
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 30000,
+        DiscountValueOrigin = 0.3m,
+        UsageStatus = UsageStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new VoucherUsageLog
+    {
+        Id = Guid.NewGuid(),
+        VoucherId = Vouchers[3].Id,
+        OrderId = Orders[1].Id,
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 25000,
+        DiscountValueOrigin = 0.25m,
+        UsageStatus = UsageStatus.Pending,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new VoucherUsageLog
+    {
+        Id = Guid.NewGuid(),
+        VoucherId = Vouchers[4].Id,
+        OrderId = Orders[1].Id,
+        CreatedById = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        DiscountValue = 15000,
+        DiscountValueOrigin = 0.15m,
+        UsageStatus = UsageStatus.Used,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    }
+};
+    private static readonly List<Deposit> Deposits = new()
+{
+    new Deposit
+    {
+        Id = Guid.NewGuid(),
+        Amount = 100000,
+        Type = DepositType.Deposit,
+        Status = DepositStatus.Success,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId =  Orders[1].Id,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Deposit
+    {
+        Id = Guid.NewGuid(),
+        Amount = 200000,
+        Type = DepositType.Withdraw,
+        Status = DepositStatus.Pending,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[0].Id,
+        CreationDate = DateTime.UtcNow.AddDays(-1),
+        IsDeleted = false
+    },
+    new Deposit
+    {
+        Id = Guid.NewGuid(),
+        Amount = 50000,
+        Type = DepositType.Withdraw,
+        Status = DepositStatus.Success,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId =  Orders[0].Id,
+        CreationDate = DateTime.UtcNow.AddDays(-2),
+        IsDeleted = false
+    },
+    new Deposit
+    {
+        Id = Guid.NewGuid(),
+        Amount = 150000,
+        Type = DepositType.Deposit,
+        Status = DepositStatus.Success,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[1].Id,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Deposit
+    {
+        Id = Guid.NewGuid(),
+        Amount = 300000,
+        Type = DepositType.Deposit,
+        Status = DepositStatus.Success,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId =  Orders[1].Id,
+        CreationDate = DateTime.UtcNow.AddHours(-3),
+        IsDeleted = false
+    }
+};
+    private static readonly List<Transaction> Transactions = new()
+{
+    new Transaction
+    {
+        Id = Guid.NewGuid(),
+        Amount = 150000,
+        Type = TransactionType.TransferOut,
+        Status = TransactionStatus.Completed,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[0].Id,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    },
+    new Transaction
+    {
+        Id = Guid.NewGuid(),
+        Amount = 200000,
+        Type = TransactionType.TransferOut,
+        Status = TransactionStatus.Pending,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[0].Id,
+        CreationDate = DateTime.UtcNow.AddHours(-5),
+        IsDeleted = false
+    },
+    new Transaction
+    {
+        Id = Guid.NewGuid(),
+        Amount = 50000,
+        Type = TransactionType.TransferOut,
+        Status = TransactionStatus.Failed,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[0].Id,
+        CreationDate = DateTime.UtcNow.AddDays(-1),
+        IsDeleted = false
+    },
+    new Transaction
+    {
+        Id = Guid.NewGuid(),
+        Amount = 100000,
+        Type = TransactionType.TransferIn,
+        Status = TransactionStatus.Completed,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[1].Id,
+        CreationDate = DateTime.UtcNow.AddMinutes(-30),
+        IsDeleted = false
+    },
+    new Transaction
+    {
+        Id = Guid.NewGuid(),
+        Amount = 250000,
+        Type = TransactionType.TransferOut,
+        Status = TransactionStatus.Completed,
+        WalletId = Guid.Parse("0195ad4d-d724-7419-87c7-22ab37b1c2e0"),
+        OrderId = Orders[1].Id,
+        CreationDate = DateTime.UtcNow,
+        IsDeleted = false
+    }
+};
+
+
 
     // This assumes `Packages`, `Shipments`, `Accounts`, `PackageFeatures`, and other related data exist
 
@@ -3746,7 +4055,7 @@ new()
             }
         }
         // Seed Language
-        foreach(var language in Languages)
+        foreach (var language in Languages)
         {
             if (!context.Languages.Any(c => c.Id == language.Id))
             {
@@ -3881,7 +4190,38 @@ new()
                 context.Orders.Add(order);
             }
         }
-
+        foreach(var voucher in Vouchers)
+        {
+            if(!context.Vouchers.Any(i => i.Id == voucher.Id))
+                {
+                voucher.CreationDate = DateTime.UtcNow;
+                context.Vouchers.Add(voucher);
+            }
+        }
+        foreach (var voucherLog in VoucherUsageLogs)
+        {
+            if (!context.VoucherUsageLogs.Any(i => i.Id == voucherLog.Id))
+            {
+                voucherLog.CreationDate = DateTime.UtcNow;
+                context.VoucherUsageLogs.Add(voucherLog);
+            }
+        }
+        foreach (var deposit in Deposits)
+        {
+            if (!context.Deposits.Any(i => i.Id == deposit.Id))
+            {
+                deposit.CreationDate = DateTime.UtcNow;
+                context.Deposits.Add(deposit);
+            }
+        }
+        foreach (var transaction in Transactions)
+        {
+            if (!context.Transaction.Any(i => i.Id == transaction.Id))
+            {
+                transaction.CreationDate = DateTime.UtcNow;
+                context.Transaction.Add(transaction);
+            }
+        }
 
         await context.SaveChangesAsync();
     }

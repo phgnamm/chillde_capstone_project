@@ -1599,8 +1599,11 @@ namespace Chillde.Services.Services
                             ServiceAttachments = s.ServiceAttachments.ToList(),
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
-                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
                             CategoryId = s.CategoryId,
+                            CategorySlug = s.Category.Slug,
+                            PackageCount = s.Packages.Count(),
+                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            MaxPrice = s.Packages.Any() ? s.Packages.Max(p => p.Price) : 0,
                             Status = s.Status,
                             Artisan = new AccountLiteModel()
                             {
@@ -1687,8 +1690,11 @@ namespace Chillde.Services.Services
                             ServiceAttachments = s.ServiceAttachments.ToList(),
                             Rate = s.Rate,
                             FeedbackCount = s.FeedbackCount,
-                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
                             CategoryId = s.CategoryId,
+                            CategorySlug = s.Category.Slug,
+                            PackageCount = s.Packages.Count(),
+                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                            MaxPrice = s.Packages.Any() ? s.Packages.Max(p => p.Price) : 0,
                             Status = s.Status,
                             Artisan = new AccountLiteModel()
                             {
@@ -1801,8 +1807,11 @@ namespace Chillde.Services.Services
                         ServiceAttachments = s.ServiceAttachments.ToList(),
                         Rate = s.Rate,
                         FeedbackCount = s.FeedbackCount,
-                        Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
                         CategoryId = s.CategoryId,
+                        CategorySlug = s.Category.Slug,
+                        PackageCount = s.Packages.Count(),
+                        Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                        MaxPrice = s.Packages.Any()? s.Packages.Max(p => p.Price): 0,
                         Status = s.Status,
                         Artisan = new AccountLiteModel()
                         {
@@ -1854,7 +1863,12 @@ namespace Chillde.Services.Services
                 ServiceAttachments = s.ServiceAttachments.ToList(),
                 Rate = s.Rate,
                 FeedbackCount = s.FeedbackCount,
+                CategoryId = s.CategoryId,
+                CategorySlug = s.Category.Slug,
+                PackageCount = s.Packages.Count(),
                 Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
+                MaxPrice = s.Packages.Any() ? s.Packages.Max(p => p.Price) : 0,
+                Status = s.Status,
                 Artisan = new AccountLiteModel
                 {
                     FirstName = s.CreatedBy.FirstName,
