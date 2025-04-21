@@ -13,6 +13,7 @@ namespace Chillde.Services.Models.CategoryModels
         public string? Slug { get; set; } 
         public bool IncludeChildren { get; set; }
         protected override int MinPageSize { get; set; } = 20;
+        protected override int MaxPageSize { get; set; } = 1000;
     }
 }   
 
