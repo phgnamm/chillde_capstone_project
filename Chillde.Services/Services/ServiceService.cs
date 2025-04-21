@@ -990,9 +990,9 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
-
+                await _redisHelper.InvalidateCacheByPatternAsync($"services_{serviceId}_packages_*");
                 var packageModel = _mapper.Map<PackageModel>(package);
-
+                
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
@@ -1128,7 +1128,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
+                var cacheKey = $"services_{serviceId}_packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
