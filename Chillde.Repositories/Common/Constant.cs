@@ -16,7 +16,7 @@ public static class Constant
     #region Pagination
 
     // Default
-    public const int DefaultMinPageSize = 2;
+    public const int DefaultMinPageSize = 10;
     public const int DefaultMaxPageSize = 50;
 
     // Conversation

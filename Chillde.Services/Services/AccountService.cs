@@ -892,15 +892,15 @@ public class AccountService : IAccountService
         }
 
         _mapper.Map(accountUpdateModel, account);
-        if (accountUpdateModel.NewImage != null)
-            account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewImage,
-                $"{account.Id.ToString()}_image",
-                $"{account.Id.ToString()}_image", folderName: FolderAttachment.ACCOUNT);
-
-        if (accountUpdateModel.NewBanner != null)
-            account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewBanner,
-                $"{account.Id.ToString()}_banner",
-                $"{account.Id.ToString()}_banner", folderName: FolderAttachment.ACCOUNT);
+        // if (accountUpdateModel.NewImage != null)
+        //     account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewImage,
+        //         $"{account.Id.ToString()}_image",
+        //         $"{account.Id.ToString()}_image", folderName: FolderAttachment.ACCOUNT);
+        //
+        // if (accountUpdateModel.NewBanner != null)
+        //     account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewBanner,
+        //         $"{account.Id.ToString()}_banner",
+        //         $"{account.Id.ToString()}_banner", folderName: FolderAttachment.ACCOUNT);
 
         _unitOfWork.AccountRepository.Update(account);
         if (await _unitOfWork.SaveChangeAsync() > 0)
@@ -1096,15 +1096,15 @@ public class AccountService : IAccountService
         }
 
         _mapper.Map(accountBecomeASellerModel, account);
-        if (accountBecomeASellerModel.NewImage != null)
-            account!.Image = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewImage,
-                $"{account.Id.ToString()}_image",
-                $"{account.Id.ToString()}_image");
-
-        if (accountBecomeASellerModel.NewBanner != null)
-            account!.Banner = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewBanner,
-                $"{account.Id.ToString()}_banner",
-                $"{account.Id.ToString()}_banner");
+        // if (accountBecomeASellerModel.NewImage != null)
+        //     account!.Image = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewImage,
+        //         $"{account.Id.ToString()}_image",
+        //         $"{account.Id.ToString()}_image");
+        //
+        // if (accountBecomeASellerModel.NewBanner != null)
+        //     account!.Banner = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewBanner,
+        //         $"{account.Id.ToString()}_banner",
+        //         $"{account.Id.ToString()}_banner");
 
         if (account!.Image == null || account.Banner == null)
         {
