@@ -242,6 +242,7 @@ namespace Chillde.Services.Services
                                          (!voucherFilterModel.IsDeleted.HasValue || voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
                                          (!voucherFilterModel.MinOrderValue.HasValue || voucher.MinOrderValue >= voucherFilterModel.MinOrderValue) &&
                                          (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
+                                         (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
                                          (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
                                          (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
                                          (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
@@ -267,6 +268,10 @@ namespace Chillde.Services.Services
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.Receiver!.Username)
                                                       : s.OrderBy(s => s.Receiver!.Username);
+                                              case "reputation":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.MinReputation)
+                                                      : s.OrderBy(s => s.MinReputation);
                                               case "discountValue":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.DiscountValue)

@@ -9,6 +9,7 @@ namespace Chillde.Services.Models.VoucherModels
         public VoucherStatus? Status { get; set; }
         public decimal? MinOrderValue { get; set; }
         public decimal? MaxDiscountValue { get; set; }
+        public decimal? MinDiscountValue { get; set; }
         public DateTime? StartTime { get; set; }
         public DateTime? ExpiredTime { get; set; }
         public int? MinReputation {  get; set; }
