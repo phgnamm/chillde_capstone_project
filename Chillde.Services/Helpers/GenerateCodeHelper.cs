@@ -25,5 +25,12 @@ namespace Chillde.Services.Helpers
                 .Select(s => s[_random.Next(s.Length)]).ToArray());
             return prefix + randomPart;
         }
+        public static string GenerateReportCode()
+        {
+            const string prefix = "RPTCHD";
+            var randomPart = new string(Enumerable.Repeat(Characters, 5)
+                .Select(s => s[_random.Next(s.Length)]).ToArray());
+            return prefix + randomPart;
+        }
     }
 }

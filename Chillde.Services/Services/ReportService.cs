@@ -9,6 +9,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.VoucherModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -68,7 +69,10 @@ namespace Chillde.Services.Services
 
             Expression<Func<Report, bool>> filter = report =>
                 (!reportFilterModel.OrderId.HasValue || report.OrderId == reportFilterModel.OrderId) &&
-                report.IsDeleted == reportFilterModel.IsDeleted &&
+                (!reportFilterModel.IsDeleted.HasValue || report.IsDeleted == reportFilterModel.IsDeleted) &&
+                 (string.IsNullOrEmpty(reportFilterModel.Search) || (
+                                              report.Code.Contains(reportFilterModel.Search) 
+                                          )) &&
                 (!reportFilterModel.Status.HasValue || report.Status == reportFilterModel.Status);
 
             try
@@ -86,6 +90,9 @@ namespace Chillde.Services.Services
                 {
                     Id = _.Id,
                     Description = _.Description,
+                    OrderCode = _.Order.Code,
+                    ReportCode = _.Code,
+                    CreationOrderDate = _.Order.CreationDate,
                     Response = _.Response,
                     Status = _.Status,
                     OrderId = _.OrderId,

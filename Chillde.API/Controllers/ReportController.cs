@@ -20,7 +20,7 @@ namespace Chillde.API.Controllers
         }
 
         //[Authorize(Roles = "Admin")]
-        [HttpPut("{reportId}/recject")]
+        [HttpPut("{reportId}/reject")]
         public async Task<IActionResult> Reject(Guid reportId, [FromBody] ReportRejectOrAcceptModel reportRejectModel)
         {
             try

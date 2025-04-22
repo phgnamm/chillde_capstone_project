@@ -330,6 +330,7 @@ public static class InitialSeeding
      new()
      {
          Id = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f1"),
+         Code = "RPTCHD12345",
          Description = "Sản phẩm giao không đúng như mô tả, thiếu một số chi tiết quan trọng.",
          Status = ReportStatus.Pending,
          OrderId = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
@@ -346,6 +347,7 @@ public static class InitialSeeding
      },
      new()
      {
+         Code = "RPTCHD12346",
          Id = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f2"),
          Description = "Thời gian giao hàng quá lâu, không đúng như cam kết.",
          Response = "Chúng tôi đã liên hệ với nghệ nhân và sẽ xử lý vấn đề này.",
@@ -3832,9 +3834,9 @@ public static class InitialSeeding
         // Seed Reports and ReportAttachments
         foreach (var report in Reports)
         {
-            if (!context.Reports.Any(r => r.Id == report.Id))
+            if (!context.Reports.Any(r => r.Code == report.Code))
             {
-                if (!context.Orders.Any(o => o.Id == report.OrderId))
+                if (context.Orders.Any(o => o.Id == report.OrderId))
                 {
                     continue;
                 }
