@@ -45,6 +45,7 @@ using Chillde.Repositories.Models.ReportModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Services.Services
@@ -1863,7 +1864,7 @@ namespace Chillde.Services.Services
                 }
 
                 var uploadedAttachments = await UploadAttachments(
-                    orderTrackingAddModel.OrderTrackingAttachmentAddModels,
+                    orderTrackingAddModel.Attachments,
                     order.Code,
                     FolderAttachment.TRACKINGSKETCH
                 );
@@ -1952,7 +1953,7 @@ namespace Chillde.Services.Services
                 throw;
             }
         }
-        private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<OrderTrackingAttachmentAddModel> attachments, string orderCode, string folderName)
+        private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<AttachmentAddModel> attachments, string orderCode, string folderName)
         {
             var uploadedAttachments = new List<OrderTrackingAttachment>();
 
@@ -1960,15 +1961,15 @@ namespace Chillde.Services.Services
             {
                 foreach (var attachment in attachments)
                 {
-                    var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
-                        attachment.AttachmentUrl,
-                        orderCode,
-                        folderName: FolderAttachment.TRACKINGSKETCH
-                    );
+                    // var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
+                    //     attachment.AttachmentUrl,
+                    //     orderCode,
+                    //     folderName: FolderAttachment.TRACKINGSKETCH
+                    // );
 
                     uploadedAttachments.Add(new OrderTrackingAttachment
                     {
-                        AttachmentUrl = attachmentPath,
+                        AttachmentUrl = attachment.AttachmentUrl,
                         AttachmentAlt = attachment.AttachmentAlt
                     });
                 }
@@ -2081,7 +2082,7 @@ namespace Chillde.Services.Services
                 }
 
                 var uploadedAttachments = await UploadAttachments(
-                    orderTrackingAddModel.OrderTrackingAttachmentAddModels,
+                    orderTrackingAddModel.Attachments,
                     order.Code,
                     FolderAttachment.TRACKINGDELIVERY
                 );
