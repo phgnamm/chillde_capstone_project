@@ -268,9 +268,11 @@ public class ConversationService : IConversationService
         };
     }
 
-    public async Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel, string sourceLanguageCode, string targetLanguageCode)
+    public async Task<ResponseModel> AddMessage(Guid conversationId, MessageAddModel messageAddModel,
+        string sourceLanguageCode, string targetLanguageCode)
     {
-        if (string.IsNullOrWhiteSpace(messageAddModel.Content) && messageAddModel.Attachment == null)
+        if (string.IsNullOrWhiteSpace(messageAddModel.Content) && messageAddModel.Attachment == null &&
+            messageAddModel.Offer == null)
         {
             return new ResponseModel
             {
@@ -315,15 +317,17 @@ public class ConversationService : IConversationService
                 message.MessageType = MediaType.Image;
             }
 
-            message.AttachmentUrl =
-                await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment,
-                    folderName: FolderAttachment.MESSAGES);
+            message.AttachmentUrl = messageAddModel.Attachment;
+            // message.AttachmentUrl =
+            //     await _cloudinaryHelper.UploadImageAsync(messageAddModel.Attachment,
+            //         folderName: FolderAttachment.MESSAGES);
         }
 
         OfferModel? offerModel = null;
         if (messageAddModel.Offer != null)
         {
-            var addOfferResponse = await _offerService.AddAsync(messageAddModel.Offer, sourceLanguageCode, targetLanguageCode);
+            var addOfferResponse =
+                await _offerService.AddAsync(messageAddModel.Offer, sourceLanguageCode, targetLanguageCode);
             if (!addOfferResponse.Status)
             {
                 return new ResponseModel
@@ -336,13 +340,14 @@ public class ConversationService : IConversationService
             if (addOfferResponse.Data != null)
             {
                 message.OfferId = (Guid)addOfferResponse.Data;
-                var offerResponse = await _offerService.GetByIdAsync((Guid)addOfferResponse.Data, sourceLanguageCode, targetLanguageCode);;
+                var offerResponse = await _offerService.GetByIdAsync((Guid)addOfferResponse.Data, sourceLanguageCode,
+                    targetLanguageCode);
+                ;
                 if (offerResponse.Status)
                 {
                     offerModel = (OfferModel)offerResponse.Data;
                 }
             }
-            
         }
 
         var accountConversations = new List<AccountConversation>();
@@ -416,7 +421,8 @@ public class ConversationService : IConversationService
         };
     }
 
-    public async Task<ResponseModel> GetAllMessages(Guid conversationId, MessageFilterModel messageFilterModel, string sourceLanguageCode, string targetLanguageCode)
+    public async Task<ResponseModel> GetAllMessages(Guid conversationId, MessageFilterModel messageFilterModel,
+        string sourceLanguageCode, string targetLanguageCode)
     {
         var currentUserId = _claimService.GetCurrentUserId;
         if (!currentUserId.HasValue)
@@ -454,7 +460,9 @@ public class ConversationService : IConversationService
             if (message.OfferId.HasValue)
             {
                 message.OfferId = message.OfferId;
-                var offerResponse = await _offerService.GetByIdAsync(message.OfferId.Value, sourceLanguageCode, targetLanguageCode);;
+                var offerResponse =
+                    await _offerService.GetByIdAsync(message.OfferId.Value, sourceLanguageCode, targetLanguageCode);
+                ;
                 if (offerResponse.Status)
                 {
                     offerModel = (OfferModel)offerResponse.Data;
@@ -540,7 +548,8 @@ public class ConversationService : IConversationService
         };
     }
 
-    private MessageModel MapFromMessageToMessageModel(Message message, OfferModel? offerModel, Guid? currentUserId = null)
+    private MessageModel MapFromMessageToMessageModel(Message message, OfferModel? offerModel,
+        Guid? currentUserId = null)
     {
         return new MessageModel
         {

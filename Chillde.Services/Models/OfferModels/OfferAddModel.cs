@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.OfferAttachmentModels;
 using Chillde.Services.Models.PackageModels;
+using Chillde.Services.Models.ServiceAttachmentModels;
 
 namespace Chillde.Services.Models.OfferModels
 {
@@ -11,7 +12,8 @@ namespace Chillde.Services.Models.OfferModels
         public Guid? RequestId { get; set; }
         [StringLength(500, ErrorMessage = "Message cannot exceed 500 characters.")]
         public string? Message { get; set; } 
-        public List<OfferAttachmentAddModel>? OfferAttachmentAddModels { get; set; } = new List<OfferAttachmentAddModel>();
+        public List<AttachmentAddModel>? Attachments { get; set; } = new List<AttachmentAddModel>();
+        // public List<OfferAttachmentAddModel>? OfferAttachmentAddModels { get; set; } = new List<OfferAttachmentAddModel>();
         public List<FeatureAddModel>? FeatureAddModels { get; set; } = new List<FeatureAddModel>();
         public PackageAddModel? PackageAddModel { get; set; }
         [Range(0.01, double.MaxValue, ErrorMessage = "MinWeight must be greater than 0")]

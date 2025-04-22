@@ -89,7 +89,7 @@ namespace Chillde.API.Controllers
         }
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> AddAsync([FromForm] RequestAddModel requestAddModel)
+        public async Task<IActionResult> AddAsync([FromBody] RequestAddModel requestAddModel)
         {
             try
             {
