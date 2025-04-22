@@ -2517,6 +2517,15 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                if (order.Stage != OrderStage.AwaitingClosure)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Orders can only be reported after they have been delivered."
+                    };
+                }
+
                 var existingReport = await _unitOfWork.ReportRepository.GetByOrder(orderId);
                 if(existingReport != null)
                 {

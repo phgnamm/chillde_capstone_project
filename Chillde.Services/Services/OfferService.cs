@@ -410,28 +410,42 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.OfferRepository.AddAsync(newOffer);
 
-                for (int i = 0; i < model.OfferAttachmentAddModels!.Count; i++)
+                if (model.Attachments != null)
                 {
-                    Models.OfferAttachmentModels.OfferAttachmentAddModel? attachment = model.OfferAttachmentAddModels[i];
-                    if (attachment.AttachmentUrl == null) continue;
-
-                    var id = Guid.NewGuid();
-
-                    var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
-                        attachment.AttachmentUrl,
-                        attachment.AttachmentAlt,
-                        id.ToString(),
-                        folderName: FolderAttachment.OFFER
-                    );
-
-                    newOffer.OfferAttachments.Add(new OfferAttachment
+                    foreach (var attachment in model.Attachments)
                     {
-                        Id = id,
-                        AttachmentAlt = attachment.AttachmentAlt,
-                        AttachmentUrl = uploadedUrl,
-                        OfferId = newOffer.Id
-                    });
+                        newOffer.OfferAttachments.Add(new OfferAttachment
+                        {
+                            Id = Guid.NewGuid(),
+                            AttachmentAlt = attachment.AttachmentAlt,
+                            AttachmentUrl = attachment.AttachmentUrl,
+                            OfferId = newOffer.Id
+                        });
+                    }
                 }
+
+                // for (int i = 0; i < model.Attachments!.Count; i++)
+                // {
+                //     Models.OfferAttachmentModels.OfferAttachmentAddModel? attachment = model.OfferAttachmentAddModels[i];
+                //     if (attachment.AttachmentUrl == null) continue;
+                //
+                //     var id = Guid.NewGuid();
+                //
+                //     var uploadedUrl = await _cloudinaryHelper.UploadImageAsync(
+                //         attachment.AttachmentUrl,
+                //         attachment.AttachmentAlt,
+                //         id.ToString(),
+                //         folderName: FolderAttachment.OFFER
+                //     );
+                //
+                //     newOffer.OfferAttachments.Add(new OfferAttachment
+                //     {
+                //         Id = id,
+                //         AttachmentAlt = attachment.AttachmentAlt,
+                //         AttachmentUrl = uploadedUrl,
+                //         OfferId = newOffer.Id
+                //     });
+                // }
 
                 Dictionary<string, string> textsToTranslate = new Dictionary<string, string>
         {

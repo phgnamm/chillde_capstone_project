@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chillde.Repositories.Enums;
 
 namespace Chillde.Services.Models.RequestModels
 {
@@ -14,5 +15,6 @@ namespace Chillde.Services.Models.RequestModels
         public decimal? MinBudget { get; set; }
         public decimal? MaxBudget { get; set; }
         public int? Timeline { get; set; }
+        public RequestStatus? Status { get; set; }
     }
 }

@@ -17,4 +17,21 @@ namespace Chillde.Repositories.Models.ReportModels
         public virtual List<ReportAttachmentModel>? ReportAttachments { get; set; }
         public string? CustomerName { get; set; }
     }
+
+    public class ReportModelWithCountStatus
+    {
+        public int? Pending { get; set; }
+        public int? Accepted { get; set; }
+        public int? Rejected { get; set; }
+        public List<ReportModel> ReportModels { get; set; }
+        public PaginationInfo Pagination { get; set; }
+    }
+
+    public class PaginationInfo
+    {
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public int TotalCount { get; set; }
+    }
 }

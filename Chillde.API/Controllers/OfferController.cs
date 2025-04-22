@@ -24,7 +24,7 @@ namespace Chillde.API.Controllers
 
         [Authorize (Roles = "Artisan")]
         [HttpPost]
-        public async Task<IActionResult> Add([FromForm] OfferAddModel model)
+        public async Task<IActionResult> Add([FromBody] OfferAddModel model)
         {
             try
             {

@@ -12,6 +12,7 @@ public class MessageModel : BaseEntity
     public MediaType MessageType { get; set; }
     public bool IsPinned { get; set; }
     public bool IsModified { get; set; }
+    public Guid? OfferId { get; set; }
     public OfferModel? Offer { get; set; }
 
     // Foreign key

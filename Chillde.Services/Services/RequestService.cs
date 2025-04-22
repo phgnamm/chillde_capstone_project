@@ -23,6 +23,7 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Net.Mail;
 using System.Net.WebSockets;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Chillde.Services.Services
@@ -258,7 +259,7 @@ namespace Chillde.Services.Services
                 var newRequest = CreateNewRequest(requestAddModel, currentUserId.Value);
 
                 await _unitOfWork.RequestRepository.AddAsync(newRequest);
-                await ProcessAttachments((List<RequestAttachmentAddModel>)requestAddModel.RequestAttachmentAddModels, (List<RequestAttachment>)newRequest.RequestAttachments);
+                await ProcessAttachments((List<AttachmentAddModel>)requestAddModel.Attachments, (List<RequestAttachment>)newRequest.RequestAttachments);
                 await ProcessAttributes((List<RequestAttributeAddModel>)requestAddModel.RequestAttributeAddModels, (List<RequestAttribute>)newRequest.RequestAttributes);
                 var result = await _unitOfWork.SaveChangeAsync();
 
@@ -288,6 +289,7 @@ namespace Chillde.Services.Services
                     (!filterParameter.MinBudget.HasValue || request.MinBudget == filterParameter.MinBudget) &&
                     (!filterParameter.MaxBudget.HasValue || request.MaxBudget <= filterParameter.MaxBudget) &&
                     (!filterParameter.Timeline.HasValue || request.Timeline == filterParameter.Timeline) &&
+                    (!filterParameter.Status.HasValue || request.Status == filterParameter.Status) &&
                     (string.IsNullOrEmpty(filterParameter.Search) || request.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
 
                     var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
@@ -692,7 +694,7 @@ namespace Chillde.Services.Services
             };
         }
 
-        private async Task ProcessAttachments(List<RequestAttachmentAddModel> attachmentModels, List<RequestAttachment> requestAttachments)
+        private async Task ProcessAttachments(List<AttachmentAddModel> attachmentModels, List<RequestAttachment> requestAttachments)
         {
             if (attachmentModels == null) return;
 
@@ -702,10 +704,10 @@ namespace Chillde.Services.Services
                 {
                     throw new Exception("AttachmentAlt is empty");
                 }
-                var uploadedUrl = await UploadFile(attachment.AttachmentUrl, FolderAttachment.REQUEST);
+                // var uploadedUrl = await UploadFile(attachment.AttachmentUrl, FolderAttachment.REQUEST);
                 requestAttachments.Add(new RequestAttachment
                 {
-                    AttachmentUrl = uploadedUrl,
+                    AttachmentUrl = attachment.AttachmentUrl,
                     AttachmentAlt = attachment.AttachmentAlt
                 });
             }
@@ -795,6 +797,7 @@ namespace Chillde.Services.Services
                 Id = request.Id,
                 Name = request.Name ?? "Unkown",
                 CreatedById = request.CreatedById,
+                CreationDate = request.CreationDate,
                 IsDeleted = request.IsDeleted,
                 Description = request.Description ?? "Unkown",
                 MinBudget = (decimal)request.MinBudget,
@@ -1103,6 +1106,7 @@ namespace Chillde.Services.Services
                     (!filterParameter.MinBudget.HasValue || request.MinBudget == filterParameter.MinBudget) &&
                     (!filterParameter.MaxBudget.HasValue || request.MaxBudget <= filterParameter.MaxBudget) &&
                     (!filterParameter.Timeline.HasValue || request.Timeline == filterParameter.Timeline) &&
+                    (!filterParameter.Status.HasValue || request.Status == filterParameter.Status) &&
                     (string.IsNullOrEmpty(filterParameter.Search) || request.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
 
             Func<IQueryable<Request>, IQueryable<Request>> includeWithOrder = query =>

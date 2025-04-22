@@ -8,6 +8,7 @@ public class MessageAddModel
 {
     // TODO: Upload files
     public string? Content { get; set; } = "";
-    public IFormFile? Attachment { get; set; }
+    // public IFormFile? Attachment { get; set; }
+    public string? Attachment { get; set; }
     public OfferAddModel? Offer { get; set; }
 }
