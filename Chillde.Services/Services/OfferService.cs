@@ -80,8 +80,11 @@ namespace Chillde.Services.Services
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (!filterParameter.RequestId.HasValue || offer.RequestId == filterParameter.RequestId) &&
-                        !filterParameter.ViewAll.HasValue || filterParameter.ViewAll == true ||
-                        (filterParameter.ViewAll == false && offer.CreatedById == currentUserId),
+                            (
+                                !filterParameter.ViewAll.HasValue ||
+                                filterParameter.ViewAll == true ||
+                                (filterParameter.ViewAll == false && offer.CreatedById == currentUserId)
+                            ),
                 offers =>
                     {
                         switch (filterParameter.Order.ToLower())
