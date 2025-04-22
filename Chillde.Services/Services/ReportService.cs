@@ -9,6 +9,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.VoucherModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -68,7 +69,10 @@ namespace Chillde.Services.Services
 
             Expression<Func<Report, bool>> filter = report =>
                 (!reportFilterModel.OrderId.HasValue || report.OrderId == reportFilterModel.OrderId) &&
-                report.IsDeleted == reportFilterModel.IsDeleted &&
+                (!reportFilterModel.IsDeleted.HasValue || report.IsDeleted == reportFilterModel.IsDeleted) &&
+                 (string.IsNullOrEmpty(reportFilterModel.Search) || (
+                                              report.Code.Contains(reportFilterModel.Search) 
+                                          )) &&
                 (!reportFilterModel.Status.HasValue || report.Status == reportFilterModel.Status);
 
             try
@@ -86,6 +90,10 @@ namespace Chillde.Services.Services
                 {
                     Id = _.Id,
                     Description = _.Description,
+                    OrderCode = _.Order.Code,
+                    ReportCode = _.Code,
+                    CustomerImage = _.Order.CreatedBy.Image,
+                    CreationOrderDate = _.Order.CreationDate,
                     Response = _.Response,
                     Status = _.Status,
                     OrderId = _.OrderId,
@@ -98,24 +106,24 @@ namespace Chillde.Services.Services
                     CustomerName = $"{_.Order.CreatedBy.LastName} {_.Order.CreatedBy.FirstName}"
                 }).ToList();
 
-                var pendingCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Pending && !_.IsDeleted).Result.Data.Count;
-                var acceptedCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Accepted && !_.IsDeleted).Result.Data.Count;
-                var rejectedCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Rejected && !_.IsDeleted).Result.Data.Count;
+                //var pendingCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Pending && !_.IsDeleted).Result.Data.Count;
+                //var acceptedCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Accepted && !_.IsDeleted).Result.Data.Count;
+                //var rejectedCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Rejected && !_.IsDeleted).Result.Data.Count;
 
-                var reportModelWithCountStatus = new ReportModelWithCountStatus
-                {
-                    Pending = pendingCount,
-                    Accepted = acceptedCount,
-                    Rejected = rejectedCount,
-                    ReportModels = reportModels,
-                    Pagination = new PaginationInfo
-                    {
-                        CurrentPage = reportFilterModel.PageIndex,
-                        PageSize = reportFilterModel.PageSize,
-                        TotalPages = (int)Math.Ceiling(reports.TotalCount / (double)reportFilterModel.PageSize),
-                        TotalCount = reports.TotalCount
-                    }
-                };
+                //var reportModelWithCountStatus = new ReportModelWithCountStatus
+                //{
+                //    Pending = pendingCount,
+                //    Accepted = acceptedCount,
+                //    Rejected = rejectedCount,
+                //    ReportModels = reportModels,
+                //    Pagination = new PaginationInfo
+                //    {
+                //        CurrentPage = reportFilterModel.PageIndex,
+                //        PageSize = reportFilterModel.PageSize,
+                //        TotalPages = (int)Math.Ceiling(reports.TotalCount / (double)reportFilterModel.PageSize),
+                //        TotalCount = reports.TotalCount
+                //    }
+                //};
 
                 var result = new Pagination<ReportModel>(
                     reportModels,
@@ -127,7 +135,7 @@ namespace Chillde.Services.Services
                 return new ResponseModel
                 {
                     Message = "Get all reports successfully",
-                    Data = reportModelWithCountStatus,
+                    Data = result,
 
                 };
             }
@@ -144,7 +152,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var report = await _unitOfWork.ReportRepository.GetAsync(reportId);
+                var report = await _unitOfWork.ReportRepository.GetAsync(reportId, include: _ => _.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service).Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer));
                 if (report == null)
                 {
                     return new ResponseModel
@@ -336,6 +344,28 @@ namespace Chillde.Services.Services
                     Message = ex.Message
                 };
             }
+        }
+
+        public async Task<ResponseModel> GetStatusCount()
+        {
+            var pendingCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Pending && !_.IsDeleted).Result.Data.Count;
+            var acceptedCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Accepted && !_.IsDeleted).Result.Data.Count;
+            var rejectedCount = _unitOfWork.ReportRepository.GetAllAsync(_ => _.Status == ReportStatus.Rejected && !_.IsDeleted).Result.Data.Count;
+
+            var reportModelWithCountStatus = new ReportModelWithCountStatus
+            {
+                Pending = pendingCount,
+                Accepted = acceptedCount,
+                Rejected = rejectedCount,
+                
+            };
+
+            return new ResponseModel
+            {
+                Message = "Get all reports successfully",
+                Data = reportModelWithCountStatus,
+
+            };
         }
     }
 }

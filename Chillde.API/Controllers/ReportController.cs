@@ -20,7 +20,7 @@ namespace Chillde.API.Controllers
         }
 
         //[Authorize(Roles = "Admin")]
-        [HttpPut("{reportId}/recject")]
+        [HttpPut("{reportId}/reject")]
         public async Task<IActionResult> Reject(Guid reportId, [FromBody] ReportRejectOrAcceptModel reportRejectModel)
         {
             try
@@ -64,6 +64,23 @@ namespace Chillde.API.Controllers
             try
             {
                 var result = await _reportService.GetAll(reportFilterModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpGet("status-count")]
+        public async Task<IActionResult> GetStatusCount()
+        {
+            try
+            {
+                var result = await _reportService.GetStatusCount();
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

@@ -30,6 +30,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System;
 using Chillde.Repositories.Models.ServiceWishlistModels;
+using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.VoucherUsageLogModels;
 using Chillde.Services.Helpers;
 using Chillde.Repositories.Models.NotificationModels;
@@ -1860,6 +1861,12 @@ namespace Chillde.Services.Services
                             (!serviceFilterModel.CategoryId.HasValue || s.CategoryId == serviceFilterModel.CategoryId) &&
                             //(!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
                             (!serviceFilterModel.MinPrice.HasValue || s.Packages.Min(p => p.Price) >= serviceFilterModel.MinPrice) &&
+                            (!serviceFilterModel.IsDeleted.HasValue || s.IsDeleted == serviceFilterModel.IsDeleted) &&                        
+                            (string.IsNullOrEmpty(serviceFilterModel.Search) || (
+                                s.Name.Contains(serviceFilterModel.Search) ||
+                                s.Description.Contains(serviceFilterModel.Search)
+                               
+                            )) &&
                             (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Min(p => p.Price) <= serviceFilterModel.MaxPrice) &&
                             (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
                             (!serviceFilterModel.MaxRate.HasValue || s.Rate <= serviceFilterModel.MaxRate) &&
@@ -1873,6 +1880,18 @@ namespace Chillde.Services.Services
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.CreationDate)
                                         : s.OrderBy(s => s.CreationDate);
+                                case "name":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Name)
+                                        : s.OrderBy(s => s.Name);
+                                case "description":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.Description)
+                                        : s.OrderBy(s => s.Description);
+                                case "feedbackCount":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.FeedbackCount)
+                                        : s.OrderBy(s => s.FeedbackCount);
                                 case "bestSelling":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Sum(p => p.Orders.Count))
@@ -1897,6 +1916,10 @@ namespace Chillde.Services.Services
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Rate)
                                         : s.OrderBy(s => s.CreationDate);
+                                case "status":
+                                    return serviceFilterModel.OrderByDescending
+                                        ? s.OrderByDescending(s => s.IsDeleted)
+                                        : s.OrderBy(s => s.IsDeleted);
                                 default:
                                     return serviceFilterModel.OrderByDescending
                                        ? s.OrderByDescending(s => s.CreationDate)

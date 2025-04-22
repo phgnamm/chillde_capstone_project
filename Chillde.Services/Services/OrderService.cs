@@ -2647,7 +2647,7 @@ namespace Chillde.Services.Services
                 var report = _mapper.Map<Report>(reportAddModel);
                 report.OrderId = orderId;
                 report.Status = ReportStatus.Pending;
-
+                report.Code = GenerateCodeHelper.GenerateReportCode();
                 await _unitOfWork.ReportRepository.AddAsync(report);
 
                 var newAttachment = new List<ReportAttachment>();
