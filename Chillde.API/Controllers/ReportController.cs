@@ -75,5 +75,22 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        [HttpGet("status-count")]
+        public async Task<IActionResult> GetStatusCount()
+        {
+            try
+            {
+                var result = await _reportService.GetStatusCount();
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

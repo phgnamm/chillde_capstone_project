@@ -10,6 +10,7 @@ namespace Chillde.Repositories.Models.ReportModels
         public string? Response { get; set; }
         public string? OrderCode { get; set; }
         public string? ReportCode { get; set; }
+        public string? CustomerImage { get; set; }
         public DateTime? CreationOrderDate { get; set; }
         public ReportStatus Status { get; set; }
         public Guid OrderId { get; set; }
@@ -23,8 +24,6 @@ namespace Chillde.Repositories.Models.ReportModels
         public int? Pending { get; set; }
         public int? Accepted { get; set; }
         public int? Rejected { get; set; }
-        public List<ReportModel> ReportModels { get; set; }
-        public PaginationInfo Pagination { get; set; }
     }
 
     public class PaginationInfo
