@@ -31,6 +31,7 @@ using Newtonsoft.Json;
 using System;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Services.Models.VoucherUsageLogModels;
+using Chillde.Services.Helpers;
 
 namespace Chillde.Services.Services
 {
@@ -340,7 +341,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var cacheKey = $"services_{id}";
+                var cacheKey = $"service_{id}";
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     Func<IQueryable<Service>, IQueryable<Service>> include = services =>
@@ -478,7 +479,7 @@ namespace Chillde.Services.Services
 
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                     await _unitOfWork.SaveChangeAsync();
-                    await _redisHelper.InvalidateCacheByPatternAsync($"services_*{currentUserId}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_*");
 
                     var serviceModel = _mapper.Map<ServiceModel>(service);
                     return new ResponseModel
@@ -713,7 +714,7 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{id}");
                     await _redisHelper.InvalidateCacheByPatternAsync("services_*");
                     return new ResponseModel
                     {
@@ -760,6 +761,9 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.SaveChangeAsync();
 
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{id}");
+                await _redisHelper.InvalidateCacheByPatternAsync("services_*");
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
@@ -804,7 +808,7 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{id}");
                     await _redisHelper.InvalidateCacheByPatternAsync("services_*");
                     return new ResponseModel
                     {
@@ -1057,7 +1061,7 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
-                await _redisHelper.InvalidateCacheByPatternAsync($"services_{serviceId}_packages_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{serviceId}_packages_*");
                 var packageModel = _mapper.Map<PackageModel>(package);
 
                 return new ResponseModel
@@ -1113,6 +1117,7 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.FAQRepository.AddAsync(faq);
                 await _unitOfWork.SaveChangeAsync();
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{faq.ServiceId}_faqs_*");
 
                 return new ResponseModel
                 {
@@ -1145,7 +1150,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"faqs_{CacheTools.GenerateCacheKey(faqFilterModel)}";
+                var cacheKey = $"service_{serviceId}_faqs_{CacheTools.GenerateCacheKey(faqFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
@@ -1195,7 +1200,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"services_{serviceId}_packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
+                var cacheKey = $"service_{serviceId}_packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
@@ -1279,7 +1284,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"features_{CacheTools.GenerateCacheKey(serviceId)}";
+                var cacheKey = $"service_{serviceId}_features_{CacheTools.GenerateCacheKey(serviceId)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
@@ -1545,11 +1550,11 @@ namespace Chillde.Services.Services
         {
             try
             {
-                //var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
+                var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
 
-                //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                //{
-                var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
+                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                 filter: _ => !_.IsDeleted &&
                                 (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
                 include: _ => _.Include(_ => _.Packages)
@@ -1595,7 +1600,7 @@ namespace Chillde.Services.Services
                     Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
                     Data = result
                 };
-                //});
+                });
             }
             catch (Exception ex)
             {

@@ -2,10 +2,12 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.PackageFeatureModels;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Services.Services
 {
@@ -15,13 +17,15 @@ namespace Chillde.Services.Services
         private readonly IMapper _mapper;
         private readonly ITranslationService _translationService;
         private readonly IBadWordFilterService _badWordFilterService;
+        private readonly IRedisHelper _redisHelper;
 
-        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService, IBadWordFilterService badWordFilterService)
+        public PackageFeatureService(IUnitOfWork unitOfWork, IMapper mapper, ITranslationService translationService, IBadWordFilterService badWordFilterService, IRedisHelper redisHelper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _translationService = translationService;
             _badWordFilterService = badWordFilterService;
+            _redisHelper = redisHelper;
         }
 
         public async Task<ResponseModel> UpdateAsync(PackageFeatureUpdateModel packageFeatureUpdateModel, Guid id, string sourceLanguageCode)
@@ -105,6 +109,9 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.SaveChangeAsync();
 
+                await _redisHelper.InvalidateCacheByPatternAsync($"package_{package.Id}");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
@@ -126,7 +133,8 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(packageFeatureId);
+                var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(packageFeatureId, 
+                    include: packageFeature => packageFeature.Include(_ => _.Package));
                 if (packageFeature == null)
                 {
                     return new ResponseModel
@@ -164,6 +172,9 @@ namespace Chillde.Services.Services
                 }
 
                 await _unitOfWork.SaveChangeAsync();
+
+                await _redisHelper.InvalidateCacheByPatternAsync($"package_{packageFeature.PackageId}");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{packageFeature.Package.ServiceId}_packages_*");
 
                 return new ResponseModel
                 {
