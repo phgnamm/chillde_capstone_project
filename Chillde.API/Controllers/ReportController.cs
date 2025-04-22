@@ -19,12 +19,32 @@ namespace Chillde.API.Controllers
             _reportService = reportService;
         }
 
+        //[Authorize(Roles = "Admin")]
         [HttpPut("{reportId}/recject")]
-        public async Task<IActionResult> Reject(Guid reportId, [FromBody] ReportRejectModel reportRejectModel)
+        public async Task<IActionResult> Reject(Guid reportId, [FromBody] ReportRejectOrAcceptModel reportRejectModel)
         {
             try
             {
                 var result = await _reportService.Reject(reportId, reportRejectModel);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        //[Authorize(Roles = "Admin")]
+        [HttpPut("{reportId}/accept")]
+        public async Task<IActionResult> Accept(Guid reportId, [FromBody] ReportRejectOrAcceptModel reportRejectModel)
+        {
+            try
+            {
+                var result = await _reportService.Accept(reportId, reportRejectModel);
                 return StatusCode(result.Code, result);
             }
             catch (Exception ex)

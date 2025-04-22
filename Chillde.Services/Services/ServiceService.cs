@@ -30,6 +30,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System;
 using Chillde.Repositories.Models.ServiceWishlistModels;
+using Chillde.Services.Models.VoucherUsageLogModels;
 
 namespace Chillde.Services.Services
 {
@@ -187,11 +188,45 @@ namespace Chillde.Services.Services
                     Message = "Unauthorized."
                 };
             }
+
+            Expression<Func<Feedback, bool>> filter = feedback =>
+                (feedback.CreatedById == currentUserId.Value) &&
+                (feedback.ServiceId == serviceId) &&
+                (feedback.IsDeleted == feedbackFilterModel.IsDeleted) &&
+                (
+                    (feedbackFilterModel.OneStar == true && feedback.Rating == 1) ||
+                    (feedbackFilterModel.TwoStar == true && feedback.Rating == 2) ||
+                    (feedbackFilterModel.ThreeStar == true && feedback.Rating == 3) ||
+                    (feedbackFilterModel.FourStar == true && feedback.Rating == 4) ||
+                    (feedbackFilterModel.FiveStar == true && feedback.Rating == 5) ||
+                    (
+                        feedbackFilterModel.OneStar == null &&
+                        feedbackFilterModel.TwoStar == null &&
+                        feedbackFilterModel.ThreeStar == null &&
+                        feedbackFilterModel.FourStar == null &&
+                        feedbackFilterModel.FiveStar == null
+                    )
+                );
+
             var feedbacks = await _unitOfWork.FeedbackRepository.GetAllAsync(
-                filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted && _.ServiceId == serviceId && _.CreatedById == currentUserId.Value,
+                filter: filter,
                 include: feedbacks => feedbacks.Include(_ => _.FeedbackAttachments)
                                                .Include(_ => _.CreatedBy)
                                                .Include(_ => _.Service),
+                order: _ =>
+                {
+                    switch (feedbackFilterModel.Order.ToLower())
+                    {
+                        case "star":
+                            return feedbackFilterModel.OrderByDescending
+                                ? _.OrderByDescending(s => s.Rating)
+                                : _.OrderBy(s => s.Rating);
+                        default:
+                            return feedbackFilterModel.OrderByDescending
+                               ? _.OrderByDescending(s => s.CreationDate)
+                               : _.OrderBy(s => s.CreationDate);
+                    }
+                },
                 pageIndex: feedbackFilterModel.PageIndex,
                 pageSize: feedbackFilterModel.PageSize
             );
@@ -213,8 +248,8 @@ namespace Chillde.Services.Services
                 Rating = _.Rating,
                 FeedbackAttachmentModels = _.FeedbackAttachments.Select(_ => new FeedbackAttachmentModel
                 {
-                   AttachmentAlt = _.AttachmentAlt,
-                   AttachmentUrl = _.AttachmentUrl,
+                    AttachmentAlt = _.AttachmentAlt,
+                    AttachmentUrl = _.AttachmentUrl,
                 }).ToList()
             }).ToList();
             var result = new Pagination<FeedbackModel>(feedbackModels, feedbackFilterModel.PageIndex,
@@ -229,11 +264,43 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAllFeedbacksByServiceAsync(Guid serviceId, FeedbackFilterModel feedbackFilterModel)
         {
+            Expression<Func<Feedback, bool>> filter = feedback =>
+            (feedback.ServiceId == serviceId) &&
+            (feedback.IsDeleted == feedbackFilterModel.IsDeleted) &&
+            (
+                (feedbackFilterModel.OneStar == true && feedback.Rating == 1) ||
+                (feedbackFilterModel.TwoStar == true && feedback.Rating == 2) ||
+                (feedbackFilterModel.ThreeStar == true && feedback.Rating == 3) ||
+                (feedbackFilterModel.FourStar == true && feedback.Rating == 4) ||
+                (feedbackFilterModel.FiveStar == true && feedback.Rating == 5) ||
+                (
+                    feedbackFilterModel.OneStar == null &&
+                    feedbackFilterModel.TwoStar == null &&
+                    feedbackFilterModel.ThreeStar == null &&
+                    feedbackFilterModel.FourStar == null &&
+                    feedbackFilterModel.FiveStar == null
+                )
+            );
+
             var feedbacks = await _unitOfWork.FeedbackRepository.GetAllAsync(
-                filter: _ => _.IsDeleted == feedbackFilterModel.IsDeleted && _.ServiceId == serviceId,
+                filter: filter,
                 include: feedbacks => feedbacks.Include(_ => _.FeedbackAttachments)
                                                .Include(_ => _.CreatedBy)
                                                .Include(_ => _.Service),
+                order: _ =>
+                {
+                    switch (feedbackFilterModel.Order.ToLower())
+                    {
+                        case "star":
+                            return feedbackFilterModel.OrderByDescending
+                                ? _.OrderByDescending(s => s.Rating)
+                                : _.OrderBy(s => s.Rating);
+                        default:
+                            return feedbackFilterModel.OrderByDescending
+                               ? _.OrderByDescending(s => s.CreationDate)
+                               : _.OrderBy(s => s.CreationDate);
+                    }
+                },
                 pageIndex: feedbackFilterModel.PageIndex,
                 pageSize: feedbackFilterModel.PageSize
             );
@@ -382,35 +449,36 @@ namespace Chillde.Services.Services
                     };
                 }
                 var newServiceAttachment = new List<ServiceAttachment>();
-                var attachmentModel = serviceAddModel.ServiceAttachments;
-                if (serviceAddModel.ServiceAttachments != null)
+                var attachmentModel = serviceAddModel.Attachments;
+                if (serviceAddModel.Attachments != null)
                 {
                     for (int i = 0; i < attachmentModel!.Count; i++)
                     {
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
-                        string? path = null;
-                        if (attachmentUrl != null)
-                        {
-                            path = await _cloudinaryHelper.UploadImageAsync(
-                                attachmentUrl,
-                                attachmentAlt,
-                                Guid.NewGuid().ToString(),
-                                folderName: FolderAttachment.SERVICE
-                            );
-                        }
+                        // string? path = null;
+                        // if (attachmentUrl != null)
+                        // {
+                        //     path = await _cloudinaryHelper.UploadImageAsync(
+                        //         attachmentUrl,
+                        //         attachmentAlt,
+                        //         Guid.NewGuid().ToString(),
+                        //         folderName: FolderAttachment.SERVICE
+                        //     );
+                        // }
 
                         newServiceAttachment.Add(new ServiceAttachment
                         {
                             AttachmentAlt = attachmentAlt,
-                            AttachmentUrl = path,
+                            AttachmentUrl = attachmentUrl,
                             ServiceId = service.Id
                         });
                     }
 
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachment);
                     await _unitOfWork.SaveChangeAsync();
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_*{currentUserId}");
 
                     var serviceModel = _mapper.Map<ServiceModel>(service);
                     return new ResponseModel
@@ -586,33 +654,33 @@ namespace Chillde.Services.Services
                     serviceModel.ServiceAttachments = serviceAttachmentWithNewService;
                 }
 
-                if (serviceUpdateModel.ServiceAttachments != null)
+                if (serviceUpdateModel.AttachmentsToAdd != null)
                 {
                     var newServiceAttachments = new List<ServiceAttachment>();
 
-                    for (int i = 0; i < serviceUpdateModel.ServiceAttachments.Count; i++)
+                    for (int i = 0; i < serviceUpdateModel.AttachmentsToAdd.Count; i++)
                     {
-                        var attachmentAlt = serviceUpdateModel.ServiceAttachments[i].AttachmentAlt;
-                        var attachmentUrl = serviceUpdateModel.ServiceAttachments[i].AttachmentUrl;
+                        var attachmentAlt = serviceUpdateModel.AttachmentsToAdd[i].AttachmentAlt;
+                        var attachmentUrl = serviceUpdateModel.AttachmentsToAdd[i].AttachmentUrl;
 
                         Guid Id = Guid.NewGuid();
 
-                        string? path = null;
-                        if (attachmentUrl != null)
-                        {
-                            path = await _cloudinaryHelper.UploadImageAsync(
-                                attachmentUrl,
-                                attachmentAlt,
-                                Id.ToString(),
-                                folderName: FolderAttachment.SERVICE
-                            );
-                        }
+                        // string? path = null;
+                        // if (attachmentUrl != null)
+                        // {
+                        //     path = await _cloudinaryHelper.UploadImageAsync(
+                        //         attachmentUrl,
+                        //         attachmentAlt,
+                        //         Id.ToString(),
+                        //         folderName: FolderAttachment.SERVICE
+                        //     );
+                        // }
 
                         newServiceAttachments.Add(new ServiceAttachment
                         {
                             Id = Id,
                             AttachmentAlt = attachmentAlt,
-                            AttachmentUrl = path,
+                            AttachmentUrl = attachmentUrl,
                             ServiceId = service.Id
                         });
                     }
@@ -620,24 +688,24 @@ namespace Chillde.Services.Services
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(newServiceAttachments);
                 }
 
-                if (serviceUpdateModel.ServiceAttachmentIdsDeleting != null)
+                if (serviceUpdateModel.AttachmentIdsToDelete != null)
                 {
                     var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
-                    filter: _ => serviceUpdateModel.ServiceAttachmentIdsDeleting.Contains(_.Id)
+                    filter: _ => serviceUpdateModel.AttachmentIdsToDelete.Contains(_.Id)
                     );
 
-                    if (serviceAttachments == null || !serviceAttachments.Data.Any())
-                    {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status404NotFound,
-                            Message = "Attachments not found."
-                        };
-                    }
+                    // if (serviceAttachments == null || !serviceAttachments.Data.Any())
+                    // {
+                    //     return new ResponseModel
+                    //     {
+                    //         Code = StatusCodes.Status404NotFound,
+                    //         Message = "Attachments not found."
+                    //     };
+                    // }
 
                     var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
 
-                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.ServiceAttachmentIdsDeleting.Select(id => id.ToString()).ToList());
+                    await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.AttachmentIdsToDelete.Select(id => id.ToString()).ToList());
 
                     _unitOfWork.ServiceAttachmentRepository.HardRemoveRange(serviceAttachments.Data);
                 }
@@ -823,22 +891,22 @@ namespace Chillde.Services.Services
                     var attachmentAlt = attachmentModel[i].AttachmentAlt;
                     var attachmentUrl = attachmentModel[i].AttachmentUrl;
                     Guid Id = Guid.NewGuid();
-                    string? path = null;
-                    if (attachmentUrl != null)
-                    {
-                        path = await _cloudinaryHelper.UploadImageAsync(
-                            attachmentUrl,
-                            attachmentAlt,
-                            Id.ToString(),
-                            folderName: FolderAttachment.SERVICE
-                        );
-                    }
+                    // string? path = null;
+                    // if (attachmentUrl != null)
+                    // {
+                    //     path = await _cloudinaryHelper.UploadImageAsync(
+                    //         attachmentUrl,
+                    //         attachmentAlt,
+                    //         Id.ToString(),
+                    //         folderName: FolderAttachment.SERVICE
+                    //     );
+                    // }
 
                     newServiceAttachment.Add(new ServiceAttachment
                     {
                         Id = Id,
                         AttachmentAlt = attachmentAlt,
-                        AttachmentUrl = path,
+                        AttachmentUrl = attachmentUrl,
                         ServiceId = service.Id
                     });
                 }
@@ -989,7 +1057,7 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
-
+                await _redisHelper.InvalidateCacheByPatternAsync($"services_{serviceId}_packages_*");
                 var packageModel = _mapper.Map<PackageModel>(package);
 
                 return new ResponseModel
@@ -1127,7 +1195,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
+                var cacheKey = $"services_{serviceId}_packages_{CacheTools.GenerateCacheKey(packageFilterModel)}";
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
@@ -1481,52 +1549,52 @@ namespace Chillde.Services.Services
 
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
-                    var services = await _unitOfWork.ServiceRepository.GetAllAsync(
-                    filter: _ => !_.IsDeleted &&
-                                    (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
-                    include: _ => _.Include(_ => _.Packages)
-                                  .Include(_ => _.ServiceAttachments)
-                                  .Include(_ => _.CreatedBy)
-                                  .Include(_ => _.Category),
-                    pageIndex: serviceFilterModel.PageIndex,
-                    pageSize: serviceFilterModel.PageSize
+                var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                filter: _ => !_.IsDeleted &&
+                                (_.Name ?? "").ToLower().Trim().Contains((serviceFilterModel.Search ?? "").ToLower().Trim()),
+                include: _ => _.Include(_ => _.Packages)
+                              .Include(_ => _.ServiceAttachments)
+                              .Include(_ => _.CreatedBy)
+                              .Include(_ => _.Category),
+                pageIndex: serviceFilterModel.PageIndex,
+                pageSize: serviceFilterModel.PageSize
+            );
+
+                var serviceModels = services.Data.Select(_ => new ServiceModel
+                {
+                    Id = _.Id,
+                    Name = _.Name!,
+                    Description = _.Description ?? "",
+                    FeedbackCount = _.FeedbackCount,
+                    Rate = _.Rate,
+                    MinWeight = _.MinWeight,
+                    MaxWeight = _.MaxWeight,
+                    Status = _.Status,
+                    CategoryId = _.CategoryId,
+                    CategorySlug = _.Category?.Slug,
+                    PackageCount = _.Packages.Count,
+                    ServiceAttachments = _.ServiceAttachments.ToList(),
+                    Artisan = _.CreatedBy == null ? null : new AccountLiteModel
+                    {
+                        FirstName = _.CreatedBy.FirstName ?? "Unknown",
+                        LastName = _.CreatedBy.LastName ?? "Unknown",
+                        Username = _.CreatedBy.Username ?? "Unknown",
+                        Email = _.CreatedBy.Email ?? "Unknown",
+                        Image = _.CreatedBy.Image ?? "Unknown"
+                    }
+                }).ToList();
+
+                var result = new Pagination<ServiceModel>(
+                    serviceModels,
+                    serviceFilterModel.PageIndex,
+                    serviceFilterModel.PageSize,
+                    serviceModels.Count
                 );
-
-                    var serviceModels = services.Data.Select(_ => new ServiceModel
-                    {
-                        Id = _.Id,
-                        Name = _.Name!,
-                        Description = _.Description ?? "",
-                        FeedbackCount = _.FeedbackCount,
-                        Rate = _.Rate,
-                        MinWeight = _.MinWeight,
-                        MaxWeight = _.MaxWeight,
-                        Status = _.Status,
-                        CategoryId = _.CategoryId,
-                        CategorySlug = _.Category?.Slug,
-                        PackageCount = _.Packages.Count,
-                        ServiceAttachments = _.ServiceAttachments.ToList(),
-                        Artisan = _.CreatedBy == null ? null : new AccountLiteModel
-                        {
-                            FirstName = _.CreatedBy.FirstName ?? "Unknown",
-                            LastName = _.CreatedBy.LastName ?? "Unknown",
-                            Username = _.CreatedBy.Username ?? "Unknown",
-                            Email = _.CreatedBy.Email ?? "Unknown",
-                            Image = _.CreatedBy.Image ?? "Unknown"
-                        }
-                    }).ToList();
-
-                    var result = new Pagination<ServiceModel>(
-                        serviceModels,
-                        serviceFilterModel.PageIndex,
-                        serviceFilterModel.PageSize,
-                        serviceModels.Count
-                    );
-                    return new ResponseModel
-                    {
-                        Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
-                        Data = result
-                    };
+                return new ResponseModel
+                {
+                    Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
+                    Data = result
+                };
                 //});
             }
             catch (Exception ex)
@@ -1830,7 +1898,7 @@ namespace Chillde.Services.Services
                         CategorySlug = s.Category.Slug,
                         PackageCount = s.Packages.Count(),
                         Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
-                        MaxPrice = s.Packages.Any()? s.Packages.Max(p => p.Price): 0,
+                        MaxPrice = s.Packages.Any() ? s.Packages.Max(p => p.Price) : 0,
                         Status = s.Status,
                         Artisan = new AccountLiteModel()
                         {

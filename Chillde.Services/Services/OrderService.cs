@@ -45,6 +45,7 @@ using Chillde.Repositories.Models.ReportModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.NotificationModels;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Services.Services
 {
@@ -2335,7 +2336,11 @@ namespace Chillde.Services.Services
                         Message = "Invalid order ID."
                     };
                 }
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _.Include(_ => _.Package));
+
+                var order = await _unitOfWork.OrderRepository.GetAsync(
+                    orderId,
+                    include: o => o.Include(o => o.Package)
+                );
                 if (order == null)
                 {
                     return new ResponseModel
@@ -2350,8 +2355,7 @@ namespace Chillde.Services.Services
                     {
                         Code = StatusCodes.Status400BadRequest,
                         Message = $"Order is not in AwaitingClosure stage. Current stage: {order.Stage}."
-                    };
-                }
+                    };                }
                 if (order.Status != OrderStatus.Accepted)
                 {
                     return new ResponseModel
@@ -2360,45 +2364,127 @@ namespace Chillde.Services.Services
                         Message = $"Order is not in Accepted status. Current status: {order.Status}."
                     };
                 }
-                var account = await _unitOfWork.AccountRepository.GetAsync((Guid)order.Package.CreatedById, include: _ => _.Include(_ => _.Wallet));
-                var wallet = account?.Wallet;
-                if (wallet == null)
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status401Unauthorized,
-                        Message = "Wallet not found"
-                    };
 
-                wallet.Balance += (decimal)order.ArtistRevenue;
-
-                order.Transactions.Add(new Transaction
-                {
-                    WalletId = wallet.Id,
-                    Amount = order.ArtistRevenue,
-                    Type = TransactionType.TransferIn,
-                    Status = TransactionStatus.Completed,
-                    CreatedById = account.CreatedById
-                });
-                _unitOfWork.WalletRepository.Update(wallet);
-                order.Stage = OrderStage.Completed;
-                order.Status = OrderStatus.Completed;
-                _unitOfWork.OrderRepository.Update(order);
-                var saveResult = await _unitOfWork.SaveChangeAsync();
-
-                if (saveResult <= 0)
+                var artisanAccount = await _unitOfWork.AccountRepository.GetAsync(
+                    (Guid)order.Package.CreatedById,
+                    include: a => a.Include(a => a.Wallet).Include(a => a.AccountRoles).ThenInclude(ar => ar.Role)
+                );
+                if (artisanAccount == null || artisanAccount.Wallet == null)
                 {
                     return new ResponseModel
                     {
-                        Code = StatusCodes.Status500InternalServerError,
-                        Message = "Failed to update order in database."
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Artisan account or wallet not found."
                     };
                 }
 
-                return new ResponseModel
+                var customerAccount = await _unitOfWork.AccountRepository.GetAsync(
+                    (Guid)order.CreatedById,
+                    include: a => a.Include(a => a.AccountRoles).ThenInclude(ar => ar.Role)
+                );
+                if (customerAccount == null)
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Order updated to Completed and Success successfully."
-                };
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Customer account not found."
+                    };
+                }
+
+                var accountRoleArtisan = artisanAccount.AccountRoles
+                    .FirstOrDefault(ar => ar.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
+                if (accountRoleArtisan == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Artisan role not found for account."
+                    };
+                }
+
+                var accountRoleCustomer = customerAccount.AccountRoles
+                    .FirstOrDefault(ar => ar.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
+                if (accountRoleCustomer == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Customer role not found for account."
+                    };
+                }
+
+                 await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    var wallet = artisanAccount.Wallet;
+                    wallet.Balance += (decimal)order.ArtistRevenue;
+                    _unitOfWork.WalletRepository.Update(wallet);
+
+                    order.Transactions.Add(new Transaction
+                    {
+                        WalletId = wallet.Id,
+                        Amount = order.ArtistRevenue,
+                        Type = TransactionType.TransferIn,
+                        Status = TransactionStatus.Completed,
+                        CreatedById = artisanAccount.CreatedById
+                    });
+
+                    order.Stage = OrderStage.Completed;
+                    order.Status = OrderStatus.Completed;
+                    _unitOfWork.OrderRepository.Update(order);
+
+                    if (accountRoleCustomer.TotalReputation < 100)
+                    {
+                        accountRoleCustomer.TotalReputation += 1;
+                        _unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
+
+                        var customerReputationLog = new ReputationLog
+                        {
+                            PointChange = +1,
+                            Reason = "Đã hoàn thành đơn hàng với tư cách là khách hàng",
+                            OrderId = orderId,
+                            AccountRoleId = accountRoleCustomer.Id,
+                            CreatedById = customerAccount.Id
+                        };
+                        await _unitOfWork.ReputationLogRepository.AddAsync(customerReputationLog);
+                    }
+
+                    if (accountRoleArtisan.TotalReputation < 100)
+                    {
+                        accountRoleArtisan.TotalReputation += 1;
+                        _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
+
+                        var artisanReputationLog = new ReputationLog
+                        {
+                            PointChange = +1,
+                            Reason = "Đã hoàn thành đơn hàng với tư cách là nghệ nhân",
+                            OrderId = orderId,
+                            AccountRoleId = accountRoleArtisan.Id,
+                            CreatedById = artisanAccount.Id
+                        };
+                        await _unitOfWork.ReputationLogRepository.AddAsync(artisanReputationLog);
+                    }
+                    var saveResult = await _unitOfWork.SaveChangeAsync();
+                    if (saveResult <= 0)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync();
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status500InternalServerError,
+                            Message = "Failed to update order in database."
+                        };
+                    }
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+                catch (Exception ex)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = $"Error saving changes: {ex.Message}"
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -2407,16 +2493,20 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status500InternalServerError,
                     Message = $"Error updating order: {ex.Message}"
                 };
-            }
+            }        
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status200OK,
+                Message = "Order updated to Completed successfully."
+            };
         }
         public async Task<ResponseModel> Report(Guid orderId, ReportAddModel reportAddModel)
         {
             try
             {
-
                 var order = await _unitOfWork.OrderRepository.GetAsync(orderId, 
                     include: order => order.Include(_ => _.Package).ThenInclude(_ => _.Offer)
-                                      .Include(_ => _.Package).ThenInclude(_ => _.Service)  
+                                           .Include(_ => _.Package).ThenInclude(_ => _.Service)
                     );
                 if (order == null)
                 {
@@ -2424,6 +2514,16 @@ namespace Chillde.Services.Services
                     {
                         Code = StatusCodes.Status404NotFound,
                         Message = "Order not found."
+                    };
+                }
+
+                var existingReport = await _unitOfWork.ReportRepository.GetByOrder(orderId);
+                if(existingReport != null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = "Order was already reported."
                     };
                 }
 
@@ -2443,15 +2543,17 @@ namespace Chillde.Services.Services
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
                         string? path = null;
-                        if (attachmentUrl != null)
-                        {
-                            path = await _cloudinaryHelper.UploadImageAsync(
-                                attachmentUrl,
-                                attachmentAlt,
-                                Guid.NewGuid().ToString(),
-                                folderName: FolderAttachment.SERVICE
-                            );
-                        }
+                        
+                        // TODO: Fix attachment path
+                        // if (attachmentUrl != null)
+                        // {
+                        //     path = await _cloudinaryHelper.UploadImageAsync(
+                        //         attachmentUrl,
+                        //         attachmentAlt,
+                        //         Guid.NewGuid().ToString(),
+                        //         folderName: FolderAttachment.SERVICE
+                        //     );
+                        // }
 
                         newAttachment.Add(new ReportAttachment
                         {
@@ -2467,7 +2569,7 @@ namespace Chillde.Services.Services
                 order.Stage = OrderStage.Report;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.ReportOrder).Result;
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_ReportOrder).Result;
                 if (notificationContent != null)
                 {
                     var notificationAddModel = new NotificationAddModel

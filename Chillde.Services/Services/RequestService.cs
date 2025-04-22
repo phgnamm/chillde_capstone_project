@@ -2,6 +2,7 @@
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Services.Common;
 using Chillde.Services.Helpers;
@@ -9,6 +10,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.SubcategoryModels;
+using Chillde.Services.Models.VoucherUsageLogModels;
 using Chillde.Services.Resources;
 using Chillde.Services.Utils;
 using Microsoft.AspNetCore.Http;
@@ -280,13 +282,20 @@ namespace Chillde.Services.Services
 
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
+                    Expression<Func<Request, bool>> filter = request =>
+                    (request.IsDeleted == filterParameter.IsDeleted) &&
+                    (!filterParameter.CategoryId.HasValue || request.CategoryId == filterParameter.CategoryId) &&
+                    (!filterParameter.MinBudget.HasValue || request.MinBudget == filterParameter.MinBudget) &&
+                    (!filterParameter.MaxBudget.HasValue || request.MaxBudget <= filterParameter.MaxBudget) &&
+                    (!filterParameter.Timeline.HasValue || request.Timeline == filterParameter.Timeline) &&
+                    (string.IsNullOrEmpty(filterParameter.Search) || request.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
+
                     var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
                     Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
                     Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
 
                     var requestsResult = await _unitOfWork.RequestRepository.GetAllAsync(
-                        _ => _.IsDeleted == filterParameter.IsDeleted &&
-                            (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower())),
+                        filter: filter,
                         requests =>
                         {
                             switch (filterParameter.Order.ToLower())
@@ -775,7 +784,12 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetByIdAsync(Guid id)
         {
             var currentUserId = _claimService.GetCurrentUserId!.Value;
-            var request = await _unitOfWork.RequestRepository.GetAsync(id, include: _ => _.Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues).Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments).Include(_ => _.RequestAttachments));
+            var request = await _unitOfWork.RequestRepository.GetAsync(id, 
+                include: _ => _.Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeValues)
+                               .Include(_ => _.RequestAttributes).ThenInclude(_ => _.RequestAttributeAttachments)
+                               .Include(_ => _.RequestAttachments)
+                               .Include(_ => _.CreatedBy)
+                               .Include(_ => _.Category));
             var requestModel = new RequestGetByIdModel
             {
                 Id = request.Id,
@@ -786,8 +800,18 @@ namespace Chillde.Services.Services
                 MinBudget = (decimal)request.MinBudget,
                 MaxBudget = (decimal)request.MaxBudget,
                 Timeline = (int)request.Timeline,
+                CategoryName = request.Category.Name,
+                CategoryId = request.CategoryId,
                 Status = request.Status,
                 IsCurrentAccountOffer = await _unitOfWork.RequestRepository.HasUserOfferedForRequestAsync(currentUserId, id),
+                AccountLiteModel = new AccountLiteModel
+                {
+                    FirstName = request.CreatedBy.FirstName,
+                    LastName = request.CreatedBy.LastName,
+                    Username = request.CreatedBy.Username,
+                    Email = request.CreatedBy.Email,
+                    Image = request.CreatedBy.Image
+                },
                 RequestAttachmentGetModels = request?.RequestAttachments?.Select(_ => new RequestAttachmentGetModel
                 {
                     Id = _.Id,
@@ -1073,9 +1097,13 @@ namespace Chillde.Services.Services
                 };
             }
 
-            Expression<Func<Request, bool>> filterExpression = _ =>
-                _.IsDeleted == filterParameter.IsDeleted &&
-                (string.IsNullOrEmpty(filterParameter.Search) || _.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
+            Expression<Func<Request, bool>> filterExpression = request =>
+                (request.IsDeleted == filterParameter.IsDeleted) &&
+                    (!filterParameter.CategoryId.HasValue || request.CategoryId == filterParameter.CategoryId) &&
+                    (!filterParameter.MinBudget.HasValue || request.MinBudget == filterParameter.MinBudget) &&
+                    (!filterParameter.MaxBudget.HasValue || request.MaxBudget <= filterParameter.MaxBudget) &&
+                    (!filterParameter.Timeline.HasValue || request.Timeline == filterParameter.Timeline) &&
+                    (string.IsNullOrEmpty(filterParameter.Search) || request.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
 
             Func<IQueryable<Request>, IQueryable<Request>> includeWithOrder = query =>
             {

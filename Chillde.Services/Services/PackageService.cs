@@ -225,6 +225,7 @@ namespace Chillde.Services.Services
                 {
                     await _redisHelper.InvalidateCacheByPatternAsync($"packages_{id}");
                     await _redisHelper.InvalidateCacheByPatternAsync("packages_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{package.ServiceId}_packages_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -289,6 +290,7 @@ namespace Chillde.Services.Services
                 {
                     await _redisHelper.InvalidateCacheByPatternAsync($"packages_{id}");
                     await _redisHelper.InvalidateCacheByPatternAsync("packages_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{package.ServiceId}_packages_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
