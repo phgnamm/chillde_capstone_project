@@ -33,7 +33,7 @@ namespace Chillde.Services.Services
         private readonly IBadWordFilterService _badWordFilterService;
         private readonly IRedisHelper _redisHelper;
 
-        public PackageService(IUnitOfWork unitOfWork, 
+        public PackageService(IUnitOfWork unitOfWork,
             IMapper mapper,
             ITranslationService translationService,
             IBadWordFilterService badWordFilterService,
@@ -50,7 +50,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var cacheKey = $"packages_{id}";
+                var cacheKey = $"package_{id}";
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     Func<IQueryable<Package>, IQueryable<Package>> include = services =>
@@ -223,8 +223,8 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"packages_{id}");
-                    await _redisHelper.InvalidateCacheByPatternAsync("packages_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"package_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -287,8 +287,8 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"packages_{id}");
-                    await _redisHelper.InvalidateCacheByPatternAsync("packages_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"package_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"services_{package.ServiceId}_packages_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -332,89 +332,89 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var cacheKey = $"features_{CacheTools.GenerateCacheKey(packageId)}";
+                //var cacheKey = $"package_{packageId}_features_{CacheTools.GenerateCacheKey(packageId)}";
 
-                return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                //{
+                Expression<Func<Feature, bool>> filter = feature =>
+                feature.IsDeleted == model.IsDeleted &&
+                feature.PackageFeatures.Any(_ => _.PackageId == packageId);
+
+                Func<IQueryable<Feature>, IQueryable<Feature>> include = features =>
+                    features.Include(f => f.PackageFeatures);
+
+                var features = await _unitOfWork.FeatureRepository.GetAllAsync(
+                    filter: filter,
+                    include: include,
+                    pageIndex: model.PageIndex,
+                    pageSize: model.PageSize
+                );
+
+                if (!features.Data.Any())
                 {
-                    Expression<Func<Feature, bool>> filter = feature =>
-                    feature.IsDeleted == model.IsDeleted &&
-                    feature.PackageFeatures.Any(_ => _.PackageId == packageId);
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "No features found for the specified package."
+                    };
+                }
 
-                    Func<IQueryable<Feature>, IQueryable<Feature>> include = features =>
-                        features.Include(f => f.PackageFeatures);
+                if (sourceLanguageCode.ToLower() == "en")
+                {
+                    var featureModels = _mapper.Map<List<FeatureModel>>(features.Data);
+                    var result = new Pagination<FeatureModel>(featureModels, model.PageIndex, model.PageSize, features.TotalCount);
 
-                    var features = await _unitOfWork.FeatureRepository.GetAllAsync(
-                        filter: filter,
-                        include: include,
-                        pageIndex: model.PageIndex,
-                        pageSize: model.PageSize
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Successfully retrieved features.",
+                        Data = result
+                    };
+                }
+                else
+                {
+                    var featureIds = features.Data.Select(f => f.Id).ToList();
+                    var translationFields = new[] { "Name" };
+
+                    var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Feature, FeatureModel>(
+                        featureIds,
+                        sourceLanguageCode,
+                        feature => new FeatureModel
+                        {
+                            Name = feature.Name,
+                            PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeature
+                            {
+                                Id = pf.Id,
+                                Name = pf.Name,
+                                IsExtra = pf.IsExtra,
+                                AdditionalCost = pf.AdditionalCost,
+                                AdditionalDay = pf.AdditionalDay
+                            }).ToList()
+                        },
+                        "PackageFeatures",
+                        translationFields,
+                        null!,
+                        "Question"
                     );
 
-                    if (!features.Data.Any())
+                    if (translations != null)
                     {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status404NotFound,
-                            Message = "No features found for the specified package."
-                        };
-                    }
-
-                    if (sourceLanguageCode.ToLower() == "en")
-                    {
-                        var featureModels = _mapper.Map<List<FeatureModel>>(features.Data);
-                        var result = new Pagination<FeatureModel>(featureModels, model.PageIndex, model.PageSize, features.TotalCount);
-
+                        var result = new Pagination<FeatureModel>(translations.ToList(), model.PageIndex, model.PageSize, features.TotalCount);
                         return new ResponseModel
                         {
                             Code = StatusCodes.Status200OK,
-                            Message = "Successfully retrieved features.",
+                            Message = "Successfully retrieved features with translations.",
                             Data = result
                         };
                     }
-                    else
+
+                    return new ResponseModel
                     {
-                        var featureIds = features.Data.Select(f => f.Id).ToList();
-                        var translationFields = new[] { "Name" };
-
-                        var translations = await _unitOfWork.TranslationRepository.GetEntitiesWithTranslationsAsync<Feature, FeatureModel>(
-                            featureIds,
-                            sourceLanguageCode,
-                            feature => new FeatureModel
-                            {
-                                Name = feature.Name,
-                                PackageFeatures = feature.PackageFeatures.Select(pf => new PackageFeature
-                                {
-                                    Id = pf.Id,
-                                    Name = pf.Name,
-                                    IsExtra = pf.IsExtra,
-                                    AdditionalCost = pf.AdditionalCost,
-                                    AdditionalDay = pf.AdditionalDay
-                                }).ToList()
-                            },
-                            "PackageFeatures",
-                            translationFields,
-                            null!,
-                            "Question"
-                        );
-
-                        if (translations != null)
-                        {
-                            var result = new Pagination<FeatureModel>(translations.ToList(), model.PageIndex, model.PageSize, features.TotalCount);
-                            return new ResponseModel
-                            {
-                                Code = StatusCodes.Status200OK,
-                                Message = "Successfully retrieved features with translations.",
-                                Data = result
-                            };
-                        }
-
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status500InternalServerError,
-                            Message = "Failed to retrieve translations."
-                        };
-                    }
-                });
+                        Code = StatusCodes.Status500InternalServerError,
+                        Message = "Failed to retrieve translations."
+                    };
+                }
+                //});
             }
             catch (Exception ex)
             {
@@ -510,9 +510,9 @@ namespace Chillde.Services.Services
                 }
                 else
                 {
-                    foreach(var existingPackageFeature in existingPackageFeatures)
+                    foreach (var existingPackageFeature in existingPackageFeatures)
                     {
-                        if(existingPackageFeature.Index >= packageFeatureAddModel.Index)
+                        if (existingPackageFeature.Index >= packageFeatureAddModel.Index)
                         {
                             existingPackageFeature.Index++;
                         }
@@ -569,6 +569,9 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
+                await _redisHelper.InvalidateCacheByPatternAsync($"package_{package.Id}");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_features_*");
 
                 var packageFeatureModel = _mapper.Map<PackageFeatureModel>(newPackageFeature);
 
@@ -620,7 +623,7 @@ namespace Chillde.Services.Services
 
                 List<PackageFeature> packageFeatures = new List<PackageFeature>();
 
-                foreach(var packageFeatureAddModel in packageFeatureAddModels)
+                foreach (var packageFeatureAddModel in packageFeatureAddModels)
                 {
                     string[] fieldsToCheck = { packageFeatureAddModel.Name };
 
@@ -675,6 +678,10 @@ namespace Chillde.Services.Services
                 await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
+
+                await _redisHelper.InvalidateCacheByPatternAsync($"package_{package.Id}");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_features_*");
 
                 var packageFeatureModel = _mapper.Map<List<PackageFeatureModel>>(packageFeatures);
 

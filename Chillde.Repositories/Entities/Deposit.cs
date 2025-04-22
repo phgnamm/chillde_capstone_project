@@ -16,7 +16,7 @@ namespace Chillde.Repositories.Entities
 
         // Foreign key
         public Guid WalletId { get; set; }
-        public Guid OrderId { get; set; }
+        public Guid? OrderId { get; set; }
 
         // Relationship
         public Wallet Wallet { get; set; } = null!;

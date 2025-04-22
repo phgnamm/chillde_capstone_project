@@ -4,7 +4,7 @@
     {
         Pending = 0,
         InProgress = 1,
-        Accept = 2,
-        Reject = 3
+        Accepted = 2,
+        Rejected = 3
     }
 }

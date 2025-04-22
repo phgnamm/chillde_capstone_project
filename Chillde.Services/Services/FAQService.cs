@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.FAQModels;
-using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FAQModels;
 using Chillde.Services.Models.ResponseModels;
@@ -59,8 +58,9 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"faqs_{id}");
-                    await _redisHelper.InvalidateCacheByPatternAsync("faqs_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"faq_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{faq.ServiceId}_faqs_*");
+                    
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -105,8 +105,8 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"faqs_{id}");
-                    await _redisHelper.InvalidateCacheByPatternAsync("faqs_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"faq_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{faq.ServiceId}_faqs_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,

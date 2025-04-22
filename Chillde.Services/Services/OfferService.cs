@@ -80,7 +80,11 @@ namespace Chillde.Services.Services
                         (!filterParameter.Status.HasValue || offer.Status == filterParameter.Status) &&
                         (!filterParameter.ServiceId.HasValue || offer.ServiceId == filterParameter.ServiceId) &&
                         (!filterParameter.RequestId.HasValue || offer.RequestId == filterParameter.RequestId) &&
-                        filterParameter.ViewAll || offer.CreatedById == currentUserId,
+                            (
+                                !filterParameter.ViewAll.HasValue ||
+                                filterParameter.ViewAll == true ||
+                                (filterParameter.ViewAll == false && offer.CreatedById == currentUserId)
+                            ),
                 offers =>
                     {
                         switch (filterParameter.Order.ToLower())
@@ -242,8 +246,8 @@ namespace Chillde.Services.Services
                         Message = "Offers retrieved successfully.",
                         Data = result
                     };
-            });
-        }
+                });
+            }
             catch (Exception ex)
             {
                 return new ResponseModel
@@ -603,6 +607,7 @@ namespace Chillde.Services.Services
                 existingOffer.MaxWeight = model.MaxWeight ?? existingOffer.MaxWeight;
 
                 // Handle status change
+                var exitingRequest = await _unitOfWork.RequestRepository.GetAsync(existingOffer.RequestId!.Value);
                 if (model.Status.HasValue && existingOffer.Status != model.Status)
                 {
                     existingOffer.Status = model.Status.Value;
@@ -610,13 +615,18 @@ namespace Chillde.Services.Services
                     if (existingOffer.Status == OfferStatus.Approved)
                     {
                         var existedOffers = await _unitOfWork.OfferRepository.GetAllAsync(
-                            offer => offer.RequestId == existingOffer.RequestId && offer.Status != OfferStatus.Approved,
+                            offer => offer.RequestId == existingOffer.RequestId && offer.Status == OfferStatus.Approved && offer.Id != existingOffer.Id,
                             order: null, include: null, pageIndex: 1, pageSize: 1000);
 
                         foreach (var offer in existedOffers.Data)
                             offer.Status = OfferStatus.Rejected;
 
                         _unitOfWork.OfferRepository.UpdateRange(existedOffers.Data);
+                        if (exitingRequest != null)
+                        {
+                            exitingRequest.Status = RequestStatus.Completed;
+                            _unitOfWork.RequestRepository.Update(exitingRequest);
+                        }
                     }
                 }
 
@@ -843,17 +853,23 @@ namespace Chillde.Services.Services
                         Message = "Offer not found."
                     };
                 }
+                var exitingRequest = await _unitOfWork.RequestRepository.GetAsync(existingOffer.RequestId!.Value);
                 existingOffer.Status = status;
                 if (existingOffer.Status == OfferStatus.Approved)
                 {
                     var existedOffers = await _unitOfWork.OfferRepository.GetAllAsync(
-                        offer => offer.RequestId == existingOffer.RequestId && offer.Status != OfferStatus.Approved,
+                        offer => offer.RequestId == existingOffer.RequestId && offer.Status == OfferStatus.Pending && offer.Id != existingOffer.Id,
                         order: null, include: null, pageIndex: 1, pageSize: 1000);
 
                     foreach (var offer in existedOffers.Data)
                         offer.Status = OfferStatus.Rejected;
 
                     _unitOfWork.OfferRepository.UpdateRange(existedOffers.Data);
+                    if (exitingRequest != null)
+                    {
+                        exitingRequest.Status = RequestStatus.Completed;
+                        _unitOfWork.RequestRepository.Update(exitingRequest);
+                    }
                 }
                 await _unitOfWork.SaveChangeAsync();
                 return new ResponseModel

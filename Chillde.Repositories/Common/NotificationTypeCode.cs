@@ -6,19 +6,21 @@ namespace Chillde.Repositories.Common
     {
         public static readonly Dictionary<NotificationCode, string> NotiCodes = new()
         {
-            { NotificationCode.AcceptOrder, "ORD_01" },
-            { NotificationCode.RejectOrder, "ORD_02" },
-            { NotificationCode.NewOrder, "ORD_03" },
-            { NotificationCode.NewSketch, "ORD_TRC_01" },
-            { NotificationCode.AcceptSketch, "ORD_TRC_02" },
-            { NotificationCode.RejectSketch, "ORD_TRC_03" },
-            { NotificationCode.NewDelivery, "ORD_TRC_04" },
-            { NotificationCode.InDelivery, "ORD_TRC_05" },
-            { NotificationCode.Delivered, "ORD_TRC_06" },
-            { NotificationCode.NewFeedback, "FEEDBACK_01" },
-            { NotificationCode.ReportOrder, "REP_01" },
-            { NotificationCode.AcceptReport, "REP_02" },
-            { NotificationCode.RejectReport, "REP_03" },
+            { NotificationCode.Customer_AcceptOrder, "ORD_01" },
+            { NotificationCode.Customer_RejectOrder, "ORD_02" },
+            { NotificationCode.Artisan_NewOrder, "ORD_03" },
+            { NotificationCode.Customer_NewSketch, "ORD_TRC_01" },
+            { NotificationCode.Artisan_AcceptSketch, "ORD_TRC_02" },
+            { NotificationCode.Artisan_RejectSketch, "ORD_TRC_03" },
+            { NotificationCode.Customer_NewDelivery, "ORD_TRC_04" },
+            { NotificationCode.Customer_InDelivery, "ORD_TRC_05" },
+            { NotificationCode.Customer_Delivered, "ORD_TRC_06" },
+            { NotificationCode.Artisan_NewFeedback, "FEEDBACK_01" },
+            { NotificationCode.Artisan_ReportOrder, "REP_01" },
+            { NotificationCode.Artisan_AcceptReport, "REP_02" },
+            { NotificationCode.Customer_RejectReport, "REP_03" },
+            { NotificationCode.Artisan_RejectReport, "REP_04" },
+            { NotificationCode.Customer_AcceptReport, "REP_05" },
         };
     }
 }
