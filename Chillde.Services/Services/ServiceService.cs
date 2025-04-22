@@ -32,6 +32,9 @@ using System;
 using Chillde.Repositories.Models.ServiceWishlistModels;
 using Chillde.Services.Models.VoucherUsageLogModels;
 using Chillde.Services.Helpers;
+using Chillde.Repositories.Models.NotificationModels;
+using OpenAI.GPT3.ObjectModels.ResponseModels;
+using StackExchange.Redis;
 
 namespace Chillde.Services.Services
 {
@@ -49,7 +52,7 @@ namespace Chillde.Services.Services
         private readonly IElasticClient _client;
         private readonly ISystemConfigService _systemConfigService;
         private readonly IBadWordFilterService _badWordFilterService;
-
+        private readonly INotificationService _notificationService;
 
         public ServiceService(IElasticClient client,
             IOpenAiService openAiService,
@@ -60,7 +63,8 @@ namespace Chillde.Services.Services
             IServiceAttachmentService serviceAttachmentService,
             ITranslationService translationService,
             IRedisHelper redisHelper,
-            IBadWordFilterService badWordFilterService, ISystemConfigService systemConfigService)
+            IBadWordFilterService badWordFilterService, ISystemConfigService systemConfigService, 
+            INotificationService notificationService)
         {
             _client = client;
             _openAiService = openAiService;
@@ -74,6 +78,7 @@ namespace Chillde.Services.Services
             _systemConfigService = systemConfigService;
             _keywordGenerator = new KeywordGenerator();
             _badWordFilterService = badWordFilterService;
+            _notificationService = notificationService;
         }
 
         public async Task<ResponseModel> AddFeedbackAsync(FeedbackAddModel feedbackAddModel, string sourceLanguageCode)
@@ -169,7 +174,23 @@ namespace Chillde.Services.Services
                 service.FeedbackCount++;
                 _unitOfWork.ServiceRepository.Update(service);
             }
-            await _unitOfWork.SaveChangeAsync();
+            int result = await _unitOfWork.SaveChangeAsync();
+
+            if (result > 0)
+            {
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_NewFeedback).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#serviceName]", existService.Name),
+                        AccountId = existService.Id,
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = existService.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
+            }
 
             return new ResponseModel
             {
