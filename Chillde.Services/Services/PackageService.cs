@@ -571,6 +571,7 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.CommitTransactionAsync();
                 await _redisHelper.InvalidateCacheByPatternAsync($"package_{package.Id}");
                 await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_features_*");
 
                 var packageFeatureModel = _mapper.Map<PackageFeatureModel>(newPackageFeature);
 
@@ -680,6 +681,7 @@ namespace Chillde.Services.Services
 
                 await _redisHelper.InvalidateCacheByPatternAsync($"package_{package.Id}");
                 await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_features_*");
 
                 var packageFeatureModel = _mapper.Map<List<PackageFeatureModel>>(packageFeatures);
 
