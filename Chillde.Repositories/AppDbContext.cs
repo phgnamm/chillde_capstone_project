@@ -255,6 +255,7 @@ public class AppDbContext : DbContext
     public DbSet<ShipmentStatusHistory> ShipmentStatusHistory { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationContent> NotificationContents { get; set; }
+    public DbSet<Report> Reports {  get; set; }    
 
     #endregion
 }
