@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Chillde.Repositories.Enums;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using Microsoft.AspNetCore.Http;
 
 
@@ -27,7 +28,9 @@ namespace Chillde.Services.Models.RequestModels
 
         [Required]
         public ICollection<RequestAttributeAddModel> RequestAttributeAddModels { get; set; } = new List<RequestAttributeAddModel>();
-        public ICollection<RequestAttachmentAddModel>? RequestAttachmentAddModels { get; set; } = new List<RequestAttachmentAddModel>();
+        // public ICollection<RequestAttachmentAddModel>? RequestAttachmentAddModels { get; set; } = new List<RequestAttachmentAddModel>();
+        public List<AttachmentAddModel>? Attachments { get; set; }
+
     }
 
     public class RequestAttributeAddModel
