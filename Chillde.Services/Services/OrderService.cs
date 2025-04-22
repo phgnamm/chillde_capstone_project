@@ -45,6 +45,7 @@ using Chillde.Repositories.Models.ReportModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Chillde.Services.Services
@@ -142,6 +143,22 @@ namespace Chillde.Services.Services
             _unitOfWork.WalletRepository.Update(wallet);
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
+            if (result > 0)
+            {
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_NewOrder).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#orderCode]", newOrder.Code),
+                        AccountId = (Guid)(package.CreatedById!),
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = newOrder.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
+            }
+
             return result < 0 ?
                   new ResponseModel
                   {
@@ -235,6 +252,19 @@ namespace Chillde.Services.Services
                         Code = StatusCodes.Status400BadRequest,
                         Message = "Fail to save order"
                     };
+
+                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_NewOrder).Result;
+                if (notificationContent != null)
+                {
+                    var notificationAddModel = new NotificationAddModel
+                    {
+                        Content = notificationContent.Content.Replace("[#orderCode]", newOrder.Code),
+                        AccountId = (Guid)(package.CreatedById!),
+                        NotificationContentId = notificationContent.Id,
+                        SourceId = newOrder.Id
+                    };
+                    await _notificationService.PushNotification(notificationAddModel);
+                }
 
                 var paymentUrl = await GenerateVnPayUrl(newOrder, ipAddress, (decimal)remainingAmount);
 
@@ -687,7 +717,7 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
-            var order = await _unitOfWork.OrderRepository.GetAsync(orderId);
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: order => order.Include(_ => _.Package));
             if (order == null)
             {
                 return new ResponseModel
@@ -828,8 +858,22 @@ namespace Chillde.Services.Services
 
 
                 await _unitOfWork.ShipmentRepository.AddAsync(shipment);
-                await _unitOfWork.SaveChangeAsync();
-
+                int result = await _unitOfWork.SaveChangeAsync();
+                if(result > 0)
+                {
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_InDelivery).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.CreatedById),
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
+                }
                 var shipmentModel = _mapper.Map<ShipmentModel>(shipment);
 
                 return new ResponseModel
@@ -1400,6 +1444,41 @@ namespace Chillde.Services.Services
                 }
                 _unitOfWork.OrderRepository.Update(order);
                 var result = await _unitOfWork.SaveChangeAsync();
+
+                if (result > 0)
+                {
+                    if(orderStatus == OrderStatus.Rejected)
+                    {
+                        var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_RejectOrder).Result;
+                        if (notificationContent != null)
+                        {
+                            var notificationAddModel = new NotificationAddModel
+                            {
+                                Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                                AccountId = (Guid)(order.Package.Service.CreatedById),
+                                NotificationContentId = notificationContent.Id,
+                                SourceId = order.Id
+                            };
+                            await _notificationService.PushNotification(notificationAddModel);
+                        }
+                    }
+                    if (orderStatus == OrderStatus.Accepted) 
+                    {
+                        var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_AcceptOrder).Result;
+                        if (notificationContent != null)
+                        {
+                            var notificationAddModel = new NotificationAddModel
+                            {
+                                Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                                AccountId = (Guid)(order.Package.Service.CreatedById),
+                                NotificationContentId = notificationContent.Id,
+                                SourceId = order.Id
+                            };
+                            await _notificationService.PushNotification(notificationAddModel);
+                        }
+                    }
+                }
+
                 return result > 0
                     ? new ResponseModel { Message = "Successfully" }
                     : new ResponseModel { Code = StatusCodes.Status400BadRequest, Message = "Fail" };
@@ -1715,7 +1794,8 @@ namespace Chillde.Services.Services
 
                 var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _
                     .Include(_ => _.OrderTrackings)
-                    .Include(_ => _.CreatedBy));
+                    .Include(_ => _.CreatedBy)
+                    .Include(_ => _.Package));
 
                 if (order == null)
                 {
@@ -1784,7 +1864,7 @@ namespace Chillde.Services.Services
                 }
 
                 var uploadedAttachments = await UploadAttachments(
-                    orderTrackingAddModel.OrderTrackingAttachmentAddModels,
+                    orderTrackingAddModel.Attachments,
                     order.Code,
                     FolderAttachment.TRACKINGSKETCH
                 );
@@ -1840,6 +1920,20 @@ namespace Chillde.Services.Services
                                 AttachmentAlt = _.AttachmentAlt
                             }).ToList()
                     };
+
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_NewSketch).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.CreatedById),
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
+
                     return new ResponseModel
                     {
                         Data = trackingModel,
@@ -1859,7 +1953,7 @@ namespace Chillde.Services.Services
                 throw;
             }
         }
-        private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<OrderTrackingAttachmentAddModel> attachments, string orderCode, string folderName)
+        private async Task<List<OrderTrackingAttachment>> UploadAttachments(IEnumerable<AttachmentAddModel> attachments, string orderCode, string folderName)
         {
             var uploadedAttachments = new List<OrderTrackingAttachment>();
 
@@ -1867,15 +1961,15 @@ namespace Chillde.Services.Services
             {
                 foreach (var attachment in attachments)
                 {
-                    var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
-                        attachment.AttachmentUrl,
-                        orderCode,
-                        folderName: FolderAttachment.TRACKINGSKETCH
-                    );
+                    // var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
+                    //     attachment.AttachmentUrl,
+                    //     orderCode,
+                    //     folderName: FolderAttachment.TRACKINGSKETCH
+                    // );
 
                     uploadedAttachments.Add(new OrderTrackingAttachment
                     {
-                        AttachmentUrl = attachmentPath,
+                        AttachmentUrl = attachment.AttachmentUrl,
                         AttachmentAlt = attachment.AttachmentAlt
                     });
                 }
@@ -1988,7 +2082,7 @@ namespace Chillde.Services.Services
                 }
 
                 var uploadedAttachments = await UploadAttachments(
-                    orderTrackingAddModel.OrderTrackingAttachmentAddModels,
+                    orderTrackingAddModel.Attachments,
                     order.Code,
                     FolderAttachment.TRACKINGDELIVERY
                 );
@@ -2038,6 +2132,20 @@ namespace Chillde.Services.Services
                                 AttachmentAlt = _.AttachmentAlt
                             }).ToList()
                     };
+
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_NewDelivery).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.CreatedById),
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
+
                     return new ResponseModel
                     {
                         Data = trackingModel,

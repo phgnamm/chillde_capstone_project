@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Services.Models.ServiceAttachmentModels;
 using Microsoft.AspNetCore.Http;
 
 namespace Chillde.Services.Models.OrderTrackingModels
@@ -16,7 +17,9 @@ namespace Chillde.Services.Models.OrderTrackingModels
         public string? Description { get; set; }
         //public OrderStage Stage { get; set; }
         public OrderTrackingType Type { get; set; }
-        public ICollection<OrderTrackingAttachmentAddModel>? OrderTrackingAttachmentAddModels { get; set; } = new List<OrderTrackingAttachmentAddModel>();
+        public List<AttachmentAddModel>? Attachments { get; set; }
+
+        // public ICollection<OrderTrackingAttachmentAddModel>? OrderTrackingAttachmentAddModels { get; set; } = new List<OrderTrackingAttachmentAddModel>();
 
     }
     public class OrderTrackingAttachmentAddModel
