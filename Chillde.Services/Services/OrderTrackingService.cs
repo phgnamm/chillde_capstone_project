@@ -13,6 +13,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OrderTrackingModels;
 using Chillde.Services.Models.ResponseModels;
 using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -52,7 +53,9 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> ChangeAccepted(Guid orderTrackingId, bool isAccept)
         {
-            var orderTracking = await _unitOfWork.OrderTrackingRepository.GetAsync(orderTrackingId, include: _ => _.Include(_ => _.Order));
+            var orderTracking = await _unitOfWork.OrderTrackingRepository.GetAsync(orderTrackingId, 
+                include: _ => _.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
+                               .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer));
             if (orderTracking == null)
             {
                 return new ResponseModel
@@ -79,7 +82,7 @@ namespace Chillde.Services.Services
                             var notificationAddModel = new NotificationAddModel
                             {
                                 Content = notificationContent.Content.Replace("[#orderCode]", orderTracking.Order.Code),
-                                AccountId = (Guid)(orderTracking.Order.Package.CreatedById),
+                                AccountId = (Guid)(orderTracking.Order.Package.Service != null ? orderTracking.Order.Package.Service.CreatedById : orderTracking.Order.Package.Offer?.CreatedById)!,
                                 NotificationContentId = notificationContent.Id,
                                 SourceId = orderTracking.Order.Id
                             };
@@ -130,7 +133,7 @@ namespace Chillde.Services.Services
                             var notificationAddModel = new NotificationAddModel
                             {
                                 Content = notificationContent.Content.Replace("[#orderCode]", orderTracking.Order.Code),
-                                AccountId = (Guid)(orderTracking.Order.Package.CreatedById),
+                                AccountId = (Guid)(orderTracking.Order.Package.Service != null ? orderTracking.Order.Package.Service.CreatedById : orderTracking.Order.Package.Offer?.CreatedById)!,
                                 NotificationContentId = notificationContent.Id,
                                 SourceId = orderTracking.Order.Id
                             };
