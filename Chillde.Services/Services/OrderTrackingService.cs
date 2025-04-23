@@ -100,7 +100,22 @@ namespace Chillde.Services.Services
                     orderTracking.IsAccepted = true;
                     orderTracking.Order.Stage = OrderStage.Shipping;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
-                    await _unitOfWork.SaveChangeAsync();
+                    int result = await _unitOfWork.SaveChangeAsync();
+                    if (result > 0)
+                    {
+                        var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_AcceptDelivery).Result;
+                        if (notificationContent != null)
+                        {
+                            var notificationAddModel = new NotificationAddModel
+                            {
+                                Content = notificationContent.Content.Replace("[#orderCode]", orderTracking.Order.Code),
+                                AccountId = (Guid)(orderTracking.Order.Package.Service != null ? orderTracking.Order.Package.Service.CreatedById : orderTracking.Order.Package.Offer?.CreatedById)!,
+                                NotificationContentId = notificationContent.Id,
+                                SourceId = orderTracking.Order.Id
+                            };
+                            await _notificationService.PushNotification(notificationAddModel);
+                        }
+                    }
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
