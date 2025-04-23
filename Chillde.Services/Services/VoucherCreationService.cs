@@ -9,6 +9,7 @@ using CloudinaryDotNet;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace Chillde.Services.Services
 {
@@ -17,7 +18,7 @@ namespace Chillde.Services.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<VoucherCreationService> _logger;
         private DateTime? _nextRunTime;
-        private const int FIXED_DELAY_SECONDS = 30;
+        private const int FIXED_DELAY_SECONDS = 10;
 
         public VoucherCreationService(IServiceScopeFactory serviceScopeFactory, ILogger<VoucherCreationService> logger)
         {
@@ -27,12 +28,14 @@ namespace Chillde.Services.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var delay = TimeSpan.FromSeconds(FIXED_DELAY_SECONDS);
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                var now = DateTime.UtcNow;
-                //if (_nextRunTime == null || now >= _nextRunTime)
-                //{
-                _nextRunTime = GetNextRunTime();
+                //var now = DateTime.UtcNow;
+                ////if (_nextRunTime == null || now >= _nextRunTime)
+                ////{
+                //_nextRunTime = GetNextRunTime();
 
                 try
                 {
@@ -56,14 +59,13 @@ namespace Chillde.Services.Services
                             var successfulOrders = unitOfWork.OrderRepository
                                 .GetAllAsync(order =>
                                              order.Status == OrderStatus.Completed &&
-                                             order.Package.Service.CreatedById == account.Id)
-                                .Result.TotalCount;
+                                             order.Package.Service.CreatedById == account.Id &&
+                                             order.DateTimeCreateVoucher == null)
+                                .Result.Data;
 
-                            _logger.LogInformation($"{successfulOrders}");
-
-                            if (successfulOrders >= minOrderToCreateVoucher)
+                            if (successfulOrders.Count() >= minOrderToCreateVoucher)
                             {
-                                int amountOfVouchers = successfulOrders / minOrderToCreateVoucher;
+                                int amountOfVouchers = successfulOrders.Count() / minOrderToCreateVoucher;
                                 var voucher = new Voucher
                                 {
                                     VoucherType = VoucherType.AdminToArtist,
@@ -76,36 +78,45 @@ namespace Chillde.Services.Services
                                     VoucherStatus = VoucherStatus.Pending
                                 };
                                 await unitOfWork.VoucherRepository.AddAsync(voucher);
+
+                                foreach (var order in successfulOrders)
+                                {
+                                    order.DateTimeCreateVoucher = DateTime.UtcNow;
+                                }
+                                unitOfWork.OrderRepository.UpdateRange(successfulOrders);
+
                                 await unitOfWork.SaveChangeAsync();
                                 _logger.LogInformation($"Created voucher {voucher.Code} for account {account.Id}");
 
                             }
                         }
-                        var delay = _nextRunTime.Value - DateTime.UtcNow;
-                        if (delay.TotalMilliseconds < 0)
-                        {
-                            _nextRunTime = GetNextRunTime();
-                            delay = _nextRunTime.Value - DateTime.UtcNow;
-                        }
+                        //var delay = _nextRunTime.Value - DateTime.UtcNow;
+                        //if (delay.TotalMilliseconds < 0)
+                        //{
+                        //    _nextRunTime = GetNextRunTime();
+                        //    delay = _nextRunTime.Value - DateTime.UtcNow;
+                        //}
 
                         //await Task.Delay(delay, stoppingToken);
 
-                        await Task.Delay(TimeSpan.FromDays(numberOfDateForUsingVoucher), stoppingToken);
+                        
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "An error occurred while creating vouchers.");
                 }
+
+                await Task.Delay(delay, stoppingToken);
                 //}
             }
         }
 
-        private DateTime GetNextRunTime()
-        {
-            var now = DateTime.UtcNow;
-            var nextMonth = new DateTime(now.Year, now.Month, 1).AddMonths(1);
-            return new DateTime(nextMonth.Year, nextMonth.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        }
+        //private DateTime GetNextRunTime()
+        //{
+        //    var now = DateTime.UtcNow;
+        //    var nextMonth = new DateTime(now.Year, now.Month, 1).AddMonths(1);
+        //    return new DateTime(nextMonth.Year, nextMonth.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        //}
     }
 }
