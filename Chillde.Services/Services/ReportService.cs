@@ -182,36 +182,36 @@ namespace Chillde.Services.Services
                 order.Status = OrderStatus.Completed;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_RejectReport).Result;
-                if (notificationContent != null)
-                {
-                    var notificationAddModel = new NotificationAddModel
-                    {
-                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
-                        NotificationContentId = notificationContent.Id,
-                        SourceId = order.Id
-                    };
-                    await _notificationService.PushNotification(notificationAddModel);
-                }
-
-                notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_RejectReport).Result;
-                if (notificationContent != null)
-                {
-                    var notificationAddModel = new NotificationAddModel
-                    {
-                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
-                        NotificationContentId = notificationContent.Id,
-                        SourceId = order.Id
-                    };
-                    await _notificationService.PushNotification(notificationAddModel);
-                }
-
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
                 {
                     var reportModel = _mapper.Map<ReportModel>(report);
+
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_RejectReport).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
+
+                    notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_RejectReport).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
 
                     return new ResponseModel
                     {
@@ -293,36 +293,36 @@ namespace Chillde.Services.Services
                 });
                 _unitOfWork.WalletRepository.Update(wallet);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_AcceptReport).Result;
-                if (notificationContent != null)
-                {
-                    var notificationAddModel = new NotificationAddModel
-                    {
-                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                        AccountId = (Guid)order.CreatedById!,
-                        NotificationContentId = notificationContent.Id,
-                        SourceId = order.Id
-                    };
-                    await _notificationService.PushNotification(notificationAddModel);
-                }
-
-                notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_AcceptReport).Result;
-                if (notificationContent != null)
-                {
-                    var notificationAddModel = new NotificationAddModel
-                    {
-                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
-                        NotificationContentId = notificationContent.Id,
-                        SourceId = order.Id
-                    };
-                    await _notificationService.PushNotification(notificationAddModel);
-                }
-
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
                 {
                     var reportModel = _mapper.Map<ReportModel>(report);
+
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_AcceptReport).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)order.CreatedById!,
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
+
+                    notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_AcceptReport).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
 
                     return new ResponseModel
                     {
