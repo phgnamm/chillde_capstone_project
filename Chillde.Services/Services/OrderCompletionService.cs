@@ -52,12 +52,17 @@ namespace Chillde.Services.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var timeoutThreshold = DateTime.UtcNow.Add(-_timeoutPeriod);
+
                 var orders = await unitOfWork.OrderRepository.GetAllAsync(
                     filter: o => o.Stage == OrderStage.AwaitingClosure
                               && o.Status == OrderStatus.Accepted
                               && o.ModificationDate != null
-                              && o.ModificationDate <= DateTime.UtcNow.Add(-_timeoutPeriod),
+                              && o.ModificationDate <= timeoutThreshold,
                     include: o => o.Include(o => o.Package)
+                                  .ThenInclude(p => p.Service)
+                                  .ThenInclude(s => s.CreatedBy)
+                                  .Include(o => o.CreatedBy)
                 );
 
                 if (orders == null || !orders.Data.Any())

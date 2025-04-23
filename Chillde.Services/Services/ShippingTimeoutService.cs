@@ -19,8 +19,8 @@ namespace Chillde.Services.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ShippingTimeoutService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10); // Kiểm tra mỗi 10 phút
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); // 24 giờ
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10); 
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); 
 
         public ShippingTimeoutService(IServiceProvider serviceProvider, ILogger<ShippingTimeoutService> logger)
         {
@@ -55,12 +55,14 @@ namespace Chillde.Services.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var timeoutThreshold = DateTime.UtcNow.Add(-_timeoutPeriod);
+
                 var orders = await unitOfWork.OrderRepository.GetAllAsync(
                     filter: o => o.Stage == OrderStage.Shipping
                               && o.Status == OrderStatus.Accepted
                               && !o.Shipments.Any()
                               && o.ModificationDate != null
-                              && o.ModificationDate <= DateTime.UtcNow.Add(-_timeoutPeriod),
+                              && o.ModificationDate <= timeoutThreshold,
                     include: q => q.Include(o => o.CreatedBy)
                                    .Include(o => o.Package)
                                        .ThenInclude(p => p.Service)
