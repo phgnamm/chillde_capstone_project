@@ -1888,11 +1888,11 @@ namespace Chillde.Services.Services
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Description)
                                         : s.OrderBy(s => s.Description);
-                                case "feedbackCount":
+                                case "feedbackcount":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.FeedbackCount)
                                         : s.OrderBy(s => s.FeedbackCount);
-                                case "bestSelling":
+                                case "bestselling":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Sum(p => p.Orders.Count))
                                         : s.OrderBy(s => s.Packages.Sum(p => p.Orders.Count));
@@ -1900,15 +1900,15 @@ namespace Chillde.Services.Services
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Category.Slug)
                                         : s.OrderBy(s => s.CreationDate);
-                                case "packageCount":
+                                case "packagecount":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Count())
                                         : s.OrderBy(s => s.CreationDate);
-                                case "minPrice":
+                                case "minprice":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Min(p => p.Price))
                                         : s.OrderBy(s => s.CreationDate);
-                                case "maxPrice":
+                                case "maxprice":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Max(p => p.Price))
                                         : s.OrderBy(s => s.CreationDate);

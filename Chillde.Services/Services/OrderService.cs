@@ -1040,19 +1040,19 @@ namespace Chillde.Services.Services
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Code)
                             : query.OrderByDescending(o => o.Code);
-                    case "serviceName":
+                    case "servicename":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Package.Service.Name)
                             : query.OrderByDescending(o => o.Code);
-                    case "customerName":
+                    case "customername":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.CreatedBy.Username)
                             : query.OrderByDescending(o => o.CreatedBy.Username);
-                    case "packageName":
+                    case "packagename":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Package.Name)
                             : query.OrderByDescending(o => o.Package.Name);
-                    case "artistName":
+                    case "artistname":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Package.Service != null ? o.Package.Service.CreatedBy.Username : o.Package.Offer.CreatedBy.Username)
                             : query.OrderByDescending(o => o.Package.Service != null ? o.Package.Service.CreatedBy.Username : o.Package.Offer.CreatedBy.Username);
@@ -1060,15 +1060,15 @@ namespace Chillde.Services.Services
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.Status)
                             : query.OrderByDescending(o => o.Status);
-                    case "totalPrice":
+                    case "totalprice":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.TotalPrice)
                             : query.OrderByDescending(o => o.TotalPrice);
-                    case "artistRevenue":
+                    case "artistrevenue":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.ArtistRevenue)
                             : query.OrderByDescending(o => o.ArtistRevenue);
-                    case "adminCommission":
+                    case "admincommission":
                         return orderFilterModel.OrderByDescending
                             ? query.OrderBy(o => o.AdminCommDefault ?? o.AdminCommUsedVch)
                             : query.OrderByDescending(o => o.AdminCommDefault ?? o.AdminCommUsedVch);
