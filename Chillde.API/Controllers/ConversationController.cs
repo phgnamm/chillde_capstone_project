@@ -114,7 +114,7 @@ public class ConversationController : ControllerBase
 
     [Authorize]
     [HttpPost("{conversationId}/messages")]
-    public async Task<IActionResult> AddMessage(Guid conversationId, [FromForm] MessageAddModel messageAddModel)
+    public async Task<IActionResult> AddMessage(Guid conversationId, [FromBody] MessageAddModel messageAddModel)
     {
         try
         {

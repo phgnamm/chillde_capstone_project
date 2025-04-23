@@ -36,5 +36,24 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //[Authorize]
+        [HttpPost()]
+        public async Task<IActionResult> WithDraw([FromBody]  decimal amount)
+        {
+            try
+            {
+                var result = await _depositService.WithDraw(amount);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
     }
 }

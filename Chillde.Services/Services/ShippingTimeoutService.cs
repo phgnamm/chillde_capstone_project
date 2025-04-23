@@ -3,6 +3,7 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,8 +19,9 @@ namespace Chillde.Services.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ShippingTimeoutService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10);
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(48);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10); 
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); 
+
         public ShippingTimeoutService(IServiceProvider serviceProvider, ILogger<ShippingTimeoutService> logger)
         {
             _serviceProvider = serviceProvider;
@@ -53,18 +55,20 @@ namespace Chillde.Services.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                var emailService = scope.ServiceProvider.GetRequiredService<IEmailHelper>();
+                var timeoutThreshold = DateTime.UtcNow.Add(-_timeoutPeriod);
 
                 var orders = await unitOfWork.OrderRepository.GetAllAsync(
                     filter: o => o.Stage == OrderStage.Shipping
                               && o.Status == OrderStatus.Accepted
                               && !o.Shipments.Any()
                               && o.ModificationDate != null
-                              && o.ModificationDate <= DateTime.UtcNow.Add(-_timeoutPeriod),
+                              && o.ModificationDate <= timeoutThreshold,
                     include: q => q.Include(o => o.CreatedBy)
                                    .Include(o => o.Package)
                                        .ThenInclude(p => p.Service)
                                            .ThenInclude(s => s.CreatedBy)
+                                           .ThenInclude(a => a.AccountRoles)
+                                           .ThenInclude(ar => ar.Role)
                 );
 
                 if (orders == null || !orders.Data.Any())
@@ -73,147 +77,113 @@ namespace Chillde.Services.Services
                     return;
                 }
 
+                var errorLogs = new List<string>();
+
                 foreach (var order in orders.Data)
                 {
-                    await CancelOrderAndNotifyAsync(order, unitOfWork, emailService);
+                    if (stoppingToken.IsCancellationRequested)
+                    {
+                        _logger.LogInformation("Cancellation requested, stopping order processing.");
+                        break;
+                    }
+
+                    await CancelOrderAndNotifyAsync(order, unitOfWork, errorLogs);
                 }
 
-                await unitOfWork.SaveChangeAsync();
+                if (errorLogs.Any())
+                {
+                    _logger.LogWarning("Errors encountered during shipping timeout processing:\n{0}", string.Join("\n", errorLogs));
+                }
+
+                try
+                {
+                    await unitOfWork.SaveChangeAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to save changes for shipping timeout processing.");
+                }
             }
         }
 
-        private async Task CancelOrderAndNotifyAsync(Order order, IUnitOfWork unitOfWork, IEmailHelper emailService)
+        private async Task CancelOrderAndNotifyAsync(Order order, IUnitOfWork unitOfWork, List<string> errorLogs)
         {
             try
             {
                 _logger.LogInformation($"Processing order {order.Code} for shipping timeout.");
 
-                order.Status = OrderStatus.Cancelled;
-                order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
-                order.ModificationDate = DateTime.UtcNow;
+                if (order.Stage != OrderStage.Shipping || order.Status != OrderStatus.Accepted || order.Shipments.Any())
+                {
+                    errorLogs.Add($"Order {order.Code} is not in Shipping, Accepted, or has shipments.");
+                    _logger.LogWarning($"Order {order.Code} is not in Shipping, Accepted, or has shipments.");
+                    return;
+                }
 
-                // Hoàn tiền và trừ điểm uy tín
-                await CancelOrderAndRefund(order, unitOfWork);
-
-                // Gửi email thông báo
-                await SendCancellationEmail(order, emailService);
-
-                unitOfWork.OrderRepository.Update(order);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error processing order {order.Code} for shipping timeout.");
-            }
-        }
-
-        private async Task CancelOrderAndRefund(Order order, IUnitOfWork unitOfWork)
-        {
-            try
-            {
                 var customerAccount = await unitOfWork.AccountRepository.GetAsync(
                     (Guid)order.CreatedById,
-                    include: _ => _.Include(a => a.Wallet)
+                    include: a => a.Include(a => a.Wallet)
                 );
+                if (customerAccount == null || customerAccount.Wallet == null)
+                {
+                    errorLogs.Add($"Customer account or wallet for order {order.Code} not found.");
+                    _logger.LogWarning($"Customer account or wallet for order {order.Code} not found.");
+                    return;
+                }
 
-                var artisanAccount = order.Package.Service.CreatedBy.AccountRoles
+                var artisanAccount = await unitOfWork.AccountRepository.GetAsync(
+                    (Guid)order.Package.Service.CreatedById,
+                    include: a => a.Include(a => a.AccountRoles).ThenInclude(ar => ar.Role)
+                );
+                if (artisanAccount == null)
+                {
+                    errorLogs.Add($"Artisan account for order {order.Code} not found.");
+                    _logger.LogWarning($"Artisan account for order {order.Code} not found.");
+                    return;
+                }
+
+                var accountRoleArtisan = artisanAccount.AccountRoles
                     .FirstOrDefault(ar => ar.Role.Name == Repositories.Enums.Role.Artisan.ToString());
-
-                if (customerAccount?.Wallet == null || artisanAccount == null)
+                if (accountRoleArtisan == null)
                 {
-                    _logger.LogError($"Refund failed for order {order.Code}: Invalid customer wallet or artisan account.");
+                    errorLogs.Add($"Artisan role not found for account {artisanAccount.Id} in order {order.Code}.");
+                    _logger.LogWarning($"Artisan role not found for account {artisanAccount.Id} in order {order.Code}.");
                     return;
                 }
 
-                var refundTransaction = new Transaction
+                await unitOfWork.BeginTransactionAsync();
+                try
                 {
-                    Amount = order.TotalPrice,
-                    Type = TransactionType.TransferIn,
-                    Status = TransactionStatus.Completed,
-                    WalletId = customerAccount.Wallet.Id,
-                };
+                    order.Status = OrderStatus.Cancelled;
+                    order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
+                    unitOfWork.OrderRepository.Update(order);
 
-                customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
-                /*artisanAccount.TotalReputation = Math.Max(artisanAccount.TotalReputation - 15, 0);*/
-               /* var reputationLog = new ReputationLog
-                {
-                    PointChange = -15,
-                    Reason = $"Không tạo đơn vận chuyển cho đơn hàng {order.Code}",
-                    OrderId = order.Id,
-                };
-                artisanAccount.Reputations.Add(reputationLog);*/
-                order.Transactions.Add(refundTransaction);
-
-                unitOfWork.AccountRoleRepository.Update(artisanAccount);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to cancel order {order.Code}.");
-                throw;
-            }
-        }
-
-        private async Task SendCancellationEmail(Order order, IEmailHelper emailService)
-        {
-            try
-            {
-                if (order.CreatedBy?.Email == null || order.Package?.Service?.CreatedBy?.Email == null)
-                {
-                    _logger.LogWarning($"Invalid email addresses for order {order.Code}.");
-                    return;
+                    var refundTransaction = new Transaction
+                    {
+                        Amount = order.TotalPrice,
+                        Type = TransactionType.TransferIn,
+                        Status = TransactionStatus.Completed,
+                        WalletId = customerAccount.Wallet.Id,
+                        CreatedById = customerAccount.Id
+                    };
+                    customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
+                    order.Transactions.Add(refundTransaction);
+                    unitOfWork.WalletRepository.Update(customerAccount.Wallet);
+                    
+                    await unitOfWork.CommitTransactionAsync();
+                    _logger.LogInformation($"Order {order.Code} cancelled successfully. Refunded and notified.");
                 }
-
-                // Email cho khách hàng
-                var customerEmailData = GenerateCancellationEmailForCustomer(order);
-                await emailService.SendEmailAsync(
-                    order.CreatedBy.Email,
-                    customerEmailData.Subject,
-                    customerEmailData.Content,
-                    true);
-
-                // Email cho nghệ nhân
-                var artisanEmailData = GenerateCancellationEmailForArtisan(order);
-                await emailService.SendEmailAsync(
-                    order.Package.Service.CreatedBy.Email,
-                    artisanEmailData.Subject,
-                    artisanEmailData.Content,
-                    true);
+                catch (Exception ex)
+                {
+                    errorLogs.Add($"Error saving changes for order {order.Code}: {ex.Message}");
+                    _logger.LogError(ex, $"Error saving changes for order {order.Code}.");
+                    await unitOfWork.RollbackTransactionAsync();
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error sending cancellation email for order {order.Code}.");
+                errorLogs.Add($"Error processing order {order.Code}: {ex.Message}");
+                _logger.LogError(ex, $"Error processing order {order.Code}.");
             }
         }
-
-        private (string Subject, string Content) GenerateCancellationEmailForCustomer(Order order)
-        {
-            return (
-                $"Đơn hàng #{order.Code} đã bị hủy do không tạo đơn vận chuyển",
-                $@"
-        <p>Chào bạn {EscapeHtml(order.CreatedBy.FirstName)} {EscapeHtml(order.CreatedBy.LastName)},</p>
-        <p>Chúng tôi rất tiếc phải thông báo rằng đơn hàng #{order.Code} của bạn đã bị hủy do nghệ nhân không tạo đơn vận chuyển trong thời gian quy định.</p>
-        <p><strong>Hoàn tiền</strong>: Số tiền {(decimal)order.TotalPrice:N0} VNĐ đã được hoàn lại vào ví của bạn.</p>
-        <p>Nếu bạn có bất kỳ câu hỏi nào, xin vui lòng liên hệ với đội ngũ hỗ trợ.</p>
-        <p>Trân trọng,</p>
-        <p>Đội ngũ Chillde</p>"
-            );
-        }
-
-        private (string Subject, string Content) GenerateCancellationEmailForArtisan(Order order)
-        {
-            return (
-                $"Đơn hàng #{order.Code} đã bị hủy do không tạo đơn vận chuyển",
-                $@"
-        <p>Chào bạn {EscapeHtml(order.Package.Service.CreatedBy.FirstName)} {EscapeHtml(order.Package.Service.CreatedBy.LastName)},</p>
-        <p>Đơn hàng #{order.Code} đã bị hủy do bạn không tạo đơn vận chuyển trong thời gian quy định.</p>
-        <p><strong>Điểm uy tín</strong>: Tài khoản của bạn đã bị trừ 15 điểm uy tín do vi phạm thời gian xử lý.</p>
-        <p>Vui lòng đảm bảo tạo đơn vận chuyển đúng hạn cho các đơn hàng tiếp theo.</p>
-        <p>Trân trọng,</p>
-        <p>Đội ngũ Chillde</p>"
-            );
-        }
-
-        private static string EscapeHtml(string input) =>
-            System.Net.WebUtility.HtmlEncode(input?.Trim() ?? string.Empty);
-    
     }
 }

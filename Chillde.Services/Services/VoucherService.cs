@@ -8,6 +8,7 @@ using Chillde.Repositories.Models.VoucherUsageModels;
 using Chillde.Services.Common;
 using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
+using Chillde.Services.Models.OrderModels;
 using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.ServiceModels;
 using Chillde.Services.Models.VoucherModels;
@@ -228,52 +229,100 @@ namespace Chillde.Services.Services
                 //return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 //{
                 Func<IQueryable<Voucher>, IQueryable<Voucher>> include = vouchers => vouchers
-                             .Include(_ => _.Receiver)
-                             .Include(_ => _.VoucherUsageLogs)
-                             .ThenInclude(_ => _.Order);
+     .Include(v => v.Receiver)
+     .Include(v => v.VoucherUsageLogs)
+         .ThenInclude(log => log.Order); // Bỏ ThenInclude(log => log.Voucher) nếu không thực sự cần
 
-                    var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
+
+
+                var vouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
                                     filter: voucher =>
-                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
+                                         (!voucherFilterModel.ArtisanId.HasValue || voucher.CreatedById == voucherFilterModel.ArtisanId) &&
                                          (!voucherFilterModel.Status.HasValue || voucher.VoucherStatus == voucherFilterModel.Status) &&
-                                         (voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
-                                         (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
+                                         (!voucherFilterModel.IsDeleted.HasValue || voucher.IsDeleted == voucherFilterModel.IsDeleted) &&
+                                         (!voucherFilterModel.MinOrderValue.HasValue || voucher.MinOrderValue >= voucherFilterModel.MinOrderValue) &&
                                          (!voucherFilterModel.MaxDiscountValue.HasValue || voucher.DiscountValue <= voucherFilterModel.MaxDiscountValue) &&
+                                         (!voucherFilterModel.MinDiscountValue.HasValue || voucher.DiscountValue >= voucherFilterModel.MinDiscountValue) &&
                                          (!voucherFilterModel.VoucherType.HasValue || voucher.VoucherType == voucherFilterModel.VoucherType) &&
                                          (!voucherFilterModel.StartTime.HasValue || voucher.StartTime >= voucherFilterModel.StartTime) &&
                                          (!voucherFilterModel.ExpiredTime.HasValue || voucher.ExpiredTime <= voucherFilterModel.ExpiredTime) &&
                                          (!voucherFilterModel.MinReputation.HasValue ||
                                          (voucher.MinReputation.HasValue && voucher.MinReputation.Value >= voucherFilterModel.MinReputation)) &&
+                                          (string.IsNullOrEmpty(voucherFilterModel.Search) || (
+                                              voucher.Code.Contains(voucherFilterModel.Search) ||
+                                              voucher.Receiver!.Username.Contains(voucherFilterModel.Search) ||
+                                              voucher.RemainingQuantity.Equals(voucherFilterModel.Search) 
+                                          )) &&
                                          (!voucherFilterModel.MinOrderRequired.HasValue ||
                                          (voucher.MinOrderRequired.HasValue && voucher.MinOrderRequired.Value >= voucherFilterModel.MinOrderRequired)),
                                      order: s =>
                                       {
-                                          switch (voucherFilterModel.Order.ToLower())
+                                          switch (voucherFilterModel.Order?.ToLower())
                                           {
-                                              case "userName":
+                                              case "code":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.Receiver!.Username)
-                                                      : s.OrderBy(s => s.Receiver!.Username);
-                                              case "discountValue":
+                                                      ? s.OrderByDescending(x => x.Code)
+                                                      : s.OrderBy(x => x.Code);
+
+                                              case "receivername":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.DiscountValue)
-                                                      : s.OrderBy(s => s.DiscountValue);
-                                              case "expiredTime":
+                                                      ? s.OrderByDescending(x => x.Receiver != null ? x.Receiver.Username : "")
+                                                      : s.OrderBy(x => x.Receiver != null ? x.Receiver.Username : "");
+
+                                              case "reputation":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(x => x.MinReputation)
+                                                      : s.OrderBy(x => x.MinReputation);
+
+                                              case "discountvalue":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(x => x.DiscountValue)
+                                                      : s.OrderBy(x => x.DiscountValue);
+
+                                              case "expiredtime":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.ExpiredTime)
                                                       : s.OrderBy(s => s.ExpiredTime);
-                                              case "remainingQuantity":
+
+                                              case "starttime":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.StartTime)
+                                                      : s.OrderBy(s => s.StartTime);
+
+                                              case "remainingquantity":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.RemainingQuantity)
                                                       : s.OrderBy(s => s.RemainingQuantity);
+
+                                              case "totalquantity":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.TotalQuantity)
+                                                      : s.OrderBy(s => s.TotalQuantity);
+
+                                              case "minordervalue":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.MinOrderValue)
+                                                      : s.OrderBy(s => s.MinOrderValue);
+
+                                              case "maxdiscountvalue":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.MaxDiscountValue)
+                                                      : s.OrderBy(s => s.MaxDiscountValue);
+
+                                              case "minorderrequired":
+                                                  return voucherFilterModel.OrderByDescending
+                                                      ? s.OrderByDescending(s => s.MinOrderRequired)
+                                                      : s.OrderBy(s => s.MinOrderRequired);
+
                                               case "status":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.VoucherStatus)
-                                                      : s.OrderBy(s => s.VoucherStatus);
+                                                      ? s.OrderByDescending(x => x.VoucherStatus)
+                                                      : s.OrderBy(x => x.VoucherStatus);
+
                                               default:
                                                   return voucherFilterModel.OrderByDescending
-                                                     ? s.OrderByDescending(s => s.CreationDate)
-                                                     : s.OrderBy(s => s.CreationDate);
+                                                      ? s.OrderByDescending(x => x.CreationDate)
+                                                      : s.OrderBy(x => x.CreationDate);
                                           }
                                       },
                                     include: include,
@@ -299,8 +348,8 @@ namespace Chillde.Services.Services
                     VoucherUsageLogs = voucher.VoucherUsageLogs?.Select(log => new VoucherUsageLogModel
                     {
                         Id = log.Id,
-                        VoucherId = log.VoucherId,
-                        OrderId = log.OrderId,
+                        VoucherCode = log.Voucher.Code,
+                        OrderCode = log.Order.Code,
                         DiscountValue = log.DiscountValue,
                         DiscountValueOrigin = log.DiscountValueOrigin,
                         UsageStatus = log.UsageStatus,

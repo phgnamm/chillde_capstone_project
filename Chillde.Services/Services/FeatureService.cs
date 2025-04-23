@@ -10,6 +10,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Services.Models.FeatureModels;
 using Chillde.Services.Models.PackageFeatureModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Nest;
@@ -186,6 +187,10 @@ namespace Chillde.Services.Services
                 await _unitOfWork.SaveChangeAsync();
                 //await _unitOfWork.CommitTransactionAsync();
 
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_features_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"service_{package.ServiceId}_packages_*");
+                await _redisHelper.InvalidateCacheByPatternAsync($"package_{package.Id}");
+
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
@@ -313,8 +318,11 @@ namespace Chillde.Services.Services
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"features_{id}");
-                    await _redisHelper.InvalidateCacheByPatternAsync("features_*");
+                    //await _redisHelper.InvalidateCacheByPatternAsync($"feature_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{serviceId}_features_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{serviceId}_packages_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"package_*");
+                    //await _redisHelper.InvalidateCacheByPatternAsync($"package_{feature.PackageFeatures.}_features_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -376,12 +384,14 @@ namespace Chillde.Services.Services
                     }
                     _unitOfWork.PackageFeatureRepository.UpdateRange(packageFeatures.Data);
                 }
-
+                var serviceId = feature.PackageFeatures.FirstOrDefault().Package.ServiceId;
                 var changes = await _unitOfWork.SaveChangeAsync();
                 if (changes > 0)
                 {
-                    await _redisHelper.InvalidateCacheByPatternAsync($"features_{id}");
-                    await _redisHelper.InvalidateCacheByPatternAsync("features_*");
+                    //await _redisHelper.InvalidateCacheByPatternAsync($"features_{id}");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{serviceId}_features_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"service_{serviceId}_packages_*");
+                    await _redisHelper.InvalidateCacheByPatternAsync($"package_*");
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,

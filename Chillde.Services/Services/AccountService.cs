@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -846,6 +847,19 @@ public class AccountService : IAccountService
             accountFilterModel.PageSize
         );
         var accountModels = _mapper.Map<List<AccountModel>>(accounts.Data);
+        var accountIds = accountModels.Select(a => a.Id).ToList();
+        var orderCounts = await _unitOfWork.Context.Orders
+            .Where(x => accountIds.Contains(x.Package.CreatedById!.Value) && !x.IsDeleted)
+            .GroupBy(x => x.Package.CreatedById)
+            .Select(g => new { AccountId = g.Key, Count = g.Count() })
+            .ToListAsync();
+
+        foreach (var accountModel in accountModels)
+        {
+            accountModel.OrderArtisanCount = orderCounts
+                .FirstOrDefault(x => x.AccountId == accountModel.Id)?.Count ?? 0;
+        }
+
         var result = new Pagination<AccountModel>(accountModels, accountFilterModel.PageIndex,
             accountFilterModel.PageSize, accounts.TotalCount);
 
@@ -878,15 +892,15 @@ public class AccountService : IAccountService
         }
 
         _mapper.Map(accountUpdateModel, account);
-        if (accountUpdateModel.NewImage != null)
-            account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewImage,
-                $"{account.Id.ToString()}_image",
-                $"{account.Id.ToString()}_image", folderName: FolderAttachment.ACCOUNT);
-
-        if (accountUpdateModel.NewBanner != null)
-            account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewBanner,
-                $"{account.Id.ToString()}_banner",
-                $"{account.Id.ToString()}_banner", folderName: FolderAttachment.ACCOUNT);
+        // if (accountUpdateModel.NewImage != null)
+        //     account.Image = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewImage,
+        //         $"{account.Id.ToString()}_image",
+        //         $"{account.Id.ToString()}_image", folderName: FolderAttachment.ACCOUNT);
+        //
+        // if (accountUpdateModel.NewBanner != null)
+        //     account.Banner = await _cloudinaryHelper.UploadImageAsync(accountUpdateModel.NewBanner,
+        //         $"{account.Id.ToString()}_banner",
+        //         $"{account.Id.ToString()}_banner", folderName: FolderAttachment.ACCOUNT);
 
         _unitOfWork.AccountRepository.Update(account);
         if (await _unitOfWork.SaveChangeAsync() > 0)
@@ -1082,15 +1096,15 @@ public class AccountService : IAccountService
         }
 
         _mapper.Map(accountBecomeASellerModel, account);
-        if (accountBecomeASellerModel.NewImage != null)
-            account!.Image = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewImage,
-                $"{account.Id.ToString()}_image",
-                $"{account.Id.ToString()}_image");
-
-        if (accountBecomeASellerModel.NewBanner != null)
-            account!.Banner = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewBanner,
-                $"{account.Id.ToString()}_banner",
-                $"{account.Id.ToString()}_banner");
+        // if (accountBecomeASellerModel.NewImage != null)
+        //     account!.Image = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewImage,
+        //         $"{account.Id.ToString()}_image",
+        //         $"{account.Id.ToString()}_image");
+        //
+        // if (accountBecomeASellerModel.NewBanner != null)
+        //     account!.Banner = await _cloudinaryHelper.UploadImageAsync(accountBecomeASellerModel.NewBanner,
+        //         $"{account.Id.ToString()}_banner",
+        //         $"{account.Id.ToString()}_banner");
 
         if (account!.Image == null || account.Banner == null)
         {
@@ -1573,7 +1587,7 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId)
     {
-        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId);
+        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId, a => a.Include(x => x.Account));;
         if (accountRole == null || accountRole.AccountId != accountId)
         {
             return new ResponseModel
@@ -1596,6 +1610,10 @@ public class AccountService : IAccountService
 
         if (await _unitOfWork.SaveChangeAsync() > 0)
         {
+            await _redisHelper.InvalidateCacheByPatternAsync($"account_{accountRole.AccountId}");
+            await _redisHelper.InvalidateCacheByPatternAsync($"account_{accountRole.Account.Username}");
+            await _redisHelper.InvalidateCacheByPatternAsync("accounts_*");
+            
             return new ResponseModel { Message = "Toggle account role status successfully" };
         }
 
@@ -1705,15 +1723,15 @@ public class AccountService : IAccountService
             {
                 switch (accountFilterModel.Order.ToLower())
                 {
-                    case "firstName":
+                    case "firstname":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.FirstName)
                             : accounts.OrderBy(account => account.FirstName);
-                    case "lastName":
+                    case "lastname":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.LastName)
                             : accounts.OrderBy(account => account.LastName);
-                    case "dateOfBirth":
+                    case "dateofbirth":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.DateOfBirth)
                             : accounts.OrderBy(account => account.DateOfBirth);
@@ -1721,11 +1739,11 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.Email)
                             : accounts.OrderBy(account => account.Email);
-                    case "phoneNumber":
+                    case "phonenumber":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.PhoneNumber)
                             : accounts.OrderBy(account => account.PhoneNumber);
-                    case "isDeleted":
+                    case "isdeleted":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.IsDeleted)
                             : accounts.OrderBy(account => account.IsDeleted);
@@ -1733,7 +1751,7 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.Gender)
                             : accounts.OrderBy(account => account.Gender);
-                    case "userName":
+                    case "username":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.Username)
                             : accounts.OrderBy(account => account.Username);

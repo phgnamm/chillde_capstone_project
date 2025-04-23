@@ -38,6 +38,7 @@ public class AccountModel : BaseEntity
 
     // Order information
     public int OrderCount { get; set; }
+    public int OrderArtisanCount { get; set; }
     public int ServiceCount { get; set; }
     
     // Relationship

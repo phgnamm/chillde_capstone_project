@@ -408,7 +408,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("OrderId")
+                    b.Property<Guid?>("OrderId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Status")
@@ -813,7 +813,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("ModifiedById")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("NotificationTypeId")
+                    b.Property<Guid>("NotificationContentId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("SourceId")
@@ -823,7 +823,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("AccountId");
 
-                    b.HasIndex("NotificationTypeId");
+                    b.HasIndex("NotificationContentId");
 
                     b.ToTable("Notifications");
                 });
@@ -1018,6 +1018,9 @@ namespace Chillde.Repositories.Migrations
 
                     b.Property<int?>("CurrentSketchRevision")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DateTimeCreateVoucher")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool?>("DeadlineMissed")
                         .HasColumnType("boolean");
@@ -1322,7 +1325,7 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CreatedById")
+                    b.Property<Guid>("CreatedById")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
@@ -1550,6 +1553,10 @@ namespace Chillde.Repositories.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -1588,7 +1595,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Report");
+                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("Chillde.Repositories.Entities.ReportAttachment", b =>
@@ -2910,7 +2917,7 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.NotificationContent", "NotificationContent")
                         .WithMany("Notifications")
-                        .HasForeignKey("NotificationTypeId")
+                        .HasForeignKey("NotificationContentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -3046,7 +3053,8 @@ namespace Chillde.Repositories.Migrations
 
                     b.HasOne("Chillde.Repositories.Entities.Service", "Service")
                         .WithMany("Packages")
-                        .HasForeignKey("ServiceId");
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Offer");
 

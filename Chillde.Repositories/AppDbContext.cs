@@ -74,7 +74,11 @@ public class AppDbContext : DbContext
             entity.Property(orderTracking => orderTracking.CreatedById).IsRequired();
         });
 
-        modelBuilder.Entity<Package>(entity => { entity.Property(package => package.Name).HasMaxLength(100); });
+        modelBuilder.Entity<Package>(entity => 
+        { 
+            entity.Property(package => package.Name).HasMaxLength(100);
+            entity.Property(package => package.CreatedById).IsRequired();
+        });
 
         modelBuilder.Entity<ServiceCollection>(entity =>
         {
@@ -134,7 +138,7 @@ public class AppDbContext : DbContext
         {
             entity.HasOne(v => v.NotificationContent)
             .WithMany(a => a.Notifications)
-            .HasForeignKey(v => v.NotificationTypeId);
+            .HasForeignKey(v => v.NotificationContentId);
         });
 
         modelBuilder.Entity<Notification>(entity =>
@@ -188,7 +192,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Package>(entity =>
         {
             entity.HasOne(s => s.Service)
-                .WithMany(c => c.Packages);
+                .WithMany(c => c.Packages)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<PackageFeature>(entity =>
@@ -254,6 +259,7 @@ public class AppDbContext : DbContext
     public DbSet<ShipmentStatusHistory> ShipmentStatusHistory { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<NotificationContent> NotificationContents { get; set; }
+    public DbSet<Report> Reports {  get; set; }    
 
     #endregion
 }

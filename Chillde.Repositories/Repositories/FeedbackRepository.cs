@@ -17,7 +17,7 @@ namespace Chillde.Repositories.Repositories
 
         public async Task<bool> HasFeedback(Guid accountId, Guid serviceId)
         {
-            var result = await _dbSet.AnyAsync(_ => _.CreatedById == accountId && _.ServiceId == serviceId);
+            var result = await _dbSet.AnyAsync(_ => _.CreatedById == accountId && _.ServiceId == serviceId && _.IsDeleted == false);
             return result;
 
         }

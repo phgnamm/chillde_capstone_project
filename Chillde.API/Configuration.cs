@@ -383,7 +383,7 @@ public static class Configuration
         services.AddHostedService<DeliveryReminderService>();
 
         //DeliveryReminder
-        //services.AddHostedService<VoucherCreationService>();
+        services.AddHostedService<VoucherCreationService>();
 
         //OrderCompletionService
         services.AddHostedService<OrderCompletionService>();
@@ -391,6 +391,10 @@ public static class Configuration
         //Notification
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationService>();
+
+        //Notification
+        services.AddScoped<INotificationContentRepository, NotificationContentRepository>();
+        //services.AddScoped<INotificationService, NotificationService>();
 
         //Report
         services.AddScoped<IReportRepository, ReportRepository>();

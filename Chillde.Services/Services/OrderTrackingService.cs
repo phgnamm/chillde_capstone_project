@@ -7,6 +7,7 @@ using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.NotificationModels;
 using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.OrderTrackingModels;
@@ -18,6 +19,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Nest;
+using OpenAI.GPT3.ObjectModels.ResponseModels;
+using StackExchange.Redis;
 
 namespace Chillde.Services.Services
 {
@@ -28,15 +31,22 @@ namespace Chillde.Services.Services
         private readonly ICloudinaryHelper _cloudinaryHelper;
         private readonly IServiceProvider _serviceProvider;
         private readonly ISystemConfigService _systemConfigService;
+        private readonly INotificationService _notificationService;
         //private readonly IOrderReminderService _orderReminderService;
 
-        public OrderTrackingService(IUnitOfWork unitOfWork, IClaimService claimService, ICloudinaryHelper cloudinaryHelper, IServiceProvider serviceProvider, ISystemConfigService systemConfigService)
+        public OrderTrackingService(IUnitOfWork unitOfWork, 
+            IClaimService claimService, 
+            ICloudinaryHelper cloudinaryHelper, 
+            IServiceProvider serviceProvider, 
+            ISystemConfigService systemConfigService, 
+            INotificationService notificationService)
         {
             _unitOfWork = unitOfWork;
             _claimService = claimService;
             _cloudinaryHelper = cloudinaryHelper;
             _serviceProvider = serviceProvider;
             _systemConfigService = systemConfigService;
+            _notificationService = notificationService;
             //_orderReminderService = orderReminderService;
         }
 
@@ -60,8 +70,22 @@ namespace Chillde.Services.Services
                     orderTracking.IsAccepted = true;
                     orderTracking.Order.Stage = OrderStage.DeliveryInProcess;
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
-                    await _unitOfWork.SaveChangeAsync();
-                    //_orderReminderService.UpdateSchedule();
+                    int result = await _unitOfWork.SaveChangeAsync();
+                    if (result > 0)
+                    {
+                        var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_AcceptSketch).Result;
+                        if (notificationContent != null)
+                        {
+                            var notificationAddModel = new NotificationAddModel
+                            {
+                                Content = notificationContent.Content.Replace("[#orderCode]", orderTracking.Order.Code),
+                                AccountId = (Guid)(orderTracking.Order.Package.CreatedById),
+                                NotificationContentId = notificationContent.Id,
+                                SourceId = orderTracking.Order.Id
+                            };
+                            await _notificationService.PushNotification(notificationAddModel);
+                        }
+                    }
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,
@@ -97,8 +121,22 @@ namespace Chillde.Services.Services
                         orderTracking.Order.CurrentSketchRevision = 0;
                     }
                     _unitOfWork.OrderTrackingRepository.Update(orderTracking);
-                    await _unitOfWork.SaveChangeAsync();
-                   
+                    int result = await _unitOfWork.SaveChangeAsync();
+                    if (result > 0)
+                    {
+                        var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_RejectSketch).Result;
+                        if (notificationContent != null)
+                        {
+                            var notificationAddModel = new NotificationAddModel
+                            {
+                                Content = notificationContent.Content.Replace("[#orderCode]", orderTracking.Order.Code),
+                                AccountId = (Guid)(orderTracking.Order.Package.CreatedById),
+                                NotificationContentId = notificationContent.Id,
+                                SourceId = orderTracking.Order.Id
+                            };
+                            await _notificationService.PushNotification(notificationAddModel);
+                        }
+                    }
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status200OK,

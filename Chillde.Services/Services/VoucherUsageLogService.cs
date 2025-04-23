@@ -48,18 +48,64 @@ namespace Chillde.Services.Services
                 //{
                 Expression<Func<VoucherUsageLog, bool>> filter = voucherUsage =>
                  (!voucherUsageLogFilterModel.UsageStatus.HasValue || voucherUsage.UsageStatus == voucherUsageLogFilterModel.UsageStatus) &&
+                 (!voucherUsageLogFilterModel.VoucherType.HasValue || voucherUsage.Voucher.VoucherType == voucherUsageLogFilterModel.VoucherType) &&
                  (voucherUsage.IsDeleted == voucherUsageLogFilterModel.IsDeleted) &&
                  (!voucherUsageLogFilterModel.MinDiscountValue.HasValue || voucherUsage.DiscountValue >= voucherUsageLogFilterModel.MinDiscountValue) &&
+                 (!voucherUsageLogFilterModel.AccountId.HasValue || voucherUsage.CreatedById == voucherUsageLogFilterModel.AccountId) &&
                  (!voucherUsageLogFilterModel.MaxDiscountValue.HasValue || voucherUsage.DiscountValue <= voucherUsageLogFilterModel.MaxDiscountValue) &&
-                 (!voucherUsageLogFilterModel.OrderId.HasValue || voucherUsage.OrderId >= voucherUsageLogFilterModel.OrderId);
+                 (!voucherUsageLogFilterModel.OrderId.HasValue || voucherUsage.OrderId == voucherUsageLogFilterModel.OrderId);
 
                 var voucherUsages = await _unitOfWork.VoucherUsageLogRepository.GetAllAsync(
                                 filter: filter,
+                                include: _ => _.Include(_ => _.Order).Include(_ => _.Voucher),
+                                  order: s =>
+                                  {
+                                      switch (voucherUsageLogFilterModel.Order.ToLower())
+                                      {
+                                          case "voucherCode":
+                                              return voucherUsageLogFilterModel.OrderByDescending
+                                                  ? s.OrderByDescending(s => s.Voucher!.Code)
+                                                  : s.OrderBy(s => s.Voucher!.Code);
+                                          case "discountValue":
+                                              return voucherUsageLogFilterModel.OrderByDescending
+                                                  ? s.OrderByDescending(s => s.DiscountValue)
+                                                  : s.OrderBy(s => s.DiscountValue);
+                                          case "discountValueOrigin":
+                                              return voucherUsageLogFilterModel.OrderByDescending
+                                                  ? s.OrderByDescending(s => s.DiscountValueOrigin)
+                                                  : s.OrderBy(s => s.DiscountValueOrigin);
+                                          case "usageStatus":
+                                              return voucherUsageLogFilterModel.OrderByDescending
+                                                  ? s.OrderByDescending(s => s.UsageStatus)
+                                                  : s.OrderBy(s => s.UsageStatus);
+                                          case "orderCode":
+                                              return voucherUsageLogFilterModel.OrderByDescending
+                                                  ? s.OrderByDescending(s => s.Order!.Code)
+                                                  : s.OrderBy(s => s.Order!.Code);
+                                          default:
+                                              return voucherUsageLogFilterModel.OrderByDescending
+                                                 ? s.OrderByDescending(s => s.CreationDate)
+                                                 : s.OrderBy(s => s.CreationDate);
+                                      }
+                                  },
                                 pageIndex: voucherUsageLogFilterModel.PageIndex,
                                 pageSize: voucherUsageLogFilterModel.PageSize
                 );
 
-                var voucherUsageModels = _mapper.Map<List<VoucherUsageLogModel>>(voucherUsages.Data);
+                var voucherUsageModels = voucherUsages.Data.Select(v => new VoucherUsageLogModel
+                {
+                    Id = v.Id,
+                    VoucherCode = v.Voucher.Code,
+                    OrderCode = v.Order.Code,
+                    CreatedById = v.CreatedById,
+                    CreationDate = v.CreationDate,
+                    ModifiedById = v.ModifiedById,
+                    ModificationDate = v.ModificationDate,
+                    IsDeleted = v.IsDeleted,
+                    DiscountValue = v.DiscountValue,
+                    DiscountValueOrigin = v.DiscountValueOrigin,
+                    UsageStatus = v.UsageStatus
+                }).ToList();
 
                 var result = new Pagination<VoucherUsageLogModel>(voucherUsageModels, voucherUsageLogFilterModel.PageIndex,
                   voucherUsageLogFilterModel.PageSize, voucherUsages.TotalCount);

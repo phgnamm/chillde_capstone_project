@@ -58,6 +58,7 @@ public interface IUnitOfWork
     INotificationRepository NotificationRepository { get; }
     IReportRepository ReportRepository { get; }
     IReportAttachmentRepository ReportAttachmentRepository { get; }
+    INotificationContentRepository NotificationContentRepository { get; }
 
     #endregion
 }

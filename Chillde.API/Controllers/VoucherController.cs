@@ -42,8 +42,8 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpPut()]
-        public async Task<IActionResult> Update([FromQuery] Guid id,[FromBody] VoucherUpdateModel voucherUpdateModel)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id,[FromBody] VoucherUpdateModel voucherUpdateModel)
         {
             try
             {
@@ -63,8 +63,8 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        [HttpPut("stop")]
-        public async Task<IActionResult> StopVoucher([FromQuery] Guid id)
+        [HttpPut("{id}/stop")]
+        public async Task<IActionResult> StopVoucher(Guid id)
         {
             try
             {
