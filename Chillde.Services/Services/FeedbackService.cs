@@ -179,7 +179,7 @@ namespace Chillde.Services.Services
         {
             var account = await _unitOfWork.AccountRepository.GetAsync(
                 accountId,
-                query => query.Include(a => a.AccountRoles)
+                query => query.Include(a => a.AccountRoles).ThenInclude(ar=> ar.Role)
             );
             if (account == null || !account.AccountRoles.Any(r => r.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString()))
             {
