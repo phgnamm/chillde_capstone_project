@@ -1457,7 +1457,7 @@ namespace Chillde.Services.Services
                             var notificationAddModel = new NotificationAddModel
                             {
                                 Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                                AccountId = (Guid)(order.Package.Service.CreatedById),
+                                AccountId = (Guid)(order.CreatedById),
                                 NotificationContentId = notificationContent.Id,
                                 SourceId = order.Id
                             };
@@ -1472,7 +1472,7 @@ namespace Chillde.Services.Services
                             var notificationAddModel = new NotificationAddModel
                             {
                                 Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                                AccountId = (Guid)(order.Package.Service.CreatedById),
+                                AccountId = (Guid)(order.CreatedById),
                                 NotificationContentId = notificationContent.Id,
                                 SourceId = order.Id
                             };
