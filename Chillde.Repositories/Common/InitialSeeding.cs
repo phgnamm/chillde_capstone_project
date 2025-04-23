@@ -3834,7 +3834,7 @@ public static class InitialSeeding
         // Seed Reports and ReportAttachments
         foreach (var report in Reports)
         {
-            if (!context.Reports.Any(r => r.Code == report.Code))
+            if (!context.Reports.Any(r => r.Id == report.Id))
             {
                 if (context.Orders.Any(o => o.Id == report.OrderId))
                 {
