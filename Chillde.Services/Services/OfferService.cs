@@ -93,7 +93,7 @@ namespace Chillde.Services.Services
                                 return filterParameter.OrderByDescending
                                     ? offers.OrderByDescending(offer => offer.Status)
                                     : offers.OrderBy(offer => offer.Status);
-                            case "createdAt":
+                            case "createdat":
                                 return filterParameter.OrderByDescending
                                     ? offers.OrderByDescending(offer => offer.CreationDate)
                                     : offers.OrderBy(offer => offer.CreationDate);

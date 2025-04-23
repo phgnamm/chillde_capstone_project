@@ -1723,15 +1723,15 @@ public class AccountService : IAccountService
             {
                 switch (accountFilterModel.Order.ToLower())
                 {
-                    case "firstName":
+                    case "firstname":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.FirstName)
                             : accounts.OrderBy(account => account.FirstName);
-                    case "lastName":
+                    case "lastname":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.LastName)
                             : accounts.OrderBy(account => account.LastName);
-                    case "dateOfBirth":
+                    case "dateofbirth":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.DateOfBirth)
                             : accounts.OrderBy(account => account.DateOfBirth);
@@ -1739,11 +1739,11 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.Email)
                             : accounts.OrderBy(account => account.Email);
-                    case "phoneNumber":
+                    case "phonenumber":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.PhoneNumber)
                             : accounts.OrderBy(account => account.PhoneNumber);
-                    case "isDeleted":
+                    case "isdeleted":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.IsDeleted)
                             : accounts.OrderBy(account => account.IsDeleted);
@@ -1751,7 +1751,7 @@ public class AccountService : IAccountService
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.Gender)
                             : accounts.OrderBy(account => account.Gender);
-                    case "userName":
+                    case "username":
                         return accountFilterModel.OrderByDescending
                             ? accounts.OrderByDescending(account => account.Username)
                             : accounts.OrderBy(account => account.Username);
