@@ -283,30 +283,37 @@ namespace Chillde.Services.Services
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.ExpiredTime)
                                                       : s.OrderBy(s => s.ExpiredTime);
-                                              case "startTime":
+
+                                              case "starttime":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.StartTime)
                                                       : s.OrderBy(s => s.StartTime);
-                                              case "remainingQuantity":
+
+                                              case "remainingquantity":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.RemainingQuantity)
                                                       : s.OrderBy(s => s.RemainingQuantity);
-                                              case "totalQuantity":
+
+                                              case "totalquantity":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.TotalQuantity)
                                                       : s.OrderBy(s => s.TotalQuantity);
-                                              case "minOrderValue":
+
+                                              case "minordervalue":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.MinOrderValue)
                                                       : s.OrderBy(s => s.MinOrderValue);
-                                              case "maxDiscountValue":
+
+                                              case "maxdiscountvalue":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.MaxDiscountValue)
                                                       : s.OrderBy(s => s.MaxDiscountValue);
-                                              case "minOrderRequired":
+
+                                              case "minorderrequired":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(s => s.MinOrderRequired)
                                                       : s.OrderBy(s => s.MinOrderRequired);
+
                                               case "status":
                                                   return voucherFilterModel.OrderByDescending
                                                       ? s.OrderByDescending(x => x.VoucherStatus)
