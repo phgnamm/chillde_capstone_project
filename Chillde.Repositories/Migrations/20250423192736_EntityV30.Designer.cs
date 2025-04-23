@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250423151316_EntityV29")]
-    partial class EntityV29
+    [Migration("20250423192736_EntityV30")]
+    partial class EntityV30
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1022,7 +1022,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int?>("CurrentSketchRevision")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("DateTimeCreationVoucher")
+                    b.Property<DateTime?>("DateTimeCreateVoucher")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool?>("DeadlineMissed")
