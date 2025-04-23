@@ -838,17 +838,17 @@ namespace Chillde.Services.Services
                     EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
                     EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
                 };
-                if (parsedJson?.Order?.Products != null && parsedJson.Order.Products.Any())
+                if (shipmentCreateModel.Products != null && shipmentCreateModel.Products.Any())
                 {
-                    foreach (var product in parsedJson.Order.Products)
+                    foreach (var product in shipmentCreateModel.Products)
                     {
                         shipment.ProductShipments.Add(new ProductShipment
                         {
                             ShipmentId = shipment.Id,
                             Name = product.Name ?? string.Empty,
-                            Weight = (decimal)product.Weight,
-                            Quantity = product.Quantity,
-                            ProductCode = product.ProductCode.ToString()
+                            Weight = product.Weight,
+                            Quantity = product.Quantity ?? 0,
+                            ProductCode = string.Empty 
                         });
                     }
                 }
