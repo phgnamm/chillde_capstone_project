@@ -378,7 +378,7 @@ namespace Chillde.API.Controllers
 
         //[Authorize]
         [HttpPost("{orderId}/reports")]
-        public async Task<IActionResult> Report(Guid orderId, [FromForm] ReportAddModel reportAddModel)
+        public async Task<IActionResult> Report(Guid orderId, [FromBody] ReportAddModel reportAddModel)
         {
             try
             {
