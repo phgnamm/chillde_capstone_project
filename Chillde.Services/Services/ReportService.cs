@@ -158,6 +158,16 @@ namespace Chillde.Services.Services
         {
             try
             {
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
+
                 var report = await _unitOfWork.ReportRepository.GetAsync(reportId, 
                     include: _ => _.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
                                    .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer));
@@ -187,6 +197,29 @@ namespace Chillde.Services.Services
                 order.Stage = OrderStage.Completed;
                 order.Status = OrderStatus.Completed;
                 _unitOfWork.OrderRepository.Update(order);
+
+                var artistianId = order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById;
+
+                var account = await _unitOfWork.AccountRepository.GetAsync((Guid)artistianId, include: _ => _.Include(_ => _.Wallet));
+                var wallet = account?.Wallet;
+                if (wallet == null)
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Wallet not found"
+                    };
+
+                wallet.Balance += (decimal)order.ArtistRevenue!;
+
+                order.Transactions.Add(new Transaction
+                {
+                    WalletId = wallet.Id,
+                    Amount = order.TotalPrice,
+                    Type = TransactionType.TransferIn,
+                    Status = TransactionStatus.Completed,
+                    CreatedById = currentUserId
+                });
+                _unitOfWork.WalletRepository.Update(wallet);
 
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
@@ -280,26 +313,26 @@ namespace Chillde.Services.Services
                 order.Status = OrderStatus.Refunded;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var account = await _unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById! , include: _ => _.Include(_ => _.Wallet));
-                var wallet = account?.Wallet;
-                if (wallet == null)
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status401Unauthorized,
-                        Message = "Wallet not found"
-                    };
+                //var account = await _unitOfWork.AccountRepository.GetAsync((Guid)order.CreatedById! , include: _ => _.Include(_ => _.Wallet));
+                //var wallet = account?.Wallet;
+                //if (wallet == null)
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status401Unauthorized,
+                //        Message = "Wallet not found"
+                //    };
 
-                wallet.Balance += (decimal)order.TotalPrice!;
+                //wallet.Balance += (decimal)order.TotalPrice!;
 
-                order.Transactions.Add(new Transaction
-                {
-                    WalletId = wallet.Id,
-                    Amount = order.TotalPrice,
-                    Type = TransactionType.TransferOut,
-                    Status = TransactionStatus.Completed,
-                    CreatedById = currentUserId
-                });
-                _unitOfWork.WalletRepository.Update(wallet);
+                //order.Transactions.Add(new Transaction
+                //{
+                //    WalletId = wallet.Id,
+                //    Amount = order.TotalPrice,
+                //    Type = TransactionType.TransferOut,
+                //    Status = TransactionStatus.Completed,
+                //    CreatedById = currentUserId
+                //});
+                //_unitOfWork.WalletRepository.Update(wallet);
 
                 //tao shipment
                 string partnerId = $"{order.Code}_Return_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
