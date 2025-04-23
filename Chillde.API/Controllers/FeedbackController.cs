@@ -71,5 +71,23 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //[Authorize]
+        [HttpGet("artisan/{accountId}/feedbacks")]
+        public async Task<IActionResult> GetAllFeedbacksByArtisan(Guid accountId, [FromQuery] FeedbackFilterModel filter)
+        {
+            try
+            {
+                var result = await _feedbackService.GetAllFeedbacksByArtisanAsync(accountId,filter);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }
