@@ -5,6 +5,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.NotificationModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.ReportModels;
+using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ReportModels;
@@ -12,7 +13,9 @@ using Chillde.Services.Models.ResponseModels;
 using Chillde.Services.Models.VoucherModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace Chillde.Services.Services
 {
@@ -26,6 +29,7 @@ namespace Chillde.Services.Services
         private readonly IRedisHelper _redisHelper;
         private readonly INotificationService _notificationService;
         private readonly IClaimService _claimService;
+        private readonly HttpClient _httpClient;
 
         public ReportService(IUnitOfWork unitOfWork,
             ITranslationService translationService,
@@ -34,7 +38,8 @@ namespace Chillde.Services.Services
             IPackageService packageService,
             IRedisHelper redisHelper,
             INotificationService notificationService,
-            IClaimService claimService)
+            IClaimService claimService, 
+            IHttpClientFactory httpClientFactory)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
@@ -44,6 +49,7 @@ namespace Chillde.Services.Services
             _redisHelper = redisHelper;
             _notificationService = notificationService;
             _claimService = claimService;
+            _httpClient = httpClientFactory.CreateClient("GhtkClient");
         }
         public async Task<ResponseModel> GetAll(ReportFilterModel reportFilterModel)
         {
@@ -286,6 +292,8 @@ namespace Chillde.Services.Services
                 var report = await _unitOfWork.ReportRepository.GetAsync(reportId, 
                     include: report => report.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
                                              .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer)
+                                             .Include(_ => _.Order).ThenInclude(_ => _.Shipments).ThenInclude(_ => _.ProductShipments)
+                                             .Include(_ => _.Order).ThenInclude(_ => _.CreatedBy)
                     );
                 if (report == null)
                 {
@@ -326,6 +334,136 @@ namespace Chillde.Services.Services
                 //});
                 //_unitOfWork.WalletRepository.Update(wallet);
 
+                //tao shipment
+                string partnerId = $"{order.Code}_Return_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                string partnerIdWithoutTime = partnerId.Substring(0, partnerId.IndexOf('_', partnerId.IndexOf('_') + 1));
+
+               //lay id cua nghe nhan 
+                var artisanId = order.Package.Service != null
+                ? order.Package.Service.CreatedById
+                : order.Package.Offer?.CreatedById;
+                    if (!artisanId.HasValue)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = "Cannot identify artisan for this order."
+                        };
+                    }
+                // lay dia chi nghe nhan 
+                var artisanAddress = (await _unitOfWork.ShippingAddressRepository.GetAllAsync(
+                    filter: sa => sa.CreatedById == artisanId.Value && sa.IsDefault && !sa.IsDeleted,
+                    include: sa => sa.Include(x => x.CreatedBy) 
+                )).Data.FirstOrDefault();
+                if (artisanAddress == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Default shipping address for artisan not found."
+                    };
+                }
+                var latestShipment = order.Shipments.OrderByDescending(s => s.CreationDate).FirstOrDefault();
+                if (latestShipment == null || !latestShipment.ProductShipments.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "No product shipments found for this order."
+                    };
+                }
+                var products = latestShipment.ProductShipments.Select(ps => new
+                {
+                    name = ps.Name,
+                    weight = (double)ps.Weight,
+                    quantity = ps.Quantity,
+                }).ToList();
+                //tao chuoi json 
+                var jsonBody = JsonConvert.SerializeObject(new
+                {
+                    products,
+                    order = new
+                    {
+                        id = partnerId,
+                        pick_name = order.CreatedBy != null ? $"{order.CreatedBy.FirstName} {order.CreatedBy.LastName}" : "Customer",
+                        pick_address = order.Address,
+                        pick_province = order.ToProvince,
+                        pick_district = order.ToDistrict,
+                        pick_ward = order.ToWard,
+                        pick_tel = order.Phone,
+                        name = artisanAddress.FullName, 
+                        address = artisanAddress.AddressLine1 + "," + artisanAddress.AddressLine2,
+                        province = artisanAddress.ProvinceName,
+                        district = artisanAddress.DistrictName,
+                        ward = artisanAddress.WardName,
+                        tel = artisanAddress.PhoneNumber,
+                        hamlet = "Khác", 
+                        email = artisanAddress.CreatedBy?.Email, 
+                        is_freeship = 0, 
+                        pick_money = 1, 
+                        note = $"Trả hàng cho đơn hàng {order.Code}",
+                        value = (int)(order.TotalPrice ?? 0),
+                        transport = "road", 
+                        pick_option = "cod", 
+                        deliver_option = "none", 
+                        tags = new string[] { "urgent", "fragile" } 
+                    }
+                }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+                var url = "https://services-staging.ghtklab.com/services/shipment/order";
+                var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                var requestMessage = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, url)
+                {
+                    Content = content
+                };
+                //gui yeu cau shipment
+                var response = await _httpClient.SendAsync(requestMessage);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var parsedJson = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return new ResponseModel
+                    {
+                        Code = (int)response.StatusCode,
+                        Message = parsedJson.Success,
+                        Data = parsedJson
+                    };
+                }
+                Shipment shipment = new()
+                {
+                    OrderId = order.Id,
+                    TrackingId = parsedJson!.Order!.TrackingId.ToString(),
+                    CurrentStatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
+                    PartnerId = parsedJson!.Order!.PartnerId,
+                    Label = parsedJson.Order.Label,
+                    Area = parsedJson.Order.Area,
+                    Fee = parsedJson.Order.Fee != null ? decimal.Parse(parsedJson.Order.Fee) : 0,
+                    InsuranceFee = parsedJson.Order.InsuranceFee != null ? decimal.Parse(parsedJson.Order.InsuranceFee) : 0,
+                    EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
+                    EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
+                };
+                if (products != null && products.Any())
+                {
+                    foreach (var product in products)
+                    {
+                        shipment.ProductShipments.Add(new ProductShipment
+                        {
+                            ShipmentId = shipment.Id,
+                            Name = product.name ?? string.Empty,
+                            Weight = (decimal)product.weight,
+                            Quantity = product.quantity,
+                            ProductCode = string.Empty
+                        });
+                    }
+                }
+                shipment.ShipmentStatusHistorys.Add(new ShipmentStatusHistory
+                {
+                    ShipmentId = shipment.Id,
+                    StatusId = shipment.CurrentStatusId,
+                });
+
+
+                await _unitOfWork.ShipmentRepository.AddAsync(shipment);
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
                 {
