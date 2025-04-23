@@ -161,9 +161,9 @@ namespace Chillde.Services.Services
                 var notificationModel = _mapper.Map<NotificationModel>(notification);
                 await _hubContext.Clients
                     .Clients(_connections.GetConnections(notification.AccountId))
-                    .SendAsync("NotificationConversation", notificationModel);
-                await _hubContext.Clients
-                    .Clients(_connections.GetConnections(notification.AccountId)).SendAsync("ReceiveMessage");
+                    .SendAsync("ReceiveNotification", notificationModel);
+                // await _hubContext.Clients
+                //     .Clients(_connections.GetConnections(notification.AccountId)).SendAsync("ReceiveMessage");
 
                 return new ResponseModel
                 {
