@@ -10,5 +10,6 @@ namespace Chillde.Services.Models.VoucherUsageLogModels
         public decimal? MinDiscountValue { get; set; }
         public decimal? MaxDiscountValue { get; set; }
         public UsageStatus? UsageStatus { get; set; }
+        public VoucherType? VoucherType { get; set; }
     }
 }

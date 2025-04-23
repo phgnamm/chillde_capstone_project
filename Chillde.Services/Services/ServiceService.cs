@@ -145,23 +145,23 @@ namespace Chillde.Services.Services
             };
 
             await _unitOfWork.FeedbackRepository.AddAsync(feedback);
-            if (feedbackAddModel.FeedbackAttachmentAddModels.Count > 0)
+            if (feedbackAddModel.Attachments.Count > 0)
             {
                 var feedbackAttachments = new List<FeedbackAttachment>();
 
-                foreach (var attachment in feedbackAddModel.FeedbackAttachmentAddModels)
+                foreach (var attachment in feedbackAddModel.Attachments)
                 {
-                    var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
-                        attachment.AttachmentUrl!,
-                        "feedbacks",
-                        feedback.Id.ToString()
-                    );
+                    // var attachmentPath = await _cloudinaryHelper.UploadImageAsync(
+                    //     attachment.AttachmentUrl!,
+                    //     "feedbacks",
+                    //     feedback.Id.ToString()
+                    // );
 
                     feedbackAttachments.Add(new FeedbackAttachment
                     {
                         Id = Guid.NewGuid(),
                         FeedbackId = feedback.Id,
-                        AttachmentUrl = attachmentPath,
+                        AttachmentUrl = attachment.AttachmentUrl,
                         AttachmentAlt = attachment.AttachmentAlt,
                     });
                 }

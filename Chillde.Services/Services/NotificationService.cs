@@ -1,16 +1,18 @@
 ﻿using AutoMapper;
-using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
-using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Repositories.Models.ReportAttachmentModels;
+using Chillde.Repositories.Models.ReportModels;
+using Chillde.Services.Common;
 using Chillde.Services.Hubs;
 using Chillde.Services.Interfaces;
-using Chillde.Services.Models.MessageModels;
+using Chillde.Services.Models.NotificationModels;
 using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Chillde.Services.Services
 {
@@ -34,6 +36,64 @@ namespace Chillde.Services.Services
             _unitOfWork = unitOfWork;
             _hubContext = hubContext;
             _cloudinaryHelper = cloudinaryHelper;
+        }
+
+        public async Task<ResponseModel> GetAll(NotificationFilterModel notificationFilterModel)
+        {
+
+            Func<IQueryable<Notification>, IOrderedQueryable<Notification>> orderBy = query =>
+            {
+                switch (notificationFilterModel.Order?.ToLower())
+                {
+                    case "creationdate":
+                        return notificationFilterModel.OrderByDescending
+                            ? query.OrderByDescending(o => o.CreationDate)
+                            : query.OrderBy(o => o.CreationDate);
+                    default:
+                        return notificationFilterModel.OrderByDescending
+                            ? query.OrderByDescending(o => o.CreationDate)
+                            : query.OrderBy(o => o.CreationDate);
+                }
+            };
+
+            Expression<Func<Notification, bool>> filter = notification =>
+                (!notificationFilterModel.AccountId.HasValue || notification.AccountId == notificationFilterModel.AccountId) &&
+                (!notificationFilterModel.NotificationType.HasValue || notification.NotificationContent.Type == notificationFilterModel.NotificationType);
+
+            try
+            {
+                var notifications = await _unitOfWork.NotificationRepository.GetAllAsync(
+                    filter: filter,
+                    include: notification => notification.Include(o => o.NotificationContent),
+                    order: orderBy,
+                    pageIndex: notificationFilterModel.PageIndex,
+                    pageSize: notificationFilterModel.PageSize
+                );
+
+                var notificationModels = _mapper.Map<List<NotificationModel>>(notifications.Data);
+
+                var result = new Pagination<NotificationModel>(
+                    notificationModels,
+                    notificationFilterModel.PageIndex,
+                    notificationFilterModel.PageSize,
+                    notifications.TotalCount
+                );
+
+                return new ResponseModel
+                {
+                    Message = "Get all reports successfully",
+                    Data = result,
+
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred."
+                };
+            }
         }
 
         public async Task<ResponseModel> PushNotification (NotificationAddModel notificationAddModel)

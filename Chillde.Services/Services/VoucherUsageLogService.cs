@@ -48,6 +48,7 @@ namespace Chillde.Services.Services
                 //{
                 Expression<Func<VoucherUsageLog, bool>> filter = voucherUsage =>
                  (!voucherUsageLogFilterModel.UsageStatus.HasValue || voucherUsage.UsageStatus == voucherUsageLogFilterModel.UsageStatus) &&
+                 (!voucherUsageLogFilterModel.VoucherType.HasValue || voucherUsage.Voucher.VoucherType == voucherUsageLogFilterModel.VoucherType) &&
                  (voucherUsage.IsDeleted == voucherUsageLogFilterModel.IsDeleted) &&
                  (!voucherUsageLogFilterModel.MinDiscountValue.HasValue || voucherUsage.DiscountValue >= voucherUsageLogFilterModel.MinDiscountValue) &&
                  (!voucherUsageLogFilterModel.AccountId.HasValue || voucherUsage.CreatedById == voucherUsageLogFilterModel.AccountId) &&
