@@ -74,7 +74,11 @@ public class AppDbContext : DbContext
             entity.Property(orderTracking => orderTracking.CreatedById).IsRequired();
         });
 
-        modelBuilder.Entity<Package>(entity => { entity.Property(package => package.Name).HasMaxLength(100); });
+        modelBuilder.Entity<Package>(entity => 
+        { 
+            entity.Property(package => package.Name).HasMaxLength(100);
+            entity.Property(package => package.CreatedById).IsRequired();
+        });
 
         modelBuilder.Entity<ServiceCollection>(entity =>
         {
