@@ -141,6 +141,7 @@ public class MapperProfile : Profile
 
         //Notification
         CreateMap<NotificationAddModel, Notification>().ReverseMap();
+        CreateMap<Notification, NotificationModel>().ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.NotificationContent.Type)).ReverseMap();
 
         //Report
         CreateMap<ReportAddModel, Report>().ReverseMap();
