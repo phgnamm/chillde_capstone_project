@@ -138,7 +138,7 @@ namespace Chillde.Services.Services
             {
                 Id = Guid.NewGuid(),
                 ServiceId = feedbackAddModel.ServiceId,
-                ArtisanId = existService.CreatedById ?? Guid.Empty,
+                //ArtisanId = existService.CreatedById ?? Guid.Empty,
                 CreatedById = currentUserId.Value,
                 Rating = feedbackAddModel.Rating,
                 Description = feedbackAddModel.Description,
