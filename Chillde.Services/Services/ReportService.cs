@@ -152,7 +152,9 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var report = await _unitOfWork.ReportRepository.GetAsync(reportId, include: _ => _.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service).Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer));
+                var report = await _unitOfWork.ReportRepository.GetAsync(reportId, 
+                    include: _ => _.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
+                                   .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer));
                 if (report == null)
                 {
                     return new ResponseModel

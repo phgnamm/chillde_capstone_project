@@ -717,7 +717,9 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
-            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: order => order.Include(_ => _.Package));
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: 
+                order => order.Include(_ => _.Package).ThenInclude(_ => _.Service)
+                              .Include(_ => _.Package).ThenInclude(_ => _.Offer));
             if (order == null)
             {
                 return new ResponseModel
@@ -867,7 +869,7 @@ namespace Chillde.Services.Services
                         var notificationAddModel = new NotificationAddModel
                         {
                             Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                            AccountId = (Guid)(order.Package.CreatedById),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
                             NotificationContentId = notificationContent.Id,
                             SourceId = order.Id
                         };
@@ -1871,8 +1873,10 @@ namespace Chillde.Services.Services
 
                 var orderTracking = new OrderTracking
                 {
-                    Name = orderTrackingAddModel.Name ?? "New Sketch",
-                    Description = orderTrackingAddModel.Description ?? "Sketch phase",
+                    // Name = orderTrackingAddModel.Name ?? "New Sketch",
+                    // Description = orderTrackingAddModel.Description ?? "Sketch phase",
+                    Name = orderTrackingAddModel.Name,
+                    Description = orderTrackingAddModel.Description,
                     Type = orderTrackingAddModel.Type,
                     Stage = OrderStage.ReviewSketch,
                     CreatedById = currentUserId.Value,
@@ -2089,8 +2093,10 @@ namespace Chillde.Services.Services
 
                 var orderTracking = new OrderTracking
                 {
-                    Name = orderTrackingAddModel.Name ?? "New Delivery",
-                    Description = orderTrackingAddModel.Description ?? "Delivery phase",
+                    // Name = orderTrackingAddModel.Name ?? "New Delivery",
+                    // Description = orderTrackingAddModel.Description ?? "Delivery phase",
+                    Name = orderTrackingAddModel.Name,
+                    Description = orderTrackingAddModel.Description,
                     Type = orderTrackingAddModel.Type,
                     Stage = OrderStage.ReviewDelivery,
                     CreatedById = currentUserId.Value,
@@ -2659,7 +2665,7 @@ namespace Chillde.Services.Services
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
-                        string? path = null;
+                        // string? path = null;
                         
                         // TODO: Fix attachment path
                         // if (attachmentUrl != null)
@@ -2675,7 +2681,7 @@ namespace Chillde.Services.Services
                         newAttachment.Add(new ReportAttachment
                         {
                             AttachmentAlt = attachmentAlt,
-                            AttachmentUrl = path,
+                            AttachmentUrl = attachmentUrl,
                             ReportId = report.Id
                         });
                     }
