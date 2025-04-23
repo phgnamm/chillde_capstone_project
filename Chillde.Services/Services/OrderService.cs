@@ -1873,8 +1873,10 @@ namespace Chillde.Services.Services
 
                 var orderTracking = new OrderTracking
                 {
-                    Name = orderTrackingAddModel.Name ?? "New Sketch",
-                    Description = orderTrackingAddModel.Description ?? "Sketch phase",
+                    // Name = orderTrackingAddModel.Name ?? "New Sketch",
+                    // Description = orderTrackingAddModel.Description ?? "Sketch phase",
+                    Name = orderTrackingAddModel.Name,
+                    Description = orderTrackingAddModel.Description,
                     Type = orderTrackingAddModel.Type,
                     Stage = OrderStage.ReviewSketch,
                     CreatedById = currentUserId.Value,
@@ -2091,8 +2093,10 @@ namespace Chillde.Services.Services
 
                 var orderTracking = new OrderTracking
                 {
-                    Name = orderTrackingAddModel.Name ?? "New Delivery",
-                    Description = orderTrackingAddModel.Description ?? "Delivery phase",
+                    // Name = orderTrackingAddModel.Name ?? "New Delivery",
+                    // Description = orderTrackingAddModel.Description ?? "Delivery phase",
+                    Name = orderTrackingAddModel.Name,
+                    Description = orderTrackingAddModel.Description,
                     Type = orderTrackingAddModel.Type,
                     Stage = OrderStage.ReviewDelivery,
                     CreatedById = currentUserId.Value,
@@ -2661,7 +2665,7 @@ namespace Chillde.Services.Services
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
-                        string? path = null;
+                        // string? path = null;
                         
                         // TODO: Fix attachment path
                         // if (attachmentUrl != null)
@@ -2677,7 +2681,7 @@ namespace Chillde.Services.Services
                         newAttachment.Add(new ReportAttachment
                         {
                             AttachmentAlt = attachmentAlt,
-                            AttachmentUrl = path,
+                            AttachmentUrl = attachmentUrl,
                             ReportId = report.Id
                         });
                     }
