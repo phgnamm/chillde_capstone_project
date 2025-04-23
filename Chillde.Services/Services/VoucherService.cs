@@ -257,41 +257,47 @@ namespace Chillde.Services.Services
                                          (voucher.MinOrderRequired.HasValue && voucher.MinOrderRequired.Value >= voucherFilterModel.MinOrderRequired)),
                                      order: s =>
                                       {
-                                          switch (voucherFilterModel.Order.ToLower())
-
+                                          switch (voucherFilterModel.Order?.ToLower())
                                           {
                                               case "code":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.Code)
-                                                      : s.OrderBy(s => s.Code);
-                                              case "receiverName":
+                                                      ? s.OrderByDescending(x => x.Code)
+                                                      : s.OrderBy(x => x.Code);
+
+                                              case "receivername":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.Receiver!.Username)
-                                                      : s.OrderBy(s => s.Receiver!.Username);
+                                                      ? s.OrderByDescending(x => x.Receiver != null ? x.Receiver.Username : "")
+                                                      : s.OrderBy(x => x.Receiver != null ? x.Receiver.Username : "");
+
                                               case "reputation":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.MinReputation)
-                                                      : s.OrderBy(s => s.MinReputation);
-                                              case "discountValue":
+                                                      ? s.OrderByDescending(x => x.MinReputation)
+                                                      : s.OrderBy(x => x.MinReputation);
+
+                                              case "discountvalue":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.DiscountValue)
-                                                      : s.OrderBy(s => s.DiscountValue);
-                                              case "expiredTime":
+                                                      ? s.OrderByDescending(x => x.DiscountValue)
+                                                      : s.OrderBy(x => x.DiscountValue);
+
+                                              case "expiredtime":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.ExpiredTime)
-                                                      : s.OrderBy(s => s.ExpiredTime);
-                                              case "remainingQuantity":
+                                                      ? s.OrderByDescending(x => x.ExpiredTime)
+                                                      : s.OrderBy(x => x.ExpiredTime);
+
+                                              case "remainingquantity":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.RemainingQuantity)
-                                                      : s.OrderBy(s => s.RemainingQuantity);
+                                                      ? s.OrderByDescending(x => x.RemainingQuantity)
+                                                      : s.OrderBy(x => x.RemainingQuantity);
+
                                               case "status":
                                                   return voucherFilterModel.OrderByDescending
-                                                      ? s.OrderByDescending(s => s.VoucherStatus)
-                                                      : s.OrderBy(s => s.VoucherStatus);
+                                                      ? s.OrderByDescending(x => x.VoucherStatus)
+                                                      : s.OrderBy(x => x.VoucherStatus);
+
                                               default:
                                                   return voucherFilterModel.OrderByDescending
-                                                     ? s.OrderByDescending(s => s.CreationDate)
-                                                     : s.OrderBy(s => s.CreationDate);
+                                                      ? s.OrderByDescending(x => x.CreationDate)
+                                                      : s.OrderBy(x => x.CreationDate);
                                           }
                                       },
                                     include: include,
