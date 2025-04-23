@@ -43,7 +43,7 @@ public class Order : BaseEntity
     public decimal? AdminCommDefault { get; set; } // commission ban dau
     public decimal? ArtistRevenue { get; set; } // doanh thu cua nghe nhan sau khi tru hoa hong cua admin
     public decimal? VoucherCost { get; set; } // tong voucher ma khach hang apply vao    
-    public DateTime? DateTimeCreationVoucher { get; set; }
+    public DateTime? DateTimeCreateVoucher { get; set; }
 
     // Foreign key
     public Guid PackageId { get; set; }

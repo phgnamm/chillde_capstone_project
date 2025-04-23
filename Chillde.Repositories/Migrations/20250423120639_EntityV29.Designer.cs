@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250423120639_EntityV29")]
+    partial class EntityV29
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -530,7 +533,7 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid?>("AccountId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ArtisanId")
+                    b.Property<Guid>("ArtisanId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("CreatedById")
@@ -2824,7 +2827,8 @@ namespace Chillde.Repositories.Migrations
                     b.HasOne("Chillde.Repositories.Entities.Account", "Artisan")
                         .WithMany()
                         .HasForeignKey("ArtisanId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Chillde.Repositories.Entities.Account", "CreatedBy")
                         .WithMany()

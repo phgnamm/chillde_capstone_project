@@ -94,7 +94,7 @@ namespace Chillde.Services.Services
                     Message = "Unauthorized"
                 };
             var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId,
-                include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request));
+                include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request).Include(_ => _.Service));
             if (package == null)
                 return new ResponseModel
                 {
@@ -151,7 +151,7 @@ namespace Chillde.Services.Services
                     var notificationAddModel = new NotificationAddModel
                     {
                         Content = notificationContent.Content.Replace("[#orderCode]", newOrder.Code),
-                        AccountId = (Guid)(package.CreatedById!),
+                        AccountId = (Guid)(package.Service != null ? package.Service.CreatedById : package.Offer?.CreatedById)!,
                         NotificationContentId = notificationContent.Id,
                         SourceId = newOrder.Id
                     };
@@ -187,7 +187,7 @@ namespace Chillde.Services.Services
                 }
 
                 var package = await _unitOfWork.PackageRepository.GetAsync(orderAddModel.PackageId,
-                    include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request));
+                    include: _ => _.Include(_ => _.PackageFeatures).ThenInclude(_ => _.Feature).Include(_ => _.Offer).ThenInclude(_ => _.Request).Include(_ => _.Service));
                 if (package == null)
                     return new ResponseModel
                     {
@@ -259,7 +259,7 @@ namespace Chillde.Services.Services
                     var notificationAddModel = new NotificationAddModel
                     {
                         Content = notificationContent.Content.Replace("[#orderCode]", newOrder.Code),
-                        AccountId = (Guid)(package.CreatedById!),
+                        AccountId = (Guid)(package.Service != null ? package.Service.CreatedById : package.Offer?.CreatedById)!,
                         NotificationContentId = notificationContent.Id,
                         SourceId = newOrder.Id
                     };
@@ -838,17 +838,17 @@ namespace Chillde.Services.Services
                     EstimatedPickTime = parsedJson.Order.EstimatedPickTime,
                     EstimatedDeliverTime = parsedJson.Order.EstimatedDeliverTime,
                 };
-                if (parsedJson?.Order?.Products != null && parsedJson.Order.Products.Any())
+                if (shipmentCreateModel.Products != null && shipmentCreateModel.Products.Any())
                 {
-                    foreach (var product in parsedJson.Order.Products)
+                    foreach (var product in shipmentCreateModel.Products)
                     {
                         shipment.ProductShipments.Add(new ProductShipment
                         {
                             ShipmentId = shipment.Id,
                             Name = product.Name ?? string.Empty,
-                            Weight = (decimal)product.Weight,
-                            Quantity = product.Quantity,
-                            ProductCode = product.ProductCode.ToString()
+                            Weight = product.Weight,
+                            Quantity = product.Quantity ?? 0,
+                            ProductCode = string.Empty 
                         });
                     }
                 }
@@ -869,7 +869,7 @@ namespace Chillde.Services.Services
                         var notificationAddModel = new NotificationAddModel
                         {
                             Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                            AccountId = (Guid)order.CreatedById,
                             NotificationContentId = notificationContent.Id,
                             SourceId = order.Id
                         };
@@ -1457,7 +1457,7 @@ namespace Chillde.Services.Services
                             var notificationAddModel = new NotificationAddModel
                             {
                                 Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                                AccountId = (Guid)(order.Package.Service.CreatedById),
+                                AccountId = (Guid)order.CreatedById,
                                 NotificationContentId = notificationContent.Id,
                                 SourceId = order.Id
                             };
@@ -1472,7 +1472,7 @@ namespace Chillde.Services.Services
                             var notificationAddModel = new NotificationAddModel
                             {
                                 Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                                AccountId = (Guid)(order.Package.Service.CreatedById),
+                                AccountId = (Guid)order.CreatedById,
                                 NotificationContentId = notificationContent.Id,
                                 SourceId = order.Id
                             };
@@ -1797,7 +1797,8 @@ namespace Chillde.Services.Services
                 var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: _ => _
                     .Include(_ => _.OrderTrackings)
                     .Include(_ => _.CreatedBy)
-                    .Include(_ => _.Package));
+                    .Include(_ => _.Package).ThenInclude(_ => _.Service)
+                    .Include(_ => _.Package).ThenInclude(_ => _.Offer));
 
                 if (order == null)
                 {
@@ -1931,7 +1932,7 @@ namespace Chillde.Services.Services
                         var notificationAddModel = new NotificationAddModel
                         {
                             Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                            AccountId = (Guid)(order.Package.CreatedById),
+                            AccountId = (Guid)order.CreatedById,
                             NotificationContentId = notificationContent.Id,
                             SourceId = order.Id
                         };
@@ -2145,7 +2146,7 @@ namespace Chillde.Services.Services
                         var notificationAddModel = new NotificationAddModel
                         {
                             Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                            AccountId = (Guid)(order.Package.CreatedById),
+                            AccountId = (Guid)(order.CreatedById),
                             NotificationContentId = notificationContent.Id,
                             SourceId = order.Id
                         };

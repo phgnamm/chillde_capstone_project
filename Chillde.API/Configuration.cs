@@ -383,7 +383,7 @@ public static class Configuration
         services.AddHostedService<DeliveryReminderService>();
 
         //DeliveryReminder
-        //services.AddHostedService<VoucherCreationService>();
+        services.AddHostedService<VoucherCreationService>();
 
         //OrderCompletionService
         services.AddHostedService<OrderCompletionService>();

@@ -185,7 +185,7 @@ namespace Chillde.Services.Services
                     var notificationAddModel = new NotificationAddModel
                     {
                         Content = notificationContent.Content.Replace("[#serviceName]", existService.Name),
-                        AccountId = existService.Id,
+                        AccountId = existService.CategoryId,
                         NotificationContentId = notificationContent.Id,
                         SourceId = existService.Id
                     };
