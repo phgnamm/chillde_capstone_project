@@ -9,6 +9,8 @@
         Artisan_ReportOrder,
         Artisan_AcceptReport,
         Artisan_RejectReport,
+        Artisan_CancelOrderDueToUnprocessedShipment,
+        Artisan_AcceptDelivery,
 
         Customer_AcceptOrder,
         Customer_RejectOrder,
@@ -17,6 +19,7 @@
         Customer_InDelivery,
         Customer_Delivered,    
         Customer_AcceptReport,
-        Customer_RejectReport
+        Customer_RejectReport,
+        Customer_CancelOrderDueToUnprocessedShipment,
     }
 }
