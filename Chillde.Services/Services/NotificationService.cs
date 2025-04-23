@@ -96,7 +96,7 @@ namespace Chillde.Services.Services
             }
         }
 
-        public async Task<ResponseModel> PushNotification (NotificationAddModel notificationAddModel)
+        public async Task<ResponseModel> PushNotification(NotificationAddModel notificationAddModel)
         {
             if (string.IsNullOrWhiteSpace(notificationAddModel.Content))
             {
@@ -135,9 +135,9 @@ namespace Chillde.Services.Services
             //}
 
             //_unitOfWork.AccountConversationRepository.UpdateRange(accountConversations);
-            //await _unitOfWork.NotificationRepository.AddAsync(notification);
-            //if (await _unitOfWork.SaveChangeAsync() > 0)
-            //{
+            await _unitOfWork.NotificationRepository.AddAsync(notification);
+            if (await _unitOfWork.SaveChangeAsync() > 0)
+            {
                 //var recipientId = notification.AccountId;
                 // foreach (var recipientId in recipientIds)
                 // {
@@ -158,9 +158,10 @@ namespace Chillde.Services.Services
                 //         .SendAsync("ReceiveConversation");
                 // }
 
+                var notificationModel = _mapper.Map<NotificationModel>(notification);
                 await _hubContext.Clients
                     .Clients(_connections.GetConnections(notification.AccountId))
-                    .SendAsync("NotificationConversation", new { Message = "wtf"});
+                    .SendAsync("NotificationConversation", notificationModel);
                 await _hubContext.Clients
                     .Clients(_connections.GetConnections(notification.AccountId)).SendAsync("ReceiveMessage");
 
@@ -169,13 +170,13 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status201Created,
                     Message = "Send notication successfully"
                 };
-            //}
+            }
 
-            //return new ResponseModel
-            //{
-            //    Code = StatusCodes.Status500InternalServerError,
-            //    Message = "Cannot create message"
-            //};
+            return new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = "Cannot create message"
+            };
         }
     }
 }
