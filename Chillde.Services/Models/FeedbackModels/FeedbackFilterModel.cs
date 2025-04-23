@@ -14,5 +14,6 @@ namespace Chillde.Services.Models.FeedbackModels
         public bool? ThreeStar { get; set; }
         public bool? FourStar { get; set; }
         public bool? FiveStar { get; set; }
+        public int? Rating { get; set; }
     }
 }
