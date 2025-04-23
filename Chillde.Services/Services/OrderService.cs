@@ -717,7 +717,9 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
-            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: order => order.Include(_ => _.Package));
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: 
+                order => order.Include(_ => _.Package).ThenInclude(_ => _.Service)
+                              .Include(_ => _.Package).ThenInclude(_ => _.Offer));
             if (order == null)
             {
                 return new ResponseModel
@@ -867,7 +869,7 @@ namespace Chillde.Services.Services
                         var notificationAddModel = new NotificationAddModel
                         {
                             Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                            AccountId = (Guid)(order.Package.CreatedById),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
                             NotificationContentId = notificationContent.Id,
                             SourceId = order.Id
                         };
