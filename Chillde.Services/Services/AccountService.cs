@@ -1851,48 +1851,48 @@ public class AccountService : IAccountService
             };
         }).ToList();
 
-        var highArtisanRevenue = await _unitOfWork.Context.Orders.Include(o => o.Package)
-            .Where(o => o.Status == OrderStatus.Completed &&
-                        o.CreationDate.Month == now.Month &&
-                        o.CreationDate.Year == now.Year &&
-                        o.Package.CreatedById != null)
-            .GroupBy(o => o.Package.CreatedById)
-            .Select(g => new
-            {
-                CreatedById = g.Key,
-                TotalRevenue = g.Sum(x => x.TotalPrice)
-            })
-            .OrderByDescending(x => x.TotalRevenue)
-            .Take(5)
-            .ToListAsync();
+        //var highArtisanRevenue = await _unitOfWork.Context.Orders.Include(o => o.Package)
+        //    .Where(o => o.Status == OrderStatus.Completed &&
+        //                o.CreationDate.Month == now.Month &&
+        //                o.CreationDate.Year == now.Year &&
+        //                o.Package.CreatedById != null)
+        //    .GroupBy(o => o.Package.CreatedById)
+        //    .Select(g => new
+        //    {
+        //        CreatedById = g.Key,
+        //        TotalRevenue = g.Sum(x => x.TotalPrice)
+        //    })
+        //    .OrderByDescending(x => x.TotalRevenue)
+        //    .Take(5)
+        //    .ToListAsync();
 
-        var artisanIds = highArtisanRevenue.Select(x => x.CreatedById).ToList();
+        //var artisanIds = highArtisanRevenue.Select(x => x.CreatedById).ToList();
 
-        var artisanInfos = await _unitOfWork.Context.Accounts
-            .Where(a => artisanIds.Contains(a.Id))
-            .ToListAsync();
+        //var artisanInfos = await _unitOfWork.Context.Accounts
+        //    .Where(a => artisanIds.Contains(a.Id))
+        //    .ToListAsync();
 
-        var services = await _unitOfWork.Context.Services
-            .Where(s => artisanIds.Contains(s.CreatedById))
-            .Include(s => s.Category)
-            .ToListAsync();
+        //var services = await _unitOfWork.Context.Services
+        //    .Where(s => artisanIds.Contains(s.CreatedById))
+        //    .Include(s => s.Category)
+        //    .ToListAsync();
 
-        List<HighArtisanRevenue> highArtisanRevenueList = highArtisanRevenue.Select(h =>
-        {
-            var artisan = artisanInfos.FirstOrDefault(a => a.Id == h.CreatedById);
-            return new HighArtisanRevenue
-            {
-                Account = new AccountLiteModel
-                {
-                    Email = artisan!.Email,
-                    FirstName = artisan.FirstName,
-                    LastName = artisan.LastName,
-                    Username = artisan.Username
-                },
-                TotalRevenueInMonth = h.TotalRevenue ?? 0,
-                CategoryName = services?.FirstOrDefault()!.Category?.Name ?? "Unknown"
-            };
-        }).ToList();
+        //List<HighArtisanRevenue> highArtisanRevenueList = highArtisanRevenue.Select(h =>
+        //{
+        //    var artisan = artisanInfos.FirstOrDefault(a => a.Id == h.CreatedById);
+        //    return new HighArtisanRevenue
+        //    {
+        //        Account = new AccountLiteModel
+        //        {
+        //            Email = artisan!.Email,
+        //            FirstName = artisan.FirstName,
+        //            LastName = artisan.LastName,
+        //            Username = artisan.Username
+        //        },
+        //        TotalRevenueInMonth = h.TotalRevenue ?? 0,
+        //        CategoryName = services?.FirstOrDefault()!.Category?.Name ?? "Unknown"
+        //    };
+        //}).ToList();
 
 
         return new ResponseDashboardModel<AdminDashboardModel>
@@ -1925,7 +1925,7 @@ public class AccountService : IAccountService
 
                 },
                 RevenueCharts = revenueCharts,
-                HighArtisanRevenues = highArtisanRevenueList
+                //HighArtisanRevenues = highArtisanRevenueList
 
             }
         };
