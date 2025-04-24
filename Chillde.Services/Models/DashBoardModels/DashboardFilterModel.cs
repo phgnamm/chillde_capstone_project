@@ -18,5 +18,4 @@ namespace Chillde.Services.Models.DashBoardModels
         [CustomYearValidation(ErrorMessage = "CommentYear cannot be greater than the current year.")]
         public int Year { get; set; } = CurrentYear;
     }
-
 }
