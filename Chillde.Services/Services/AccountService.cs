@@ -1932,7 +1932,7 @@ public class AccountService : IAccountService
 
     }
 
-    public async Task<ResponseModel> GetRevenueByMonthOrCategory(DashboardFilterModel dashboardFilterModel)
+    public async Task<ResponseModel> GetRevenueByMonth(DashboardFilterModel dashboardFilterModel)
     {
         var now = DateTime.UtcNow;
         var today = now.Date;
@@ -1941,7 +1941,7 @@ public class AccountService : IAccountService
         var year = now.Year;
 
         var monthlyRevenue = _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Year == dashboardFilterModel.Year) // Lấy đơn hàng trong năm hiện tại
+            .Where(o => o.CreationDate.Year == dashboardFilterModel.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false) // Lấy đơn hàng trong năm hiện tại
             .GroupBy(o => o.CreationDate.Month)          // Nhóm theo tháng
             .Select(g => new
             {
@@ -1974,6 +1974,61 @@ public class AccountService : IAccountService
             Message = "Get admin dashboard successfully",
             Code = StatusCodes.Status200OK,
             Data = result
+        };
+
+    }
+
+    public async Task<ResponseModel> GetRevenueByCategory(DashboardFilterModel dashboardFilterModel)
+    {
+        var orders = _unitOfWork.Context.Orders
+    .Where(o => o.CreationDate.Year == dashboardFilterModel.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
+    .Include(x => x.Package)
+        .ThenInclude(p => p.Service)
+            .ThenInclude(s => s.Category)
+                .ThenInclude(c => c.Parent)
+    .Include(x => x.Package)
+        .ThenInclude(p => p.Offer)
+            .ThenInclude(o => o.Service)
+                .ThenInclude(s => s.Category)
+                    .ThenInclude(c => c.Parent)
+    .ToList();
+
+
+        var revenueByRootCategory = orders
+    .Select(order =>
+    {
+        var service = order.Package.Service ?? order.Package.Offer?.Service;
+        var category = service?.Category;
+
+        // Truy ngược đến category gốc (Parent == null)
+        while (category?.Parent != null)
+        {
+            category = category.Parent;
+        }
+
+        return new
+        {
+            RootCategoryName = category?.Name,
+            Revenue = order.TotalPrice ?? 0
+        };
+    })
+    .Where(x => x.RootCategoryName != null)
+    .GroupBy(x => x.RootCategoryName)
+    .Select(g => new
+    {
+        name = g.Key!,
+        total = g.Sum(x => x.Revenue)
+    })
+    .OrderByDescending(x => x.total)
+    .ToList();
+
+
+
+        return new ResponseModel
+        {
+            Message = "Get admin dashboard successfully",
+            Code = StatusCodes.Status200OK,
+            Data = revenueByRootCategory
         };
 
     }
