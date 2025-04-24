@@ -147,13 +147,13 @@ namespace Chillde.Services.Services
 
                             if (accountRoleCustomer.TotalReputation < 100)
                             {
-                                accountRoleCustomer.TotalReputation += 1;
+                                accountRoleCustomer.TotalReputation += 5;
                                 unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
 
                                 var customerReputationLog = new ReputationLog
                                 {
-                                    PointChange = +1,
-                                    Reason = "Đã hoàn thành đơn hàng với tư cách là khách hàng",
+                                    PointChange = +5,
+                                    Reason = $"Đã hoàn thành đơn hàng {order.Code} với tư cách là khách hàng",
                                     OrderId = order.Id,
                                     AccountRoleId = accountRoleCustomer.Id,
                                     CreatedById = customerAccount.Id
@@ -164,13 +164,13 @@ namespace Chillde.Services.Services
 
                             if (accountRoleArtisan.TotalReputation < 100)
                             {
-                                accountRoleArtisan.TotalReputation += 1;
+                                accountRoleArtisan.TotalReputation += 5;
                                 unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
 
                                 var artisanReputationLog = new ReputationLog
                                 {
-                                    PointChange = +1,
-                                    Reason = "Đã hoàn thành đơn hàng với tư cách là nghệ nhân",
+                                    PointChange = +5,
+                                    Reason = $"Đã hoàn thành đơn hàng {order.Code} với tư cách là nghệ nhân",
                                     OrderId = order.Id,
                                     AccountRoleId = accountRoleArtisan.Id,
                                     CreatedById = artisanAccount.Id
