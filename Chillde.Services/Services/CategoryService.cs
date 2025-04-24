@@ -73,7 +73,6 @@ namespace Chillde.Services.Services
                     {
                         imageUrl = await _cloudinaryHelper.UploadImageAsync(
                            categoryAddModel.AttachmentUrl,
-                           "categories",
                            Guid.NewGuid().ToString(),
                            folderName: FolderAttachment.CATEGORY
                        );

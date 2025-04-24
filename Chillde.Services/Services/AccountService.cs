@@ -1808,6 +1808,10 @@ public class AccountService : IAccountService
         var totalOrder = await _unitOfWork.Context.Orders.CountAsync();
         var totalCompleteOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Completed).CountAsync();
         var totalCancelOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Cancelled).CountAsync();
+        var totalAcceptedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Accepted).CountAsync();
+        var totalPendingOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Pending).CountAsync();
+        var totalRejectedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Rejected).CountAsync();
+        var totalRefundedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Refunded).CountAsync();
 
         var currentOrderCount = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate.Date == today)
@@ -1851,49 +1855,6 @@ public class AccountService : IAccountService
             };
         }).ToList();
 
-        var highArtisanRevenue = await _unitOfWork.Context.Orders.Include(o => o.Package)
-            .Where(o => o.Status == OrderStatus.Completed &&
-                        o.CreationDate.Month == now.Month &&
-                        o.CreationDate.Year == now.Year &&
-                        o.Package.CreatedById != null)
-            .GroupBy(o => o.Package.CreatedById)
-            .Select(g => new
-            {
-                CreatedById = g.Key,
-                TotalRevenue = g.Sum(x => x.TotalPrice)
-            })
-            .OrderByDescending(x => x.TotalRevenue)
-            .Take(5)
-            .ToListAsync();
-
-        var artisanIds = highArtisanRevenue.Select(x => x.CreatedById).ToList();
-
-        var artisanInfos = await _unitOfWork.Context.Accounts
-            .Where(a => artisanIds.Contains(a.Id))
-            .ToListAsync();
-
-        var services = await _unitOfWork.Context.Services
-            .Where(s => artisanIds.Contains(s.CreatedById))
-            .Include(s => s.Category)
-            .ToListAsync();
-
-        List<HighArtisanRevenue> highArtisanRevenueList = highArtisanRevenue.Select(h =>
-        {
-            var artisan = artisanInfos.FirstOrDefault(a => a.Id == h.CreatedById);
-            return new HighArtisanRevenue
-            {
-                Account = new AccountLiteModel
-                {
-                    Email = artisan!.Email,
-                    FirstName = artisan.FirstName,
-                    LastName = artisan.LastName,
-                    Username = artisan.Username
-                },
-                TotalRevenueInMonth = h.TotalRevenue ?? 0,
-                CategoryName = services?.FirstOrDefault()!.Category?.Name ?? "Unknown"
-            };
-        }).ToList();
-
 
         return new ResponseDashboardModel<AdminDashboardModel>
         {
@@ -1907,6 +1868,10 @@ public class AccountService : IAccountService
                     ChangePercentage = CalculateChange(currentOrderCount, yesterdayOrderCount),
                     TotalCompleteOrder = totalCompleteOrder,
                     TotalCancelOrders = totalCancelOrder,
+                    TotalAcceptedOrders = totalAcceptedOrders,
+                    TotalPendingOrders = totalPendingOrders,
+                    TotalRefundedOrders = totalRefundedOrders,
+                    TotalRejectedOrders = totalRejectedOrders
                 },
                 Revenue = new RevenueStat
                 {
@@ -1924,15 +1889,13 @@ public class AccountService : IAccountService
                     }
 
                 },
-                RevenueCharts = revenueCharts,
-                HighArtisanRevenues = highArtisanRevenueList
-
+                RevenueCharts = revenueCharts
             }
         };
 
     }
 
-    public async Task<ResponseModel> GetRevenueByMonthOrCategory(DashboardFilterModel dashboardFilterModel)
+    public async Task<ResponseModel> GetRevenueByMonth(DashboardFilterModel dashboardFilterModel)
     {
         var now = DateTime.UtcNow;
         var today = now.Date;
@@ -1941,12 +1904,12 @@ public class AccountService : IAccountService
         var year = now.Year;
 
         var monthlyRevenue = _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Year == dashboardFilterModel.Year) // Lấy đơn hàng trong năm hiện tại
+            .Where(o => o.CreationDate.Year == dashboardFilterModel.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false) // Lấy đơn hàng trong năm hiện tại
             .GroupBy(o => o.CreationDate.Month)          // Nhóm theo tháng
             .Select(g => new
             {
                 Month = g.Key,
-                Total = g.Sum(o => o.TotalPrice) // hoặc trường tổng tiền bạn lưu
+                Total = g.Sum(o => o.TotalPrice - o.ShippingPrice) // hoặc trường tổng tiền bạn lưu
             })
             .OrderBy(r => r.Month) // Sắp xếp theo tháng
             .ToList();
@@ -1974,6 +1937,62 @@ public class AccountService : IAccountService
             Message = "Get admin dashboard successfully",
             Code = StatusCodes.Status200OK,
             Data = result
+        };
+
+    }
+
+    public async Task<ResponseModel> GetRevenueByCategory(DashboardFilterModel dashboardFilterModel)
+    {
+        var orders = _unitOfWork.Context.Orders
+    .Where(o => o.CreationDate.Year == dashboardFilterModel.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
+    .Include(x => x.Package)
+        .ThenInclude(p => p.Service)
+            .ThenInclude(s => s.Category)
+                .ThenInclude(c => c.Parent)
+    .Include(x => x.Package)
+        .ThenInclude(p => p.Offer)
+            .ThenInclude(o => o.Service)
+                .ThenInclude(s => s.Category)
+                    .ThenInclude(c => c.Parent)
+    .ToList();
+
+
+        var revenueByRootCategory = orders
+    .Select(order =>
+    {
+        var service = order.Package.Service ?? order.Package.Offer?.Service;
+        var category = service?.Category;
+
+        // Truy ngược đến category gốc (Parent == null)
+        while (category?.Parent != null)
+        {
+            category = category.Parent;
+        }
+
+        return new
+        {
+            RootCategoryName = category?.Name,
+            Revenue = (order.TotalPrice - order.ShippingPrice) ?? 0
+        };
+    })
+    .Where(x => x.RootCategoryName != null)
+    .GroupBy(x => x.RootCategoryName)
+    .Select(g => new
+    {
+        name = g.Key!,
+        total = g.Sum(x => x.Revenue)
+    })
+    .OrderByDescending(x => x.total)
+    .Take(5)
+    .ToList();
+
+
+
+        return new ResponseModel
+        {
+            Message = "Get admin dashboard successfully",
+            Code = StatusCodes.Status200OK,
+            Data = revenueByRootCategory
         };
 
     }
