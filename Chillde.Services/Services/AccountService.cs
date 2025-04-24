@@ -2020,6 +2020,7 @@ public class AccountService : IAccountService
         total = g.Sum(x => x.Revenue)
     })
     .OrderByDescending(x => x.total)
+    .Take(5)
     .ToList();
 
 
