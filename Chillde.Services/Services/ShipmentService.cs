@@ -356,12 +356,17 @@ namespace Chillde.Services.Services
                     throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
                 }
 
-                var order = await _unitOfWork.OrderRepository.GetAsync(shipment.OrderId);
+                var order = await _unitOfWork.OrderRepository.GetAsync(
+                    shipment.OrderId,
+                    include: o => o.Include(o => o.Package).ThenInclude(p => p.Service)
+                );
                 if (order == null)
                 {
                     return false;
                 }
+
                 bool isReturn = !string.IsNullOrEmpty(request.PartnerId) && request.PartnerId.Contains("_Return_");
+
                 shipment.CurrentStatusId = (ShipmentStatus)request.StatusId;
                 var history = new ShipmentStatusHistory
                 {
@@ -383,6 +388,30 @@ namespace Chillde.Services.Services
                         {
                             return false;
                         }
+
+                        if (order.Package?.Service?.CreatedById == null)
+                        {
+                            return false;
+                        }
+
+                        // Lấy tài khoản nghệ nhân
+                        var artisanAccount = await _unitOfWork.AccountRepository.GetAsync(
+                            (Guid)order.Package.Service.CreatedById,
+                            include: a => a.Include(a => a.AccountRoles).ThenInclude(ar => ar.Role)
+                        );
+                        if (artisanAccount == null)
+                        {
+                            return false;
+                        }
+
+                        var accountRoleArtisan = artisanAccount.AccountRoles
+                            .FirstOrDefault(ar => ar.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString());
+                        if (accountRoleArtisan == null)
+                        {
+                            return false;
+                        }
+
+                        // Hoàn tiền cho khách
                         var wallet = customerAccount.Wallet;
                         wallet.Balance += (decimal)order.TotalPrice!;
                         _unitOfWork.WalletRepository.Update(wallet);
@@ -395,6 +424,23 @@ namespace Chillde.Services.Services
                             Status = TransactionStatus.Completed,
                             CreatedById = customerAccount.Id
                         });
+
+                        // Trừ điểm uy tín nghệ nhân
+                        if (accountRoleArtisan.TotalReputation > 0)
+                        {
+                            accountRoleArtisan.TotalReputation = Math.Max(0, accountRoleArtisan.TotalReputation - 5);
+                            _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
+
+                            var artisanReputationLog = new ReputationLog
+                            {
+                                PointChange = -5,
+                                Reason = $"Đơn hàng trả lại {order.Code} do lỗi vận chuyển",
+                                OrderId = order.Id,
+                                AccountRoleId = accountRoleArtisan.Id,
+                                CreatedById = artisanAccount.Id
+                            };
+                            await _unitOfWork.ReputationLogRepository.AddAsync(artisanReputationLog);
+                        }
                     }
                     else
                     {
