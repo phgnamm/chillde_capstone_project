@@ -38,4 +38,6 @@ public interface IAccountService
     Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId);
     Task<ResponseDashboardModel<ArtisanDashboardModel>> GetArtisanDashboard(DashboardFilterModel dashboardFilterModel);
     Task<ResponseModel> GetAllAccount(AccountFilterModel accountFilterModel);
+    Task<ResponseDashboardModel<AdminDashboardModel>> GetAdminDashboard(DashboardFilterModel dashboardFilterModel);
+    Task<ResponseModel> GetRevenueByMonthOrCategory(DashboardFilterModel dashboardFilterModel);
 }

@@ -337,50 +337,99 @@ namespace Chillde.Services.Services
         }
         public async Task<bool> UpdateShipmentStatusAsync(ShipmentUpdateRequestModel request)
         {
-            var shipment = await _unitOfWork.ShipmentRepository.GetByTrackingIdAsync(request.LabelId);
-
-            if (shipment == null)
+            IDbContextTransaction? transaction = null;
+            try
             {
-                return false;
-            }
-            if (shipment.PartnerId != request.PartnerId)
-            {
-                return false;
-            }
-            if (!Enum.IsDefined(typeof(ShipmentStatus), request.StatusId))
-            {
-                throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
-            }
-
-            shipment.CurrentStatusId = (ShipmentStatus)request.StatusId;
-
-            var history = new ShipmentStatusHistory
-            {
-                ShipmentId = shipment.Id,
-                StatusId = (ShipmentStatus)request.StatusId,
-            };
-            shipment.ShipmentStatusHistorys.Add(history);
-            if (request.StatusId == (int)ShipmentStatus.Reconciled)
-            {
-                var order = await _unitOfWork.OrderRepository.GetAsync(shipment.OrderId);
-                if (order != null)
-                {
-                    order.Stage = OrderStage.AwaitingClosure;
-                    _unitOfWork.OrderRepository.Update(order);
-                }
-                else
+                var shipment = await _unitOfWork.ShipmentRepository.GetByTrackingIdAsync(request.LabelId);
+                if (shipment == null)
                 {
                     return false;
                 }
+
+                if (shipment.PartnerId != request.PartnerId)
+                {
+                    return false;
+                }
+
+                if (!Enum.IsDefined(typeof(ShipmentStatus), request.StatusId))
+                {
+                    throw new ArgumentException($"StatusId {request.StatusId} không hợp lệ.");
+                }
+
+                var order = await _unitOfWork.OrderRepository.GetAsync(shipment.OrderId);
+                if (order == null)
+                {
+                    return false;
+                }
+                bool isReturn = !string.IsNullOrEmpty(request.PartnerId) && request.PartnerId.Contains("_Return_");
+                shipment.CurrentStatusId = (ShipmentStatus)request.StatusId;
+                var history = new ShipmentStatusHistory
+                {
+                    ShipmentId = shipment.Id,
+                    StatusId = (ShipmentStatus)request.StatusId,
+                };
+                shipment.ShipmentStatusHistorys.Add(history);
+                _unitOfWork.ShipmentRepository.Update(shipment);
+
+                if (request.StatusId == (int)ShipmentStatus.Reconciled)
+                {
+                    if (isReturn)
+                    {
+                        var customerAccount = await _unitOfWork.AccountRepository.GetAsync(
+                            (Guid)order.CreatedById!,
+                            include: a => a.Include(a => a.Wallet)
+                        );
+                        if (customerAccount == null || customerAccount.Wallet == null)
+                        {
+                            return false;
+                        }
+                        var wallet = customerAccount.Wallet;
+                        wallet.Balance += (decimal)order.TotalPrice!;
+                        _unitOfWork.WalletRepository.Update(wallet);
+
+                        order.Transactions.Add(new Transaction
+                        {
+                            WalletId = wallet.Id,
+                            Amount = order.TotalPrice,
+                            Type = TransactionType.TransferIn,
+                            Status = TransactionStatus.Completed,
+                            CreatedById = customerAccount.Id
+                        });
+                    }
+                    else
+                    {
+                        order.Stage = OrderStage.AwaitingClosure;
+                        _unitOfWork.OrderRepository.Update(order);
+                    }
+                }
+
+                await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    var saveResult = await _unitOfWork.SaveChangeAsync();
+                    if (saveResult <= 0)
+                    {
+                        await _unitOfWork.RollbackTransactionAsync();
+                        return false;
+                    }
+
+                    await _unitOfWork.CommitTransactionAsync();
+                    return true;
+                }
+                catch
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    return false;
+                }
+                finally
+                {
+                    transaction?.Dispose();
+                }
             }
-            _unitOfWork.ShipmentRepository.Update(shipment);
-            var saveResult = await _unitOfWork.SaveChangeAsync();
-            if (saveResult <= 0)
+            catch
             {
                 return false;
             }
-
-            return true;
         }
 
         public async Task<ResponseModel> GetALlShipmentAsync(ShipmentFilterModel model)
@@ -533,6 +582,7 @@ namespace Chillde.Services.Services
                         Message = $"Shipment is not in Received status. Current status: {shipment.CurrentStatusId}."
                     };
                 }
+
                 var receivedStatus = shipment.ShipmentStatusHistorys
                     .FirstOrDefault(h => h.StatusId == ShipmentStatus.Received);
                 if (receivedStatus == null)
@@ -543,30 +593,6 @@ namespace Chillde.Services.Services
                         Message = "Shipment does not have Received status history."
                     };
                 }
-                var baseTime = receivedStatus.CreationDate;
-
-                var statusSequence = new[]
-                {
-                    ShipmentStatus.Received,           
-                    ShipmentStatus.PickupArranging,   
-                    ShipmentStatus.PickedUp,          
-                    ShipmentStatus.Delivering,        
-                    ShipmentStatus.DeliveredNotReconciled, 
-                    ShipmentStatus.Reconciled         
-                };
-
-                for (int i = 1; i < statusSequence.Length; i++)
-                {
-                    var history = new ShipmentStatusHistory
-                    {
-                        ShipmentId = shipment.Id,
-                        StatusId = statusSequence[i],
-                        CreationDate = baseTime.AddHours(i) 
-                    };
-                    shipment.ShipmentStatusHistorys.Add(history);
-                }
-
-                shipment.CurrentStatusId = ShipmentStatus.Reconciled;
 
                 var order = await _unitOfWork.OrderRepository.GetAsync(shipment.OrderId);
                 if (order == null)
@@ -587,10 +613,66 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                order.Stage = OrderStage.AwaitingClosure;
-                _unitOfWork.OrderRepository.Update(order);
+                var baseTime = receivedStatus.CreationDate;
+                var statusSequence = new[]
+                {
+                    ShipmentStatus.Received,
+                    ShipmentStatus.PickupArranging,
+                    ShipmentStatus.PickedUp,
+                    ShipmentStatus.Delivering,
+                    ShipmentStatus.DeliveredNotReconciled,
+                    ShipmentStatus.Reconciled
+                };
 
+                for (int i = 1; i < statusSequence.Length; i++)
+                {
+                    var history = new ShipmentStatusHistory
+                    {
+                        ShipmentId = shipment.Id,
+                        StatusId = statusSequence[i],
+                        CreationDate = baseTime.AddHours(i)
+                    };
+                    shipment.ShipmentStatusHistorys.Add(history);
+                }
+
+                shipment.CurrentStatusId = ShipmentStatus.Reconciled;
                 _unitOfWork.ShipmentRepository.Update(shipment);
+
+                bool isReturn = !string.IsNullOrEmpty(shipment.PartnerId) && shipment.PartnerId.Contains("_Return_");
+
+                if (isReturn)
+                {
+                    var customerAccount = await _unitOfWork.AccountRepository.GetAsync(
+                        (Guid)order.CreatedById!,
+                        include: a => a.Include(a => a.Wallet)
+                    );
+                    if (customerAccount == null || customerAccount.Wallet == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status400BadRequest,
+                            Message = $"Customer account or wallet for order {order.Id} not found."
+                        };
+                    }
+
+                    var wallet = customerAccount.Wallet;
+                    wallet.Balance += (decimal)order.TotalPrice!;
+                    _unitOfWork.WalletRepository.Update(wallet);
+
+                    order.Transactions.Add(new Transaction
+                    {
+                        WalletId = wallet.Id,
+                        Amount = order.TotalPrice,
+                        Type = TransactionType.TransferIn,
+                        Status = TransactionStatus.Completed,
+                        CreatedById = customerAccount.Id 
+                    });
+                }
+                else
+                {
+                    order.Stage = OrderStage.AwaitingClosure;
+                    _unitOfWork.OrderRepository.Update(order);
+                }
 
                 await _unitOfWork.BeginTransactionAsync();
                 try
@@ -617,6 +699,12 @@ namespace Chillde.Services.Services
                         Message = $"Error saving changes: {ex.Message}"
                     };
                 }
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = isReturn ? "Return shipment status history seeded and refunded successfully." : "Shipment status history seeded successfully."
+                };
             }
             catch (Exception ex)
             {
@@ -626,11 +714,6 @@ namespace Chillde.Services.Services
                     Message = $"Error seeding shipment status history: {ex.Message}"
                 };
             }
-            return new ResponseModel
-            {
-                Code = StatusCodes.Status200OK,
-                Message = "Shipment status history seeded successfully."
-            };
         }
     }
 }

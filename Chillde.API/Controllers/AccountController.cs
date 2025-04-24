@@ -329,7 +329,43 @@ public class AccountController : ControllerBase
             });
         }
     }
+    [Authorize(Roles = "Admin")]
+    [HttpGet("dashboard-admin")]
+    public async Task<IActionResult> GetAdminDashBoard([FromQuery] DashboardFilterModel dashboardFilterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetAdminDashboard(dashboardFilterModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
 
+    //[Authorize(Roles = "Admin")]
+    [HttpGet("monthly-revenue-admin")]
+    public async Task<IActionResult> GetRevenueByMonthOrCategory([FromQuery] DashboardFilterModel dashboardFilterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetRevenueByMonthOrCategory(dashboardFilterModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
     /*[HttpPost("ban-role")]
     public async Task<IActionResult> BanAccountRole([FromBody] BanAccountRoleModel request)
     {
