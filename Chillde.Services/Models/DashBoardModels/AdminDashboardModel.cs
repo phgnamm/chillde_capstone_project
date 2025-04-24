@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chillde.Repositories.Models.AccountModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,7 @@ namespace Chillde.Services.Models.DashBoardModels
         public UserStat Users { get; set; } = default!;
         public OrderStat Orders { get; set; } = default!;
         public List<RevenueChart> RevenueCharts { get; set; } = default!;
+        public List<HighArtisanRevenue> HighArtisanRevenues { get; set; } = default!;
     }
     public class RevenueStat
     {
@@ -47,6 +49,12 @@ namespace Chillde.Services.Models.DashBoardModels
         public decimal TotalPriceWithoutShipFee { get; set; }
         public decimal TotalArtisanRevenue { get; set; }
         public decimal TotalPlatformFee { get; set; }
-        public DateOnly Month {  get; set; }
+        public string Month {  get; set; }
+    }
+    public class HighArtisanRevenue
+    {
+        public   required AccountLiteModel Account { get; set; }
+        public decimal TotalRevenueInMonth { get; set; }
+        public required string CategoryName { get; set; }
     }
 }
