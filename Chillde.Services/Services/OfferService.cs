@@ -557,6 +557,7 @@ namespace Chillde.Services.Services
                 }
 
                 await _unitOfWork.SaveChangeAsync();
+                await _redisHelper.InvalidateCacheByPatternAsync($"offers_*");
                 await _unitOfWork.CommitTransactionAsync();
 
                 return new ResponseModel
