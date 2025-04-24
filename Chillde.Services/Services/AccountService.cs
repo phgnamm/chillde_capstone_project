@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Linq.Expressions;
@@ -1589,7 +1590,7 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId)
     {
-        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId, a => a.Include(x => x.Account));;
+        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId, a => a.Include(x => x.Account)); ;
         if (accountRole == null || accountRole.AccountId != accountId)
         {
             return new ResponseModel
@@ -1615,7 +1616,7 @@ public class AccountService : IAccountService
             await _redisHelper.InvalidateCacheByPatternAsync($"account_{accountRole.AccountId}");
             await _redisHelper.InvalidateCacheByPatternAsync($"account_{accountRole.Account.Username}");
             await _redisHelper.InvalidateCacheByPatternAsync("accounts_*");
-            
+
             return new ResponseModel { Message = "Toggle account role status successfully" };
         }
 
@@ -1709,10 +1710,10 @@ public class AccountService : IAccountService
                 TotalDeliveredOrder = totalDeliveredOrder,
                 Earnings = earnings
             }
-        }; 
+        };
     }
 
-         public async Task<ResponseModel> GetAllAccount(AccountFilterModel accountFilterModel)
+    public async Task<ResponseModel> GetAllAccount(AccountFilterModel accountFilterModel)
     {
         var accounts = await _unitOfWork.AccountRepository.GetAllAsync(
             account =>
@@ -1843,12 +1844,56 @@ public class AccountService : IAccountService
             var data = revenueByMonth.FirstOrDefault(r => r.Month == month);
             return new RevenueChart
             {
-                Month = month,
+                Month = month.ToString("MMM", CultureInfo.InvariantCulture),
                 TotalPriceWithoutShipFee = data?.TotalPriceWithoutShipFee ?? 0,
                 TotalPlatformFee = data?.TotalPlatformFee ?? 0,
                 TotalArtisanRevenue = (data?.TotalPriceWithoutShipFee ?? 0) - (data?.TotalPlatformFee ?? 0)
             };
         }).ToList();
+
+        var highArtisanRevenue = await _unitOfWork.Context.Orders.Include(o => o.Package)
+            .Where(o => o.Status == OrderStatus.Completed &&
+                        o.CreationDate.Month == now.Month &&
+                        o.CreationDate.Year == now.Year &&
+                        o.Package.CreatedById != null)
+            .GroupBy(o => o.Package.CreatedById)
+            .Select(g => new
+            {
+                CreatedById = g.Key,
+                TotalRevenue = g.Sum(x => x.TotalPrice)
+            })
+            .OrderByDescending(x => x.TotalRevenue)
+            .Take(5)
+            .ToListAsync();
+
+        var artisanIds = highArtisanRevenue.Select(x => x.CreatedById).ToList();
+
+        var artisanInfos = await _unitOfWork.Context.Accounts
+            .Where(a => artisanIds.Contains(a.Id))
+            .ToListAsync();
+
+        var services = await _unitOfWork.Context.Services
+            .Where(s => artisanIds.Contains(s.CreatedById))
+            .Include(s => s.Category)
+            .ToListAsync();
+
+        List<HighArtisanRevenue> highArtisanRevenueList = highArtisanRevenue.Select(h =>
+        {
+            var artisan = artisanInfos.FirstOrDefault(a => a.Id == h.CreatedById);
+            return new HighArtisanRevenue
+            {
+                Account = new AccountLiteModel
+                {
+                    Email = artisan!.Email,
+                    FirstName = artisan.FirstName,
+                    LastName = artisan.LastName,
+                    Username = artisan.Username
+                },
+                TotalRevenueInMonth = h.TotalRevenue ?? 0,
+                CategoryName = services?.FirstOrDefault()!.Category?.Name ?? "Unknown"
+            };
+        }).ToList();
+
 
         return new ResponseDashboardModel<AdminDashboardModel>
         {
@@ -1871,17 +1916,64 @@ public class AccountService : IAccountService
                 Users = new UserStat
                 {
                     Total = totalOrder,
-                    ChangePercentage= CalculateChange(currentAccountCount, yesterdayAccountCount),
+                    ChangePercentage = CalculateChange(currentAccountCount, yesterdayAccountCount),
                     Details = new UserDetail
                     {
                         Artisan = artisanCount,
                         Customer = customerCount
                     }
-                    
+
                 },
-                RevenueCharts = revenueCharts
-               
+                RevenueCharts = revenueCharts,
+                HighArtisanRevenues = highArtisanRevenueList
+
             }
+        };
+
+    }
+
+    public async Task<ResponseModel> GetRevenueByMonthOrCategory(DashboardFilterModel dashboardFilterModel)
+    {
+        var now = DateTime.UtcNow;
+        var today = now.Date;
+        var lastMonth = now.AddMonths(-1);
+        var month = now.Month;
+        var year = now.Year;
+
+        var monthlyRevenue = _unitOfWork.Context.Orders
+            .Where(o => o.CreationDate.Year == dashboardFilterModel.Year) // Lấy đơn hàng trong năm hiện tại
+            .GroupBy(o => o.CreationDate.Month)          // Nhóm theo tháng
+            .Select(g => new
+            {
+                Month = g.Key,
+                Total = g.Sum(o => o.TotalPrice) // hoặc trường tổng tiền bạn lưu
+            })
+            .OrderBy(r => r.Month) // Sắp xếp theo tháng
+            .ToList();
+
+
+
+
+        var months = new[]
+{
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+        var result = Enumerable.Range(1, 12)
+            .Select(i => new
+            {
+                name = months[i - 1],
+                total = monthlyRevenue.FirstOrDefault(x => x.Month == i)?.Total ?? 0
+            })
+            .ToList();
+
+
+        return new ResponseModel
+        {
+            Message = "Get admin dashboard successfully",
+            Code = StatusCodes.Status200OK,
+            Data = result
         };
 
     }
