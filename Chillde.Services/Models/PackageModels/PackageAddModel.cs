@@ -6,7 +6,6 @@ namespace Chillde.Services.Models.PackageModels
     public class PackageAddModel
     {
         //public Guid? PackageId { get; set; }
-        [Required(ErrorMessage = "Package's description is required.")]
         public PackageName Name { get; set; }
         [Required(ErrorMessage = "Package's description is required.")]
         public string Description { get; set; }

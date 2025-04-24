@@ -2094,6 +2094,182 @@ namespace Chillde.Services.Services
 
             await _unitOfWork.SaveChangeAsync();
         }
+        public async Task<ResponseModel> AddServiceAsync(ServiceAddAllModel serviceAddModel, string sourceLanguageCode, string targetLanguageCode)
+        {
+            try
+            {
+                var validationResult = await ValidateServiceAsync(serviceAddModel, sourceLanguageCode);
+                if (validationResult != null)
+                    return validationResult;
+
+                var currentUserId = _claimService.GetCurrentUserId;
+                if (!currentUserId.HasValue)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status401Unauthorized,
+                        Message = "Unauthorized."
+                    };
+                }
+
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
+
+                var category = await _unitOfWork.CategoryRepository.GetAsync(serviceAddModel.CategoryId);
+                if (category == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Category not found."
+                    };
+                }
+
+                var numberOfExistedService = _unitOfWork.ServiceRepository.GetAllAsync(_ => _.CreatedById == currentUserId && _.IsDeleted == false).Result.TotalCount;
+                var maximumService = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumSerivceOfOneArtisan).Result;
+                if (numberOfExistedService > int.Parse(maximumService!))
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status422UnprocessableEntity,
+                        Message = $"Number of services cannot exceed {maximumService}."
+                    };
+                }
+
+                var serviceId = Guid.NewGuid();
+                var service = new Service
+                {
+                    Id = new Guid(),
+                    Name = serviceAddModel.Name,
+                    Description = serviceAddModel.Description,
+                    Status = ServiceStatus.Inactive,
+                    MinWeight = serviceAddModel.MinWeight,
+                    MaxWeight = serviceAddModel.MaxWeight,
+                    CategoryId = serviceAddModel.CategoryId,
+                    EmbeddingVector = embeddingVector,
+                    FeedbackCount = 0,
+                    Rate = 0,
+                    CreatedById = currentUserId.Value
+                };
+                await _unitOfWork.ServiceRepository.AddAsync(service);
+
+                if (serviceAddModel.Attachments != null)
+                {
+                    var attachments = serviceAddModel.Attachments.Select(a => new ServiceAttachment
+                    {
+                        Id = Guid.NewGuid(),
+                        AttachmentAlt = a.AttachmentAlt,
+                        AttachmentUrl = a.AttachmentUrl,
+                        ServiceId = serviceId
+                    }).ToList();
+
+                    await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(attachments);
+                }
+
+                // Add Packages
+                var packageIdMap = new Dictionary<int, Guid>(); // index -> packageId
+                var packageEntities = new List<Package>();
+
+                for (int i = 0; i < serviceAddModel.PackageAddAllModels.Count; i++)
+                {
+                    var model = serviceAddModel.PackageAddAllModels[i];
+                    var packageId = Guid.NewGuid();
+                    packageIdMap[i] = packageId;
+
+                    packageEntities.Add(new Package
+                    {
+                        Id = packageId,
+                        ServiceId = serviceId,
+                        Name = model.Name,
+                        Description = model.Description,
+                        Price = model.Price,
+                        DeliveryTime = model.DeliveryTime,
+                        SketchRevision = model.SketchRevision,
+                        ResponseTime = (float)model.ResponseTime.TotalMinutes,
+                        MinQuantity = model.MinQuantity,
+                        MaxQuantity = model.MaxQuantity
+                    });
+                }
+
+                await _unitOfWork.PackageRepository.AddRangeAsync(packageEntities);
+
+                // Add Features
+                var featureEntities = new List<Feature>();
+                var featureIdList = new List<Guid>();
+
+                foreach (var featureModel in serviceAddModel.FeatureAddModels)
+                {
+                    var featureId = Guid.NewGuid();
+                    featureIdList.Add(featureId);
+
+                    featureEntities.Add(new Feature
+                    {
+                        Id = featureId,
+                        Name = featureModel.Name,
+                        Question = featureModel.Question,
+                        QuestionType = featureModel.QuestionType,
+                        IsInformationRequired = featureModel.IsInformationRequired,
+                        IsQuantity = featureModel.IsQuantity,
+                        Index = featureModel.Index
+                    });
+                }
+
+                await _unitOfWork.FeatureRepository.AddRangeAsync(featureEntities);
+
+                // Add PackageFeature mapping
+                var packageFeatureEntities = new List<PackageFeature>();
+                foreach (var (featureModel, featureIndex) in serviceAddModel.FeatureAddModels.Select((value, index) => (value, index)))
+                {
+                    var featureId = featureIdList[featureIndex];
+
+                    foreach (var pf in featureModel.PackageFeatureAddModels)
+                    {
+                        if (!packageIdMap.TryGetValue(pf.Index, out var packageId)) continue;
+
+                        packageFeatureEntities.Add(new PackageFeature
+                        {
+                            Id = Guid.NewGuid(),
+                            FeatureId = featureId,
+                            PackageId = packageId,
+                            IsChecked = pf.IsChecked ?? false,
+                            Index = pf.Index
+                        });
+                    }
+                }
+
+                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatureEntities);
+
+                var keywords = _keywordGenerator.GenerateKeywords(service.Name.ToLower());
+                service.Keywords = keywords;
+
+                await EnsureElasticsearchIndexExistsAsync("test_keywords1");
+                var elasticResult = await IndexKeywordsAsync("test_keywords1", keywords);
+                if (!elasticResult)
+                    return new ResponseModel { Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
+
+                var serviceResult = await IndexServiceAsync("test_service1", service);
+                if (!serviceResult)
+                    return new ResponseModel { Message = "Failed to insert service into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
+
+                await _unitOfWork.SaveChangeAsync();
+                await _redisHelper.InvalidateCacheByPatternAsync($"services_*");
+
+                var serviceModel = _mapper.Map<ServiceModel>(service);
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status201Created,
+                    Message = "Service successfully created.",
+                    Data = serviceModel
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                };
+            }
+        }
 
 
     }
