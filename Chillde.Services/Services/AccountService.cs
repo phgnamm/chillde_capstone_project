@@ -1808,6 +1808,10 @@ public class AccountService : IAccountService
         var totalOrder = await _unitOfWork.Context.Orders.CountAsync();
         var totalCompleteOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Completed).CountAsync();
         var totalCancelOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Cancelled).CountAsync();
+        var totalAcceptedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Accepted).CountAsync();
+        var totalPendingOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Pending).CountAsync();
+        var totalRejectedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Rejected).CountAsync();
+        var totalRefundedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Refunded).CountAsync();
 
         var currentOrderCount = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate.Date == today)
@@ -1851,49 +1855,6 @@ public class AccountService : IAccountService
             };
         }).ToList();
 
-        //var highArtisanRevenue = await _unitOfWork.Context.Orders.Include(o => o.Package)
-        //    .Where(o => o.Status == OrderStatus.Completed &&
-        //                o.CreationDate.Month == now.Month &&
-        //                o.CreationDate.Year == now.Year &&
-        //                o.Package.CreatedById != null)
-        //    .GroupBy(o => o.Package.CreatedById)
-        //    .Select(g => new
-        //    {
-        //        CreatedById = g.Key,
-        //        TotalRevenue = g.Sum(x => x.TotalPrice)
-        //    })
-        //    .OrderByDescending(x => x.TotalRevenue)
-        //    .Take(5)
-        //    .ToListAsync();
-
-        //var artisanIds = highArtisanRevenue.Select(x => x.CreatedById).ToList();
-
-        //var artisanInfos = await _unitOfWork.Context.Accounts
-        //    .Where(a => artisanIds.Contains(a.Id))
-        //    .ToListAsync();
-
-        //var services = await _unitOfWork.Context.Services
-        //    .Where(s => artisanIds.Contains(s.CreatedById))
-        //    .Include(s => s.Category)
-        //    .ToListAsync();
-
-        //List<HighArtisanRevenue> highArtisanRevenueList = highArtisanRevenue.Select(h =>
-        //{
-        //    var artisan = artisanInfos.FirstOrDefault(a => a.Id == h.CreatedById);
-        //    return new HighArtisanRevenue
-        //    {
-        //        Account = new AccountLiteModel
-        //        {
-        //            Email = artisan!.Email,
-        //            FirstName = artisan.FirstName,
-        //            LastName = artisan.LastName,
-        //            Username = artisan.Username
-        //        },
-        //        TotalRevenueInMonth = h.TotalRevenue ?? 0,
-        //        CategoryName = services?.FirstOrDefault()!.Category?.Name ?? "Unknown"
-        //    };
-        //}).ToList();
-
 
         return new ResponseDashboardModel<AdminDashboardModel>
         {
@@ -1907,6 +1868,10 @@ public class AccountService : IAccountService
                     ChangePercentage = CalculateChange(currentOrderCount, yesterdayOrderCount),
                     TotalCompleteOrder = totalCompleteOrder,
                     TotalCancelOrders = totalCancelOrder,
+                    TotalAcceptedOrders = totalAcceptedOrders,
+                    TotalPendingOrders = totalPendingOrders,
+                    TotalRefundedOrders = totalRefundedOrders,
+                    TotalRejectedOrders = totalRejectedOrders
                 },
                 Revenue = new RevenueStat
                 {
@@ -1924,9 +1889,7 @@ public class AccountService : IAccountService
                     }
 
                 },
-                RevenueCharts = revenueCharts,
-                //HighArtisanRevenues = highArtisanRevenueList
-
+                RevenueCharts = revenueCharts
             }
         };
 

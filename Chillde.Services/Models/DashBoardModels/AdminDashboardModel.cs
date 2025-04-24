@@ -13,7 +13,6 @@ namespace Chillde.Services.Models.DashBoardModels
         public UserStat Users { get; set; } = default!;
         public OrderStat Orders { get; set; } = default!;
         public List<RevenueChart> RevenueCharts { get; set; } = default!;
-        public List<HighArtisanRevenue> HighArtisanRevenues { get; set; } = default!;
     }
     public class RevenueStat
     {
@@ -42,6 +41,10 @@ namespace Chillde.Services.Models.DashBoardModels
         public double ChangePercentage { get; set; }
         public int TotalCompleteOrder { get; set; }
         public int TotalCancelOrders { get; set; }
+        public int TotalRejectedOrders { get; set; }
+        public int TotalRefundedOrders { get; set; }
+        public int TotalPendingOrders { get; set; }
+        public int TotalAcceptedOrders { get; set; }
         public string ComparedTo { get; set; } = "yesterday";
     }
     public class RevenueChart
@@ -49,12 +52,6 @@ namespace Chillde.Services.Models.DashBoardModels
         public decimal TotalPriceWithoutShipFee { get; set; }
         public decimal TotalArtisanRevenue { get; set; }
         public decimal TotalPlatformFee { get; set; }
-        public string Month {  get; set; }
-    }
-    public class HighArtisanRevenue
-    {
-        public   required AccountLiteModel Account { get; set; }
-        public decimal TotalRevenueInMonth { get; set; }
-        public required string CategoryName { get; set; }
+        public string Month { get; set; }
     }
 }
