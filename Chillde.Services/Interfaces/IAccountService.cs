@@ -39,4 +39,5 @@ public interface IAccountService
     Task<ResponseDashboardModel<ArtisanDashboardModel>> GetArtisanDashboard(DashboardFilterModel dashboardFilterModel);
     Task<ResponseModel> GetAllAccount(AccountFilterModel accountFilterModel);
     Task<ResponseDashboardModel<AdminDashboardModel>> GetAdminDashboard(DashboardFilterModel dashboardFilterModel);
+    Task<ResponseModel> GetRevenueByMonthOrCategory(DashboardFilterModel dashboardFilterModel);
 }
