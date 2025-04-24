@@ -86,7 +86,8 @@ namespace Chillde.Services.Services
                 var reports = await _unitOfWork.ReportRepository.GetAllAsync(
                     filter: filter,
                     include: report => report.Include(o => o.ReportAttachments)
-                                             .Include(_ => _.Order).ThenInclude(order => order.CreatedBy),
+                                             .Include(_ => _.Order).ThenInclude(order => order.CreatedBy)
+                                             .Include(_ => _.Order).ThenInclude(_ => _.OrderTrackings),
                     order: orderBy,
                     pageIndex: reportFilterModel.PageIndex,
                     pageSize: reportFilterModel.PageSize
