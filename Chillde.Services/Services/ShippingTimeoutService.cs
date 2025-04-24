@@ -21,8 +21,8 @@ namespace Chillde.Services.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ShippingTimeoutService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10); 
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); 
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10);
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24);
 
         public ShippingTimeoutService(IServiceProvider serviceProvider, ILogger<ShippingTimeoutService> logger)
         {
@@ -57,7 +57,8 @@ namespace Chillde.Services.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-                
+                var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
+
                 var timeoutThreshold = DateTime.UtcNow.Add(-_timeoutPeriod);
 
                 var orders = await unitOfWork.OrderRepository.GetAllAsync(
@@ -69,11 +70,11 @@ namespace Chillde.Services.Services
                     include: q => q.Include(o => o.CreatedBy)
                                    .Include(o => o.Package)
                                        .ThenInclude(p => p.Service)
-                                           .ThenInclude(s => s.CreatedBy)
-                                           .ThenInclude(a => a.AccountRoles)
-                                           .ThenInclude(ar => ar.Role)
-                                    .Include(o => o.Package)
-                                        .ThenInclude(p => p.Offer)
+                                       .ThenInclude(s => s.CreatedBy)
+                                       .ThenInclude(a => a.AccountRoles)
+                                       .ThenInclude(ar => ar.Role)
+                                   .Include(o => o.Package)
+                                       .ThenInclude(p => p.Offer)
                 );
 
                 if (orders == null || !orders.Data.Any())
@@ -92,43 +93,17 @@ namespace Chillde.Services.Services
                         break;
                     }
 
-                    await CancelOrderAndNotifyAsync(order, unitOfWork, errorLogs);
+                    await CancelOrderAndNotifyAsync(order, unitOfWork, notificationService, errorLogs);
                 }
 
                 if (errorLogs.Any())
                 {
                     _logger.LogWarning("Errors encountered during shipping timeout processing:\n{0}", string.Join("\n", errorLogs));
                 }
+
                 try
                 {
                     await unitOfWork.SaveChangeAsync();
-
-                    //var notificationService = scope.ServiceProvider.GetRequiredService<NotificationService>();
-                    //var notificationContent = unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_CancelOrderDueToUnprocessedShipment).Result;
-                    //if (notificationContent != null)
-                    //{
-                    //    var notificationAddModel = new NotificationAddModel
-                    //    {
-                    //        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                    //        AccountId = (Guid)(order.CreatedById),
-                    //        NotificationContentId = notificationContent.Id,
-                    //        SourceId = order.Id
-                    //    };
-                    //    await notificationService.PushNotification(notificationAddModel);
-                    //}
-
-                    //notificationContent = unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_CancelOrderDueToUnprocessedShipment).Result;
-                    //if (notificationContent != null)
-                    //{
-                    //    var notificationAddModel = new NotificationAddModel
-                    //    {
-                    //        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                    //        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
-                    //        NotificationContentId = notificationContent.Id,
-                    //        SourceId = order.Id
-                    //    };
-                    //    await notificationService.PushNotification(notificationAddModel);
-                    //}
                 }
                 catch (Exception ex)
                 {
@@ -137,8 +112,9 @@ namespace Chillde.Services.Services
             }
         }
 
-        private async Task CancelOrderAndNotifyAsync(Order order, IUnitOfWork unitOfWork, List<string> errorLogs)
+        private async Task CancelOrderAndNotifyAsync(Order order, IUnitOfWork unitOfWork, INotificationService notificationService, List<string> errorLogs)
         {
+            IDbContextTransaction? transaction = null;
             try
             {
                 _logger.LogInformation($"Processing order {order.Code} for shipping timeout.");
@@ -186,6 +162,7 @@ namespace Chillde.Services.Services
                 {
                     order.Status = OrderStatus.Cancelled;
                     order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
+                    order.ModificationDate = DateTime.UtcNow;
                     unitOfWork.OrderRepository.Update(order);
 
                     var refundTransaction = new Transaction
@@ -199,8 +176,47 @@ namespace Chillde.Services.Services
                     customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
                     order.Transactions.Add(refundTransaction);
                     unitOfWork.WalletRepository.Update(customerAccount.Wallet);
-                    
+
                     await unitOfWork.CommitTransactionAsync();
+
+                    var customerNotificationContent = await unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_CancelOrderDueToUnprocessedShipment);
+                    if (customerNotificationContent != null)
+                    {
+                        var customerNotificationAddModel = new NotificationAddModel
+                        {
+                            Content = customerNotificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)order.CreatedById,
+                            NotificationContentId = customerNotificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await notificationService.PushNotification(customerNotificationAddModel);
+                        _logger.LogInformation($"Sent notification to customer {customerAccount.Id} for order {order.Code}.");
+                    }
+                    else
+                    {
+                        errorLogs.Add($"Customer notification content for {NotificationCode.Customer_CancelOrderDueToUnprocessedShipment} not found for order {order.Code}.");
+                        _logger.LogWarning($"Customer notification content for {NotificationCode.Customer_CancelOrderDueToUnprocessedShipment} not found for order {order.Code}.");
+                    }
+
+                    var artisanNotificationContent = await unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_CancelOrderDueToUnprocessedShipment);
+                    if (artisanNotificationContent != null)
+                    {
+                        var artisanNotificationAddModel = new NotificationAddModel
+                        {
+                            Content = artisanNotificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = artisanAccount.Id,
+                            NotificationContentId = artisanNotificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await notificationService.PushNotification(artisanNotificationAddModel);
+                        _logger.LogInformation($"Sent notification to artisan {artisanAccount.Id} for order {order.Code}.");
+                    }
+                    else
+                    {
+                        errorLogs.Add($"Artisan notification content for {NotificationCode.Artisan_CancelOrderDueToUnprocessedShipment} not found for order {order.Code}.");
+                        _logger.LogWarning($"Artisan notification content for {NotificationCode.Artisan_CancelOrderDueToUnprocessedShipment} not found for order {order.Code}.");
+                    }
+
                     _logger.LogInformation($"Order {order.Code} cancelled successfully. Refunded and notified.");
                 }
                 catch (Exception ex)
@@ -208,6 +224,10 @@ namespace Chillde.Services.Services
                     errorLogs.Add($"Error saving changes for order {order.Code}: {ex.Message}");
                     _logger.LogError(ex, $"Error saving changes for order {order.Code}.");
                     await unitOfWork.RollbackTransactionAsync();
+                }
+                finally
+                {
+                    transaction?.Dispose();
                 }
             }
             catch (Exception ex)
