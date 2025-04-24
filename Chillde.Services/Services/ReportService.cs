@@ -3,6 +3,7 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.ReportModels;
 using Chillde.Repositories.Models.ShipmentModels;
@@ -29,6 +30,7 @@ namespace Chillde.Services.Services
         private readonly IRedisHelper _redisHelper;
         private readonly INotificationService _notificationService;
         private readonly IClaimService _claimService;
+        private readonly IOrderService _orderService;
         private readonly HttpClient _httpClient;
 
         public ReportService(IUnitOfWork unitOfWork,
@@ -39,7 +41,8 @@ namespace Chillde.Services.Services
             IRedisHelper redisHelper,
             INotificationService notificationService,
             IClaimService claimService, 
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IOrderService orderService)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
@@ -50,6 +53,7 @@ namespace Chillde.Services.Services
             _notificationService = notificationService;
             _claimService = claimService;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
+            _orderService = orderService;
         }
         public async Task<ResponseModel> GetAll(ReportFilterModel reportFilterModel)
         {
@@ -87,11 +91,12 @@ namespace Chillde.Services.Services
                     filter: filter,
                     include: report => report.Include(o => o.ReportAttachments)
                                              .Include(_ => _.Order).ThenInclude(order => order.CreatedBy)
-                                             .Include(_ => _.Order).ThenInclude(_ => _.OrderTrackings),
+                                             .Include(_ => _.Order).ThenInclude(order => order.OrderTrackings).ThenInclude(orderTracking => orderTracking.OrderTrackingAttachments),
                     order: orderBy,
                     pageIndex: reportFilterModel.PageIndex,
                     pageSize: reportFilterModel.PageSize
                 );
+
 
                 var reportModels = reports.Data.Select(_ => new ReportModel
                 {
@@ -108,6 +113,29 @@ namespace Chillde.Services.Services
                     {
                         AttachmentAlt = _.AttachmentAlt,
                         AttachmentUrl = _.AttachmentUrl
+                    }).ToList(),
+                    Sketchs = _.Order.OrderTrackings.Where(orderTracking => orderTracking.Stage == OrderStage.SketchInProcess ||
+                                                            orderTracking.Stage == OrderStage.ReviewSketch).Select(_ => new OrderTrackingModel
+                    {
+                        OrderTrackingAttachmentModels = _.OrderTrackingAttachments.Select(att => new OrderTrackingAttachmentModel
+                        {
+                            Id = att.Id,
+                            AttachmentAlt = att.AttachmentAlt,
+                            AttachmentUrl = att.AttachmentUrl
+                        }).ToList(),
+                        IsAccepted = _.IsAccepted,
+
+                    }).ToList(),
+                    Deliveries = _.Order.OrderTrackings.Where(orderTracking => orderTracking.Stage == OrderStage.DeliveryInProcess ||
+                                                            orderTracking.Stage == OrderStage.ReviewDelivery).Select(_ => new OrderTrackingModel
+                    {
+                        OrderTrackingAttachmentModels = _.OrderTrackingAttachments.Select(att => new OrderTrackingAttachmentModel
+                        {
+                            Id = att.Id,
+                            AttachmentAlt = att.AttachmentAlt,
+                            AttachmentUrl = att.AttachmentUrl
+                        }).ToList(),
+                        IsAccepted = _.IsAccepted,
                     }).ToList(),
                     OrderCreationDate = _.Order.CreationDate,
                     CustomerName = $"{_.Order.CreatedBy.LastName} {_.Order.CreatedBy.FirstName}"
