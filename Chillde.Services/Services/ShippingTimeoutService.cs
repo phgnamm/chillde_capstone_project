@@ -1,6 +1,8 @@
-﻿using Chillde.Repositories.Entities;
+﻿using Chillde.Repositories.Common;
+using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
+using Chillde.Repositories.Models.NotificationModels;
 using Chillde.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -55,6 +57,7 @@ namespace Chillde.Services.Services
             using (var scope = _serviceProvider.CreateScope())
             {
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                
                 var timeoutThreshold = DateTime.UtcNow.Add(-_timeoutPeriod);
 
                 var orders = await unitOfWork.OrderRepository.GetAllAsync(
@@ -69,6 +72,8 @@ namespace Chillde.Services.Services
                                            .ThenInclude(s => s.CreatedBy)
                                            .ThenInclude(a => a.AccountRoles)
                                            .ThenInclude(ar => ar.Role)
+                                    .Include(o => o.Package)
+                                        .ThenInclude(p => p.Offer)
                 );
 
                 if (orders == null || !orders.Data.Any())
@@ -94,10 +99,36 @@ namespace Chillde.Services.Services
                 {
                     _logger.LogWarning("Errors encountered during shipping timeout processing:\n{0}", string.Join("\n", errorLogs));
                 }
-
                 try
                 {
                     await unitOfWork.SaveChangeAsync();
+
+                    //var notificationService = scope.ServiceProvider.GetRequiredService<NotificationService>();
+                    //var notificationContent = unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_CancelOrderDueToUnprocessedShipment).Result;
+                    //if (notificationContent != null)
+                    //{
+                    //    var notificationAddModel = new NotificationAddModel
+                    //    {
+                    //        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                    //        AccountId = (Guid)(order.CreatedById),
+                    //        NotificationContentId = notificationContent.Id,
+                    //        SourceId = order.Id
+                    //    };
+                    //    await notificationService.PushNotification(notificationAddModel);
+                    //}
+
+                    //notificationContent = unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_CancelOrderDueToUnprocessedShipment).Result;
+                    //if (notificationContent != null)
+                    //{
+                    //    var notificationAddModel = new NotificationAddModel
+                    //    {
+                    //        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                    //        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                    //        NotificationContentId = notificationContent.Id,
+                    //        SourceId = order.Id
+                    //    };
+                    //    await notificationService.PushNotification(notificationAddModel);
+                    //}
                 }
                 catch (Exception ex)
                 {

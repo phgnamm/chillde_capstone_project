@@ -278,6 +278,30 @@ public static class InitialSeeding
         },
         new()
         {
+            Id = Guid.Parse("0e48d8b7-7f91-4631-89fa-7b64e6c3cc0b "),
+            Code = "ORD_TRC_07",
+            Content = "❌ Đơn hàng [#orderCode] đã bị hủy vì bạn chưa tiến hành lên đơn giao hàng trong vòng 24h kể từ khi hết hạn làm sản phẩm. Số tiền đã được hoàn lại cho khách theo chính sách bảo vệ người dùng.",
+            Name = "Nghệ nhân - Huỷ đơn vì không lên đơn vận chuyển",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("7c6b7b72-d4cc-420e-912e-2f70c90852a3"),
+            Code = "ORD_TRC_08",
+            Content = "✅ Đơn hàng [#orderCode] đã bị hủy do nghệ nhân không hoàn tất việc lên đơn giao hàng trong vòng 24h kể từ khi hết hạn làm sản phẩm. Bạn sẽ nhận lại tiền trong thời gian sớm nhất. Hẹn gặp lại bạn ở những đơn tiếp theo.",
+            Name = "Khách hàng - Huỷ đơn vì không lên đơn vận chuyển",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
+            Id = Guid.Parse("1e9b69c2-baf4-4c63-b671-7ec53bce3e91"),
+            Code = "ORD_TRC_09",
+            Content = "🥳 Khách đã đồng ý với sản phẩm cuối cùng của đơn [#orderCode]. Đơn hàng sẽ tự động bị huỷ nếu đơn vận chuyển không được tạo sau 24h kể từ khi hết hạn làm sản phẩm. Hãy lưu ý và lên đơn vận chuyển đúng hạn!",
+            Name = "Nghệ nhân - Đồng ý delivery",
+            Type = NotificationType.OrderTracking,
+        },
+        new()
+        {
             Id = Guid.Parse("3ce42aa3-8c56-4b56-b882-0189f8e91dd5"),
             Code = "REP_01",
             Content = "⚠️ Đơn hàng [#orderCode] đã bị khách hàng báo cáo. Vui lòng kiểm tra và xem xét vấn đề để có giải pháp phù hợp.",

@@ -138,7 +138,7 @@ namespace Chillde.Services.Services
             {
                 Id = Guid.NewGuid(),
                 ServiceId = feedbackAddModel.ServiceId,
-                ArtisanId = existService.CreatedById ?? Guid.Empty,
+                //ArtisanId = existService.CreatedById ?? Guid.Empty,
                 CreatedById = currentUserId.Value,
                 Rating = feedbackAddModel.Rating,
                 Description = feedbackAddModel.Description,
@@ -185,7 +185,7 @@ namespace Chillde.Services.Services
                     var notificationAddModel = new NotificationAddModel
                     {
                         Content = notificationContent.Content.Replace("[#serviceName]", existService.Name),
-                        AccountId = existService.Id,
+                        AccountId = existService.CategoryId,
                         NotificationContentId = notificationContent.Id,
                         SourceId = existService.Id
                     };
