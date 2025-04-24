@@ -349,12 +349,31 @@ public class AccountController : ControllerBase
     }
 
     //[Authorize(Roles = "Admin")]
-    [HttpGet("monthly-revenue-admin")]
+    [HttpGet("dashboard-monthly-revenue-admin")]
     public async Task<IActionResult> GetRevenueByMonthOrCategory([FromQuery] DashboardFilterModel dashboardFilterModel)
     {
         try
         {
-            var result = await _accountService.GetRevenueByMonthOrCategory(dashboardFilterModel);
+            var result = await _accountService.GetRevenueByMonth(dashboardFilterModel);
+            return StatusCode(result.Code, result);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+            {
+                Code = StatusCodes.Status500InternalServerError,
+                Message = ex.Message
+            });
+        }
+    }
+
+    //[Authorize(Roles = "Admin")]
+    [HttpGet("dashboard-category-revenue-admin")]
+    public async Task<IActionResult> GetRevenueByCategory([FromQuery] DashboardFilterModel dashboardFilterModel)
+    {
+        try
+        {
+            var result = await _accountService.GetRevenueByCategory(dashboardFilterModel);
             return StatusCode(result.Code, result);
         }
         catch (Exception ex)
