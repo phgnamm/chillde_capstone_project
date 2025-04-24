@@ -217,36 +217,38 @@ namespace Chillde.Services.Services
         private string GeneratePrompt(List<string> prompt)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Given an item category and description, analyze the provided information and generate a structured JSON output listing all possible and reasonable attributes for handmade products.");
-            sb.AppendLine($"Category: {prompt[0]}");
-            sb.AppendLine($"Description: {prompt[1]}");
+            sb.AppendLine("Dựa vào danh mục sản phẩm và mô tả, hãy phân tích thông tin được cung cấp và tạo ra một đầu ra JSON có cấu trúc, liệt kê tất cả các thuộc tính hợp lý và chi tiết nhất cho sản phẩm thủ công.");
+            sb.AppendLine($"Danh mục: {prompt[0]}");
+            sb.AppendLine($"Mô tả: {prompt[1]}");
             sb.AppendLine();
-            sb.AppendLine("For each attribute, provide:");
-            sb.AppendLine("- name (string): The attribute name, written in simple and customer-friendly language.");
-            sb.AppendLine("- type (integer), where:");
-            sb.AppendLine("  - 0: Text (e.g., product description).");
-            sb.AppendLine("  - 1: Number (e.g., price, weight).");
-            sb.AppendLine("  - 2: Select (e.g., material, color, style, Yes/No options).");
-            sb.AppendLine("  - 6: Checkbox (Multiple selections, e.g., suitable occasions).");
-            sb.AppendLine("- options (list of strings, required for types 2 and 6, containing common or relevant values).");
+            sb.AppendLine("Đối với mỗi thuộc tính, vui lòng cung cấp:");
+            sb.AppendLine("- tên (string): Tên thuộc tính, viết bằng ngôn ngữ đơn giản và dễ hiểu cho khách hàng.");
+            sb.AppendLine("- loại (integer), trong đó:");
+            sb.AppendLine("  - 0: Văn bản (ví dụ: mô tả sản phẩm).");
+            sb.AppendLine("  - 1: Số (ví dụ: giá, trọng lượng, kích thước).");
+            sb.AppendLine("  - 2: Lựa chọn (ví dụ: chất liệu, màu sắc, kiểu dáng, tùy chọn Có/Không).");
+            sb.AppendLine("  - 6: Hộp kiểm (Nhiều lựa chọn, ví dụ: dịp sử dụng phù hợp, tính năng bổ sung).");
+            sb.AppendLine("- tùy chọn (danh sách các chuỗi, yêu cầu cho loại 2 và 6, chứa các giá trị thông dụng hoặc liên quan).");
             sb.AppendLine();
-            sb.AppendLine("Ensure that:");
-            sb.AppendLine("- Attributes are written in simple, clear, and easy-to-understand language for users.");
-            sb.AppendLine("- Switch attributes (e.g., Yes/No questions) are converted to Select with options: ['Yes', 'No'].");
-            sb.AppendLine("- Attributes cover physical properties, appearance, usability, customization, sustainability, packaging, and additional features.");
-            sb.AppendLine("- List all possible attributes that are relevant to the given category and description, ensuring comprehensive coverage.");
-            sb.AppendLine("- Exclude the following fields:");
-            sb.AppendLine("  - Name");
-            sb.AppendLine("  - Description");
-            sb.AppendLine("  - MinBudget");
-            sb.AppendLine("  - MaxBudget");
-            sb.AppendLine("  - Timeline");
-            sb.AppendLine("  - Quantity");
+            sb.AppendLine("Đảm bảo rằng:");
+            sb.AppendLine("- Các thuộc tính được viết bằng ngôn ngữ đơn giản, rõ ràng và dễ hiểu cho người dùng.");
+            sb.AppendLine("- Các thuộc tính chuyển đổi (ví dụ: câu hỏi Có/Không) được chuyển thành Lựa chọn với các tùy chọn: ['Có', 'Không'].");
+            sb.AppendLine("- Các thuộc tính bao gồm các đặc điểm vật lý, ngoại hình, tính năng sử dụng, khả năng tùy chỉnh, tính bền vững, đóng gói, công dụng, và các tính năng bổ sung.");
+            sb.AppendLine("- Liệt kê tất cả các thuộc tính có liên quan đến danh mục và mô tả đã cho, đảm bảo độ bao quát toàn diện và chi tiết, bao gồm cả thông tin về quy trình sản xuất, nguồn gốc, và các chứng nhận (nếu có).");
+            sb.AppendLine("- Cân nhắc các yếu tố như: độ bền, khả năng bảo trì, an toàn cho người sử dụng, và khả năng tái chế của sản phẩm.");
+            sb.AppendLine("- Loại trừ các trường sau:");
+            sb.AppendLine("  - Tên");
+            sb.AppendLine("  - Mô tả");
+            sb.AppendLine("  - Ngân sách tối thiểu");
+            sb.AppendLine("  - Ngân sách tối đa");
+            sb.AppendLine("  - Thời gian");
+            sb.AppendLine("  - Số lượng");
             sb.AppendLine();
-            sb.AppendLine("The output should be a well-structured JSON array.");
+            sb.AppendLine("Đầu ra nên là một mảng JSON có cấu trúc tốt, trong đó mỗi thuộc tính cần được mô tả chi tiết với các giá trị khả thi.");
 
             return sb.ToString();
         }
+
 
 
         private MediaType ParseMediaType(int type)
