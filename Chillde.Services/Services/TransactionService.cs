@@ -6,6 +6,7 @@ using Chillde.Services.Common;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.RequestModels;
 using Chillde.Services.Models.ResponseModels;
+using Chillde.Services.Models.VoucherModels;
 using Chillde.Services.Models.WalletHistoryModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -32,8 +33,48 @@ namespace Chillde.Services.Services
             //var currentUserId = _claimService.GetCurrentUserId;
             var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
                   filter: _ =>
-                  _.IsDeleted == transactionFilterModel.IsDeleted &&
-                  (!transactionFilterModel.AccountId.HasValue || _.CreatedById == transactionFilterModel.AccountId),
+                  (_.IsDeleted == transactionFilterModel.IsDeleted) &&
+                  (!transactionFilterModel.AccountId.HasValue || _.CreatedById == transactionFilterModel.AccountId) &&
+                  //(!transactionFilterModel.TransactionStatus.HasValue || _.Status == transactionFilterModel.TransactionStatus) &&
+                                          (string.IsNullOrEmpty(transactionFilterModel.Search) || (
+                                              _.Order.Code.Contains(transactionFilterModel.Search) ||
+                                              _.Amount.Equals(transactionFilterModel.Search)
+                                          )),
+                    order: s =>
+                    {
+                        switch ((transactionFilterModel.Order?.ToLower()))
+                        {
+                            case "orderCode":
+                                return transactionFilterModel.OrderByDescending
+                                    ? s.OrderByDescending(x => x.Order.Code)
+                                    : s.OrderBy(x => x.Order.Code);
+
+                            case "amount":
+                                return transactionFilterModel.OrderByDescending
+                                    ? s.OrderByDescending(x => x.Amount)
+                                    : s.OrderBy(x => x.Amount);
+
+                            case "transactionType":
+                                return transactionFilterModel.OrderByDescending
+                                    ? s.OrderByDescending(x => x.Type)
+                                    : s.OrderBy(x => x.Type);
+
+                            case "creationDate":
+                                return transactionFilterModel.OrderByDescending
+                                    ? s.OrderByDescending(x => x.CreationDate)
+                                    : s.OrderBy(x => x.CreationDate);
+
+                            case "transactionStatus":
+                                return transactionFilterModel.OrderByDescending
+                                    ? s.OrderByDescending(s => s.Status)
+                                    : s.OrderBy(s => s.Status);                      
+
+                            default:
+                                return transactionFilterModel.OrderByDescending
+                                    ? s.OrderByDescending(x => x.CreationDate)
+                                    : s.OrderBy(x => x.CreationDate);
+                        }
+                    },
                   include: walletHistory => walletHistory.Include(_ => _.Wallet) .Include(_ => _.Order),
                   pageIndex: transactionFilterModel.PageIndex,
                   pageSize: transactionFilterModel.PageSize

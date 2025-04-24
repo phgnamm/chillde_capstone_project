@@ -191,7 +191,7 @@ namespace Chillde.Services.Services
             }
 
             var servicesResult = await _unitOfWork.ServiceRepository.GetAllAsync(
-                filter: s => s.CreatedById == accountId && !s.IsDeleted
+                filter: s => s.CreatedById == accountId 
             );
             var serviceIds = servicesResult.Data.Select(s => s.Id).ToList();
 
@@ -208,30 +208,10 @@ namespace Chillde.Services.Services
                     )
                 };
             }
-
-            Expression<Func<Feedback, bool>> filter = feedback =>
-                serviceIds.Contains(feedback.ServiceId) &&
-                (feedback.IsDeleted == feedbackFilterModel.IsDeleted) &&
-                (
-                    (feedbackFilterModel.OneStar == true && feedback.Rating == 1) ||
-                    (feedbackFilterModel.TwoStar == true && feedback.Rating == 2) ||
-                    (feedbackFilterModel.ThreeStar == true && feedback.Rating == 3) ||
-                    (feedbackFilterModel.FourStar == true && feedback.Rating == 4) ||
-                    (feedbackFilterModel.FiveStar == true && feedback.Rating == 5) ||
-                    (
-                        feedbackFilterModel.OneStar == null &&
-                        feedbackFilterModel.TwoStar == null &&
-                        feedbackFilterModel.ThreeStar == null &&
-                        feedbackFilterModel.FourStar == null &&
-                        feedbackFilterModel.FiveStar == null
-                    )
-                );
-
-            var feedbacksResult = await _unitOfWork.FeedbackRepository.GetAllAsync(
-                filter: filter,
-                include: f => f.Include(_ => _.FeedbackAttachments)
-                               .Include(_ => _.CreatedBy)
-                               .Include(_ => _.Service),
+            var feedback = await _unitOfWork.FeedbackRepository.GetAllAsync(filter: _ => (_.Service.CreatedById == accountId) && (!feedbackFilterModel.Rating.HasValue || feedbackFilterModel.Rating == _.Rating)
+            , include: _ => _.Include(_ => _.Service).ThenInclude(_ => _.CreatedBy).Include(_ => _.FeedbackAttachments) .Include(_ => _.CreatedBy),
+            
+        
                 order: _ =>
                 {
                     switch (feedbackFilterModel.Order.ToLower())
@@ -250,7 +230,7 @@ namespace Chillde.Services.Services
                 pageSize: feedbackFilterModel.PageSize
             );
 
-            var feedbackModels = feedbacksResult.Data.Select(_ => new FeedbackModel
+            var feedbackModels = feedback.Data.Select(_ => new FeedbackModel
             {
                 Id = _.Id,
                 CreatedById = _.CreatedById,
@@ -277,7 +257,7 @@ namespace Chillde.Services.Services
                 feedbackModels,
                 feedbackFilterModel.PageIndex,
                 feedbackFilterModel.PageSize,
-                feedbacksResult.TotalCount
+                feedback.TotalCount
             );
 
             return new ResponseModel
