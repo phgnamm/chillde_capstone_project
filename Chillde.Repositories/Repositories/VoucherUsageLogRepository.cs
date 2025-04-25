@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Chillde.Repositories.Repositories
 {
@@ -19,10 +20,24 @@ namespace Chillde.Repositories.Repositories
             return _dbSet.Any(_ => _.OrderId == orderId && _.CreatedById == accountId);
         }
 
-        public async Task<bool> CheckCustomerHasUsedVoucher(Guid voucherId, Guid accountId)
+        public async Task<bool> CheckCustomerHasUsedVoucher(Guid voucherId, Guid accountId, Guid? serviceId)
         {
-            return _dbSet.Any(_ => _.VoucherId == voucherId && _.UsageStatus == Enums.UsageStatus.Used && _.CreatedById == accountId);
+            var check = await _dbSet
+                .Where(_ => _.VoucherId == voucherId && _.UsageStatus == Enums.UsageStatus.Used && _.CreatedById == accountId)
+                .Include(_ => _.Order.Package)
+                .FirstOrDefaultAsync();
 
+            if (check == null)
+                return false;
+
+            if (serviceId != null)
+            {
+                if (check.Order?.Package?.ServiceId != serviceId)
+                    return false;
+            }
+
+            return true;
         }
+
     }
 }

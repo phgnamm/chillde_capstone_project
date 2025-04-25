@@ -10,6 +10,6 @@ namespace Chillde.Repositories.Interfaces
     public interface IVoucherUsageLogRepository : IGenericRepository<VoucherUsageLog>
     {
         Task<bool> CheckOrderHasUsedVoucher(Guid orderId, Guid accountId);
-        Task<bool> CheckCustomerHasUsedVoucher(Guid voucherId, Guid accountId);
+        Task<bool> CheckCustomerHasUsedVoucher(Guid voucherId, Guid accountId, Guid? serviceId);
     }
 }

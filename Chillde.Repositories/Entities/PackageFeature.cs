@@ -6,7 +6,7 @@ public class PackageFeature : BaseEntity
 {
     public string? Name { get; set; }
     public decimal? AdditionalCost { get; set; }
-    public int? AdditionalDay { get; set; }
+    public float? AdditionalDay { get; set; }
     public bool? IsExtra { get; set; }
     public bool? IsChecked { get; set; }
     public int MinQuantity { get; set; }
