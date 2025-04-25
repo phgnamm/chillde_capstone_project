@@ -1846,6 +1846,29 @@ public class AccountService : IAccountService
             })
             .ToList();
 
+        var artisanWithHighestRevenues = _unitOfWork.Context.Orders
+    .Where(o => o.Status == OrderStatus.Completed
+             && o.Stage == OrderStage.Completed
+             && !o.IsDeleted
+             && (o.Package.Service != null || o.Package.Offer != null))
+    .Select(o => new
+    {
+        ArtisanId = o.Package.Service != null ? o.Package.Service.CreatedById : o.Package.Offer.CreatedById,
+        ArtisanName = o.Package.Service != null ? (o.Package.Service.CreatedBy.LastName + o.Package.Service.CreatedBy.FirstName) :
+                                                    o.Package.Offer.CreatedBy.LastName + o.Package.Offer.CreatedBy.FirstName,
+        Revenue = o.ArtistRevenue ?? 0
+    })
+    .GroupBy(x => new { x.ArtisanId, x.ArtisanName })
+    .Select(g => new ArtisanWithHighestRevenue
+    {
+        ArtisanId = (Guid)g.Key.ArtisanId,
+        ArtisanName = g.Key.ArtisanName,
+        TotalRevenue = g.Sum(x => x.Revenue)
+    })
+    .OrderByDescending(x => x.TotalRevenue)
+    .Take(10)
+    .ToList();
+
         List<RevenueChart> revenueCharts = allMonthsInYear.Select(month =>
         {
             var data = revenueByMonth.FirstOrDefault(r => r.Month == month);
@@ -1892,7 +1915,8 @@ public class AccountService : IAccountService
                     }
 
                 },
-                RevenueCharts = revenueCharts
+                RevenueCharts = revenueCharts,
+                ArtisanWithHighestRevenues = artisanWithHighestRevenues
             }
         };
 

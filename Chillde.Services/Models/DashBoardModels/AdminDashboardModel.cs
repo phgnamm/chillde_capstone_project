@@ -13,6 +13,7 @@ namespace Chillde.Services.Models.DashBoardModels
         public UserStat Users { get; set; } = default!;
         public OrderStat Orders { get; set; } = default!;
         public List<RevenueChart> RevenueCharts { get; set; } = default!;
+        public List<ArtisanWithHighestRevenue> ArtisanWithHighestRevenues { get; set; } = default!;
     }
     public class RevenueStat
     {
@@ -53,5 +54,12 @@ namespace Chillde.Services.Models.DashBoardModels
         public decimal TotalArtisanRevenue { get; set; }
         public decimal TotalPlatformFee { get; set; }
         public string Month { get; set; }
+    }
+
+    public class ArtisanWithHighestRevenue
+    {
+        public string ArtisanName { get; set; }
+        public Guid ArtisanId { get; set; }
+        public decimal TotalRevenue { get; set; }
     }
 }
