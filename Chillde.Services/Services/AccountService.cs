@@ -1828,12 +1828,14 @@ public class AccountService : IAccountService
       .Select(month => new DateOnly(dashboardFilterModel.Year, month, 1))
       .ToList();
 
-        var startOfYear = new DateTime(dashboardFilterModel.Year, dashboardFilterModel.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        //var startOfYear = new DateTime(dashboardFilterModel.Year, dashboardFilterModel.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var startOfYear = new DateTime(dashboardFilterModel.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         var endOfYear = startOfYear.AddYears(1);
 
         var ordersInYear = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate >= startOfYear && o.CreationDate < endOfYear
-                        && !o.IsDeleted && o.Status == OrderStatus.Completed)
+                        && !o.IsDeleted && o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed)
             .ToListAsync();
 
         var revenueByMonth = ordersInYear
