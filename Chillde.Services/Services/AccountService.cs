@@ -1880,7 +1880,7 @@ public class AccountService : IAccountService
                 },
                 Users = new UserStat
                 {
-                    Total = totalOrder,
+                    Total = artisanCount + customerCount,
                     ChangePercentage = CalculateChange(currentAccountCount, yesterdayAccountCount),
                     Details = new UserDetail
                     {
