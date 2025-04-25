@@ -44,7 +44,7 @@ namespace Chillde.Services.Services
                     {
                         switch ((transactionFilterModel.Order?.ToLower()))
                         {
-                            case "orderCode":
+                            case "ordercode":
                                 return transactionFilterModel.OrderByDescending
                                     ? s.OrderByDescending(x => x.Order.Code)
                                     : s.OrderBy(x => x.Order.Code);
@@ -54,17 +54,17 @@ namespace Chillde.Services.Services
                                     ? s.OrderByDescending(x => x.Amount)
                                     : s.OrderBy(x => x.Amount);
 
-                            case "transactionType":
+                            case "transactiontype":
                                 return transactionFilterModel.OrderByDescending
                                     ? s.OrderByDescending(x => x.Type)
                                     : s.OrderBy(x => x.Type);
 
-                            case "creationDate":
+                            case "creationdate":
                                 return transactionFilterModel.OrderByDescending
                                     ? s.OrderByDescending(x => x.CreationDate)
                                     : s.OrderBy(x => x.CreationDate);
 
-                            case "transactionStatus":
+                            case "transactionstatus":
                                 return transactionFilterModel.OrderByDescending
                                     ? s.OrderByDescending(s => s.Status)
                                     : s.OrderBy(s => s.Status);                      
