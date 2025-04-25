@@ -382,5 +382,27 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+        //[Authorize(Roles = "Artisan")]
+        [HttpPost("add-sample-data")]
+        public async Task<IActionResult> AddAllServiceAsync([FromBody] ServiceAddAllModel serviceAddAllModel)
+        {
+            try
+            {
+                var acceptLanguage = Request.Headers["Accept-Language"].ToString();
+                var sourceLanguageCode = LanguageHelper.GetSourceLanguageCode(acceptLanguage);
+                var targetLanguageCode = LanguageHelper.GetTargetLanguageCode(sourceLanguageCode);
+                var result = await _serviceService.AddServiceAsync(serviceAddAllModel, sourceLanguageCode, targetLanguageCode);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

@@ -47,7 +47,7 @@ namespace Chillde.Repositories.Repositories
 
         public async Task<int> NumberCompletedOrder(Guid accountId, Guid artistId)
         {
-            var orders = _dbSet.Where(_ => _.CreatedById == accountId && _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Completed).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
+            var orders = _dbSet.Where(_ => _.CreatedById == accountId && _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Completed && _.Stage == OrderStage.Completed).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
             return orders;
         }
 
