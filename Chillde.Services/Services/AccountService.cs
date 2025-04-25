@@ -1276,24 +1276,19 @@ public class AccountService : IAccountService
         {
             var hasUsed =
                 await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id,
-                    currentUserId.Value);
+                    currentUserId.Value, null);
 
             if (hasUsed)
                 continue;
 
             bool isValid = true;
 
-            if (voucher.MinOrderRequired.HasValue)
-                isValid &= completedOrders >= voucher.MinOrderRequired;
+            if (voucher.MinOrderRequired.HasValue && completedOrders < voucher.MinOrderRequired) isValid = false;
 
-            if (voucher.MinReputation.HasValue)
-                isValid &= customerReputation >= voucher.MinReputation;
+            if (voucher.MinReputation.HasValue && customerReputation < voucher.MinReputation) isValid = false;
 
-            if (voucher.MinOrderValue.HasValue && totalPriceOfOrder.HasValue)
-                isValid &= totalPriceOfOrder.Value >= voucher.MinOrderValue;
+            if (voucher.MinOrderValue.HasValue && totalPriceOfOrder.HasValue && totalPriceOfOrder.Value < voucher.MinOrderValue) isValid = false;
 
-            if (voucher.RemainingQuantity.HasValue)
-                isValid &= voucher.RemainingQuantity > 0;
 
             if (!isValid)
                 continue;
@@ -1348,7 +1343,15 @@ public class AccountService : IAccountService
                                         _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())
                                     ?.TotalReputation ??
                                 0;
-
+        var check = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, currentUserId.Value);
+        if (check)
+        {
+            return new ResponseModel
+            {
+                Data = null,
+                Message = "This order has used voucher"
+            };
+        }
         var allVouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
             filter: _ =>
                 _.ExpiredTime >= DateTime.UtcNow &&
