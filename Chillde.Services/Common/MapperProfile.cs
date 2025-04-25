@@ -95,6 +95,8 @@ public class MapperProfile : Profile
             opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes));
         CreateMap<PackageAddModel, Package>().ForMember(dest => dest.ResponseTime,
             opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes)).ReverseMap();
+        CreateMap<PackageAddWithIdModel, Package>().ForMember(dest => dest.ResponseTime,
+            opt => opt.MapFrom(src => (float)src.ResponseTime.TotalMinutes)).ReverseMap();
 
         //ShippingAddress
         CreateMap<ShippingAddress, ShippingAddressAddModel>().ReverseMap();
