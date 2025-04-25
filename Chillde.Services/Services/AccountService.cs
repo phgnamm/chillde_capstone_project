@@ -1856,11 +1856,13 @@ public class AccountService : IAccountService
         ArtisanId = o.Package.Service != null ? o.Package.Service.CreatedById : o.Package.Offer.CreatedById,
         ArtisanName = o.Package.Service != null ? (o.Package.Service.CreatedBy.LastName + o.Package.Service.CreatedBy.FirstName) :
                                                     o.Package.Offer.CreatedBy.LastName + o.Package.Offer.CreatedBy.FirstName,
+        Image = o.Package.Service != null ? (o.Package.Service.CreatedBy.Image) : "",
         Revenue = o.ArtistRevenue ?? 0
     })
-    .GroupBy(x => new { x.ArtisanId, x.ArtisanName })
+    .GroupBy(x => new { x.ArtisanId, x.ArtisanName, x.Image })
     .Select(g => new ArtisanWithHighestRevenue
     {
+        Image = g.Key.Image,
         ArtisanId = (Guid)g.Key.ArtisanId,
         ArtisanName = g.Key.ArtisanName,
         TotalRevenue = g.Sum(x => x.Revenue)

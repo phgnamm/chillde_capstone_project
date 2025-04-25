@@ -33,7 +33,7 @@ namespace Chillde.Services.Services
             //var currentUserId = _claimService.GetCurrentUserId;
             var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
                   filter: _ =>
-                  (_.IsDeleted == transactionFilterModel.IsDeleted) &&
+                  (!transactionFilterModel.IsDeleted.HasValue || _.IsDeleted == transactionFilterModel.IsDeleted) &&
                   (!transactionFilterModel.AccountId.HasValue || _.CreatedById == transactionFilterModel.AccountId) &&
                   //(!transactionFilterModel.TransactionStatus.HasValue || _.Status == transactionFilterModel.TransactionStatus) &&
                                           (string.IsNullOrEmpty(transactionFilterModel.Search) || (
