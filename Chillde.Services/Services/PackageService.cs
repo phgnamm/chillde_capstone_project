@@ -218,6 +218,20 @@ namespace Chillde.Services.Services
                     newPackage.Name = package.Name;
                     await _unitOfWork.PackageRepository.AddAsync(newPackage);
                     packageModel = _mapper.Map<PackageModel>(newPackage);
+
+                    var packageFeatures = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+                        filter: _ => _.PackageId == package.Id && _.IsDeleted == false
+                        );
+                    _unitOfWork.PackageFeatureRepository.SoftRemoveRange(packageFeatures.Data);
+                    await _unitOfWork.SaveChangeAsync();
+
+                    foreach (var packageFeature in packageFeatures.Data)
+                    {
+                        packageFeature.Id = Guid.NewGuid();
+                        packageFeature.IsDeleted = false;
+                        packageFeature.PackageId = newPackage.Id;
+                    }
+                    await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures.Data);
                 }
 
                 var changes = await _unitOfWork.SaveChangeAsync();

@@ -1909,7 +1909,7 @@ public class AccountService : IAccountService
             .Select(g => new
             {
                 Month = g.Key,
-                Total = g.Sum(o => o.TotalPrice) // hoặc trường tổng tiền bạn lưu
+                Total = g.Sum(o => o.TotalPrice - o.ShippingPrice) // hoặc trường tổng tiền bạn lưu
             })
             .OrderBy(r => r.Month) // Sắp xếp theo tháng
             .ToList();
@@ -1972,7 +1972,7 @@ public class AccountService : IAccountService
         return new
         {
             RootCategoryName = category?.Name,
-            Revenue = order.TotalPrice ?? 0
+            Revenue = (order.TotalPrice - order.ShippingPrice) ?? 0
         };
     })
     .Where(x => x.RootCategoryName != null)

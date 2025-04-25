@@ -1,5 +1,6 @@
 ﻿using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
+using Chillde.Repositories.Models.OrderTrackingModels;
 using Chillde.Repositories.Models.ReportAttachmentModels;
 
 namespace Chillde.Repositories.Models.ReportModels
@@ -16,6 +17,8 @@ namespace Chillde.Repositories.Models.ReportModels
         public Guid OrderId { get; set; }
         public DateTime? OrderCreationDate { get; set; }
         public virtual List<ReportAttachmentModel>? ReportAttachments { get; set; }
+        public List<OrderTrackingModel>? Sketchs { get; set; }
+        public List<OrderTrackingModel>? Deliveries { get; set; }
         public string? CustomerName { get; set; }
     }
 
