@@ -1790,11 +1790,11 @@ public class AccountService : IAccountService
 
 
         var currentRevenue = await _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Month == now.Month && o.CreationDate.Year == now.Year)
+            .Where(o => o.CreationDate.Month == now.Month && o.CreationDate.Year == now.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
             .SumAsync(o => o.TotalPrice) ?? 0;
 
         var lastMonthRevenue = await _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Month == lastMonth.Month && o.CreationDate.Year == lastMonth.Year)
+            .Where(o => o.CreationDate.Month == lastMonth.Month && o.CreationDate.Year == lastMonth.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
             .SumAsync(o => o.TotalPrice) ?? 0;
 
         var customerCount = await _unitOfWork.Context.Accounts.Include(u => u.AccountRoles)
@@ -1806,7 +1806,7 @@ public class AccountService : IAccountService
 
 
         var totalOrder = await _unitOfWork.Context.Orders.CountAsync();
-        var totalCompleteOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Completed).CountAsync();
+        var totalCompleteOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed).CountAsync();
         var totalCancelOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Cancelled).CountAsync();
         var totalAcceptedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Accepted).CountAsync();
         var totalPendingOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Pending).CountAsync();
