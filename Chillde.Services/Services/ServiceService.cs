@@ -2135,7 +2135,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var serviceId = Guid.NewGuid();
+                //var serviceId = Guid.NewGuid();
                 var service = new Service
                 {
                     Id = new Guid(),
@@ -2159,7 +2159,7 @@ namespace Chillde.Services.Services
                         Id = Guid.NewGuid(),
                         AttachmentAlt = a.AttachmentAlt,
                         AttachmentUrl = a.AttachmentUrl,
-                        ServiceId = serviceId
+                        ServiceId = service.Id
                     }).ToList();
 
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(attachments);
@@ -2178,7 +2178,7 @@ namespace Chillde.Services.Services
                     packageEntities.Add(new Package
                     {
                         Id = packageId,
-                        ServiceId = serviceId,
+                        ServiceId = service.Id,
                         Name = model.Name,
                         Description = model.Description,
                         Price = model.Price,
@@ -2186,9 +2186,11 @@ namespace Chillde.Services.Services
                         SketchRevision = model.SketchRevision,
                         ResponseTime = (float)model.ResponseTime.TotalMinutes,
                         MinQuantity = model.MinQuantity,
-                        MaxQuantity = model.MaxQuantity
+                        MaxQuantity = model.MaxQuantity,
                     });
                 }
+
+                
 
                 await _unitOfWork.PackageRepository.AddRangeAsync(packageEntities);
 
@@ -2241,8 +2243,8 @@ namespace Chillde.Services.Services
                 var keywords = _keywordGenerator.GenerateKeywords(service.Name.ToLower());
                 service.Keywords = keywords;
 
-                await EnsureElasticsearchIndexExistsAsync("test_keywords1");
-                var elasticResult = await IndexKeywordsAsync("test_keywords1", keywords);
+                await EnsureElasticsearchIndexExistsAsync("test_keywords");
+                var elasticResult = await IndexKeywordsAsync("test_keywords", keywords);
                 if (!elasticResult)
                     return new ResponseModel { Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
 
