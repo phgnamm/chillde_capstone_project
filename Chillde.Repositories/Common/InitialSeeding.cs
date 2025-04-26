@@ -2672,46 +2672,46 @@ public static class InitialSeeding
     };
 
     #region Data for testing
-    // private static readonly List<Report> Reports = new()
-    // {
-    //     new()
-    //     {
-    //         Id = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f1"),
-    //         Code = "RPTCHD12345",
-    //         Description = "Sản phẩm giao không đúng như mô tả, thiếu một số chi tiết quan trọng.",
-    //         Status = ReportStatus.Pending,
-    //         OrderId = Guid.Parse("4871b8c7-af46-4bb6-8fad-226fb5e84d2e"),
-    //         ReportAttachments = new List<ReportAttachment>
-    //         {
-    //             new()
-    //             {
-    //                 Id = Guid.Parse("0195a73b-1234-5678-a008-25cc6c3d26f2"),
-    //                 AttachmentUrl = "https://upsload.com/images/report1_photo2.jpg",
-    //                 AttachmentAlt = "Ảnh chi tiết lỗi",
-    //                 ReportId = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f1")
-    //             }
-    //         }
-    //     },
-    //     new()
-    //     {
-    //         Code = "RPTCHD12346",
-    //         Id = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f2"),
-    //         Description = "Thời gian giao hàng quá lâu, không đúng như cam kết.",
-    //         Response = "Chúng tôi đã liên hệ với nghệ nhân và sẽ xử lý vấn đề này.",
-    //         Status = ReportStatus.Accepted,
-    //         OrderId = Guid.Parse("9a1ed03d-ae8c-4b71-8637-7b35f83316c3"),
-    //         ReportAttachments = new List<ReportAttachment>
-    //         {
-    //             new()
-    //             {
-    //                 Id = Guid.Parse("0195a73b-1234-5678-a008-25cc6c3d26f3"),
-    //                 AttachmentUrl = "https://upsload.com/images/report2_screenshot.jpg",
-    //                 AttachmentAlt = "Ảnh chụp màn hình xác nhận giao hàng",
-    //                 ReportId = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f2")
-    //             }
-    //         }
-    //     },
-    // };
+    private static readonly List<Report> Reports = new()
+     {
+         new()
+         {
+             Id = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f1"),
+             Code = "RPTCHD12345",
+             Description = "Sản phẩm giao không đúng như mô tả, thiếu một số chi tiết quan trọng.",
+             Status = ReportStatus.Pending,
+             OrderId = Guid.Parse("fd2b8127-a2a1-4508-9f07-b184243cc109"),
+             ReportAttachments = new List<ReportAttachment>
+             {
+                 new()
+                 {
+                     Id = Guid.Parse("0195a73b-1234-5678-a008-25cc6c3d26f2"),
+                     AttachmentUrl = "https://upsload.com/images/report1_photo2.jpg",
+                     AttachmentAlt = "Ảnh chi tiết lỗi",
+                     ReportId = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f1")
+                 }
+             }
+         },
+         new()
+         {
+             Code = "RPTCHD12346",
+             Id = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f2"),
+             Description = "Thời gian giao hàng quá lâu, không đúng như cam kết.",
+             Response = "Chúng tôi đã liên hệ với nghệ nhân và sẽ xử lý vấn đề này.",
+             Status = ReportStatus.Accepted,
+             OrderId = Guid.Parse("fd2b8127-a2a1-4508-9f07-b184243cc109"),
+             ReportAttachments = new List<ReportAttachment>
+             {
+                 new()
+                 {
+                     Id = Guid.Parse("0195a73b-1234-5678-a008-25cc6c3d26f3"),
+                     AttachmentUrl = "https://upsload.com/images/report2_screenshot.jpg",
+                     AttachmentAlt = "Ảnh chụp màn hình xác nhận giao hàng",
+                     ReportId = Guid.Parse("0195a73b-1234-5678-a007-25cc6c3d26f2")
+                 }
+             }
+         },
+     };
     //     private static readonly List<Wallet> Wallets = new()
     //     {
     //         new()
@@ -3882,23 +3882,23 @@ public static class InitialSeeding
                 context.Categories.Add(category);
             }
         }
-        
+
 
         #region Seeding
         // Seed Reports and ReportAttachments
-        // foreach (var report in Reports)
-        // {
-        //     if (!context.Reports.Any(r => r.Id == report.Id))
-        //     {
-        //         if (context.Orders.Any(o => o.Id == report.OrderId))
-        //         {
-        //             continue;
-        //         }
-        //
-        //         report.CreationDate = DateTime.UtcNow;
-        //         context.Reports.Add(report);
-        //     }
-        // }
+        foreach (var report in Reports)
+        {
+            if (!context.Reports.Any(r => r.Id == report.Id))
+            {
+                if (context.Orders.Any(o => o.Id == report.OrderId))
+                {
+                    continue;
+                }
+
+                report.CreationDate = DateTime.UtcNow;
+                context.Reports.Add(report);
+            }
+        }
         // foreach (var wallet in Wallets)
         // {
         //     if (!context.Wallets.Any(c => c.Id == wallet.Id))

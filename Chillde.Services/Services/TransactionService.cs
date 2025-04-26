@@ -1,4 +1,5 @@
 ﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.RequestModels;
 using Chillde.Repositories.Models.WalletHistoryModels;
@@ -35,7 +36,7 @@ namespace Chillde.Services.Services
                   filter: _ =>
                   (!transactionFilterModel.IsDeleted.HasValue || _.IsDeleted == transactionFilterModel.IsDeleted) &&
                   (!transactionFilterModel.AccountId.HasValue || _.CreatedById == transactionFilterModel.AccountId) &&
-                  //(!transactionFilterModel.TransactionStatus.HasValue || _.Status == transactionFilterModel.TransactionStatus) &&
+                  (!transactionFilterModel.TransactionStatus.HasValue || _.Status == (TransactionStatus)transactionFilterModel.TransactionStatus) &&
                                           (string.IsNullOrEmpty(transactionFilterModel.Search) || (
                                               _.Order.Code.Contains(transactionFilterModel.Search) ||
                                               _.Amount.Equals(transactionFilterModel.Search)
@@ -84,7 +85,7 @@ namespace Chillde.Services.Services
             {
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status404NotFound,
+                    Data = null,
                     Message = "No wallet history found for this user."
                 };
             }
