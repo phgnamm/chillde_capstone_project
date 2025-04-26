@@ -116,8 +116,15 @@ namespace Chillde.Services.Services
                 };
             }
 
-            var hasFeedback = await _unitOfWork.FeedbackRepository.HasFeedback(currentUserId.Value, feedbackAddModel.ServiceId);
-            if (hasFeedback)
+            var numberOfFeedbackTask = _unitOfWork.FeedbackRepository.NumberFeedback(currentUserId.Value, feedbackAddModel.ServiceId);
+            var numberOfOrderTask = _unitOfWork.OrderRepository.NumberCompletedOrderOfCustomer(currentUserId.Value, feedbackAddModel.ServiceId);
+
+            await Task.WhenAll(numberOfFeedbackTask, numberOfOrderTask);
+
+            var numberOfFeedback = numberOfFeedbackTask.Result;
+            var numberOfOrder = numberOfOrderTask.Result;
+
+            if (numberOfFeedback >= numberOfOrder)
             {
                 return new ResponseModel
                 {

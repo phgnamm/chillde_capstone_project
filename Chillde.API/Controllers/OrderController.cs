@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
+using StackExchange.Redis;
 
 namespace Chillde.API.Controllers
 {
@@ -57,27 +58,27 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-       /* [HttpGet]
-        public async Task<IActionResult> GetAllByAdmin([FromQuery] OrderFilterModel orderFilterModel)
-        {
-            try
-            {
-                var result = await _orderService.GetAllByAdmin(orderFilterModel);
-                if (result.Status)
-                {
-                    return Ok(result);
-                }
-                return StatusCode(result.Code, result);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
-                {
-                    Code = StatusCodes.Status500InternalServerError,
-                    Message = ex.Message
-                });
-            }
-        }*/
+        /* [HttpGet]
+         public async Task<IActionResult> GetAllByAdmin([FromQuery] OrderFilterModel orderFilterModel)
+         {
+             try
+             {
+                 var result = await _orderService.GetAllByAdmin(orderFilterModel);
+                 if (result.Status)
+                 {
+                     return Ok(result);
+                 }
+                 return StatusCode(result.Code, result);
+             }
+             catch (Exception ex)
+             {
+                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                 {
+                     Code = StatusCodes.Status500InternalServerError,
+                     Message = ex.Message
+                 });
+             }
+         }*/
         [Authorize]
         [HttpPost("use-admin-vouchers")]
         public async Task<IActionResult> UsedAdminVoucher(Guid orderId, Guid voucherId)
@@ -175,8 +176,6 @@ namespace Chillde.API.Controllers
                         var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
                         return Ok();
                     }
-
-                    // Thực hiện hành động nếu thanh toán thất bại tại đây. Ví dụ: Hủy đơn hàng.
                     return BadRequest("Thanh toán thất bại");
                 }
                 catch (Exception ex)
@@ -198,32 +197,8 @@ namespace Chillde.API.Controllers
 
                     if (paymentResult.IsSuccess)
                     {
-                        var orderId = paymentResult.OrderId; 
-
-                        var updateResult = await _orderService.UpdateOrderStatusToCompleted(orderId);
-
-                        if (updateResult.Code == StatusCodes.Status200OK)
-                        {
-                            return Ok(new
-                            {
-                                Message = "Payment and order update successful.",
-                                PaymentResult = paymentResult,
-                                OrderUpdateResult = updateResult
-                            });
-                        }
-
-                        return BadRequest(new
-                        {
-                            Message = "Payment successful but order update failed.",
-                            PaymentResult = paymentResult,
-                            OrderUpdateResult = updateResult
-                        });
+                        return Redirect($"https://chillde.vercel.app/orders/{paymentResult.OrderId}");
                     }
-                    return BadRequest(new
-                    {
-                        Message = "Payment failed.",
-                        PaymentResult = paymentResult
-                    });
                 }
                 catch (Exception ex)
                 {
@@ -296,7 +271,7 @@ namespace Chillde.API.Controllers
                 });
             }
         }
-        
+
         [Authorize]
         [HttpPost("{orderId}/order-tracking-deliveries")]
         public async Task<IActionResult> AddDelivery(Guid orderId, [FromBody] OrderTrackingAddModel orderTrackingAddModel)

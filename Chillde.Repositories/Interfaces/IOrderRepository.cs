@@ -17,6 +17,7 @@ namespace Chillde.Repositories.Interfaces
         Task<bool> HasAnyOrderByFeature(Guid featureId);
         Task<IEnumerable<Order>> GetSketchOrdersWithResponseTimeAsync();
         Task<IEnumerable<Order>> GetOrderToRemindDeadline();
+        Task<int> NumberCompletedOrderOfCustomer(Guid accountId, Guid serviceId);
 
     }
 }

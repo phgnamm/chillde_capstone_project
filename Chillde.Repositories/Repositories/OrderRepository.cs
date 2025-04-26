@@ -90,5 +90,11 @@ namespace Chillde.Repositories.Repositories
             var orders = _dbSet.Where(_ => _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Completed).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
             return orders;
         }
+
+        public async Task<int> NumberCompletedOrderOfCustomer(Guid accountId, Guid serviceId)
+        {
+            var orders = _dbSet.Where(_ => _.Package.ServiceId == serviceId && _.Status == Enums.OrderStatus.Completed && _.CreatedById == accountId).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
+            return orders;
+        }
     }
 }
