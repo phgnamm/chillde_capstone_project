@@ -353,7 +353,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var feature = await _unitOfWork.FeatureRepository.GetAsync(id);
+                var feature = await _unitOfWork.FeatureRepository.GetAsync(id, include: feature => feature.Include(_ => _.PackageFeatures).ThenInclude(pf => pf.Package));
                 if (feature == null)
                 {
                     return new ResponseModel

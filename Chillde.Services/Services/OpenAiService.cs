@@ -152,9 +152,9 @@ namespace Chillde.Services.Services
                 model = "gpt-4",
                 messages = new[]
                 {
-                new { role = "system", content = "You are an AI that converts a list of attributes into a structured model with type and options." },
-                new { role = "user", content = prompt }
-            },
+            new { role = "system", content = "You are an AI that converts a list of attributes into a structured model with type and options." },
+            new { role = "user", content = prompt }
+        },
                 max_tokens = 1000,
                 temperature = 0.5
             };
@@ -181,31 +181,40 @@ namespace Chillde.Services.Services
             if (string.IsNullOrWhiteSpace(jsonResponse))
                 throw new Exception("API response is empty.");
 
+            // ✅ Trích xuất phần JSON array từ phản hồi
+            int startIndex = jsonResponse.IndexOf('[');
+            int endIndex = jsonResponse.LastIndexOf(']');
+
+            if (startIndex == -1 || endIndex == -1 || endIndex <= startIndex)
+                throw new Exception($"Could not extract valid JSON array from response.\nResponse: {jsonResponse}");
+
+            string jsonArrayString = jsonResponse.Substring(startIndex, endIndex - startIndex + 1);
+
             try
             {
-                using JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+                using JsonDocument jsonDoc = JsonDocument.Parse(jsonArrayString);
                 if (jsonDoc.RootElement.ValueKind != JsonValueKind.Array)
                     throw new Exception("Invalid JSON format: Expected list of attributes.");
             }
             catch (System.Text.Json.JsonException ex)
             {
-                throw new Exception($"Error parsing JSON: {ex.Message}\nResponse: {jsonResponse}");
+                throw new Exception($"Error parsing JSON: {ex.Message}\nRaw Extracted JSON: {jsonArrayString}");
             }
 
             var options = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true, 
-                ReadCommentHandling = JsonCommentHandling.Skip, 
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
                 AllowTrailingCommas = true
             };
 
-            List<ModelResponseRaw> rawResult = System.Text.Json.JsonSerializer.Deserialize<List<ModelResponseRaw>>(jsonResponse, options)!;
+            List<ModelResponseRaw> rawResult = System.Text.Json.JsonSerializer.Deserialize<List<ModelResponseRaw>>(jsonArrayString, options)!;
 
             if (rawResult == null || rawResult.Count == 0)
                 throw new Exception("Response data is null or empty.");
 
             var result = rawResult.ConvertAll(item => new ModelResponse
-            {                
+            {
                 Name = item?.Name ?? "Unknown",
                 Type = item?.Type != null ? ParseMediaType(item.Type) : MediaType.Text,
                 Options = item?.Options ?? new List<string>()
@@ -213,6 +222,7 @@ namespace Chillde.Services.Services
 
             return new ResponseModel { Data = rawResult };
         }
+
 
         private string GeneratePrompt(List<string> prompt)
         {
@@ -287,6 +297,16 @@ namespace Chillde.Services.Services
             public MediaType Type { get; set; }
             public List<string>? Options { get; set; }
         }
+        private string ExtractJsonContent(string response)
+{
+    int firstBracket = response.IndexOf('[');
+    int lastBracket = response.LastIndexOf(']');
+
+    if (firstBracket == -1 || lastBracket == -1 || lastBracket <= firstBracket)
+        return string.Empty;
+
+    return response.Substring(firstBracket, lastBracket - firstBracket + 1);
+}
 
     }
 }

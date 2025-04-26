@@ -1265,6 +1265,7 @@ namespace Chillde.Services.Services
                         MaxQuantity = package.MaxQuantity,
                         CreationDate = package.CreationDate,
                         Features = package.PackageFeatures
+                            .Where(pf => !pf.IsDeleted)
                             .GroupBy(pf => pf.Feature.Name)
                             .Select(g => new FeatureModel
                             {
@@ -1274,7 +1275,7 @@ namespace Chillde.Services.Services
                                 QuestionType = g.First().Feature.QuestionType,
                                 IsInformationRequired = g.First().Feature.IsInformationRequired,
                                 IsQuantity = g.First().Feature.IsQuantity,
-                                PackageFeatures = g.ToList()
+                                PackageFeatures = g.Where(pf => !pf.IsDeleted).ToList()
                             }).ToList()
                     }).OrderBy(_ => _.Name).ToList();
 
