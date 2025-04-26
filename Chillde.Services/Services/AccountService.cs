@@ -1673,7 +1673,7 @@ public class AccountService : IAccountService
         // Get the sum of transactions for each day within the specified month and year
         var earningsGroupedByDate = await _unitOfWork.Context.Transaction
             .Where(x => !x.IsDeleted && x.Type == TransactionType.TransferIn && x.Status == TransactionStatus.Completed && x.CreationDate >= startDate &&
-                        x.CreationDate <= endDate)
+                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId)
            .GroupBy(x => x.CreationDate.ToUniversalTime().Date)
             .Select(g => new
             {
