@@ -17,7 +17,7 @@ public class DeliveryReminderService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DeliveryReminderService> _logger;
-    private const int FIXED_DELAY_SECONDS = 3000;
+    private const int FIXED_DELAY_SECONDS = 30;
 
     public DeliveryReminderService(
         IServiceProvider serviceProvider,

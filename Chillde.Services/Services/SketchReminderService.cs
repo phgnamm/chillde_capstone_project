@@ -20,7 +20,7 @@ namespace Chillde.Services.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<SketchReminderService> _logger;
         private DateTime? _nextRunTime;
-        private const int FIXED_DELAY_SECONDS = 30000;
+        private const int FIXED_DELAY_SECONDS = 30;
 
         public SketchReminderService(IServiceScopeFactory serviceScopeFactory, ILogger<SketchReminderService> logger)
         {
@@ -63,7 +63,7 @@ namespace Chillde.Services.Services
                         {
                             decimal penalty = 0m;
                             order.Status = OrderStatus.Cancelled;
-                            //order.Stage = OrderStage.Cancelled;
+                            order.Stage = OrderStage.Cancelled;
                             var autoCancelPercentagePenalty = await systemConfigurationService.Get(SystemConfigKey.AutoCancelPercentagePenalty);
 
                             if (autoCancelPercentagePenalty.Data is SystemConfigModel configPercentage

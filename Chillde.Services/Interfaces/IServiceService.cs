@@ -31,5 +31,6 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> AddFAQAsync(FAQAddAndUpdateModel faqAddModel, Guid serviceId, string sourceLanguageCode);
         Task<ResponseModel> GetAllFAQsAsync(Guid serviceId, FAQFilterModel faqFilterModel);
         Task<ResponseModel> GetAllWithSuggestion(ServiceFilterModel serviceFilterModel, string sourceLanguageCode, string targetLanguageCode);
+        Task<ResponseModel> AddServiceAsync(ServiceAddAllModel serviceAddModel, string sourceLanguageCode, string targetLanguageCode);
     }
 }
