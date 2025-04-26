@@ -59,6 +59,7 @@ namespace Chillde.Services.Models.DashBoardModels
     public class ArtisanWithHighestRevenue
     {
         public string ArtisanName { get; set; }
+        public string Image { get; set; }
         public Guid ArtisanId { get; set; }
         public decimal TotalRevenue { get; set; }
     }
