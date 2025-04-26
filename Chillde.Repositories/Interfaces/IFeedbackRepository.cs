@@ -10,5 +10,6 @@ namespace Chillde.Repositories.Interfaces
     public interface IFeedbackRepository : IGenericRepository<Feedback>
     {
         Task<bool> HasFeedback(Guid accountId, Guid serviceId);
+        Task<int> NumberFeedback(Guid accountId, Guid serviceId);
     }
 }

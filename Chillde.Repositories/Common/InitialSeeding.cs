@@ -3856,23 +3856,119 @@ public static class InitialSeeding
 //            }
 //        }
 
-//        foreach (var cancellationReason in CancellationReasons)
-//        {
-//            if (!context.CancellationReasons.Any(i => i.Id == cancellationReason.Id))
-//            {
-//                cancellationReason.CreationDate = DateTime.UtcNow;
-//                context.CancellationReasons.Add(cancellationReason);
-//            }
-//        }
+        #region Seeding
+        // Seed Reports and ReportAttachments
+        //foreach (var report in Reports)
+        //{
+        //    if (!context.Reports.Any(r => r.Id == report.Id))
+        //    {
+        //        if (context.Orders.Any(o => o.Id == report.OrderId))
+        //        {
+        //            continue;
+        //        }
 
-//        foreach (var order in Orders)
-//        {
-//            if (!context.Orders.Any(i => i.Id == order.Id))
-//            {
-//                order.CreationDate = DateTime.UtcNow;
-//                context.Orders.Add(order);
-//            }
-//        }
+        //        report.CreationDate = DateTime.UtcNow;
+        //        context.Reports.Add(report);
+        //    }
+        //}
+        // foreach (var wallet in Wallets)
+        // {
+        //     if (!context.Wallets.Any(c => c.Id == wallet.Id))
+        //     {
+        //         wallet.CreationDate = DateTime.UtcNow;
+        //         context.Wallets.Add(wallet);
+        //     }
+        // }
+        //
+        // foreach (var account in Accounts)
+        // {
+        //     if (!context.Accounts.Any(c => c.Id == account.Id))
+        //     {
+        //         account.CreationDate = DateTime.UtcNow;
+        //         context.Accounts.Add(account);
+        //     }
+        // }
+        //
+        // foreach (var accountRole in AccountRoles)
+        // {
+        //     if (!context.AccountRoles.Any(c => c.AccountId == accountRole.AccountId && c.RoleId == accountRole.RoleId))
+        //     {
+        //         accountRole.CreationDate = DateTime.UtcNow;
+        //         context.AccountRoles.Add(accountRole);
+        //     }
+        // }
+        //
+        // foreach (var service in Services)
+        // {
+        //     if (!context.Services.Any(i => i.Id == service.Id))
+        //     {
+        //         service.CreationDate = DateTime.UtcNow;
+        //         context.Services.Add(service);
+        //     }
+        // }
+        //
+        // foreach (var serviceAttachment in ServiceAttachments)
+        // {
+        //     if (!context.ServiceAttachments.Any(i => i.Id == serviceAttachment.Id))
+        //     {
+        //         serviceAttachment.CreationDate = DateTime.UtcNow;
+        //         context.ServiceAttachments.Add(serviceAttachment);
+        //     }
+        // }
+        //
+        // foreach (var package in Packages)
+        // {
+        //     if (!context.Packages.Any(i => i.Id == package.Id))
+        //     {
+        //         package.CreationDate = DateTime.UtcNow;
+        //         context.Packages.Add(package);
+        //     }
+        // }
+        //
+        // foreach (var feature in Features)
+        // {
+        //     //var existingFeature = context.Features.Local.FirstOrDefault(i => i.Id == feature.Id)
+        //     //                      ?? await context.Features.AsNoTracking().FirstOrDefaultAsync(i => i.Id == feature.Id);
+        //
+        //     //if (existingFeature == null)
+        //     //{
+        //     //    feature.CreationDate = DateTime.UtcNow;
+        //     //    context.Features.Add(feature);
+        //     //}
+        //
+        //     if (!context.Features.Any(i => i.Id == feature.Id))
+        //     {
+        //         feature.CreationDate = DateTime.UtcNow;
+        //         context.Features.Add(feature);
+        //     }
+        // }
+        //
+        // foreach (var packageFeature in PackageFeatures)
+        // {
+        //     if (!context.PackageFeatures.Any(i => i.Id == packageFeature.Id))
+        //     {
+        //         packageFeature.CreationDate = DateTime.UtcNow;
+        //         context.PackageFeatures.Add(packageFeature);
+        //     }
+        // }
+        //
+        // foreach (var cancellationReason in CancellationReasons)
+        // {
+        //     if (!context.CancellationReasons.Any(i => i.Id == cancellationReason.Id))
+        //     {
+        //         cancellationReason.CreationDate = DateTime.UtcNow;
+        //         context.CancellationReasons.Add(cancellationReason);
+        //     }
+        // }
+        //
+        // foreach (var order in Orders)
+        // {
+        //     if (!context.Orders.Any(i => i.Id == order.Id))
+        //     {
+        //         order.CreationDate = DateTime.UtcNow;
+        //         context.Orders.Add(order);
+        //     }
+        // }
 
         //#endregion
 

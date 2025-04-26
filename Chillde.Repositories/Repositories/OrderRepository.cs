@@ -57,7 +57,7 @@ namespace Chillde.Repositories.Repositories
                 .Where(_ => _.Status == OrderStatus.Accepted
                              && _.Stage == OrderStage.ReviewSketch && _.StartTime.HasValue && _.DeliveryTime.HasValue)
                 .Include(_ => _.Package)
-                .ThenInclude(_ => _.Service)
+                .ThenInclude(_ => _.Service).ThenInclude(_ => _.CreatedBy.Wallet)
                 .Include(_ => _.CreatedBy)
                     .ThenInclude(_ => _.Wallet)
                  .Include(_ => _.CreatedBy)
@@ -88,6 +88,12 @@ namespace Chillde.Repositories.Repositories
         public async Task<int> NumberCompletedOrderOfArtisan(Guid artistId)
         {
             var orders = _dbSet.Where(_ => _.Package.Service.CreatedById == artistId && _.Status == Enums.OrderStatus.Completed).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
+            return orders;
+        }
+
+        public async Task<int> NumberCompletedOrderOfCustomer(Guid accountId, Guid serviceId)
+        {
+            var orders = _dbSet.Where(_ => _.Package.ServiceId == serviceId && _.Status == Enums.OrderStatus.Completed && _.CreatedById == accountId).Include(_ => _.Package).ThenInclude(_ => _.Service).Count();
             return orders;
         }
     }

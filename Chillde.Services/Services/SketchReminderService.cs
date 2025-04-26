@@ -96,7 +96,7 @@ namespace Chillde.Services.Services
 
                             var totalPriceAfterPenalty = order.TotalPrice - penalty;
                             order.CreatedBy.Wallet.Balance += (decimal)totalPriceAfterPenalty;
-
+                            order.Package.Service.CreatedBy.Wallet.Balance += (decimal)penalty;
                             order.Transactions.Add(new Transaction
                             {
                                 Amount = totalPriceAfterPenalty,
@@ -104,6 +104,14 @@ namespace Chillde.Services.Services
                                 CreatedById = null,
                                 Status = TransactionStatus.Completed,
                                 WalletId = order.CreatedBy.Wallet.Id,
+                            });
+                            order.Transactions.Add(new Transaction
+                            {
+                                Amount = penalty,
+                                Type = TransactionType.TransferIn,
+                                CreatedById = null,
+                                Status = TransactionStatus.Completed,
+                                WalletId = order.Package.Service.CreatedBy.Wallet.Id,
                             });
                             lastSketchTracking.IsDeadlineSent = true;
                             unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);

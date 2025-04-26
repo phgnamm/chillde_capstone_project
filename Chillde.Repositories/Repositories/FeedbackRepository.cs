@@ -21,5 +21,11 @@ namespace Chillde.Repositories.Repositories
             return result;
 
         }
+        public async Task<int> NumberFeedback(Guid accountId, Guid serviceId)
+        {
+            var result = await _dbSet.Where(_ => _.CreatedById == accountId && _.ServiceId == serviceId && _.IsDeleted == false).CountAsync();
+            return result;
+
+        }
     }
 }
