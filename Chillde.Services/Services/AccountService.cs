@@ -1276,24 +1276,19 @@ public class AccountService : IAccountService
         {
             var hasUsed =
                 await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id,
-                    currentUserId.Value);
+                    currentUserId.Value, null);
 
             if (hasUsed)
                 continue;
 
             bool isValid = true;
 
-            if (voucher.MinOrderRequired.HasValue)
-                isValid &= completedOrders >= voucher.MinOrderRequired;
+            if (voucher.MinOrderRequired.HasValue && completedOrders < voucher.MinOrderRequired) isValid = false;
 
-            if (voucher.MinReputation.HasValue)
-                isValid &= customerReputation >= voucher.MinReputation;
+            if (voucher.MinReputation.HasValue && customerReputation < voucher.MinReputation) isValid = false;
 
-            if (voucher.MinOrderValue.HasValue && totalPriceOfOrder.HasValue)
-                isValid &= totalPriceOfOrder.Value >= voucher.MinOrderValue;
+            if (voucher.MinOrderValue.HasValue && totalPriceOfOrder.HasValue && totalPriceOfOrder.Value < voucher.MinOrderValue) isValid = false;
 
-            if (voucher.RemainingQuantity.HasValue)
-                isValid &= voucher.RemainingQuantity > 0;
 
             if (!isValid)
                 continue;
@@ -1348,7 +1343,15 @@ public class AccountService : IAccountService
                                         _.Role.Name == Chillde.Repositories.Enums.Role.Artisan.ToString())
                                     ?.TotalReputation ??
                                 0;
-
+        var check = await _unitOfWork.VoucherUsageLogRepository.CheckOrderHasUsedVoucher(orderId, currentUserId.Value);
+        if (check)
+        {
+            return new ResponseModel
+            {
+                Data = null,
+                Message = "This order has used voucher"
+            };
+        }
         var allVouchers = await _unitOfWork.VoucherRepository.GetAllAsync(
             filter: _ =>
                 _.ExpiredTime >= DateTime.UtcNow &&
@@ -1670,7 +1673,7 @@ public class AccountService : IAccountService
         // Get the sum of transactions for each day within the specified month and year
         var earningsGroupedByDate = await _unitOfWork.Context.Transaction
             .Where(x => !x.IsDeleted && x.Type == TransactionType.TransferIn && x.Status == TransactionStatus.Completed && x.CreationDate >= startDate &&
-                        x.CreationDate <= endDate)
+                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId)
            .GroupBy(x => x.CreationDate.ToUniversalTime().Date)
             .Select(g => new
             {
@@ -1790,11 +1793,11 @@ public class AccountService : IAccountService
 
 
         var currentRevenue = await _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Month == now.Month && o.CreationDate.Year == now.Year)
+            .Where(o => o.CreationDate.Month == now.Month && o.CreationDate.Year == now.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
             .SumAsync(o => o.TotalPrice) ?? 0;
 
         var lastMonthRevenue = await _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Month == lastMonth.Month && o.CreationDate.Year == lastMonth.Year)
+            .Where(o => o.CreationDate.Month == lastMonth.Month && o.CreationDate.Year == lastMonth.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
             .SumAsync(o => o.TotalPrice) ?? 0;
 
         var customerCount = await _unitOfWork.Context.Accounts.Include(u => u.AccountRoles)
@@ -1806,7 +1809,7 @@ public class AccountService : IAccountService
 
 
         var totalOrder = await _unitOfWork.Context.Orders.CountAsync();
-        var totalCompleteOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Completed).CountAsync();
+        var totalCompleteOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed).CountAsync();
         var totalCancelOrder = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Cancelled).CountAsync();
         var totalAcceptedOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Accepted).CountAsync();
         var totalPendingOrders = await _unitOfWork.Context.Orders.Where(o => o.Status == OrderStatus.Pending).CountAsync();
@@ -1825,12 +1828,14 @@ public class AccountService : IAccountService
       .Select(month => new DateOnly(dashboardFilterModel.Year, month, 1))
       .ToList();
 
-        var startOfYear = new DateTime(dashboardFilterModel.Year, dashboardFilterModel.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        //var startOfYear = new DateTime(dashboardFilterModel.Year, dashboardFilterModel.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var startOfYear = new DateTime(dashboardFilterModel.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
         var endOfYear = startOfYear.AddYears(1);
 
         var ordersInYear = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate >= startOfYear && o.CreationDate < endOfYear
-                        && !o.IsDeleted && o.Status == OrderStatus.Completed)
+                        && !o.IsDeleted && o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed)
             .ToListAsync();
 
         var revenueByMonth = ordersInYear
@@ -1842,6 +1847,29 @@ public class AccountService : IAccountService
                 TotalPlatformFee = g.Sum(x => x.AdminCommUsedVch ?? x.AdminCommDefault)
             })
             .ToList();
+
+        var artisanWithHighestRevenues = _unitOfWork.Context.Orders
+    .Where(o => o.Status == OrderStatus.Completed
+             && o.Stage == OrderStage.Completed
+             && !o.IsDeleted
+             && (o.Package.Service != null || o.Package.Offer != null))
+    .Select(o => new
+    {
+        ArtisanId = o.Package.Service != null ? o.Package.Service.CreatedById : o.Package.Offer.CreatedById,
+        ArtisanName = o.Package.Service != null ? (o.Package.Service.CreatedBy.LastName + o.Package.Service.CreatedBy.FirstName) :
+                                                    o.Package.Offer.CreatedBy.LastName + o.Package.Offer.CreatedBy.FirstName,
+        Revenue = o.ArtistRevenue ?? 0
+    })
+    .GroupBy(x => new { x.ArtisanId, x.ArtisanName })
+    .Select(g => new ArtisanWithHighestRevenue
+    {
+        ArtisanId = (Guid)g.Key.ArtisanId,
+        ArtisanName = g.Key.ArtisanName,
+        TotalRevenue = g.Sum(x => x.Revenue)
+    })
+    .OrderByDescending(x => x.TotalRevenue)
+    .Take(10)
+    .ToList();
 
         List<RevenueChart> revenueCharts = allMonthsInYear.Select(month =>
         {
@@ -1880,7 +1908,7 @@ public class AccountService : IAccountService
                 },
                 Users = new UserStat
                 {
-                    Total = totalOrder,
+                    Total = artisanCount + customerCount,
                     ChangePercentage = CalculateChange(currentAccountCount, yesterdayAccountCount),
                     Details = new UserDetail
                     {
@@ -1889,7 +1917,8 @@ public class AccountService : IAccountService
                     }
 
                 },
-                RevenueCharts = revenueCharts
+                RevenueCharts = revenueCharts,
+                ArtisanWithHighestRevenues = artisanWithHighestRevenues
             }
         };
 

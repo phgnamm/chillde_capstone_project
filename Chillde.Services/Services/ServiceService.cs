@@ -1258,6 +1258,7 @@ namespace Chillde.Services.Services
                         MaxQuantity = package.MaxQuantity,
                         CreationDate = package.CreationDate,
                         Features = package.PackageFeatures
+                            .Where(pf => !pf.IsDeleted)
                             .GroupBy(pf => pf.Feature.Name)
                             .Select(g => new FeatureModel
                             {
@@ -1267,7 +1268,7 @@ namespace Chillde.Services.Services
                                 QuestionType = g.First().Feature.QuestionType,
                                 IsInformationRequired = g.First().Feature.IsInformationRequired,
                                 IsQuantity = g.First().Feature.IsQuantity,
-                                PackageFeatures = g.ToList()
+                                PackageFeatures = g.Where(pf => !pf.IsDeleted).ToList()
                             }).ToList()
                     }).OrderBy(_ => _.Name).ToList();
 
@@ -2135,7 +2136,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var serviceId = Guid.NewGuid();
+                //var serviceId = Guid.NewGuid();
                 var service = new Service
                 {
                     Id = new Guid(),
@@ -2159,38 +2160,56 @@ namespace Chillde.Services.Services
                         Id = Guid.NewGuid(),
                         AttachmentAlt = a.AttachmentAlt,
                         AttachmentUrl = a.AttachmentUrl,
-                        ServiceId = serviceId
+                        ServiceId = service.Id
                     }).ToList();
 
                     await _unitOfWork.ServiceAttachmentRepository.AddRangeAsync(attachments);
                 }
 
                 // Add Packages
-                var packageIdMap = new Dictionary<int, Guid>(); // index -> packageId
-                var packageEntities = new List<Package>();
+                //var packageIdMap = new Dictionary<int, Guid>(); // index -> packageId
+                //var packageEntities = new List<Package>();
 
-                for (int i = 0; i < serviceAddModel.PackageAddAllModels.Count; i++)
+                //for (int i = 0; i < serviceAddModel.PackageAddAllModels.Count; i++)
+                //{
+                //    var model = serviceAddModel.PackageAddAllModels[i];
+                //    var packageId = Guid.NewGuid();
+                //    packageIdMap[i] = packageId;
+
+                //    packageEntities.Add(new Package
+                //    {
+                //        Id = model.PackageId,
+                //        ServiceId = service.Id,
+                //        Name = model.Name,
+                //        Description = model.Description,
+                //        Price = model.Price,
+                //        DeliveryTime = model.DeliveryTime,
+                //        SketchRevision = model.SketchRevision,
+                //        ResponseTime = (float)model.ResponseTime.TotalMinutes,
+                //        MinQuantity = model.MinQuantity,
+                //        MaxQuantity = model.MaxQuantity,
+                //    });
+                //}
+                //await _unitOfWork.PackageRepository.AddRangeAsync(packageEntities);
+
+                var packages = new List<Package>();
+                foreach(var package in serviceAddModel.PackageAddAllModels)
                 {
-                    var model = serviceAddModel.PackageAddAllModels[i];
-                    var packageId = Guid.NewGuid();
-                    packageIdMap[i] = packageId;
-
-                    packageEntities.Add(new Package
+                    packages.Add(new Package
                     {
-                        Id = packageId,
-                        ServiceId = serviceId,
-                        Name = model.Name,
-                        Description = model.Description,
-                        Price = model.Price,
-                        DeliveryTime = model.DeliveryTime,
-                        SketchRevision = model.SketchRevision,
-                        ResponseTime = (float)model.ResponseTime.TotalMinutes,
-                        MinQuantity = model.MinQuantity,
-                        MaxQuantity = model.MaxQuantity
+                        Id = package.PackageId,
+                        ServiceId = service.Id,
+                        Name = package.Name,
+                        Description = package.Description,
+                        Price = package.Price,
+                        DeliveryTime = package.DeliveryTime,
+                        SketchRevision = package.SketchRevision,
+                        ResponseTime = (float)package.ResponseTime.TotalMinutes,
+                        MinQuantity = package.MinQuantity,
+                        MaxQuantity = package.MaxQuantity,
                     });
                 }
-
-                await _unitOfWork.PackageRepository.AddRangeAsync(packageEntities);
+                await _unitOfWork.PackageRepository.AddRangeAsync(packages);
 
                 // Add Features
                 var featureEntities = new List<Feature>();
@@ -2203,7 +2222,7 @@ namespace Chillde.Services.Services
 
                     featureEntities.Add(new Feature
                     {
-                        Id = featureId,
+                        Id = featureModel.FeatureId,
                         Name = featureModel.Name,
                         Question = featureModel.Question,
                         QuestionType = featureModel.QuestionType,
@@ -2212,37 +2231,58 @@ namespace Chillde.Services.Services
                         Index = featureModel.Index
                     });
                 }
-
                 await _unitOfWork.FeatureRepository.AddRangeAsync(featureEntities);
 
                 // Add PackageFeature mapping
-                var packageFeatureEntities = new List<PackageFeature>();
-                foreach (var (featureModel, featureIndex) in serviceAddModel.FeatureAddModels.Select((value, index) => (value, index)))
+                //var packageFeatureEntities = new List<PackageFeature>();
+                //foreach (var (featureModel, featureIndex) in serviceAddModel.FeatureAddModels.Select((value, index) => (value, index)))
+                //{
+                //    var featureId = featureIdList[featureIndex];
+
+                //    foreach (var pf in featureModel.PackageFeatureAddModels)
+                //    {
+                //        if (!packageIdMap.TryGetValue(pf.Index, out var packageId)) continue;
+
+                //        packageFeatureEntities.Add(new PackageFeature
+                //        {
+                //            Id = Guid.NewGuid(),
+                //            FeatureId = featureId,
+                //            PackageId = packageId,
+                //            IsChecked = pf.IsChecked ?? false,
+                //            Index = pf.Index
+                //        });
+                //    }
+                //}
+
+                var packageFeatures = new List<PackageFeature>();
+                foreach (var packageModel in serviceAddModel.PackageAddAllModels)
                 {
-                    var featureId = featureIdList[featureIndex];
-
-                    foreach (var pf in featureModel.PackageFeatureAddModels)
+                    foreach (var packageFeature in packageModel.PackageFeatureAddModels)
                     {
-                        if (!packageIdMap.TryGetValue(pf.Index, out var packageId)) continue;
-
-                        packageFeatureEntities.Add(new PackageFeature
+                        packageFeatures.Add(new PackageFeature
                         {
                             Id = Guid.NewGuid(),
-                            FeatureId = featureId,
-                            PackageId = packageId,
-                            IsChecked = pf.IsChecked ?? false,
-                            Index = pf.Index
+                            Name = packageFeature.Name,
+                            AdditionalDay = packageFeature.AdditionalDay,
+                            AdditionalCost = packageFeature.AdditionalCost,
+                            IsChecked = packageFeature.IsChecked,
+                            IsExtra = packageFeature.IsExtra,
+                            MinQuantity = packageFeature.MinQuantity,
+                            MaxQuantity = packageFeature.MaxQuantity,
+                            Index = packageFeature.Index,
+                            PackageId = packageModel.PackageId,
+                            FeatureId = (Guid)packageFeature.FeatureId
                         });
                     }
+                    
                 }
-
-                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatureEntities);
+                await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
 
                 var keywords = _keywordGenerator.GenerateKeywords(service.Name.ToLower());
                 service.Keywords = keywords;
 
-                await EnsureElasticsearchIndexExistsAsync("test_keywords1");
-                var elasticResult = await IndexKeywordsAsync("test_keywords1", keywords);
+                await EnsureElasticsearchIndexExistsAsync("test_keywords");
+                var elasticResult = await IndexKeywordsAsync("test_keywords", keywords);
                 if (!elasticResult)
                     return new ResponseModel { Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
 

@@ -103,11 +103,11 @@ namespace Chillde.Services.Services
                 };
             var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
 
-            if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
-                await ProcessExtraFeatures(orderAddModel, newOrder);
+            //if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
+            //    await ProcessExtraFeatures(orderAddModel, newOrder);
             if (orderAddModel.VoucherId != null && orderAddModel.VoucherId is List<Guid> voucherIds)
             {
-                await ApplyVoucher(voucherIds, newOrder, PaymentType.Balance);
+                await ApplyVoucher(voucherIds, newOrder, PaymentType.Balance, (Guid)package.ServiceId);
                 foreach (var voucherUsageLog in newOrder.VoucherUsageLogs)
                 {
                     voucherUsageLog.UsageStatus = UsageStatus.Used;
@@ -199,11 +199,11 @@ namespace Chillde.Services.Services
                 var newOrder = await InitializeOrder(orderAddModel, package, currentUserId.Value);
                 decimal remainingAmount = 0;
 
-                if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
-                    await ProcessExtraFeatures(orderAddModel, newOrder);
+                //if (orderAddModel.OrderInformationAddModels != null && package.Offer == null)
+                //    await ProcessExtraFeatures(orderAddModel, newOrder);
                 if (orderAddModel.VoucherId != null)
                 {
-                    await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder, PaymentType.VnPay);
+                    await ApplyVoucher((List<Guid>)orderAddModel.VoucherId, newOrder, PaymentType.VnPay, (Guid)package.ServiceId);
                 }
                 var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId.Value, include: _ => _.Include(_ => _.Wallet));
                 var wallet = account?.Wallet;
@@ -285,7 +285,7 @@ namespace Chillde.Services.Services
                 totalOrder = (decimal)(package.Price * package.Offer.Request.Quantity);
                 adminCommission = await AdminCommission(totalOrder, 0);
 
-                return await CreateOrderAsync(orderAddModel, package, userId, totalOrder, adminCommission, (int)(package.Offer?.Request?.Quantity ?? 1), null, null);
+                return await CreateOrderAsync(orderAddModel, package, userId, totalOrder, adminCommission, 0 ,(int)(package.Offer?.Request?.Quantity ?? 1), null, null);
 
             }
 
@@ -349,8 +349,30 @@ namespace Chillde.Services.Services
                     }
                 }
             }
-
+            var additionalDay = 0;
             totalOrder = (decimal)(package.Price * orderAddModel.Quantity);
+            foreach (var info in orderAddModel.OrderInformationAddModels)
+            {
+                var packageFeature = await _unitOfWork.PackageFeatureRepository.GetAsync(info.PackageFeatureId);
+                //    var orderInfo = new OrderInformation
+                //    {
+                //        Quantity = info.Quantity ?? 1,
+                //        Price = packageFeature.AdditionalCost ?? 0,
+                //        Description = info.Description ?? "",
+                //        PackageFeatureId = info.PackageFeatureId,
+                //        OrderInformationAttachments = new List<OrderInformationAttachment>()
+                //    };
+                if (packageFeature.AdditionalCost > 0)
+                {
+                    totalOrder += (decimal)(info.Quantity * packageFeature.AdditionalCost * orderAddModel.Quantity);
+                }
+                if (packageFeature.AdditionalDay.HasValue)
+                {
+                    additionalDay += (int)packageFeature.AdditionalDay;
+                }
+
+
+            }
             adminCommission = await AdminCommission(totalOrder, 0);
 
             return await CreateOrderAsync(
@@ -359,6 +381,7 @@ namespace Chillde.Services.Services
                          userId,
                          totalOrder,
                          adminCommission,
+                         additionalDay,
                          (int)(orderAddModel.Quantity ?? 1),
                          orderAddModel.OrderInformationAddModels,
                          orderAddModel.OrderInformationAddModels?
@@ -373,6 +396,7 @@ namespace Chillde.Services.Services
                Guid userId,
                decimal totalOrder,
                decimal adminCommission,
+               int? additionalDay,
                int quantity,
                IEnumerable<OrderInformationAddModel>? orderInformationAddModels,
                IEnumerable<OrderInformationAttachmentAddModel>? orderInformationAttachmentAddModels)
@@ -388,7 +412,7 @@ namespace Chillde.Services.Services
                 ToDistrict = orderAddModel.ToDistrict,
                 ToProvince = orderAddModel.ToProvince,
                 TotalPrice = totalOrder + (orderAddModel.ShippingPrice ?? 0),
-                DeliveryTime = package.DeliveryTime,
+                DeliveryTime = package.DeliveryTime + additionalDay,
                 ShippingPrice = orderAddModel.ShippingPrice ?? 0,
                 OriginPrice = totalOrder,
                 CurrentSketchRevision = package.SketchRevision,
@@ -416,7 +440,7 @@ namespace Chillde.Services.Services
                         PackageFeatureId = info.PackageFeatureId,
                         OrderInformationAttachments = new List<OrderInformationAttachment>()
                     };
-
+                    
                     if (info.OrderInformationAttachmentAddModels != null)
                     {
                         foreach (var attachment in info.OrderInformationAttachmentAddModels)
@@ -461,47 +485,47 @@ namespace Chillde.Services.Services
             }
             return 0;
         }
-        private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder)
-        {
-            var extraFeatureIds = orderAddModel.OrderInformationAddModels?
-                                    .Select(_ => _.PackageFeatureId)
-                                    .ToList() ?? new List<Guid>();
+        //private async Task ProcessExtraFeatures(OrderAddModel orderAddModel, Repositories.Entities.Order newOrder)
+        //{
+        //    var extraFeatureIds = orderAddModel.OrderInformationAddModels?
+        //                            .Select(_ => _.PackageFeatureId)
+        //                            .ToList() ?? new List<Guid>();
 
-            var takeExtraFeature = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
-                filter: _ => extraFeatureIds.Contains(_.Id) && _.IsExtra == true
-            );
-            if (takeExtraFeature?.Data == null || !takeExtraFeature.Data.Any())
-            {
-                return;
-            }
-            //var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
-            //    orderAddModel.OrderInformationAddModels!
-            //        .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
-            //if (checkMaxQuantity != null)
-            //{
-            //    throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
-            //}
-            var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
-                orderAddModel.OrderInformationAddModels!
-                    .Where(_ => _.PackageFeatureId == pf.Id)
-                    .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
-            );
-            var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
-                orderAddModel.OrderInformationAddModels!
-                    .Where(_ => _.PackageFeatureId == pf.Id)
-                    .Sum(_ => (pf.AdditionalDay ?? 0))
-            );
-            if (extraFeatureCost > 0)
-            {
-                newOrder.DeliveryTime += extraFeatureDeliveryTime;
-                newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
-                newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
-                var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
-                newOrder.AdminCommDefault = newCommission;
-                newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
-            }
-        }
-        private async Task ApplyVoucher(List<Guid> voucherIds, Repositories.Entities.Order order, PaymentType? paymentType)
+        //    var takeExtraFeature = await _unitOfWork.PackageFeatureRepository.GetAllAsync(
+        //        filter: _ => extraFeatureIds.Contains(_.Id) && _.IsExtra == true
+        //    );
+        //    if (takeExtraFeature?.Data == null || !takeExtraFeature.Data.Any())
+        //    {
+        //        return;
+        //    }
+        //    //var checkMaxQuantity = takeExtraFeature.Data.Where(pf =>
+        //    //    orderAddModel.OrderInformationAddModels!
+        //    //        .Any(_ => _.PackageFeatureId == pf.Id && _.Quantity > pf.MaxQuantity));
+        //    //if (checkMaxQuantity != null)
+        //    //{
+        //    //    throw new Exception("Quantity in order information cannot greater than max quantity in feature package");
+        //    //}
+        //    var extraFeatureCost = takeExtraFeature.Data.Sum(pf =>
+        //        orderAddModel.OrderInformationAddModels!
+        //            .Where(_ => _.PackageFeatureId == pf.Id)
+        //            .Sum(_ => (_.Quantity ?? 1) * (pf.AdditionalCost ?? 0))
+        //    );
+        //    var extraFeatureDeliveryTime = takeExtraFeature.Data.Sum(pf =>
+        //        orderAddModel.OrderInformationAddModels!
+        //            .Where(_ => _.PackageFeatureId == pf.Id)
+        //            .Sum(_ => (pf.AdditionalDay ?? 0))
+        //    );
+        //    if (extraFeatureCost > 0)
+        //    {
+        //        newOrder.DeliveryTime += extraFeatureDeliveryTime;
+        //        newOrder.TotalPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+        //        newOrder.OriginPrice += (decimal)(extraFeatureCost * newOrder.Quantity);
+        //        var newCommission = await AdminCommission((decimal)((decimal)newOrder.TotalPrice - newOrder.ShippingPrice), 0);
+        //        newOrder.AdminCommDefault = newCommission;
+        //        newOrder.ArtistRevenue = (newOrder.TotalPrice - newOrder.ShippingPrice - newCommission);
+        //    }
+        //}
+        private async Task ApplyVoucher(List<Guid> voucherIds, Repositories.Entities.Order order, PaymentType? paymentType, Guid serviceId)
         {
             if (voucherIds.Distinct().Count() != voucherIds.Count)
             {
@@ -524,7 +548,14 @@ namespace Chillde.Services.Services
                 var voucher = vouchers.Data.FirstOrDefault(_ => _.Id == voucherId);
                 if (voucher == null) throw new Exception("No valid vouchers found.");
 
-
+                var hasUsed =
+              await _unitOfWork.VoucherUsageLogRepository.CheckCustomerHasUsedVoucher(voucher.Id,
+                  (Guid)order.CreatedById, serviceId);
+                if (hasUsed)
+                {
+                    throw new Exception($"The order has used this voucher.");
+                     
+                }
                 if (voucher.MinOrderValue.HasValue && remainingOrderPrice < voucher.MinOrderValue.Value)
                 {
                     throw new Exception($"The order has at least {voucher.MinOrderValue} to apply this voucher.");
