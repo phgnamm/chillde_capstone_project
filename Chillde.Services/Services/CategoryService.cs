@@ -328,6 +328,7 @@ namespace Chillde.Services.Services
                 }
                 Expression<Func<Category, bool>> filter = category =>
                     (category.IsDeleted == categoryFilterModel.IsDeleted) &&
+                    (categoryFilterModel.IncludeChildren || category.ParentId == null) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
                       (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
                       (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
