@@ -1,4 +1,4 @@
-﻿/*using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -32,7 +32,19 @@ namespace Chillde.Services.Services
             _logQueue = new ConcurrentQueue<UserActivityLogAddModel>();
             _timer = new PeriodicTimer(TimeSpan.FromSeconds(300));
 
-            var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"]! };
+            var factory = new ConnectionFactory()
+            {
+                HostName = _configuration["RabbitMQ:HostName"],
+                UserName = _configuration["RabbitMQ:UserName"],
+                Password = _configuration["RabbitMQ:Password"],
+                VirtualHost = _configuration["RabbitMQ:UserName"],
+                Port = 5671, 
+                Ssl = new SslOption
+                {
+                    Enabled = true,
+                    ServerName = _configuration["RabbitMQ:HostName"]
+                }
+            };
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
             _channel.QueueDeclare(queue: "user_activity_queue", durable: true, exclusive: false, autoDelete: false, arguments: null);
@@ -161,4 +173,3 @@ namespace Chillde.Services.Services
         }
     }
 }
-*/

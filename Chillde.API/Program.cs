@@ -86,10 +86,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-//builder.Services.AddHostedService<WorkerService>();
-//builder.Services.AddHostedService<OrderTrackingReminderService>();
-//builder.Services.AddHostedService<OrderReminderService>();
-//builder.Services.AddScoped<IOrderReminderService, OrderReminderService>();
 
 builder.Services.AddSwaggerGen(options =>
 {

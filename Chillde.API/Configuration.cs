@@ -101,19 +101,8 @@ public static class Configuration
             settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
 
-        //RabbitMQ
-        //services.AddSingleton<IConnection>(sp =>
-        //{
-        //    var configuration = sp.GetRequiredService<IConfiguration>();
-        //    var factory = new ConnectionFactory()
-        //    {
-        //        HostName = configuration["RabbitMQ:HostName"]!,
-        //    };
-        //    return factory.CreateConnection();
-        //});
-
         //WorkerService
-        //services.AddHostedService<WorkerService>();
+        services.AddHostedService<WorkerService>();
 
 
         services.Configure<RequestLocalizationOptions>(options =>

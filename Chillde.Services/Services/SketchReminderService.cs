@@ -34,6 +34,8 @@ namespace Chillde.Services.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
+                Console.WriteLine($"[SketchReminderService] Worker is running at {DateTime.UtcNow}");
+                _logger.LogInformation("[SketchReminderService] Worker is running at {Time}", DateTime.UtcNow);
                 using (var scope = _serviceScopeFactory.CreateScope())
                 {
                     var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
