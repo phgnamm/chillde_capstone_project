@@ -3886,19 +3886,19 @@ public static class InitialSeeding
 
         #region Seeding
         // Seed Reports and ReportAttachments
-        foreach (var report in Reports)
-        {
-            if (!context.Reports.Any(r => r.Id == report.Id))
-            {
-                if (context.Orders.Any(o => o.Id == report.OrderId))
-                {
-                    continue;
-                }
+        //foreach (var report in Reports)
+        //{
+        //    if (!context.Reports.Any(r => r.Id == report.Id))
+        //    {
+        //        if (context.Orders.Any(o => o.Id == report.OrderId))
+        //        {
+        //            continue;
+        //        }
 
-                report.CreationDate = DateTime.UtcNow;
-                context.Reports.Add(report);
-            }
-        }
+        //        report.CreationDate = DateTime.UtcNow;
+        //        context.Reports.Add(report);
+        //    }
+        //}
         // foreach (var wallet in Wallets)
         // {
         //     if (!context.Wallets.Any(c => c.Id == wallet.Id))
