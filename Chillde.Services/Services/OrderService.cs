@@ -2724,24 +2724,24 @@ namespace Chillde.Services.Services
                 order.Stage = OrderStage.Report;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_ReportOrder).Result;
-                if (notificationContent != null)
-                {
-                    var notificationAddModel = new NotificationAddModel
-                    {
-                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
-                        NotificationContentId = notificationContent.Id,
-                        SourceId = order.Id
-                    };
-                    await _notificationService.PushNotification(notificationAddModel);
-                }
-
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
                 {
                     var reportModel = _mapper.Map<ReportModel>(report);
                     reportModel.ReportAttachments = attachmentModels;
+
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_ReportOrder).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
 
                     return new ResponseModel
                     {
