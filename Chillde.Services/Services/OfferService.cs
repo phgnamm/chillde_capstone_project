@@ -888,6 +888,8 @@ namespace Chillde.Services.Services
                     }
                 }
                 await _unitOfWork.SaveChangeAsync();
+                await _redisHelper.InvalidateCacheByPatternAsync($"offer_{offerId}");
+                await _redisHelper.InvalidateCacheByPatternAsync("offers_*");
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
@@ -935,6 +937,8 @@ namespace Chillde.Services.Services
                 }
                 _unitOfWork.OfferRepository.SoftRemove(existingOffer);
                 var changes = await _unitOfWork.SaveChangeAsync();
+                await _redisHelper.InvalidateCacheByPatternAsync($"offer_{offerId}");
+                await _redisHelper.InvalidateCacheByPatternAsync("offers_*");
                 return changes > 0
                     ? new ResponseModel
                     { Code = StatusCodes.Status200OK, Message = "Offer and its translation deleted successfully." }
