@@ -10,8 +10,8 @@ namespace Chillde.Repositories.Common;
 /// <summary>
 ///     This class is used to insert initial data
 /// </summary>
-public static class InitialSeeding
-{
+//public static class InitialSeeding
+//{
 //    private static readonly List<Entities.Role> Roles = new()
 //    {
 //        new() { Id = Guid.Parse("0195a73a-98fe-71a2-a007-25cc6c3d26f1"), Name = Enums.Role.Admin.ToString() },
@@ -3856,7 +3856,7 @@ public static class InitialSeeding
 //            }
 //        }
 
-        #region Seeding
+        //#region Seeding
         // Seed Reports and ReportAttachments
         //foreach (var report in Reports)
         //{
@@ -3974,4 +3974,4 @@ public static class InitialSeeding
 
 //        await context.SaveChangesAsync();
 //    }
-}
+//}
