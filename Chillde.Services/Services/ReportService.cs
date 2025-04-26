@@ -461,7 +461,7 @@ namespace Chillde.Services.Services
                 Shipment shipment = new()
                 {
                     OrderId = order.Id,
-                    TrackingId = parsedJson!.Order!.TrackingId.ToString(),
+                    TrackingId = parsedJson?.Order?.TrackingId.ToString() ?? string.Empty,
                     CurrentStatusId = (ShipmentStatus)(parsedJson.Order?.StatusId ?? 0),
                     PartnerId = parsedJson!.Order!.PartnerId,
                     Label = parsedJson.Order.Label,

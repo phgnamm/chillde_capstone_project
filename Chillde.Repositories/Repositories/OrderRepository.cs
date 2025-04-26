@@ -57,7 +57,7 @@ namespace Chillde.Repositories.Repositories
                 .Where(_ => _.Status == OrderStatus.Accepted
                              && _.Stage == OrderStage.ReviewSketch && _.StartTime.HasValue && _.DeliveryTime.HasValue)
                 .Include(_ => _.Package)
-                .ThenInclude(_ => _.Service)
+                .ThenInclude(_ => _.Service).ThenInclude(_ => _.CreatedBy.Wallet)
                 .Include(_ => _.CreatedBy)
                     .ThenInclude(_ => _.Wallet)
                  .Include(_ => _.CreatedBy)
