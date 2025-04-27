@@ -565,7 +565,6 @@ namespace Chillde.Services.Services
                         Message = "No shipment found for the specified order."
                     };
                 }
-
                 var shipmentResponses = shipment.Select(shipment => new ShipmentDetailModel
                 {
                     TrackingId = shipment.TrackingId,
