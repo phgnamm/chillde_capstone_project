@@ -1893,7 +1893,7 @@ namespace Chillde.Services.Services
                     }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: s =>
-                            s.IsDeleted == false &&
+                            s.IsDeleted == false && (serviceFilterModel.Status == ServiceStatus.Active) &&
                             (string.IsNullOrEmpty(serviceFilterModel.IdOrUserName) || (filterId.HasValue && s.CreatedById == filterId.Value)
                             || s.CreatedBy.Username.Contains(serviceFilterModel.IdOrUserName)) &&
                             (!serviceFilterModel.CategoryId.HasValue || s.CategoryId == serviceFilterModel.CategoryId) &&

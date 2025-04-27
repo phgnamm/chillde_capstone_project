@@ -752,7 +752,8 @@ public class AccountService : IAccountService
                         .Include(a => a.ShippingAddresses)
                         .Include(a => a.Wallet)
                         .ThenInclude(w => w.Transactions)
-                        .Include(a => a.Orders));
+                        .Include(a => a.Orders)
+                        .Include(a => a.Services));
             else
                 account = await _unitOfWork.AccountRepository.FindByUsernameAsync(idOrUsername, accounts =>
                     accounts
@@ -760,7 +761,8 @@ public class AccountService : IAccountService
                         .Include(a => a.ShippingAddresses)
                         .Include(a => a.Wallet)
                         .ThenInclude(w => w.Transactions)
-                        .Include(a => a.Orders));
+                        .Include(a => a.Orders)
+                        .Include(a => a.Services));
 
             if (account == null)
                 return new ResponseModel
@@ -1878,7 +1880,7 @@ public class AccountService : IAccountService
             var data = revenueByMonth.FirstOrDefault(r => r.Month == month);
             return new RevenueChart
             {
-                Month = month.ToString("MMM", CultureInfo.InvariantCulture),
+                Month = $"Tháng {month.Month}",
                 TotalPriceWithoutShipFee = data?.TotalPriceWithoutShipFee ?? 0,
                 TotalPlatformFee = data?.TotalPlatformFee ?? 0,
                 TotalArtisanRevenue = (data?.TotalPriceWithoutShipFee ?? 0) - (data?.TotalPlatformFee ?? 0)
