@@ -36,6 +36,7 @@ using Chillde.Services.Helpers;
 using Chillde.Repositories.Models.NotificationModels;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
 using StackExchange.Redis;
+using CloudinaryDotNet;
 
 namespace Chillde.Services.Services
 {
@@ -192,7 +193,7 @@ namespace Chillde.Services.Services
                     var notificationAddModel = new NotificationAddModel
                     {
                         Content = notificationContent.Content.Replace("[#serviceName]", existService.Name),
-                        AccountId = existService.CategoryId,
+                        AccountId = (Guid)existService.CreatedById,
                         NotificationContentId = notificationContent.Id,
                         SourceId = existService.Id
                     };
