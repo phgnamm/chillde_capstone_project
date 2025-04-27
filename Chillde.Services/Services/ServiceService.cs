@@ -1907,23 +1907,23 @@ namespace Chillde.Services.Services
                                 case "category":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Category.Slug)
-                                        : s.OrderBy(s => s.CreationDate);
+                                        : s.OrderBy(s => s.Category.Slug);
                                 case "packagecount":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Count())
-                                        : s.OrderBy(s => s.CreationDate);
+                                        : s.OrderBy(s => s.Packages.Count());
                                 case "minprice":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Min(p => p.Price))
-                                        : s.OrderBy(s => s.CreationDate);
+                                        : s.OrderBy(s => s.Packages.Min(p => p.Price));
                                 case "maxprice":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Packages.Max(p => p.Price))
-                                        : s.OrderBy(s => s.CreationDate);
+                                        : s.OrderBy(s => s.Packages.Max(p => p.Price));
                                 case "rating":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.Rate)
-                                        : s.OrderBy(s => s.CreationDate);
+                                        : s.OrderBy(s => s.Rate);
                                 case "status":
                                     return serviceFilterModel.OrderByDescending
                                         ? s.OrderByDescending(s => s.IsDeleted)
