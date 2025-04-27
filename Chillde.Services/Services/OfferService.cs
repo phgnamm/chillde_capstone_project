@@ -484,6 +484,7 @@ namespace Chillde.Services.Services
                             IsInformationRequired = featureModel.IsInformationRequired,
                             IsQuantity = featureModel.IsQuantity,
                             QuestionType = featureModel.QuestionType,
+                            Question = featureModel.Question,
                         };
                         features.Add(newFeature);
 
