@@ -55,6 +55,18 @@ namespace Chillde.Services.Services
         private readonly ISystemConfigService _systemConfigService;
         private readonly IBadWordFilterService _badWordFilterService;
         private readonly INotificationService _notificationService;
+        public class KeywordDocument
+        {
+            public Guid Id { get; set; }
+            public string Keyword { get; set; }
+            public SuggestField Suggest { get; set; }
+        }
+
+        public class SuggestField
+        {
+            public string[] Input { get; set; }
+            public int Weight { get; set; }
+        }
 
         public ServiceService(IElasticClient client,
             IOpenAiService openAiService,
@@ -462,15 +474,15 @@ namespace Chillde.Services.Services
                 };
 
                 await _unitOfWork.ServiceRepository.AddAsync(service);
-                await EnsureElasticsearchIndexExistsAsync("test_keywords1");
+                await EnsureElasticsearchIndexExistsAsync("test_keywords2");
 
                 var keywords = _keywordGenerator.GenerateKeywords(service.Name.ToLower());
                 service.Keywords = keywords;
-                var elasticResult = await IndexKeywordsAsync("test_keywords1", keywords);
+                var elasticResult = await IndexKeywordsAsync("test_keywords2", keywords);
                 if (!elasticResult)
                     return new ResponseModel { Message = "Failed to insert keywords into Elasticsearch.", Code = StatusCodes.Status500InternalServerError };
                 //await _client.IndexAsync(new { id = service.Id, embeddingVector = service.EmbeddingVector }, i => i.Index("test_embedding"));
-                var serviceResult = await IndexServiceAsync("test_service1", service);
+                var serviceResult = await IndexServiceAsync("test_service2", service);
                 if (!serviceResult)
                 {
                     return new ResponseModel
@@ -573,28 +585,45 @@ namespace Chillde.Services.Services
                     .Analyzers(an => an.Custom("edge_ngram_analyzer", ca => ca
                         .Tokenizer("edge_ngram_tokenizer")
                         .Filters("lowercase")))))
-                .Map<object>(m => m.Properties(p => p
-                    .Text(t => t.Name("keyword")
+                .Map<KeywordDocument>(m => m.Properties(p => p
+                    .Text(t => t.Name(n => n.Keyword)
                         .Analyzer("edge_ngram_analyzer")
                         .SearchAnalyzer("standard"))
-                    .Completion(c => c.Name("suggest")))));
+                    .Completion(c => c.Name(n => n.Suggest))
+                )));
         }
+
 
         private async Task<bool> IndexKeywordsAsync(string indexName, IEnumerable<string> keywords)
         {
-            var bulkOps = keywords.Select(keyword => new
+            var bulkOps = keywords.Select(keyword => new KeywordDocument
             {
-                id = Guid.NewGuid(),
-                keyword,
-                suggest = new { input = new[] { keyword }, weight = 1 }
+                Id = Guid.NewGuid(),
+                Keyword = keyword,
+                Suggest = new SuggestField
+                {
+                    Input = new[] { keyword },
+                    Weight = 1
+                }
             });
 
             var bulkResponse = await _client.BulkAsync(b => b
                 .Index(indexName)
-                .IndexMany(bulkOps));
+                .IndexMany(bulkOps, (descriptor, doc) => descriptor.Id(doc.Id))
+            );
+
+            if (bulkResponse.Errors)
+            {
+                foreach (var itemWithError in bulkResponse.ItemsWithErrors)
+                {
+                    Console.WriteLine($"Failed to index document {itemWithError.Id}: {itemWithError.Error}");
+                }
+            }
 
             return !bulkResponse.Errors;
         }
+
+
 
         private async Task<bool> IndexServiceAsync(string indexName, Service service)
         {
@@ -1394,7 +1423,7 @@ namespace Chillde.Services.Services
         private async Task<Pagination<ServiceModel>?> SearchFuzzyMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
             var fuzzySearchResponse = await _client.SearchAsync<Service>(s => s
-                .Index("test_service")
+                .Index("test_service2")
                 .Query(q => q
                     .Bool(b => b
                         .Should(
@@ -1450,7 +1479,7 @@ namespace Chillde.Services.Services
         private async Task<Pagination<ServiceModel>?> SearchExactMatch(ServiceFilterModel serviceFilterModel, int pageIndex, int pageSize)
         {
             var exactMatchResponse = await _client.SearchAsync<Service>(s => s
-                .Index("test_service")
+                .Index("test_service2")
                 .Query(q => q
                     .Terms(t => t
                         .Field(p => p.Keywords.Suffix("keyword"))
@@ -1513,7 +1542,7 @@ namespace Chillde.Services.Services
             var normalizedEmbedding = inputEmbedding.Select(x => (float)(x / magnitude)).ToArray();
 
             var embeddingSearchResponse = await _client.SearchAsync<Service>(s => s
-                .Index("test_service")
+                .Index("test_service2")
                 .Query(q => q
                     .Bool(b => b
                         .Should(

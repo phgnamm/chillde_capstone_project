@@ -115,7 +115,8 @@ namespace Chillde.Services.Services
                 Amount = t.Amount ?? 0.0m,
                 Description = t.Description ?? string.Empty,
                 Status = t.Status,
-                Type = t.Type
+                Type = t.Type,
+                CreationDate = t.CreationDate
             }).ToList();
 
             var result = new Pagination<WalletHistoryModel>(walletHistoryModels,
