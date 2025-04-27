@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.Services.Models.ShipmentStatusHistoryModels;
 using Microsoft.EntityFrameworkCore.Storage;
+using Chillde.Services.Helpers;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -422,7 +423,8 @@ namespace Chillde.Services.Services
                             Amount = order.TotalPrice,
                             Type = TransactionType.TransferIn,
                             Status = TransactionStatus.Completed,
-                            CreatedById = customerAccount.Id
+                            CreatedById = customerAccount.Id,
+                            Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
                         });
 
                         // Trừ điểm uy tín nghệ nhân
@@ -734,7 +736,9 @@ namespace Chillde.Services.Services
                         Amount = order.TotalPrice,
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
-                        CreatedById = customerAccount.Id
+                        CreatedById = customerAccount.Id,
+                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+
                     });
 
                     // Trừ điểm uy tín nghệ nhân

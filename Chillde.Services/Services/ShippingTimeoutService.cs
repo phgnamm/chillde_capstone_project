@@ -3,6 +3,7 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.NotificationModels;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -171,7 +172,9 @@ namespace Chillde.Services.Services
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
                         WalletId = customerAccount.Wallet.Id,
-                        CreatedById = customerAccount.Id
+                        CreatedById = customerAccount.Id,
+                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+
                     };
                     customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
                     order.Transactions.Add(refundTransaction);
