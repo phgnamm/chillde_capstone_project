@@ -12,6 +12,7 @@ namespace Chillde.Repositories.Models.WalletHistoryModels
     {
         public decimal? Amount { get; set; }
         public string? OrderCode { get; set; }
+        public string? Description { get; set; }
         public TransactionType Type { get; set; }
 
         public TransactionStatus Status { get; set; }

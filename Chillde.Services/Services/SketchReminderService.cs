@@ -8,6 +8,7 @@ using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.SystemConfigModel;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -102,6 +103,8 @@ namespace Chillde.Services.Services
                                 CreatedById = null,
                                 Status = TransactionStatus.Completed,
                                 WalletId = order.CreatedBy.Wallet.Id,
+                                Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+
                             });
                             order.Transactions.Add(new Transaction
                             {
@@ -110,6 +113,8 @@ namespace Chillde.Services.Services
                                 CreatedById = null,
                                 Status = TransactionStatus.Completed,
                                 WalletId = order.Package.Service.CreatedBy.Wallet.Id,
+                                Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Artisan)
+
                             });
                             lastSketchTracking.IsDeadlineSent = true;
                             unitOfWork.OrderTrackingRepository.Update(lastSketchTracking);

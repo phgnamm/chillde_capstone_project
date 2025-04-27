@@ -8,6 +8,7 @@ public class Transaction : BaseEntity
     public TransactionType Type { get; set; }
 
     public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
+    public required string Description { get; set; }
 
     // Foreign key
     public Guid WalletId { get; set; }

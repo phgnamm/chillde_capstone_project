@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chillde.Services.Helpers;
 
 namespace Chillde.Services.Services
 {
@@ -137,7 +138,9 @@ namespace Chillde.Services.Services
                                 Amount = order.ArtistRevenue,
                                 Type = TransactionType.TransferIn,
                                 Status = TransactionStatus.Completed,
-                                CreatedById = artisanAccount.CreatedById
+                                CreatedById = artisanAccount.CreatedById,
+                                Description = TransactionInformationHelper.TransferInInformation(order.Code, Chillde.Repositories.Enums.Role.Artisan)
+
                             });
 
                             order.Stage = OrderStage.Completed;
