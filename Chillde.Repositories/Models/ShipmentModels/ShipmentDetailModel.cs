@@ -1,4 +1,5 @@
-﻿using Chillde.Repositories.Enums;
+﻿using Chillde.Repositories.Entities;
+using Chillde.Repositories.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Chillde.Repositories.Models.ShipmentModels
 {
-    public class ShipmentDetailModel
+    public class ShipmentDetailModel : BaseEntity
     {
         public string? TrackingId { get; set; }
         public ShipmentStatus CurrentStatusId { get; set; }
