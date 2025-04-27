@@ -30,77 +30,98 @@ namespace Chillde.Services.Services
 
         public async Task<ResponseModel> GetAllTransactionsFromUser(TransactionFilterModel transactionFilterModel)
         {
+            IQueryable<Transaction> transactionsQuery;
 
-            //var currentUserId = _claimService.GetCurrentUserId;
-            var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
-                  filter: _ =>
-                  (!transactionFilterModel.IsDeleted.HasValue || _.IsDeleted == transactionFilterModel.IsDeleted) &&
-                  (!transactionFilterModel.AccountId.HasValue || _.CreatedById == transactionFilterModel.AccountId) &&
-                  (!transactionFilterModel.TransactionStatus.HasValue || _.Status == (TransactionStatus)transactionFilterModel.TransactionStatus) &&
-                                          (string.IsNullOrEmpty(transactionFilterModel.Search) || (
-                                              _.Order.Code.Contains(transactionFilterModel.Search) ||
-                                              _.Amount.Equals(transactionFilterModel.Search)
-                                          )),
-                    order: s =>
-                    {
-                        switch ((transactionFilterModel.Order?.ToLower()))
-                        {
-                            case "ordercode":
-                                return transactionFilterModel.OrderByDescending
-                                    ? s.OrderByDescending(x => x.Order.Code)
-                                    : s.OrderBy(x => x.Order.Code);
-
-                            case "amount":
-                                return transactionFilterModel.OrderByDescending
-                                    ? s.OrderByDescending(x => x.Amount)
-                                    : s.OrderBy(x => x.Amount);
-
-                            case "transactiontype":
-                                return transactionFilterModel.OrderByDescending
-                                    ? s.OrderByDescending(x => x.Type)
-                                    : s.OrderBy(x => x.Type);
-
-                            case "creationdate":
-                                return transactionFilterModel.OrderByDescending
-                                    ? s.OrderByDescending(x => x.CreationDate)
-                                    : s.OrderBy(x => x.CreationDate);
-
-                            case "transactionstatus":
-                                return transactionFilterModel.OrderByDescending
-                                    ? s.OrderByDescending(s => s.Status)
-                                    : s.OrderBy(s => s.Status);                      
-
-                            default:
-                                return transactionFilterModel.OrderByDescending
-                                    ? s.OrderByDescending(x => x.CreationDate)
-                                    : s.OrderBy(x => x.CreationDate);
-                        }
-                    },
-                  include: walletHistory => walletHistory.Include(_ => _.Wallet) .Include(_ => _.Order),
-                  pageIndex: transactionFilterModel.PageIndex,
-                  pageSize: transactionFilterModel.PageSize
-              );
-
-            if (walletHistory.Data == null || !walletHistory.Data.Any())
+            if (transactionFilterModel.AccountId.HasValue)
             {
-                return new ResponseModel
+                var account = await _unitOfWork.AccountRepository.GetAsync(
+                    transactionFilterModel.AccountId.Value,
+                    include: _ => _.Include(a => a.Wallet)
+                                  .ThenInclude(w => w.Transactions)
+                                  .ThenInclude(t => t.Order)
+                );
+
+                if (account?.Wallet?.Transactions == null || !account.Wallet.Transactions.Any())
                 {
-                    Data = null,
-                    Message = "No wallet history found for this user."
-                };
+                    return new ResponseModel
+                    {
+                        Data = null,
+                        Message = "No transactions found for this account."
+                    };
+                }
+
+                transactionsQuery = account.Wallet.Transactions.AsQueryable();
             }
-            var walletHistoryModels = walletHistory.Data.Select(_ => new WalletHistoryModel
+            else
             {
-                Id = _.Id,
-                WalletId = _.WalletId,
-                OrderCode = _.Order.Code,
-                Amount = _.Amount ?? 0.0m,
-                Status = _.Status,
-               Type = _.Type
+                var walletHistory = await _unitOfWork.TransactionRepository.GetAllAsync(
+                    filter: null,
+                    include: t => t.Include(x => x.Wallet).Include(x => x.Order)
+                );
+
+                if (walletHistory.Data == null || !walletHistory.Data.Any())
+                {
+                    return new ResponseModel
+                    {
+                        Data = null,
+                        Message = "No wallet history found."
+                    };
+                }
+
+                transactionsQuery = walletHistory.Data.AsQueryable();
+            }
+
+            transactionsQuery = transactionsQuery.Where(t =>
+                (!transactionFilterModel.IsDeleted.HasValue || t.IsDeleted == transactionFilterModel.IsDeleted) &&
+                (!transactionFilterModel.TransactionStatus.HasValue || t.Status == (TransactionStatus)transactionFilterModel.TransactionStatus) &&
+                (string.IsNullOrEmpty(transactionFilterModel.Search) ||
+                    (t.Order != null && t.Order.Code.Contains(transactionFilterModel.Search)) ||
+                    (t.Amount.HasValue && t.Amount.Value.ToString().Contains(transactionFilterModel.Search)))
+            );
+
+            transactionsQuery = transactionFilterModel.Order?.ToLower() switch
+            {
+                "ordercode" => transactionFilterModel.OrderByDescending
+                    ? transactionsQuery.OrderByDescending(x => x.Order.Code)
+                    : transactionsQuery.OrderBy(x => x.Order.Code),
+                "amount" => transactionFilterModel.OrderByDescending
+                    ? transactionsQuery.OrderByDescending(x => x.Amount)
+                    : transactionsQuery.OrderBy(x => x.Amount),
+                "transactiontype" => transactionFilterModel.OrderByDescending
+                    ? transactionsQuery.OrderByDescending(x => x.Type)
+                    : transactionsQuery.OrderBy(x => x.Type),
+                "creationdate" => transactionFilterModel.OrderByDescending
+                    ? transactionsQuery.OrderByDescending(x => x.CreationDate)
+                    : transactionsQuery.OrderBy(x => x.CreationDate),
+                "transactionstatus" => transactionFilterModel.OrderByDescending
+                    ? transactionsQuery.OrderByDescending(x => x.Status)
+                    : transactionsQuery.OrderBy(x => x.Status),
+                _ => transactionFilterModel.OrderByDescending
+                    ? transactionsQuery.OrderByDescending(x => x.CreationDate)
+                    : transactionsQuery.OrderBy(x => x.CreationDate)
+            };
+
+            var totalCount = transactionsQuery.Count();
+            var pagedTransactions = transactionsQuery
+                .Skip((transactionFilterModel.PageIndex - 1) * transactionFilterModel.PageSize)
+                .Take(transactionFilterModel.PageSize)
+                .ToList();
+
+            var walletHistoryModels = pagedTransactions.Select(t => new WalletHistoryModel
+            {
+                Id = t.Id,
+                WalletId = t.WalletId,
+                OrderCode = t.Order?.Code ?? string.Empty,
+                Amount = t.Amount ?? 0.0m,
+                Description = t.Description ?? string.Empty,
+                Status = t.Status,
+                Type = t.Type
             }).ToList();
 
-            var result = new Pagination<WalletHistoryModel>(walletHistoryModels, transactionFilterModel.PageIndex,
-                 transactionFilterModel.PageSize, walletHistory.TotalCount);
+            var result = new Pagination<WalletHistoryModel>(walletHistoryModels,
+                transactionFilterModel.PageIndex,
+                transactionFilterModel.PageSize,
+                totalCount);
 
             return new ResponseModel
             {
@@ -108,6 +129,7 @@ namespace Chillde.Services.Services
                 Data = result
             };
         }
+
 
     }
 }

@@ -13,6 +13,8 @@ namespace Chillde.Repositories.Entities
         public DepositType Type { get; set; }
 
         public DepositStatus Status { get; set; } = DepositStatus.Pending;
+        public required string Description { get; set; }
+
 
         // Foreign key
         public Guid WalletId { get; set; }

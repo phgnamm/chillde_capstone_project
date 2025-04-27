@@ -5,6 +5,7 @@ using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.DepositModels;
 using Chillde.Repositories.Models.ReputationLogModels;
 using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.DepositModels;
 using Chillde.Services.Models.ResponseModels;
@@ -93,6 +94,7 @@ namespace Chillde.Services.Services
                     Type = DepositType.Withdraw,
                     Status = DepositStatus.Success,
                     WalletId = account.Wallet.Id,
+                    Description = TransactionInformationHelper.DepositInformation(null, amount)
                 };
                 
                 await _unitOfWork.DepositRepository.AddAsync(deposit);
