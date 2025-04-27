@@ -23,7 +23,7 @@ namespace Chillde.Services.Helpers
             public static string TransferInInformation(string orderCode, Chillde.Repositories.Enums.Role role)
             {
                 return role == Chillde.Repositories.Enums.Role.Customer
-                    ? $"Số dư đã được hoàn lại từ đơn hàng [{orderCode}]."
+                    ? $"Số tiền đã được hoàn lại từ đơn hàng [{orderCode}]."
                     : $"Đã nhận thanh toán vào số dư từ đơn hàng [{orderCode}].";
             }
 
