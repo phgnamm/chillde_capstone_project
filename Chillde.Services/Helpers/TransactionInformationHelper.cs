@@ -17,19 +17,19 @@ namespace Chillde.Services.Helpers
             
 
             }
-            return $"Đã nạp tiền cho đơn hàng [{orderCode}].";
+            return $"Nạp tiền cho đơn hàng [{orderCode}].";
             }
 
             public static string TransferInInformation(string orderCode, Chillde.Repositories.Enums.Role role)
             {
                 return role == Chillde.Repositories.Enums.Role.Customer
                     ? $"Số tiền đã được hoàn lại từ đơn hàng [{orderCode}]."
-                    : $"Đã nhận thanh toán vào số dư từ đơn hàng [{orderCode}].";
+                    : $"Doanh thu từ đơn hàng [{orderCode}].";
             }
 
             public static string TransferOutInformation(string orderCode)
             {
-                return $"Đã thanh toán cho đơn hàng [{orderCode}].";
+                return $"Thanh toán cho đơn hàng [{orderCode}].";
             }
 
     }
