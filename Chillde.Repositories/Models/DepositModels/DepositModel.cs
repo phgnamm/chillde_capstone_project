@@ -5,6 +5,7 @@ namespace Chillde.Repositories.Models.DepositModels
     public class DepositModel : BaseEntity
     {
         public decimal? Amount { get; set; }
+        public string? Description { get; set; }
         public DepositType Type { get; set; }
         public DepositStatus Status { get; set; }
         public Guid WalletId { get; set; }

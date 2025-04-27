@@ -1,12 +1,17 @@
-﻿using AutoMapper;
+﻿using System.Globalization;
+using System.Text.Json;
+using AutoMapper;
 using Chillde.Repositories.Common;
 using Chillde.Repositories.Entities;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories.Interfaces;
 using Chillde.Repositories.Models.AccountModels;
 using Chillde.Repositories.Models.ConversationModels;
+using Chillde.Repositories.Models.FeatureModels;
 using Chillde.Repositories.Models.MessageModels;
 using Chillde.Repositories.Models.OfferModels;
+using Chillde.Repositories.Models.PackageModels;
+using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Services.Common;
 using Chillde.Services.Hubs;
 using Chillde.Services.Interfaces;
@@ -16,6 +21,7 @@ using Chillde.Services.Models.ResponseModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace Chillde.Services.Services;
 
@@ -340,13 +346,14 @@ public class ConversationService : IConversationService
             if (addOfferResponse.Data != null)
             {
                 message.OfferId = (Guid)addOfferResponse.Data;
-                var offerResponse = await _offerService.GetByIdAsync((Guid)addOfferResponse.Data, sourceLanguageCode,
-                    targetLanguageCode);
-                ;
-                if (offerResponse.Status)
-                {
-                    offerModel = (OfferModel)offerResponse.Data;
-                }
+                // var offerResponse = await _offerService.GetByIdAsync((Guid)addOfferResponse.Data, sourceLanguageCode,
+                //     targetLanguageCode);
+                // ;
+                // if (offerResponse.Status)
+                // {
+                //     offerModel = (OfferModel)offerResponse.Data;
+                // }
+                offerModel = await GetOffer((Guid)addOfferResponse.Data, sourceLanguageCode, targetLanguageCode);
             }
         }
 
@@ -459,14 +466,16 @@ public class ConversationService : IConversationService
             OfferModel? offerModel = null;
             if (message.OfferId.HasValue)
             {
-                message.OfferId = message.OfferId;
-                var offerResponse =
-                    await _offerService.GetByIdAsync(message.OfferId.Value, sourceLanguageCode, targetLanguageCode);
-                ;
-                if (offerResponse.Status)
-                {
-                    offerModel = (OfferModel)offerResponse.Data;
-                }
+                offerModel = await GetOffer(message.OfferId.Value, sourceLanguageCode, targetLanguageCode);
+                // // message.OfferId = message.OfferId;
+                // var offerResponse =
+                //     await _offerService.GetByIdAsync(message.OfferId.Value, sourceLanguageCode, targetLanguageCode);
+                //
+                // if (offerResponse.Status && offerResponse.Data != null)
+                // {
+                //     // offerModel = (OfferModel)offerResponse.Data;
+                //     // var json = JsonConvert.SerializeObject((OfferModel)offerResponse.Data);
+                // }
             }
 
             messageModels.Add(MapFromMessageToMessageModel(message, offerModel, currentUserId));
@@ -517,6 +526,88 @@ public class ConversationService : IConversationService
             Code = StatusCodes.Status500InternalServerError,
             Message = "Cannot read messages"
         };
+    }
+
+    private async Task<OfferModel?> GetOffer(Guid offerId, string sourceLanguageCode, string targetLanguageCode)
+    {
+        var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
+        Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo(culture);
+
+        try
+        {
+            var offer = await _unitOfWork.OfferRepository.GetOfferAsync(offerId, sourceLanguageCode);
+
+                if (offer == null)
+                {
+                    return null;
+                }
+
+                var offerModel = new OfferModel
+                {
+                    Id = offer.Id,
+                    Status = offer.Status,
+                    Message = offer.Message,
+                    MinWeight = offer.MinWeight,
+                    MaxWeight = offer.MaxWeight,
+                    OfferAttachments = offer.OfferAttachments?.ToList(),
+                    RequestId = offer.RequestId,
+                    ServiceId = offer.ServiceId,
+                    ShippingAddress =
+                        _mapper.Map<ShippingAddressModel?>(offer.CreatedBy.ShippingAddresses.FirstOrDefault()),
+                    CreatedBy = new AccountLiteModel
+                    {
+                        Email = offer.CreatedBy.Email,
+                        FirstName = offer.CreatedBy.FirstName,
+                        LastName = offer.CreatedBy.LastName,
+                        Image = offer.CreatedBy.Image
+                    },
+                    CreationDate = offer.CreationDate,
+                    Package = offer.Package == null
+                        ? null
+                        : new PackageModel
+                        {
+                            Name = offer.Package.Name,
+                            Id = offer.Package.Id,
+                            Description = offer.Package.Description,
+                            Price = offer.Package.Price,
+                            DeliveryTime = offer.Package.DeliveryTime,
+                            MaxQuantity = offer.Package.MaxQuantity,
+                            SketchRevision = offer.Package.SketchRevision,
+                            ResponseTime = TimeSpan.FromMinutes(offer.Package!.ResponseTime),
+                            Features = offer.Package.PackageFeatures?
+                                .Select(pf => pf.Feature)
+                                .Distinct()
+                                .Select(feature => new FeatureModel
+                                {
+                                    Id = feature.Id,
+                                    Name = feature.Name,
+                                    Question = feature.Question,
+                                    QuestionType = feature.QuestionType,
+                                    IsInformationRequired = feature.IsInformationRequired,
+                                    IsQuantity = feature.IsQuantity,
+                                    PackageFeatures = offer.Package.PackageFeatures
+                                        .Where(pf => pf.FeatureId == feature.Id)
+                                        .Select(pf => new PackageFeature
+                                        {
+                                            Id = pf.Id,
+                                            Name = pf.Name,
+                                            AdditionalCost = pf.AdditionalCost,
+                                            AdditionalDay = pf.AdditionalDay,
+                                            IsExtra = pf.IsExtra,
+                                            IsChecked = pf.IsChecked,
+                                            MaxQuantity = pf.MaxQuantity,
+                                        }).ToList()
+                                }).ToList()
+                        }
+                };
+
+                return offerModel;
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
     }
 
     #region Helper

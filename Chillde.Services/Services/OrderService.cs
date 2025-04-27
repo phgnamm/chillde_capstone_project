@@ -137,7 +137,8 @@ namespace Chillde.Services.Services
                 Amount = newOrder.TotalPrice,
                 Type = TransactionType.TransferOut,
                 Status = TransactionStatus.Completed,
-                CreatedById = currentUserId.Value
+                CreatedById = currentUserId.Value,
+                Description = TransactionInformationHelper.TransferOutInformation(newOrder.Code)
             });
             newOrder.PaymentStatus = PaymentStatus.Success;
             _unitOfWork.WalletRepository.Update(wallet);
@@ -228,7 +229,9 @@ namespace Chillde.Services.Services
                         CreatedById = account.Id,
                         Status = DepositStatus.Pending,
                         WalletId = wallet.Id,
-                        OrderId = newOrder.Id
+                        OrderId = newOrder.Id,
+                        Description = TransactionInformationHelper.DepositInformation(newOrder.Code, null)
+
 
                     };
                     wallet.Deposits.Add(deposit);
@@ -238,7 +241,9 @@ namespace Chillde.Services.Services
                         Type = TransactionType.TransferOut,
                         CreatedById = account.Id,
                         Status = TransactionStatus.Pending,
-                        WalletId = wallet.Id
+                        WalletId = wallet.Id,
+                        Description = TransactionInformationHelper.TransferOutInformation(newOrder.Code)
+
                     };
                     newOrder.Transactions.Add(transaction);
                     wallet.Balance -= (decimal)newOrder.TotalPrice;
@@ -641,7 +646,9 @@ namespace Chillde.Services.Services
                 CreatedById = accountId,
                 Status = DepositStatus.Pending,
                 WalletId = wallet.Id,
-                OrderId = order.Id
+                OrderId = order.Id,
+                Description = TransactionInformationHelper.DepositInformation(order.Code, null)
+
             };
 
             var transaction = new Transaction
@@ -650,7 +657,9 @@ namespace Chillde.Services.Services
                 Type = TransactionType.TransferOut,
                 CreatedById = accountId,
                 Status = TransactionStatus.Pending,
-                WalletId = wallet.Id
+                WalletId = wallet.Id,
+                Description = TransactionInformationHelper.TransferOutInformation(order.Code)
+
             };
             order.Transactions.Add(transaction);
             wallet.Deposits.Add(deposit);
@@ -1444,7 +1453,9 @@ namespace Chillde.Services.Services
                             Type = TransactionType.TransferIn,
                             CreatedById = currentUserId.Value,
                             Status = TransactionStatus.Completed,
-                            WalletId = order.CreatedBy.Wallet.Id
+                            WalletId = order.CreatedBy.Wallet.Id,
+                            Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+
                         };
 
                         foreach (var voucherLog in order.VoucherUsageLogs)
@@ -1726,7 +1737,9 @@ namespace Chillde.Services.Services
                     Type = TransactionType.TransferIn,
                     CreatedById = currentUserId.Value,
                     Status = TransactionStatus.Completed,
-                    WalletId = account.Wallet.Id
+                    WalletId = account.Wallet.Id,
+                    Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+
                 };
 
                 account.Wallet.Balance += (decimal)order.TotalPrice;
@@ -2572,7 +2585,9 @@ namespace Chillde.Services.Services
                         Amount = order.ArtistRevenue,
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
-                        CreatedById = artisanAccount.CreatedById
+                        CreatedById = artisanAccount.CreatedById,
+                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Artisan)
+
                     });
 
                     order.Stage = OrderStage.Completed;
@@ -2724,24 +2739,24 @@ namespace Chillde.Services.Services
                 order.Stage = OrderStage.Report;
                 _unitOfWork.OrderRepository.Update(order);
 
-                var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_ReportOrder).Result;
-                if (notificationContent != null)
-                {
-                    var notificationAddModel = new NotificationAddModel
-                    {
-                        Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
-                        AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
-                        NotificationContentId = notificationContent.Id,
-                        SourceId = order.Id
-                    };
-                    await _notificationService.PushNotification(notificationAddModel);
-                }
-
                 int result = await _unitOfWork.SaveChangeAsync();
                 if (result > 0)
                 {
                     var reportModel = _mapper.Map<ReportModel>(report);
                     reportModel.ReportAttachments = attachmentModels;
+
+                    var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Artisan_ReportOrder).Result;
+                    if (notificationContent != null)
+                    {
+                        var notificationAddModel = new NotificationAddModel
+                        {
+                            Content = notificationContent.Content.Replace("[#orderCode]", order.Code),
+                            AccountId = (Guid)(order.Package.Service != null ? order.Package.Service.CreatedById : order.Package.Offer?.CreatedById)!,
+                            NotificationContentId = notificationContent.Id,
+                            SourceId = order.Id
+                        };
+                        await _notificationService.PushNotification(notificationAddModel);
+                    }
 
                     return new ResponseModel
                     {

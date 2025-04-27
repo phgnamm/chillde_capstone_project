@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Chillde.Services.Models.ShipmentStatusHistoryModels;
 using Microsoft.EntityFrameworkCore.Storage;
+using Chillde.Services.Helpers;
 namespace Chillde.Services.Services
 {
     public class ShipmentService : IShipmentService
@@ -422,7 +423,8 @@ namespace Chillde.Services.Services
                             Amount = order.TotalPrice,
                             Type = TransactionType.TransferIn,
                             Status = TransactionStatus.Completed,
-                            CreatedById = customerAccount.Id
+                            CreatedById = customerAccount.Id,
+                            Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
                         });
 
                         // Trừ điểm uy tín nghệ nhân
@@ -563,26 +565,26 @@ namespace Chillde.Services.Services
                         Message = "No shipment found for the specified order."
                     };
                 }
-
-                var shipmentResponse = new ShipmentDetailModel
+                var shipmentResponses = shipment.Select(shipment => new ShipmentDetailModel
                 {
                     TrackingId = shipment.TrackingId,
                     CurrentStatusId = shipment.CurrentStatusId,
                     PartnerId = shipment.PartnerId,
                     EstimatedPickTime = shipment.EstimatedPickTime,
                     EstimatedDeliverTime = shipment.EstimatedDeliverTime,
+                    Id = shipment.Id,                 
                     ProductShipments = shipment.ProductShipments.Select(ps => new ProductShipmentResponse
                     {
                         Name = ps.Name,
                         Quantity = ps.Quantity
                     }).ToList()
-                };
+                }).ToList();
 
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status200OK,
                     Message = "Shipment retrieved successfully.",
-                    Data = shipmentResponse
+                    Data = shipmentResponses
                 };
             }
             catch (Exception ex)
@@ -733,7 +735,9 @@ namespace Chillde.Services.Services
                         Amount = order.TotalPrice,
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
-                        CreatedById = customerAccount.Id
+                        CreatedById = customerAccount.Id,
+                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+
                     });
 
                     // Trừ điểm uy tín nghệ nhân

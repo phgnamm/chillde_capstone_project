@@ -15,6 +15,7 @@ using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using OpenAI.GPT3.ObjectModels.ResponseModels;
 
 namespace Chillde.Services.Services
 {
@@ -326,20 +327,67 @@ namespace Chillde.Services.Services
                         categoryFilterModel.Search = translatedValue;
                     }
                 }
+
                 Expression<Func<Category, bool>> filter = category =>
                     (category.IsDeleted == categoryFilterModel.IsDeleted) &&
+                    (categoryFilterModel.IncludeChildren || category.ParentId == null) &&
+                    (!categoryFilterModel.ParentId.HasValue || category.ParentId == categoryFilterModel.ParentId) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Search) ||
                       (category.Name != null && category.Name.ToLower().Contains(categoryFilterModel.Search.ToLower())) ||
                       (category.Slug != null && category.Slug.ToLower().Contains(categoryFilterModel.Search.ToLower()))) &&
                     (string.IsNullOrEmpty(categoryFilterModel.Slug) || (category.Slug != null && category.Slug == categoryFilterModel.Slug));
 
+                //var allCategories = new List<Category>();
                 var allCategoriesResult = await _unitOfWork.CategoryRepository.GetAllAsync(filter: filter);
+                //if (categoryFilterModel.ParentId.HasValue && categoryFilterModel.IncludeChildren)
+                //{
+                //    var categories = new List<Category>();
+                //    var children = allCategoriesResult.Data
+                //        .Where(c => c.ParentId == categoryFilterModel.ParentId)
+                //        .ToList();
+
+                //    categories.AddRange(children);
+
+                //    while (children.Any())
+                //    {
+                //        var nextChildren = allCategoriesResult.Data
+                //            .Where(c => children.Select(x => x.Id).Contains(c.ParentId.Value))
+                //            .ToList();
+
+                //        categories.AddRange(nextChildren);
+                //        children = nextChildren;
+                //    }
+
+                //    allCategories = categories;
+                //}
+                //else if (!categoryFilterModel.ParentId.HasValue && !categoryFilterModel.IncludeChildren)
+                //{
+                //    allCategories = allCategoriesResult.Data.Where(_ => _.ParentId == null).ToList();
+                //}
+                //else
+                //{
+                //    allCategories = allCategoriesResult.Data;
+                //}
+                //if (!categoryFilterModel.IncludeChildren && !categoryFilterModel.ParentId.HasValue)
+                //{
+                //    allCategories = allCategoriesResult.Data.Where(_ => _.ParentId == null).ToList();
+                //}
+                //else if (!categoryFilterModel.IncludeChildren && categoryFilterModel.ParentId.HasValue)
+                //{
+                //    allCategories = allCategoriesResult.Data.Where(_ => _.ParentId == categoryFilterModel.ParentId).ToList();
+                //}
+                //else if (categoryFilterModel.IncludeChildren && categoryFilterModel.ParentId.HasValue)
+                //{
+                //    allCategories = allCategoriesResult.Data.Where(_ => _.ParentId == categoryFilterModel.ParentId).ToList();
+                //}
+                //else
+                //{
+                //    allCategories = allCategoriesResult.Data;
+                //}
                 var allCategories = allCategoriesResult.Data;
                 Thread.CurrentThread.CurrentCulture = originalCulture;
                 Thread.CurrentThread.CurrentUICulture = originalCulture;
-                if (categoryFilterModel.IncludeChildren)
-                {
-                    var rootCategories = allCategories
+                var rootCategories = allCategories
                         .Where(c => c.ParentId == categoryFilterModel.ParentId)
                         .Select(c => BuildCategoryTree(c, allCategories, 0))
                         .ToList();
@@ -363,47 +411,73 @@ namespace Chillde.Services.Services
                         Message = "Get all categories with tree successfully",
                         Data = result
                     };
-                }
-                else
-                {
-                    var flatCategories = allCategories
-                        .Where(c => !categoryFilterModel.ParentId.HasValue || c.ParentId == categoryFilterModel.ParentId)
-                        .Select(category => new CategoryTreeModel
-                        {
-                            Id = category.Id,
-                            Name = _localizer[category.Name!],
-                            Slug = category.Slug,
-                            ParentId = category.ParentId,
-                            AttachmentUrl = category.AttachmentUrl,
-                            AttachmentAlt = category.AttachmentAlt,
-                            CreatedById = category.CreatedById,
-                            CreationDate = category.CreationDate,
-                            ModificationDate = category.ModificationDate,
-                            ModifiedById = category.ModifiedById,
-                            IsDeleted = category.IsDeleted
-                        })
-                        .ToList();
+                //if (categoryFilterModel.IncludeChildren)
+                //{
+                //    var rootCategories = allCategories
+                //        .Where(c => c.ParentId == categoryFilterModel.ParentId)
+                //        .Select(c => BuildCategoryTree(c, allCategories, 0))
+                //        .ToList();
 
-                    var totalCount = flatCategories.Count;
-                    var pagedFlatCategories = flatCategories
-                        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
-                        .Take(categoryFilterModel.PageSize)
-                        .ToList();
+                //    var totalCount = rootCategories.Count;
+                //    var pagedRootCategories = rootCategories
+                //        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
+                //        .Take(categoryFilterModel.PageSize)
+                //        .ToList();
 
-                    var result = new Pagination<CategoryTreeModel>(
-                        pagedFlatCategories,
-                        categoryFilterModel.PageIndex,
-                        categoryFilterModel.PageSize,
-                        totalCount
-                    );
+                //    var result = new Pagination<CategoryTreeModel>(
+                //        pagedRootCategories,
+                //        categoryFilterModel.PageIndex,
+                //        categoryFilterModel.PageSize,
+                //        totalCount
+                //    );
 
-                    return new ResponseModel
-                    {
-                        Code = StatusCodes.Status200OK,
-                        Message = "Get all categories as flat list successfully",
-                        Data = result
-                    };
-                }
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status200OK,
+                //        Message = "Get all categories with tree successfully",
+                //        Data = result
+                //    };
+                //}
+                //else
+                //{
+                //    var flatCategories = allCategories
+                //        .Where(c => !categoryFilterModel.ParentId.HasValue || c.ParentId == categoryFilterModel.ParentId)
+                //        .Select(category => new CategoryTreeModel
+                //        {
+                //            Id = category.Id,
+                //            Name = _localizer[category.Name!],
+                //            Slug = category.Slug,
+                //            ParentId = category.ParentId,
+                //            AttachmentUrl = category.AttachmentUrl,
+                //            AttachmentAlt = category.AttachmentAlt,
+                //            CreatedById = category.CreatedById,
+                //            CreationDate = category.CreationDate,
+                //            ModificationDate = category.ModificationDate,
+                //            ModifiedById = category.ModifiedById,
+                //            IsDeleted = category.IsDeleted
+                //        })
+                //        .ToList();
+
+                //    var totalCount = flatCategories.Count;
+                //    var pagedFlatCategories = flatCategories
+                //        .Skip((categoryFilterModel.PageIndex - 1) * categoryFilterModel.PageSize)
+                //        .Take(categoryFilterModel.PageSize)
+                //        .ToList();
+
+                //    var result = new Pagination<CategoryTreeModel>(
+                //        pagedFlatCategories,
+                //        categoryFilterModel.PageIndex,
+                //        categoryFilterModel.PageSize,
+                //        totalCount
+                //    );
+
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status200OK,
+                //        Message = "Get all categories as flat list successfully",
+                //        Data = result
+                //    };
+                //}
             }
             catch (Exception ex)
             {
