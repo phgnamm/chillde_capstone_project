@@ -452,12 +452,12 @@ namespace Chillde.Services.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var parsedJson = JsonConvert.DeserializeObject<ShipmentAddResponseModel>(responseContent);
 
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode || parsedJson == null || parsedJson.Order == null)
                 {
                     return new ResponseModel
                     {
                         Code = (int)response.StatusCode,
-                        Message = parsedJson.Success,
+                        Message = parsedJson?.Success ?? "Failed to create return shipment. Invalid API response.",
                         Data = parsedJson
                     };
                 }
