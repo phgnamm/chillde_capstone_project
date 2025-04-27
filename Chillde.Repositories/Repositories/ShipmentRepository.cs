@@ -14,7 +14,7 @@ public class ShipmentRepository : GenericRepository<Shipment>, IShipmentReposito
 
     public bool HasAvalaibleShipment(Guid orderId, string partnerId)
     {
-        var hasAvailableShipment =  _dbSet.Any(_ => _.OrderId == orderId && (_.PartnerId!.StartsWith(partnerId)));
+        var hasAvailableShipment = _dbSet.Any(_ => _.OrderId == orderId && (_.PartnerId!.StartsWith(partnerId)));
         return hasAvailableShipment;
     }
 
@@ -26,13 +26,14 @@ public class ShipmentRepository : GenericRepository<Shipment>, IShipmentReposito
 
     public async Task<Shipment?> GetByTrackingIdAsync(string lableId)
     {
-        return await _dbSet.FirstOrDefaultAsync(s=> s.Label == lableId);
+        return await _dbSet.FirstOrDefaultAsync(s => s.Label == lableId);
     }
 
-    public async Task<Shipment?> GetByOrderIdAsync(Guid orderId)
+    public async Task<List<Shipment>> GetByOrderIdAsync(Guid orderId)
     {
         return await _dbSet
-            .Include(s => s.ProductShipments)
-            .FirstOrDefaultAsync(s => s.OrderId == orderId);
+                    .Include(s => s.ProductShipments)
+                    .Where(s => s.OrderId == orderId)
+                    .ToListAsync();
     }
 }
