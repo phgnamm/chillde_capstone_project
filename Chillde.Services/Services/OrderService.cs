@@ -2586,7 +2586,7 @@ namespace Chillde.Services.Services
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
                         CreatedById = artisanAccount.CreatedById,
-                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Artisan)
 
                     });
 
