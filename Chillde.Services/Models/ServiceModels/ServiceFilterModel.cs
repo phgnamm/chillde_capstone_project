@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Common;
+﻿using Chillde.Repositories.Enums;
+using Chillde.Services.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,5 +22,6 @@ namespace Chillde.Services.Models.ServiceModels
         public double? MaxRate { get; set; }
         public int? MinDate { get; set; }
         public int? MaxDate { get; set; }
+        public ServiceStatus Status { get; set; } = ServiceStatus.Active;
     }
 }

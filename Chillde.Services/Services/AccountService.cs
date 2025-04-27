@@ -752,7 +752,8 @@ public class AccountService : IAccountService
                         .Include(a => a.ShippingAddresses)
                         .Include(a => a.Wallet)
                         .ThenInclude(w => w.Transactions)
-                        .Include(a => a.Orders));
+                        .Include(a => a.Orders)
+                        .Include(a => a.Services));
             else
                 account = await _unitOfWork.AccountRepository.FindByUsernameAsync(idOrUsername, accounts =>
                     accounts
@@ -760,7 +761,8 @@ public class AccountService : IAccountService
                         .Include(a => a.ShippingAddresses)
                         .Include(a => a.Wallet)
                         .ThenInclude(w => w.Transactions)
-                        .Include(a => a.Orders));
+                        .Include(a => a.Orders)
+                        .Include(a => a.Services));
 
             if (account == null)
                 return new ResponseModel
@@ -1878,7 +1880,7 @@ public class AccountService : IAccountService
             var data = revenueByMonth.FirstOrDefault(r => r.Month == month);
             return new RevenueChart
             {
-                Month = month.ToString("MMM", CultureInfo.InvariantCulture),
+                Month = $"Tháng {month.Month}",
                 TotalPriceWithoutShipFee = data?.TotalPriceWithoutShipFee ?? 0,
                 TotalPlatformFee = data?.TotalPlatformFee ?? 0,
                 TotalArtisanRevenue = (data?.TotalPriceWithoutShipFee ?? 0) - (data?.TotalPlatformFee ?? 0)
@@ -1950,8 +1952,8 @@ public class AccountService : IAccountService
 
         var months = new[]
 {
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+    "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
 };
 
         var result = Enumerable.Range(1, 12)
