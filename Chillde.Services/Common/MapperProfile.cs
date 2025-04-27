@@ -60,7 +60,7 @@ public class MapperProfile : Profile
             .ForMember(dest => dest.TotalAmountPaid,
                 opt => opt.MapFrom(src =>
                      src.Wallet.Transactions
-                    .Where(t => t.Type == TransactionType.TransferOut) // enum value == 3
+                    .Where(t => t.Type == TransactionType.TransferOut && t.Order.Status == OrderStatus.Completed) // enum value == 3
                     .Sum(t => t.Amount ?? 0)))
             .ForMember(dest => dest.ServiceCount, opt => opt.MapFrom(src => src.Services.Count))
             .ForMember(dest => dest.AccountRoles, opt => opt.MapFrom(src => src.AccountRoles));
