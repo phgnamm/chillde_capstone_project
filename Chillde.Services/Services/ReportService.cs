@@ -8,6 +8,7 @@ using Chillde.Repositories.Models.ReportAttachmentModels;
 using Chillde.Repositories.Models.ReportModels;
 using Chillde.Repositories.Models.ShipmentModels;
 using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.ReportModels;
 using Chillde.Services.Models.ResponseModels;
@@ -246,7 +247,9 @@ namespace Chillde.Services.Services
                     Amount = order.TotalPrice,
                     Type = TransactionType.TransferIn,
                     Status = TransactionStatus.Completed,
-                    CreatedById = currentUserId
+                    CreatedById = currentUserId,
+                    Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Artisan)
+
                 });
                 _unitOfWork.WalletRepository.Update(wallet);
 
@@ -428,8 +431,8 @@ namespace Chillde.Services.Services
                         tel = artisanAddress.PhoneNumber,
                         hamlet = "Khác", 
                         email = artisanAddress.CreatedBy?.Email, 
-                        is_freeship = 0, 
-                        pick_money = 1, 
+                        is_freeship = 1, 
+                        pick_money = 0, 
                         note = $"Trả hàng cho đơn hàng {order.Code}",
                         value = (int)(order.TotalPrice ?? 0),
                         transport = "road", 

@@ -12,6 +12,7 @@ using Chillde.Services.Interfaces;
 using Chillde.Repositories.Enums;
 using Chillde.Repositories;
 using Chillde.Repositories.Interfaces;
+using Chillde.Services.Helpers;
 
 public class DeliveryReminderService : BackgroundService
 {
@@ -285,6 +286,7 @@ public class DeliveryReminderService : BackgroundService
                 Type = TransactionType.TransferIn,
                 Status = TransactionStatus.Completed,
                 WalletId = customerAccount.Wallet.Id,
+                Description = TransactionInformationHelper.TransferInInformation(order.Code, Chillde.Repositories.Enums.Role.Customer)
             };
 
             customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
