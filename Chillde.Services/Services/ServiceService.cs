@@ -436,7 +436,6 @@ namespace Chillde.Services.Services
                         Message = "Unauthorized."
                     };
                 }
-                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
 
                 var category = await _unitOfWork.CategoryRepository.GetAsync(serviceAddModel.CategoryId);
                 if (category == null)
@@ -447,6 +446,7 @@ namespace Chillde.Services.Services
                         Message = "Category not found."
                     };
                 }
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name, category.Name });
 
                 var numberOfExistedService = _unitOfWork.ServiceRepository.GetAllAsync(
                     _ => _.CreatedById == currentUserId && _.IsDeleted == false).Result.TotalCount;
@@ -499,18 +499,6 @@ namespace Chillde.Services.Services
                     {
                         var attachmentAlt = attachmentModel[i].AttachmentAlt;
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
-
-                        // string? path = null;
-                        // if (attachmentUrl != null)
-                        // {
-                        //     path = await _cloudinaryHelper.UploadImageAsync(
-                        //         attachmentUrl,
-                        //         attachmentAlt,
-                        //         Guid.NewGuid().ToString(),
-                        //         folderName: FolderAttachment.SERVICE
-                        //     );
-                        // }
-
                         newServiceAttachment.Add(new ServiceAttachment
                         {
                             AttachmentAlt = attachmentAlt,
@@ -531,19 +519,11 @@ namespace Chillde.Services.Services
                         Data = serviceModel
                     };
                 }
-                //else
-                //{
-                //    return new ResponseModel
-                //    {
-                //        Code = StatusCodes.Status400BadRequest,
-                //        Message = "Service attachments are required."
-                //    };
-                //}
+            
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
                     Message = "Service successfully created.",
-                    //Data = serviceModel
                 };
             }
             catch (Exception ex)
@@ -725,17 +705,6 @@ namespace Chillde.Services.Services
 
                         Guid Id = Guid.NewGuid();
 
-                        // string? path = null;
-                        // if (attachmentUrl != null)
-                        // {
-                        //     path = await _cloudinaryHelper.UploadImageAsync(
-                        //         attachmentUrl,
-                        //         attachmentAlt,
-                        //         Id.ToString(),
-                        //         folderName: FolderAttachment.SERVICE
-                        //     );
-                        // }
-
                         newServiceAttachments.Add(new ServiceAttachment
                         {
                             Id = Id,
@@ -753,16 +722,6 @@ namespace Chillde.Services.Services
                     var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
                     filter: _ => serviceUpdateModel.AttachmentIdsToDelete.Contains(_.Id)
                     );
-
-                    // if (serviceAttachments == null || !serviceAttachments.Data.Any())
-                    // {
-                    //     return new ResponseModel
-                    //     {
-                    //         Code = StatusCodes.Status404NotFound,
-                    //         Message = "Attachments not found."
-                    //     };
-                    // }
-
                     var publicIds = serviceAttachments.Data.Select(a => a.Id).ToList();
 
                     await _cloudinaryHelper.RemoveImagesAsync(serviceUpdateModel.AttachmentIdsToDelete.Select(id => id.ToString()).ToList());
@@ -954,17 +913,6 @@ namespace Chillde.Services.Services
                     var attachmentAlt = attachmentModel[i].AttachmentAlt;
                     var attachmentUrl = attachmentModel[i].AttachmentUrl;
                     Guid Id = Guid.NewGuid();
-                    // string? path = null;
-                    // if (attachmentUrl != null)
-                    // {
-                    //     path = await _cloudinaryHelper.UploadImageAsync(
-                    //         attachmentUrl,
-                    //         attachmentAlt,
-                    //         Id.ToString(),
-                    //         folderName: FolderAttachment.SERVICE
-                    //     );
-                    // }
-
                     newServiceAttachment.Add(new ServiceAttachment
                     {
                         Id = Id,
@@ -1040,8 +988,6 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                //await _unitOfWork.BeginTransactionAsync();
-
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
                 if (numberOfExistedPackage > int.Parse(maximumPackage!))
@@ -1052,74 +998,11 @@ namespace Chillde.Services.Services
                         Message = $"Number of packages cannot exceed {maximumPackage}."
                     };
                 }
-                //var fieldsToTranslate = new Dictionary<string, string>
-                //{
-                //    { "Name", packageAddModel.Name },
-                //    { "Description", packageAddModel.Description }
-                //};
-                //var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
-                ////if (translationResponse.Code != StatusCodes.Status200OK)
-                ////{
-                ////    throw new Exception("Failed to translate fields.");
-                ////}
-                //string translatedName = translationResponse.TranslatedFields["Name"];
-                //string translatedDescription = translationResponse.TranslatedFields["Description"];
-
-                //var package = new Package
-                //{
-                //    //Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
-                //    //Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
-                //    Name = packageAddModel.Name,
-                //    Description = packageAddModel.Description,
-                //    Price = packageAddModel.Price,
-                //    ServiceId = serviceId,
-                //    DeliveryTime = packageAddModel.DeliveryTime,
-                //    SketchRevision = packageAddModel.SketchRevision,
-                //    ResponseTime = packageAddModel.ResponseTime
-                //};
-
+              
                 var package = _mapper.Map<Package>(packageAddModel);
-                //package.ResponseTime = (float)packageAddModel.ResponseTime.TotalMinutes;
                 package.ServiceId = serviceId;
-
                 await _unitOfWork.PackageRepository.AddAsync(package);
-                //var translations = new List<Translation>();
-                //Guid? languageId = null;
-                //if (sourceLanguageCode != "en")
-                //{
-                //    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(sourceLanguageCode);
-                //}
-                //else
-                //{
-                //    languageId = (Guid)await _unitOfWork.TranslationRepository.GetLanguageIdByCodeAsync(targetLanguageCode);
-                //}
-                //if (!string.IsNullOrEmpty(packageAddModel.Name))
-                //{
-                //    translations.Add(new Translation
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        EntityType = "Request",
-                //        EntityId = package.Id,
-                //        FieldName = "Name",
-                //        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Name : translatedName,
-                //        LanguageId = languageId.Value
-                //    });
-                //}
-                //if (!string.IsNullOrEmpty(packageAddModel.Description))
-                //{
-                //    translations.Add(new Translation
-                //    {
-                //        Id = Guid.NewGuid(),
-                //        EntityType = "Request",
-                //        EntityId = package.Id,
-                //        FieldName = "Description",
-                //        TranslationText = sourceLanguageCode != "en" ? packageAddModel.Description : translatedDescription,
-                //        LanguageId = languageId.Value
-                //    });
-                //}
-                //await _unitOfWork.TranslationRepository.AddRangeAsync(translations);
                 await _unitOfWork.SaveChangeAsync();
-                //await _unitOfWork.CommitTransactionAsync();
                 await _redisHelper.InvalidateCacheByPatternAsync($"service_{serviceId}_packages_*");
                 var packageModel = _mapper.Map<PackageModel>(package);
 
