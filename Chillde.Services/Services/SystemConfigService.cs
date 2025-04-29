@@ -243,7 +243,10 @@ namespace Chillde.Services.Services
                 EntityType = config.EntityType.ToString(),
                 Value = value!,
                 CreationDate = config.CreationDate,
-                IsDeleted = config.IsDeleted
+                IsDeleted = config.IsDeleted,
+                Id = config.Id,
+                IsActive = config.IsActive,
+                EffectiveFrom = config.EffectiveFrom
             };
 
             return new ResponseModel
