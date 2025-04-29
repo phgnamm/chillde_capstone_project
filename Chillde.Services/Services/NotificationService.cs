@@ -96,6 +96,42 @@ namespace Chillde.Services.Services
             }
         }
 
+        public async Task<ResponseModel> UpdateIsReadAsync(Guid notificationId)
+        {
+            try
+            {
+                var notification = await _unitOfWork.NotificationRepository.GetAsync(notificationId);
+
+                if (notification == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Notification not found."
+                    };
+                }
+
+                notification.IsRead = true;
+
+                _unitOfWork.NotificationRepository.Update(notification);
+                await _unitOfWork.SaveChangeAsync();
+
+                return new ResponseModel
+                {
+                    Message = "Notification updated successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = "An error occurred while updating the notification."
+                };
+            }
+        }
+
+
         public async Task<ResponseModel> PushNotification(NotificationAddModel notificationAddModel)
         {
             if (string.IsNullOrWhiteSpace(notificationAddModel.Content))

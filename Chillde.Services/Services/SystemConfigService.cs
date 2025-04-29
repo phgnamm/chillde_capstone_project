@@ -86,8 +86,19 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                config.Value = JsonSerializer.SerializeToDocument(model.Value);
-                _unitOfWork.SystemConfigRepository.Update(config);
+                if (model.EffectiveFrom == null)
+                {
+                    config.Value = JsonSerializer.SerializeToDocument(model.Value);
+                    _unitOfWork.SystemConfigRepository.Update(config);
+                }
+                else
+                {
+                    var newConfig = config;
+                    newConfig.EffectiveFrom = model.EffectiveFrom;
+                    newConfig.IsActive = false;
+                    await _unitOfWork.SystemConfigRepository.AddAsync(newConfig);
+                }
+
                 await _unitOfWork.SaveChangeAsync();
 
                 return new ResponseModel
