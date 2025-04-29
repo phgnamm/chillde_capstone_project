@@ -7,6 +7,6 @@ namespace Chillde.Services.Models.SystemConfigModels
         [Required] 
         public object Value { get; set; } = null!;
         [Required]
-        public DateTime? EffectiveFrom { get; set; }
+        public DateOnly? EffectiveFrom { get; set; }
     }
 }
