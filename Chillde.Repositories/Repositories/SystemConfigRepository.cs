@@ -34,7 +34,7 @@ namespace Chillde.Repositories.Repositories
                 return null;
 
             var config = await _dbSet
-                .Where(x => x.FieldName!.Equals(fieldName))
+                .Where(x => x.FieldName!.Equals(fieldName) && x.IsActive == true)
                 .Select(x => x.Value)
                 .FirstOrDefaultAsync();
 
