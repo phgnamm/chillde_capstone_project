@@ -8,5 +8,6 @@ namespace Chillde.Services.Interfaces
     {
         Task<ResponseModel> PushNotification(NotificationAddModel notificationAddModel);
         Task<ResponseModel> GetAll(NotificationFilterModel notificationFilterModel);
+        Task<ResponseModel> UpdateIsReadAsync(Guid notificationId);
     }
 }
