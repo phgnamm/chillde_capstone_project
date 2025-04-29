@@ -24,7 +24,7 @@ namespace Chillde.Services.Services
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var delay = TimeSpan.FromSeconds(FIXED_DELAY_SECONDS);
-            var now = DateOnly.FromDateTime(DateTime.UtcNow);
+            var now = DateOnly.FromDateTime(DateTime.Now);
 
             while (!stoppingToken.IsCancellationRequested)
             {
