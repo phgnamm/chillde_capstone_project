@@ -18,5 +18,8 @@ namespace Chillde.Services.Models.SystemConfigModels
 
         [Required]
         public ConfigType EntityType { get; set; }
+
+        [Required]
+        public DateTime EffectiveFrom { get; set; }
     }
 }

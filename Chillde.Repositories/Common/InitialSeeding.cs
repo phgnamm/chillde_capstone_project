@@ -29,175 +29,212 @@ public static class InitialSeeding
     {
         new()
         {
-            EntityType = ConfigType.Security, FieldName = "AccessTokenValidityInMinutes",
-            Value = JsonDocument.Parse("5")
+            EntityType = ConfigType.Security, 
+            FieldName = "AccessTokenValidityInMinutes",
+            Value = JsonDocument.Parse("5"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Security, FieldName = "RefreshTokenValidityInDays", Value = JsonDocument.Parse("7")
+            EntityType = ConfigType.Security, 
+            FieldName = "RefreshTokenValidityInDays", 
+            Value = JsonDocument.Parse("7"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Security, FieldName = "VerificationCodeValidityInMinutes",
-            Value = JsonDocument.Parse("15")
+            Value = JsonDocument.Parse("15"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("6")
+            EntityType = ConfigType.Security, FieldName = "VerificationCodeLength", Value = JsonDocument.Parse("6"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Security, FieldName = "ResetPasswordTokenValidityInMinutes",
-            Value = JsonDocument.Parse("15")
+            Value = JsonDocument.Parse("15"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("10")
+            EntityType = ConfigType.Pagination, FieldName = "DefaultMinPageSize", Value = JsonDocument.Parse("10"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("50")
+            EntityType = ConfigType.Pagination, FieldName = "DefaultMaxPageSize", Value = JsonDocument.Parse("50"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("20")
+            EntityType = ConfigType.Pagination, FieldName = "ConversationMaxPageSize", Value = JsonDocument.Parse("20"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("10")
+            EntityType = ConfigType.Pagination, FieldName = "MessageMinPageSize", Value = JsonDocument.Parse("10"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("100")
+            EntityType = ConfigType.Pagination, FieldName = "MessageMaxPageSize", Value = JsonDocument.Parse("100"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Cache, FieldName = "DefaultAbsoluteExpirationInMinutes",
-            Value = JsonDocument.Parse("60")
+            Value = JsonDocument.Parse("60"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Cache, FieldName = "DefaultSlidingExpirationInMinutes",
-            Value = JsonDocument.Parse("30")
+            Value = JsonDocument.Parse("30"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3")
+            EntityType = ConfigType.Package, FieldName = "MaximumPackageOfOneService", Value = JsonDocument.Parse("3"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15")
+            EntityType = ConfigType.Package, FieldName = "MaximumFeatureOfOnePackage", Value = JsonDocument.Parse("15"),
+            IsActive = true
         },
-        new() { EntityType = ConfigType.Order, FieldName = "MaxSystemCancelPerYear", Value = JsonDocument.Parse("10") },
+        new() { EntityType = ConfigType.Order, FieldName = "MaxSystemCancelPerYear", Value = JsonDocument.Parse("10"),IsActive = true },
         new()
         {
-            EntityType = ConfigType.Order, FieldName = "MaxSystemCancelBeforePenalty", Value = JsonDocument.Parse("3")
+            EntityType = ConfigType.Order, FieldName = "MaxSystemCancelBeforePenalty", Value = JsonDocument.Parse("3"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Order, FieldName = "PenaltyPercentageAfterCancel", Value = JsonDocument.Parse("20")
+            EntityType = ConfigType.Order, FieldName = "PenaltyPercentageAfterCancel", Value = JsonDocument.Parse("20"),
+            IsActive = true
         },
-        new() { EntityType = ConfigType.Order, FieldName = "OrderSuccessThreshold", Value = JsonDocument.Parse("3") },
+        new() { EntityType = ConfigType.Order, FieldName = "OrderSuccessThreshold", Value = JsonDocument.Parse("3"), IsActive = true },
         new()
         {
             EntityType = ConfigType.Reputation, FieldName = "MaxOrderPerMonthBasedOnReputation",
-            Value = JsonDocument.Parse("6")
+            Value = JsonDocument.Parse("6"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Reputation, FieldName = "MinReputationForVouchers", Value = JsonDocument.Parse("6")
+            EntityType = ConfigType.Reputation, FieldName = "MinReputationForVouchers", Value = JsonDocument.Parse("6"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Order, FieldName = "MaxCustomerOrdersPerMonth", Value = JsonDocument.Parse("3")
+            EntityType = ConfigType.Order, FieldName = "MaxCustomerOrdersPerMonth", Value = JsonDocument.Parse("3"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Reputation, FieldName = "ReputationIncreaseOnSuccess",
-            Value = JsonDocument.Parse("2")
+            Value = JsonDocument.Parse("2"),
+            IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Reputation, FieldName = "MinReputationToAvoidBan", Value = JsonDocument.Parse("3")
+            EntityType = ConfigType.Reputation, FieldName = "MinReputationToAvoidBan", Value = JsonDocument.Parse("3"),
+            IsActive = true
         },
-        new() { EntityType = ConfigType.Commission, FieldName = "Commission", Value = JsonDocument.Parse("20") },
+        new() { EntityType = ConfigType.Commission, FieldName = "Commission", Value = JsonDocument.Parse("20"), IsActive = true },
         new()
         {
             EntityType = ConfigType.Package,
             FieldName = "MaxPriceOfPackage",
-            Value = JsonDocument.Parse("10000000")
+            Value = JsonDocument.Parse("10000000"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Order,
             FieldName = "AutoCancelPercentagePenalty",
-            Value = JsonDocument.Parse("10")
+            Value = JsonDocument.Parse("10"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Reputation,
             FieldName = "AutoCancelPointPenalty",
-            Value = JsonDocument.Parse("5")
+            Value = JsonDocument.Parse("5"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Service,
             FieldName = "MaximumSerivceOfOneArtisan",
-            Value = JsonDocument.Parse("5")
+            Value = JsonDocument.Parse("5"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "MinOrdersForArtisan",
-            Value = JsonDocument.Parse("5")
+            Value = JsonDocument.Parse("5"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "NumberOfMonthForMinOrders",
-            Value = JsonDocument.Parse("1")
+            Value = JsonDocument.Parse("1"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "MinReputationOfArtisan",
-            Value = JsonDocument.Parse("1")
+            Value = JsonDocument.Parse("1"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "DiscountValue",
-            Value = JsonDocument.Parse("10")
+            Value = JsonDocument.Parse("10"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "MaxDiscountValue",
-            Value = JsonDocument.Parse("10")
+            Value = JsonDocument.Parse("10"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "TotalQuantity",
-            Value = JsonDocument.Parse("1")
+            Value = JsonDocument.Parse("1"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "NumberOfDateForUsingVoucher",
-            Value = JsonDocument.Parse("15")
+            Value = JsonDocument.Parse("15"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "MinOrderValue",
-            Value = JsonDocument.Parse("15")
+            Value = JsonDocument.Parse("15"),
+            IsActive = true
         },
         new()
         {
             EntityType = ConfigType.Vouvher,
             FieldName = "Commission",
-            Value = JsonDocument.Parse("1")
+            Value = JsonDocument.Parse("1"),
+            IsActive = true
         },
     };
 
