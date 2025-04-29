@@ -121,7 +121,8 @@ namespace Chillde.Services.Services
         public async Task<ResponseModel> GetAll(SystemConfigFilterModel model)
         {
             var configList = await _unitOfWork.SystemConfigRepository.GetAllAsync(
-        x => !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type),
+        x => !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type) &&
+                            (!model.IsActive.HasValue || x.IsActive == model.IsActive),
         q =>
         {
             switch (model.OrderOption)
@@ -158,7 +159,9 @@ namespace Chillde.Services.Services
                     FieldName = ConfigKeyDisplayNames.DisplayNames
                         .FirstOrDefault(kvp => kvp.Key.ToString() == x.FieldName).Value ?? x.FieldName!,
                     EntityType = x.EntityType.ToString(),
-                    Value = x.Value
+                    Value = x.Value,
+                    EffectiveFrom = x.EffectiveFrom,
+                    IsActive = x.IsActive,
                 }).ToList();
 
             if (!string.IsNullOrWhiteSpace(model.Search))

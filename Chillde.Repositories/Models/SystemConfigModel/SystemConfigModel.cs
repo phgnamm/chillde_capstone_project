@@ -12,5 +12,7 @@ namespace Chillde.Repositories.Models.SystemConfigModel
         public string FieldName { get; set; } = string.Empty;
         public object Value { get; set; } = null!;
         public string? EntityType { get; set; }
+        public DateOnly? EffectiveFrom { get; set; }
+        public bool IsActive { get; set; }
     }
 }
