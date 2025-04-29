@@ -86,7 +86,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                if (model.EffectiveFrom == null)
+                if ((model.EffectiveFrom == null && config.IsActive == true) || (model.EffectiveFrom > DateOnly.FromDateTime(DateTime.Now) && config.IsActive == false))
                 {
                     config.Value = JsonSerializer.SerializeToDocument(model.Value);
                     _unitOfWork.SystemConfigRepository.Update(config);
@@ -94,6 +94,8 @@ namespace Chillde.Services.Services
                 else
                 {
                     var newConfig = config;
+                    newConfig.Id = Guid.NewGuid();
+                    newConfig.Value = JsonSerializer.SerializeToDocument(model.Value);
                     newConfig.EffectiveFrom = model.EffectiveFrom;
                     newConfig.IsActive = false;
                     await _unitOfWork.SystemConfigRepository.AddAsync(newConfig);
