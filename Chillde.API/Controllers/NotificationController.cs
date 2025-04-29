@@ -57,5 +57,23 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateIsRead(Guid id)
+        {
+            try
+            {
+                var result = await _notificationService.UpdateIsReadAsync(id);
+                return StatusCode(result.Code, result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }
