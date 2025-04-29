@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Chillde.Services.Services
@@ -33,6 +34,7 @@ namespace Chillde.Services.Services
         private readonly IClaimService _claimService;
         private readonly IOrderService _orderService;
         private readonly HttpClient _httpClient;
+        private readonly IEmailHelper _emailHelper;
 
         public ReportService(IUnitOfWork unitOfWork,
             ITranslationService translationService,
@@ -41,9 +43,9 @@ namespace Chillde.Services.Services
             IPackageService packageService,
             IRedisHelper redisHelper,
             INotificationService notificationService,
-            IClaimService claimService, 
+            IClaimService claimService,
             IHttpClientFactory httpClientFactory,
-            IOrderService orderService)
+            IOrderService orderService, IEmailHelper emailHelper)
         {
             _unitOfWork = unitOfWork;
             _translationService = translationService;
@@ -55,6 +57,7 @@ namespace Chillde.Services.Services
             _claimService = claimService;
             _httpClient = httpClientFactory.CreateClient("GhtkClient");
             _orderService = orderService;
+            _emailHelper = emailHelper;
         }
         public async Task<ResponseModel> GetAll(ReportFilterModel reportFilterModel)
         {
@@ -82,7 +85,7 @@ namespace Chillde.Services.Services
                 (!reportFilterModel.OrderId.HasValue || report.OrderId == reportFilterModel.OrderId) &&
                 (!reportFilterModel.IsDeleted.HasValue || report.IsDeleted == reportFilterModel.IsDeleted) &&
                  (string.IsNullOrEmpty(reportFilterModel.Search) || (
-                                              report.Code.Contains(reportFilterModel.Search) 
+                                              report.Code.Contains(reportFilterModel.Search)
                                           )) &&
                 (!reportFilterModel.Status.HasValue || report.Status == reportFilterModel.Status);
 
@@ -117,27 +120,27 @@ namespace Chillde.Services.Services
                     }).ToList(),
                     Sketchs = _.Order.OrderTrackings.Where(orderTracking => orderTracking.Stage == OrderStage.SketchInProcess ||
                                                             orderTracking.Stage == OrderStage.ReviewSketch).Select(_ => new OrderTrackingModel
-                    {
-                        OrderTrackingAttachmentModels = _.OrderTrackingAttachments.Select(att => new OrderTrackingAttachmentModel
-                        {
-                            Id = att.Id,
-                            AttachmentAlt = att.AttachmentAlt,
-                            AttachmentUrl = att.AttachmentUrl
-                        }).ToList(),
-                        IsAccepted = _.IsAccepted,
+                                                            {
+                                                                OrderTrackingAttachmentModels = _.OrderTrackingAttachments.Select(att => new OrderTrackingAttachmentModel
+                                                                {
+                                                                    Id = att.Id,
+                                                                    AttachmentAlt = att.AttachmentAlt,
+                                                                    AttachmentUrl = att.AttachmentUrl
+                                                                }).ToList(),
+                                                                IsAccepted = _.IsAccepted,
 
-                    }).ToList(),
+                                                            }).ToList(),
                     Deliveries = _.Order.OrderTrackings.Where(orderTracking => orderTracking.Stage == OrderStage.DeliveryInProcess ||
                                                             orderTracking.Stage == OrderStage.ReviewDelivery).Select(_ => new OrderTrackingModel
-                    {
-                        OrderTrackingAttachmentModels = _.OrderTrackingAttachments.Select(att => new OrderTrackingAttachmentModel
-                        {
-                            Id = att.Id,
-                            AttachmentAlt = att.AttachmentAlt,
-                            AttachmentUrl = att.AttachmentUrl
-                        }).ToList(),
-                        IsAccepted = _.IsAccepted,
-                    }).ToList(),
+                                                            {
+                                                                OrderTrackingAttachmentModels = _.OrderTrackingAttachments.Select(att => new OrderTrackingAttachmentModel
+                                                                {
+                                                                    Id = att.Id,
+                                                                    AttachmentAlt = att.AttachmentAlt,
+                                                                    AttachmentUrl = att.AttachmentUrl
+                                                                }).ToList(),
+                                                                IsAccepted = _.IsAccepted,
+                                                            }).ToList(),
                     OrderCreationDate = _.Order.CreationDate,
                     CustomerName = $"{_.Order.CreatedBy.LastName} {_.Order.CreatedBy.FirstName}"
                 }).ToList();
@@ -198,7 +201,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var report = await _unitOfWork.ReportRepository.GetAsync(reportId, 
+                var report = await _unitOfWork.ReportRepository.GetAsync(reportId,
                     include: _ => _.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
                                    .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer));
                 if (report == null)
@@ -283,6 +286,57 @@ namespace Chillde.Services.Services
                         };
                         await _notificationService.PushNotification(notificationAddModel);
                     }
+                    //Gửi mail
+                    TimeZoneInfo vnTimeZone = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                          ? TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time") // Windows
+                          : TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");     // Linux
+
+                    var localCreationDate = TimeZoneInfo.ConvertTimeFromUtc(report.CreationDate, vnTimeZone);
+
+                    //Customer
+                    await _emailHelper.SendEmailAsync(
+                        order.CreatedBy.Email,
+                        "❌ Kết quả xử lý báo cáo đơn hàng",
+                        $@"
+                        <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                        <p>Chúng tôi xin thông báo về kết quả xử lý báo cáo liên quan đến đơn hàng <strong>#{order.Code}</strong> mà bạn đã gửi vào ngày <strong>{localCreationDate:yyyy-MM-dd HH:mm}</strong>.</p>
+                        <p>Sau quá trình kiểm tra và đánh giá cẩn trọng, <strong>chúng tôi xác định rằng báo cáo của bạn không đủ cơ sở để chấp nhận</strong>.</p>
+                        <p>Do đó, đơn hàng đã được xử lý thành công và hoàn tất theo quy trình thông thường.</p>
+                        <p><strong>Thông tin đơn hàng:</strong></p>
+                        <ul>
+                            <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                            <li><strong>Tổng giá trị đơn hàng:</strong> {order.TotalPrice} VNĐ</li>
+                        </ul>
+                        <p>Chúng tôi luôn trân trọng mọi phản hồi và mong tiếp tục nhận được sự tin tưởng từ bạn trong các đơn hàng tiếp theo.</p>
+                        <p>Nếu bạn cần thêm hỗ trợ, vui lòng liên hệ đội ngũ chăm sóc khách hàng của chúng tôi.</p>
+                        <p>Trân trọng,</p>
+                        <p><strong>Đội ngũ Chillde</strong></p>
+                        ",
+                        true
+                    );
+
+                    //Artisan
+                    await _emailHelper.SendEmailAsync(
+                        order.Package.Service.CreatedBy.Email,
+                        "✅ Đơn hàng được xác nhận hoàn tất",
+                        $@"
+                        <p>Xin chào {order.Package.Service.CreatedBy.FirstName + " " + order.Package.Service.CreatedBy.LastName},</p>
+                        <p>Chúng tôi xin thông báo rằng đơn hàng <strong>#{order.Code}</strong> đã bị khách hàng báo cáo vào ngày <strong>{localCreationDate:yyyy-MM-dd HH:mm}</strong>, tuy nhiên sau khi kiểm tra kỹ lưỡng, <strong>chúng tôi xác định rằng đơn hàng đáp ứng đúng tiêu chuẩn</strong> như đã cam kết.</p>
+                        <p><strong>Thông tin đơn hàng:</strong></p>
+                        <ul>
+                            <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                            <li><strong>Khách hàng:</strong> {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName}</li>
+                            <li><strong>Giá trị đơn hàng:</strong> {order.TotalPrice} VNĐ</li>
+                        </ul>
+                        <p>Đơn hàng hiện đã được chuyển sang trạng thái hoàn tất. <strong>Số tiền {order.TotalPrice} VNĐ</strong> sẽ được chuyển vào ví Chillde của bạn.</p>
+                        <p>Chúng tôi đánh giá cao chất lượng dịch vụ mà bạn đã cung cấp và mong bạn tiếp tục duy trì chất lượng trong những đơn hàng tiếp theo.</p>
+                        <p>Nếu bạn cần thêm thông tin hoặc hỗ trợ, vui lòng liên hệ đội ngũ Chillde.</p>
+                        <p>Trân trọng,</p>
+                        <p><strong>Đội ngũ Chillde</strong></p>
+                        ",
+                        true
+                    );
+
 
                     return new ResponseModel
                     {
@@ -321,7 +375,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var report = await _unitOfWork.ReportRepository.GetAsync(reportId, 
+                var report = await _unitOfWork.ReportRepository.GetAsync(reportId,
                     include: report => report.Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Service)
                                              .Include(_ => _.Order).ThenInclude(_ => _.Package).ThenInclude(_ => _.Offer)
                                              .Include(_ => _.Order).ThenInclude(_ => _.Shipments).ThenInclude(_ => _.ProductShipments)
@@ -370,22 +424,22 @@ namespace Chillde.Services.Services
                 string partnerId = $"{order.Code}_Return_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
                 string partnerIdWithoutTime = partnerId.Substring(0, partnerId.IndexOf('_', partnerId.IndexOf('_') + 1));
 
-               //lay id cua nghe nhan 
+                //lay id cua nghe nhan 
                 var artisanId = order.Package.Service != null
                 ? order.Package.Service.CreatedById
                 : order.Package.Offer?.CreatedById;
-                    if (!artisanId.HasValue)
+                if (!artisanId.HasValue)
+                {
+                    return new ResponseModel
                     {
-                        return new ResponseModel
-                        {
-                            Code = StatusCodes.Status400BadRequest,
-                            Message = "Cannot identify artisan for this order."
-                        };
-                    }
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "Cannot identify artisan for this order."
+                    };
+                }
                 // lay dia chi nghe nhan 
                 var artisanAddress = (await _unitOfWork.ShippingAddressRepository.GetAllAsync(
                     filter: sa => sa.CreatedById == artisanId.Value && sa.IsDefault && !sa.IsDeleted,
-                    include: sa => sa.Include(x => x.CreatedBy) 
+                    include: sa => sa.Include(x => x.CreatedBy)
                 )).Data.FirstOrDefault();
                 if (artisanAddress == null)
                 {
@@ -423,22 +477,22 @@ namespace Chillde.Services.Services
                         pick_district = order.ToDistrict,
                         pick_ward = order.ToWard,
                         pick_tel = order.Phone,
-                        name = artisanAddress.FullName, 
+                        name = artisanAddress.FullName,
                         address = artisanAddress.AddressLine1 + "," + artisanAddress.AddressLine2,
                         province = artisanAddress.ProvinceName,
                         district = artisanAddress.DistrictName,
                         ward = artisanAddress.WardName,
                         tel = artisanAddress.PhoneNumber,
-                        hamlet = "Khác", 
-                        email = artisanAddress.CreatedBy?.Email, 
-                        is_freeship = 1, 
-                        pick_money = 0, 
+                        hamlet = "Khác",
+                        email = artisanAddress.CreatedBy?.Email,
+                        is_freeship = 1,
+                        pick_money = 0,
                         note = $"Trả hàng cho đơn hàng {order.Code}",
                         value = (int)(order.TotalPrice ?? 0),
-                        transport = "road", 
-                        pick_option = "cod", 
-                        deliver_option = "none", 
-                        tags = new string[] { "urgent", "fragile" } 
+                        transport = "road",
+                        pick_option = "cod",
+                        deliver_option = "none",
+                        tags = new string[] { "urgent", "fragile" }
                     }
                 }, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
                 var url = "https://services-staging.ghtklab.com/services/shipment/order";
@@ -447,6 +501,59 @@ namespace Chillde.Services.Services
                 {
                     Content = content
                 };
+                //Gửi mail
+                TimeZoneInfo vnTimeZone = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                             ? TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time") // Windows
+                             : TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");     // Linux
+
+                var localCreationDate = TimeZoneInfo.ConvertTimeFromUtc(report.CreationDate, vnTimeZone);
+
+                //Customer
+                await _emailHelper.SendEmailAsync(
+                     order.CreatedBy.Email,
+                     "✅ Kết quả xử lý báo cáo đơn hàng",
+                     $@"
+                    <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+                    <p>Chúng tôi xin thông báo về kết quả xử lý báo cáo liên quan đến đơn hàng <strong>#{order.Code}</strong> mà bạn đã gửi vào ngày <strong>{localCreationDate:yyyy-MM-dd HH:mm}</strong>.</p>
+                    <p>Sau quá trình kiểm tra và đánh giá kỹ lưỡng, chúng tôi xác nhận rằng <strong>báo cáo của bạn là chính xác</strong>. Đơn hàng không đáp ứng đúng tiêu chuẩn như đã cam kết bởi nghệ nhân.</p>
+                    <p><strong>Thông tin đơn hàng:</strong></p>
+                    <ul>
+                        <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                        <li><strong>Tổng giá trị đơn hàng:</strong> {order.TotalPrice} VNĐ</li>
+                    </ul>
+                    <p>Để hoàn tất quy trình hoàn trả, một đơn vị giao hàng sẽ đến địa chỉ của bạn trong thời gian sớm nhất để nhận lại sản phẩm và gửi trả về cho nghệ nhân.</p>
+                    <p>Sau khi quá trình hoàn trả hoàn tất, <strong>toàn bộ số tiền {order.TotalPrice} VNĐ</strong> sẽ được hoàn lại vào ví Chillde của bạn.</p>
+                    <p>Chúng tôi xin lỗi vì trải nghiệm chưa như mong đợi và luôn nỗ lực để nâng cao chất lượng dịch vụ. Nếu cần hỗ trợ thêm, bạn vui lòng liên hệ đội ngũ chăm sóc khách hàng của chúng tôi.</p>
+                    <p>Trân trọng,</p>
+                    <p><strong>Đội ngũ Chillde</strong></p>
+                    ",
+                     true
+                 );
+
+                //Artisan
+                await _emailHelper.SendEmailAsync(
+                  order.Package.Service.CreatedBy.Email,
+                      "❌ Đơn hàng bị hoàn trả do báo cáo được xác nhận",
+                      $@"
+                    <p>Xin chào {order.Package.Service.CreatedBy.FirstName + " " + order.Package.Service.CreatedBy.LastName},</p>
+                    <p>Chúng tôi xin thông báo về đơn hàng <strong>#{order.Code}</strong> do bạn thực hiện đã bị khách hàng báo cáo và <strong>báo cáo đã được xác nhận là hợp lệ</strong> sau quá trình kiểm tra kỹ lưỡng.</p>
+                    <p><strong>Thông tin đơn hàng:</strong></p>
+                    <ul>
+                        <li><strong>Dịch vụ:</strong> {order.Package.Service.Name}</li>
+                        <li><strong>Khách hàng:</strong> {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName}</li>
+                        <li><strong>Giá trị đơn hàng:</strong> {order.TotalPrice} VNĐ</li>
+                        <li><strong>Ngày báo cáo:</strong> {localCreationDate:yyyy-MM-dd HH:mm}</li>
+                    </ul>
+                    <p>Chúng tôi sẽ phối hợp với đơn vị vận chuyển để nhận lại sản phẩm từ khách hàng và chuyển trả lại cho bạn trong thời gian sớm nhất.</p>
+                    <p>Rất mong bạn xem xét lại quy trình thực hiện dịch vụ để đảm bảo chất lượng tốt hơn trong tương lai. Mọi sai sót ảnh hưởng đến trải nghiệm của khách hàng đều được chúng tôi đánh giá nghiêm túc.</p>
+                    <p>Nếu bạn có bất kỳ thắc mắc hay cần hỗ trợ, vui lòng liên hệ đội ngũ hỗ trợ của chúng tôi.</p>
+                    <p>Trân trọng,</p>
+                    <p><strong>Đội ngũ Chillde</strong></p>
+                    ",
+                     true
+                 );
+
+
                 //gui yeu cau shipment
                 var response = await _httpClient.SendAsync(requestMessage);
                 var responseContent = await response.Content.ReadAsStringAsync();
@@ -562,7 +669,7 @@ namespace Chillde.Services.Services
                 Pending = pendingCount,
                 Accepted = acceptedCount,
                 Rejected = rejectedCount,
-                
+
             };
 
             return new ResponseModel
