@@ -33,8 +33,8 @@ public static class Configuration
         // Local database
         services.AddDbContext<AppDbContext>(options =>
         {
-             options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
-            //options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
+             // options.UseNpgsql(configuration.GetConnectionString("LocalDb"));
+             options.UseNpgsql(configuration.GetConnectionString("DeployDb"));
         });
 
         // Redis
@@ -142,6 +142,8 @@ public static class Configuration
         // CORS
         var clientUrl = configuration["URL:Client"];
         ArgumentException.ThrowIfNullOrWhiteSpace(clientUrl);
+        var adminClientUrl = configuration["URL:AdminClient"];
+        ArgumentException.ThrowIfNullOrWhiteSpace(adminClientUrl);
         services.AddCors(options =>
         {
             options.AddPolicy("cors",
@@ -149,6 +151,7 @@ public static class Configuration
                 {
                     corsPolicyBuilder
                         .WithOrigins(clientUrl)
+                        .WithOrigins(adminClientUrl)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
