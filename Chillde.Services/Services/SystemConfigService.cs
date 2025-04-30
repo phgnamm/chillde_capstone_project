@@ -122,9 +122,16 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> GetAll(SystemConfigFilterModel model)
         {
+            var now = DateOnly.FromDateTime(DateTime.UtcNow);
+
             var configList = await _unitOfWork.SystemConfigRepository.GetAllAsync(
-        x => !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type) &&
-                            (!model.IsActive.HasValue || x.IsActive == model.IsActive),
+        x => 
+            !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type) &&
+             (
+                !model.IsActive.HasValue ||
+                (model.IsActive.Value == true && x.EffectiveFrom >= now) ||
+                (model.IsActive.Value == false && x.EffectiveFrom < now)
+             ),
         q =>
         {
             switch (model.OrderOption)
