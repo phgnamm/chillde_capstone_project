@@ -18,7 +18,7 @@ namespace Chillde.Services.Services
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<VoucherCreationService> _logger;
         private DateTime? _nextRunTime;
-        private const int FIXED_DELAY_SECONDS = 10;
+        private const int FIXED_DELAY_SECONDS = 30;
 
         public VoucherCreationService(IServiceScopeFactory serviceScopeFactory, ILogger<VoucherCreationService> logger)
         {

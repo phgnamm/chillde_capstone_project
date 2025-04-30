@@ -7,7 +7,7 @@ namespace Chillde.Repositories.Entities
     {
         public ConfigType EntityType { get; set; }
         public string? FieldName { get; set; }
-        public DateTime? EffectiveFrom { get; set; }
+        public DateOnly? EffectiveFrom { get; set; }
         public bool IsActive { get; set; }
         public JsonDocument Value { get; set; } = null!;
     }

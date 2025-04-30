@@ -16,7 +16,7 @@ namespace Chillde.Repositories.Repositories
       
         public async Task<SystemConfig?> GetByEntityTypeAsync(string fieldName)
         {
-            return await _dbSet.FirstOrDefaultAsync(x => x.FieldName == fieldName);
+            return await _dbSet.FirstOrDefaultAsync(x => x.FieldName == fieldName && x.IsActive == true);
         }
 
         public async Task<SystemConfig?> GetByKeyAsync(SystemConfigKey key)
@@ -24,7 +24,7 @@ namespace Chillde.Repositories.Repositories
             if (!SystemConfiguration.ConfigKeys.TryGetValue(key, out string? fieldName))
                 return null;
 
-            return await _dbSet.FirstOrDefaultAsync(x => x.FieldName!.Equals(fieldName));
+            return await _dbSet.FirstOrDefaultAsync(x => x.FieldName!.Equals(fieldName) && x.IsActive == true);
         }
 
 
@@ -34,7 +34,7 @@ namespace Chillde.Repositories.Repositories
                 return null;
 
             var config = await _dbSet
-                .Where(x => x.FieldName!.Equals(fieldName))
+                .Where(x => x.FieldName!.Equals(fieldName) && x.IsActive == true)
                 .Select(x => x.Value)
                 .FirstOrDefaultAsync();
 

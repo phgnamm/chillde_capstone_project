@@ -394,6 +394,9 @@ public static class Configuration
 
         //ShippingTimeoutService
         services.AddHostedService<ShippingTimeoutService>();
+
+        //SystemConfigActivationService
+        services.AddHostedService<SystemConfigActivationService>();
         #endregion
 
         return services;
