@@ -129,20 +129,40 @@ public static class Configuration
             .AddDataAnnotationsLocalization();
 
         // CORS
-        var clientUrl = configuration["URL:Client"];
-        ArgumentException.ThrowIfNullOrWhiteSpace(clientUrl);
+        //var clientUrl = configuration["URL:Client"];
+        //ArgumentException.ThrowIfNullOrWhiteSpace(clientUrl);
+        //services.AddCors(options =>
+        //{
+        //    options.AddPolicy("cors",
+        //        corsPolicyBuilder =>
+        //        {
+        //            corsPolicyBuilder
+        //                .WithOrigins(clientUrl)
+        //                .AllowAnyHeader()
+        //                .AllowAnyMethod()
+        //                .AllowCredentials();
+        //        });
+        //});
+        var clientUrls = configuration["URL:Client"]
+    ?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    .ToArray();
+
+        if (clientUrls == null || !clientUrls.Any())
+        {
+            throw new ArgumentException("Client URLs cannot be null or empty");
+        }
+
         services.AddCors(options =>
         {
-            options.AddPolicy("cors",
-                corsPolicyBuilder =>
-                {
-                    corsPolicyBuilder
-                        .WithOrigins(clientUrl)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
+            options.AddPolicy("cors", policy =>
+            {
+                policy.WithOrigins(clientUrls)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
         });
+
         // GHNClient 
         services.AddHttpClient("GhnClient", client =>
         {
@@ -324,8 +344,8 @@ public static class Configuration
         services.AddScoped<IServiceWishlistService, ServiceWishlistService>();
 
         //Shipment 
-        services.AddScoped<IShipmentRepository,ShipmentRepository>();
-        services.AddScoped<IShipmentService,ShipmentService>(); 
+        services.AddScoped<IShipmentRepository, ShipmentRepository>();
+        services.AddScoped<IShipmentService, ShipmentService>();
 
         //OpenAiService
         services.AddScoped<IOpenAiService, OpenAiService>();
@@ -354,7 +374,7 @@ public static class Configuration
         services.AddScoped<IVoucherUsageLogService, VoucherUsageLogService>();
 
         //ShipmentStatusHistory
-        services.AddScoped<IShipmentStatusHistoryRepository,ShipmentStatusHistoryRepository>();
+        services.AddScoped<IShipmentStatusHistoryRepository, ShipmentStatusHistoryRepository>();
         services.AddScoped<IShipmentStatusHistoryService, ShipmentStatusHistoryService>();
 
         //ReputationLog
