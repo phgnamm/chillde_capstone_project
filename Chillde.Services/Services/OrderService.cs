@@ -2315,6 +2315,7 @@ namespace Chillde.Services.Services
                         DiscountValue = _.DiscountValue,
                         DiscountOriginalValue = _.DiscountValueOrigin,
                         UsageStatus = _.UsageStatus,
+                        VoucherType = _.Voucher.VoucherType,
                         CreationDate = _.CreationDate,
                     }).ToList() ?? new List<VoucherUsageModel>(),
 

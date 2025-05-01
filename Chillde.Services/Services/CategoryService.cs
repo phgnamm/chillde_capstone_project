@@ -307,6 +307,51 @@ namespace Chillde.Services.Services
             }
         }
 
+        public async Task<ResponseModel> SoftDelete(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status400BadRequest,
+                    Message = "Invalid category ID."
+                };
+            }
+
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var category = await _unitOfWork.CategoryRepository.GetAsync(id);
+                if (category == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = $"Category with ID {id} not found."
+                    };
+                }
+
+                _unitOfWork.CategoryRepository.SoftRemove(category);
+                await _unitOfWork.SaveChangeAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = $"Category with ID {id} deleted successfully. Children updated to have no parent."
+                };
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = $"An error occurred while deleting category: {ex.Message}"
+                };
+            }
+        }
+
         public async Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel, string sourceLanguageCode, string targetLanguageCode)
         {
             var originalCulture = new CultureInfo(sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US");
