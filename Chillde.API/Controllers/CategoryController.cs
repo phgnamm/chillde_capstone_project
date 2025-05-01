@@ -111,6 +111,26 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+
+        //[Authorize]
+        [HttpDelete("{id}/soft-delete")]
+        public async Task<IActionResult> SoftDeleteCategory(Guid id)
+        {
+            try
+            {
+                var response = await _categoryService.SoftDelete(id);
+                return StatusCode(response.Code, response);
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
         //      [Authorize]
         [HttpGet("{idOrSlug}")]
         public async Task<IActionResult> GetById(string idOrSlug)

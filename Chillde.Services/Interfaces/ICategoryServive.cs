@@ -20,6 +20,7 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetAll(CategoryFilterModel categoryFilterModel, string sourceLanguageCode, string targetLanguageCode);
         Task<ResponseModel> Update(Guid id, CategoryUpdateModel categoryUpdateModel);
         Task<ResponseModel> Delete(Guid id);
+        Task<ResponseModel> SoftDelete(Guid id);
         Task<ResponseModel> GetByIdOrSlug(string idOrSlug, string sourceLanguageCode, string targetLanguageCode);
 
 

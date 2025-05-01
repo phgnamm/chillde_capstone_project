@@ -11,7 +11,9 @@ namespace Chillde.Services.Models.SystemConfigModels
     public class SystemConfigFilterModel : FilterParameter
     {
         public ConfigType? Type { get; set; }
-        //public bool? IsActive { get; set; }
+        public bool? IsActive { get; set; }
+        public bool? Past { get; set; }
+        public bool? Future { get; set; }
         public  SortOptions OrderOption { get; set; } = SortOptions.CreationDate;
         protected override int MinPageSize { get; set; } = 1000;
         protected override int MaxPageSize { get; set; } = 1000;
