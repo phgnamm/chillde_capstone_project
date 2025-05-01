@@ -436,7 +436,6 @@ namespace Chillde.Services.Services
                         Message = "Unauthorized."
                     };
                 }
-                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name });
 
                 var category = await _unitOfWork.CategoryRepository.GetAsync(serviceAddModel.CategoryId);
                 if (category == null)
@@ -447,6 +446,7 @@ namespace Chillde.Services.Services
                         Message = "Category not found."
                     };
                 }
+                var embeddingVector = await _openAiService.GetEmbeddingAsync(new List<string> { serviceAddModel.Description, serviceAddModel.Name,category.Name });
 
                 var numberOfExistedService = _unitOfWork.ServiceRepository.GetAllAsync(
                     _ => _.CreatedById == currentUserId && _.IsDeleted == false).Result.TotalCount;
