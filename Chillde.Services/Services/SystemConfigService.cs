@@ -126,7 +126,11 @@ namespace Chillde.Services.Services
 
             var configList = await _unitOfWork.SystemConfigRepository.GetAllAsync(
         x =>
-            !x.IsDeleted && (!model.Type.HasValue || x.EntityType == model.Type),
+            !x.IsDeleted &&
+            (!model.IsActive.HasValue || x.IsActive == model.IsActive) &&
+        (!model.Type.HasValue || x.EntityType == model.Type) &&
+        (!model.Past.HasValue || (model.Past.Value ? !x.IsActive && (x.EffectiveFrom == null || x.EffectiveFrom < now) : DateOnly.FromDateTime(x.CreationDate) < now)) &&
+        (!model.Future.HasValue || (model.Future.Value && x.EffectiveFrom > now)),
         q =>
         {
             switch (model.OrderOption)
