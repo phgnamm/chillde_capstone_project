@@ -170,6 +170,7 @@ namespace Chillde.Services.Services
                     Value = x.Value,
                     EffectiveFrom = x.EffectiveFrom,
                     IsActive = x.IsActive,
+                    CreationDate = x.CreationDate
                 }).ToList();
 
             if (!string.IsNullOrWhiteSpace(model.Search))

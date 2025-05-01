@@ -56,6 +56,7 @@ namespace Chillde.Repositories.Models.OrderModels
         public decimal DiscountValue { get; set; }
         public decimal DiscountOriginalValue { get; set; }
         public UsageStatus UsageStatus { get; set; }
+        public VoucherType VoucherType { get; set; }
     }
 
     public class OrderInformationModel : BaseEntity
