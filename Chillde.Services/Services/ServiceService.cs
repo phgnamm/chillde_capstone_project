@@ -1720,7 +1720,7 @@ namespace Chillde.Services.Services
                 var eventKeywords = eventDict["KeywordsVi"].Split(",").ToList();
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventVi });
                 var cacheKey = "suggested_event_services";
-                var cacheDuration = TimeSpan.FromDays(1);
+                var cacheDuration = TimeSpan.FromMinutes(30);
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
