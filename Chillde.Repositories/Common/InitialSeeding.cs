@@ -175,63 +175,63 @@ public static class InitialSeeding
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MinOrdersForArtisan",
             Value = JsonDocument.Parse("5"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "NumberOfMonthForMinOrders",
             Value = JsonDocument.Parse("1"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MinReputationOfArtisan",
             Value = JsonDocument.Parse("1"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "DiscountValue",
             Value = JsonDocument.Parse("10"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MaxDiscountValue",
             Value = JsonDocument.Parse("10"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "TotalQuantity",
             Value = JsonDocument.Parse("1"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "NumberOfDateForUsingVoucher",
             Value = JsonDocument.Parse("15"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MinOrderValue",
             Value = JsonDocument.Parse("15"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "Commission",
             Value = JsonDocument.Parse("1"),
             IsActive = true
