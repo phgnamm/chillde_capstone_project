@@ -37,6 +37,7 @@ using Chillde.Repositories.Models.NotificationModels;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
 using StackExchange.Redis;
 using CloudinaryDotNet;
+using System.Diagnostics.Tracing;
 
 namespace Chillde.Services.Services
 {
@@ -1801,6 +1802,7 @@ namespace Chillde.Services.Services
                 var eventDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                 var eventVi = eventDict["EventVi"];
                 var eventEn = eventDict["EventEn"];
+                var eventKeywords = eventDict["EventKeywords"].Split(",").ToList();
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventVi });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
@@ -1815,7 +1817,11 @@ namespace Chillde.Services.Services
 
                     var threshold = 0.8;
                     var results = services.Data
-                        .Where(s => CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold)
+                        .Where(s => CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold &&
+                         eventKeywords.Any(k =>
+        (!string.IsNullOrEmpty(s.Description) && s.Description.ToLower().Contains(k.ToLower())) ||
+        (!string.IsNullOrEmpty(s.Name) && s.Name.ToLower().Contains(k.ToLower()))
+    ))
                         .Select(s => new ServiceModel
                         {
                             Id = s.Id,
