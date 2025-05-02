@@ -451,7 +451,7 @@ namespace Chillde.Services.Services
                 var numberOfExistedService = _unitOfWork.ServiceRepository.GetAllAsync(
                     _ => _.CreatedById == currentUserId && _.IsDeleted == false).Result.TotalCount;
                 var maximumService = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumSerivceOfOneArtisan).Result;
-                if (numberOfExistedService > int.Parse(maximumService!))
+                if (numberOfExistedService >= int.Parse(maximumService!))
                 {
                     return new ResponseModel
                     {
@@ -1044,7 +1044,7 @@ namespace Chillde.Services.Services
 
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
-                if (numberOfExistedPackage > int.Parse(maximumPackage!))
+                if (numberOfExistedPackage >= int.Parse(maximumPackage!))
                 {
                     return new ResponseModel
                     {
