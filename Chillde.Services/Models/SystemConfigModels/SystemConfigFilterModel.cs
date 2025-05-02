@@ -15,8 +15,8 @@ namespace Chillde.Services.Models.SystemConfigModels
         public bool? Past { get; set; }
         public bool? Future { get; set; }
         public  SortOptions OrderOption { get; set; } = SortOptions.CreationDate;
-        protected override int MinPageSize { get; set; } = 1000;
-        protected override int MaxPageSize { get; set; } = 1000;
+        //protected override int MinPageSize { get; set; } = 500;
+        //protected override int MaxPageSize { get; set; } = 500;
 
     }
 }
