@@ -32,29 +32,110 @@ namespace Chillde.Services.Services
             int gracePeriodDays = 3;
             int maxDaysThreshold = 45;
             var eventList = new List<EventModel>
-                {
-                    new EventModel { NameVi = "Tết Dương lịch", NameEn = "New Year's Day", Date = "01-01", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Thầy thuốc Việt Nam", NameEn = "Vietnamese Doctors' Day", Date = "27-02", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quốc tế Phụ nữ", NameEn = "International Women's Day", Date = "08-03", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quốc tế Hạnh phúc", NameEn = "International Day of Happiness", Date = "20-03", IsLunar = false },
-                    new EventModel { NameVi = "Giỗ Tổ Hùng Vương", NameEn = "Hung Kings' Commemoration Day", Date = "10-03", IsLunar = true },
-                    new EventModel { NameVi = "Ngày Giải phóng miền Nam", NameEn = "Reunification Day", Date = "30-04", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quốc tế Lao động", NameEn = "International Workers' Day", Date = "01-05", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quốc tế Thiếu nhi", NameEn = "International Children's Day", Date = "01-06", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quốc tế Người cao tuổi", NameEn = "International Day of Older Persons", Date = "01-10", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Giải phóng Thủ đô", NameEn = "Hanoi Liberation Day", Date = "10-10", IsLunar = false },
-                    new EventModel { NameVi = "Halloween", NameEn = "Halloween", Date = "31-10", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Nhà giáo Việt Nam", NameEn = "Vietnamese Teachers' Day", Date = "20-11", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quốc tế Nam giới", NameEn = "International Men's Day", Date = "19-11", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Quân đội Nhân dân Việt Nam", NameEn = "Vietnam People's Army Day", Date = "22-12", IsLunar = false },
-                    new EventModel { NameVi = "Ngày Giáng sinh (Noel)", NameEn = "Christmas Eve", Date = "24-12", IsLunar = false },
-                    new EventModel { NameVi = "Tết Nguyên Đán", NameEn = "Lunar New Year", Date = "01-01", IsLunar = true },
-                    new EventModel { NameVi = "Lễ Vu Lan", NameEn = "Vu Lan Festival", Date = "15-07", IsLunar = true },
-                    new EventModel { NameVi = "Tết Nguyên Tiêu", NameEn = "Lantern Festival", Date = "15-01", IsLunar = true },
-                    new EventModel { NameVi = "Tết Đoan Ngọ", NameEn = "Dragon Boat Festival", Date = "05-05", IsLunar = true },
-                    new EventModel { NameVi = "Tết Trung Thu", NameEn = "Mid-Autumn Festival", Date = "15-08", IsLunar = true },
-                    new EventModel { NameVi = "Quốc khánh Việt Nam", NameEn = "Vietnam National Day", Date = "02-09", IsLunar = false },
-                };
+{
+    new EventModel
+    {
+        NameVi = "Tết Dương lịch", NameEn = "New Year's Day", Date = "01-01", IsLunar = false,
+        KeywordsVi = new List<string> { "Tết", "Năm mới", "Ngày lễ", "Chúc mừng", "Gia đình", "Du lịch", "Tiệc tùng", "Mừng năm mới", "Chúc phúc", "Lịch nghỉ" },
+        KeywordsEn = new List<string> { "New Year", "Celebration", "Holiday", "Family", "Travel", "Party", "Greetings", "Festivity", "New Year's Eve", "Festive season" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Thầy thuốc Việt Nam", NameEn = "Vietnamese Doctors' Day", Date = "27-02", IsLunar = false,
+        KeywordsVi = new List<string> { "Thầy thuốc", "Y tế", "Bác sĩ", "Chăm sóc sức khỏe", "Y học", "Tôn vinh", "Người thầy thuốc", "Ngày truyền thống", "Cảm ơn", "Chăm sóc" },
+        KeywordsEn = new List<string> { "Doctors", "Healthcare", "Medical profession", "Doctors' Day", "Vietnamese doctors", "Medicine", "Appreciation", "Honoring", "Health", "Gratitude" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quốc tế Phụ nữ", NameEn = "International Women's Day", Date = "08-03", IsLunar = false,
+        KeywordsVi = new List<string> { "Phụ nữ", "Quyền phụ nữ", "Bình đẳng giới", "Tôn vinh", "Ngày lễ", "Chúc mừng", "Tự do", "Độc lập", "Người phụ nữ", "Vượt qua" },
+        KeywordsEn = new List<string> { "Women", "Gender equality", "Women's rights", "Celebration", "Empowerment", "Equality", "Feminism", "Strength", "Respect", "Inspiration" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quốc tế Hạnh phúc", NameEn = "International Day of Happiness", Date = "20-03", IsLunar = false,
+        KeywordsVi = new List<string> { "Hạnh phúc", "Niềm vui", "Cuộc sống", "Ngày lễ", "Chia sẻ", "Cộng đồng", "Tinh thần", "Phúc lợi", "Lạc quan", "Tươi cười" },
+        KeywordsEn = new List<string> { "Happiness", "Joy", "Well-being", "Celebration", "Optimism", "Life", "Community", "Smile", "Mental health", "Positivity" }
+    },
+    new EventModel
+    {
+        NameVi = "Giỗ Tổ Hùng Vương", NameEn = "Hung Kings' Commemoration Day", Date = "10-03", IsLunar = true,
+        KeywordsVi = new List<string> { "Hùng Vương", "Giỗ tổ", "Lịch sử", "Dân tộc", "Truyền thống", "Tôn vinh", "Giới thiệu văn hóa", "Phong tục", "Lễ hội", "Tổ tiên" },
+        KeywordsEn = new List<string> { "Hung Kings", "Commemoration", "Tradition", "History", "Culture", "National identity", "Ancestor worship", "Festival", "Heritage", "Ceremony" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Giải phóng miền Nam", NameEn = "Reunification Day", Date = "30-04", IsLunar = false,
+        KeywordsVi = new List<string> { "Giải phóng", "Miền Nam", "Ngày chiến thắng", "Tự do", "Hòa bình", "Lịch sử", "Dân tộc", "Chung tay", "Ngày lễ", "Tinh thần đoàn kết" },
+        KeywordsEn = new List<string> { "Reunification", "Victory", "Freedom", "Independence", "History", "South Vietnam", "Peace", "Unity", "National Day", "Celebration" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quốc tế Lao động", NameEn = "International Workers' Day", Date = "01-05", IsLunar = false,
+        KeywordsVi = new List<string> { "Lao động", "Công nhân", "Ngày lễ", "Tôn vinh", "Công bằng", "Công lý", "Quyền lợi", "Chia sẻ", "Xã hội", "Nỗ lực" },
+        KeywordsEn = new List<string> { "Labor", "Workers", "International Day", "Social justice", "Rights", "Fairness", "Dignity", "Celebration", "Workforce", "Unity" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quốc tế Thiếu nhi", NameEn = "International Children's Day", Date = "01-06", IsLunar = false,
+        KeywordsVi = new List<string> { "Trẻ em", "Ngày Quốc tế", "Tổ chức", "Phúc lợi trẻ em", "Bảo vệ trẻ em", "Niềm vui", "Học tập", "Chơi đùa", "Chăm sóc", "Tương lai" },
+        KeywordsEn = new List<string> { "Children", "International Day", "Rights of children", "Protection", "Joy", "Education", "Future", "Care", "Play", "Family" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quốc tế Người cao tuổi", NameEn = "International Day of Older Persons", Date = "01-10", IsLunar = false,
+        KeywordsVi = new List<string> { "Người cao tuổi", "Tôn vinh", "Lão hóa", "Chăm sóc", "Phúc lợi", "Lão khoa", "Gia đình", "Tương lai", "Ngày lễ", "Sức khỏe" },
+        KeywordsEn = new List<string> { "Older persons", "Elderly", "Celebration", "Aging", "Care", "Respect", "Family", "Social welfare", "Health", "Dignity" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Giải phóng Thủ đô", NameEn = "Hanoi Liberation Day", Date = "10-10", IsLunar = false,
+        KeywordsVi = new List<string> { "Giải phóng", "Thủ đô", "Hà Nội", "Lịch sử", "Ngày chiến thắng", "Tự do", "Chúng ta", "Đoàn kết", "Bảo vệ", "Lịch sử dân tộc" },
+        KeywordsEn = new List<string> { "Liberation", "Hanoi", "Victory", "Freedom", "National history", "Reunification", "Victory day", "Patriotism", "Independence", "Unity" }
+    },
+    new EventModel
+    {
+        NameVi = "Halloween", NameEn = "Halloween", Date = "31-10", IsLunar = false,
+        KeywordsVi = new List<string> { "Halloween", "Ma quái", "Trang trí", "Lễ hội", "Hóa trang", "Sợ hãi", "Trick or treat", "Lễ hội Mỹ", "Chơi đùa", "Đêm hội" },
+        KeywordsEn = new List<string> { "Halloween", "Spooky", "Costumes", "Trick or treat", "Decoration", "Festival", "Frightening", "Scary", "Night", "Celebration" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Nhà giáo Việt Nam", NameEn = "Vietnamese Teachers' Day", Date = "20-11", IsLunar = false,
+        KeywordsVi = new List<string> { "Nhà giáo", "Giáo viên", "Tôn vinh", "Ngày lễ", "Cảm ơn", "Truyền cảm hứng", "Học sinh", "Phát triển", "Giáo dục", "Kỷ niệm" },
+        KeywordsEn = new List<string> { "Teachers", "Education", "Teaching", "Appreciation", "Honor", "Inspiration", "Gratitude", "Students", "Learning", "Celebration" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quốc tế Nam giới", NameEn = "International Men's Day", Date = "19-11", IsLunar = false,
+        KeywordsVi = new List<string> { "Nam giới", "Tôn vinh", "Ngày lễ", "Công bằng", "Giới tính", "Bình đẳng", "Sức khỏe", "Gia đình", "Hạnh phúc", "Phát triển" },
+        KeywordsEn = new List<string> { "Men", "Gender equality", "Men's Day", "Celebration", "Health", "Family", "Well-being", "Social justice", "Community", "Respect" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Quân đội Nhân dân Việt Nam", NameEn = "Vietnam People's Army Day", Date = "22-12", IsLunar = false,
+        KeywordsVi = new List<string> { "Quân đội", "Nhân dân", "Ngày lễ", "Tôn vinh", "Anh hùng", "Bảo vệ tổ quốc", "Tinh thần", "Dân tộc", "Quân nhân", "Chiến tranh" },
+        KeywordsEn = new List<string> { "Army", "People's Army", "Vietnam", "Soldiers", "Commemoration", "Victory", "Nation", "Defense", "Heroes", "Military" }
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Giáng sinh (Noel)", NameEn = "Christmas Eve", Date = "24-12", IsLunar = false,
+        KeywordsVi = new List<string> { "Giáng sinh", "Noel", "Lễ hội", "Tôn vinh", "Tình yêu", "Gia đình", "Mừng Chúa Giáng sinh", "Món quà", "Lễ hội mùa đông", "Tổ chức" },
+        KeywordsEn = new List<string> { "Christmas", "Eve", "Holiday", "Celebration", "Family", "Love", "Gifts", "Religion", "Winter festival", "Togetherness" }
+    },
+    new EventModel
+    {
+        NameVi = "Tết Nguyên Đán", NameEn = "Lunar New Year", Date = "01-01", IsLunar = true,
+        KeywordsVi = new List<string> { "Tết", "Lịch Nguyên Đán", "Tết cổ truyền", "Mừng năm mới", "Lễ hội", "Gia đình", "Tặng quà", "Chúc mừng", "Tượng trưng", "Phong tục" },
+        KeywordsEn = new List<string> { "Lunar New Year", "Tet", "Traditional", "Festivity", "New Year", "Celebration", "Family", "Culture", "Tradition", "Gifts" }
+    },
+    new EventModel
+    {
+        NameVi = "Lễ Vu Lan", NameEn = "Vu Lan Festival", Date = "15-07", IsLunar = true,
+        KeywordsVi = new List<string> { "Vu Lan", "Báo hiếu", "Tôn vinh", "Lễ hội", "Cúng tổ tiên", "Phúc đức", "Tình mẫu tử", "Hiếu hạnh", "Cộng đồng", "Tâm linh" },
+        KeywordsEn = new List<string> { "Vu Lan", "Ancestral worship", "Filial piety", "Mother's love", "Festival", "Respect", "Tradition", "Honor", "Spiritual", "Cultural celebration" }
+    }
+};
 
             var upcomingEvents = eventList
         .Select(e =>
@@ -74,7 +155,7 @@ namespace Chillde.Services.Services
                 eventDate = DateTime.ParseExact(e.Date!, "dd-MM", CultureInfo.InvariantCulture);
                 eventDate = new DateTime(currentDate.Year, eventDate.Month, eventDate.Day);
             }
-            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate };
+            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate, KeywordsVi = e.KeywordsVi, KeywordsEn = e.KeywordsEn };
         })
         .OrderBy(e => e.Date)
         .ToList();
@@ -88,7 +169,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = new { pastRecentEvent.EventVi, pastRecentEvent.EventEn, Date = pastRecentEvent.Date.ToString("yyyy-MM-dd") }
+                    Data = new { pastRecentEvent.EventVi, pastRecentEvent.EventEn, Date = pastRecentEvent.Date.ToString("yyyy-MM-dd"), KeywordsVi = pastRecentEvent.KeywordsVi, KeywordsEn = pastRecentEvent.KeywordsEn }
                 };
             }
             if (nearestEvent != null && (nearestEvent.Date - currentDate).TotalDays <= maxDaysThreshold)
@@ -97,7 +178,7 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = new { nearestEvent.EventVi, nearestEvent.EventEn, Date = nearestEvent.Date.ToString("yyyy-MM-dd") }
+                    Data = new { nearestEvent.EventVi, nearestEvent.EventEn, Date = nearestEvent.Date.ToString("yyyy-MM-dd"), KeywordsVi = nearestEvent.KeywordsVi, KeywordsEn = nearestEvent.KeywordsEn }
                 };
             }
             return new ResponseModel
@@ -281,12 +362,12 @@ namespace Chillde.Services.Services
         public class EmbeddingData
         {
             public float[] Embedding { get; set; } = Array.Empty<float>();
-        }       
+        }
         public class ModelResponseRaw
         {
             public Guid Id { get; set; } = Guid.NewGuid();
             public string? Name { get; set; }
-            public int Type { get; set; } 
+            public int Type { get; set; }
             public List<string>? Options { get; set; }
         }
 
@@ -298,15 +379,15 @@ namespace Chillde.Services.Services
             public List<string>? Options { get; set; }
         }
         private string ExtractJsonContent(string response)
-{
-    int firstBracket = response.IndexOf('[');
-    int lastBracket = response.LastIndexOf(']');
+        {
+            int firstBracket = response.IndexOf('[');
+            int lastBracket = response.LastIndexOf(']');
 
-    if (firstBracket == -1 || lastBracket == -1 || lastBracket <= firstBracket)
-        return string.Empty;
+            if (firstBracket == -1 || lastBracket == -1 || lastBracket <= firstBracket)
+                return string.Empty;
 
-    return response.Substring(firstBracket, lastBracket - firstBracket + 1);
-}
+            return response.Substring(firstBracket, lastBracket - firstBracket + 1);
+        }
 
     }
 }
