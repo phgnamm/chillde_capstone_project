@@ -175,63 +175,63 @@ public static class InitialSeeding
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MinOrdersForArtisan",
             Value = JsonDocument.Parse("5"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "NumberOfMonthForMinOrders",
             Value = JsonDocument.Parse("1"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MinReputationOfArtisan",
             Value = JsonDocument.Parse("1"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "DiscountValue",
             Value = JsonDocument.Parse("10"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MaxDiscountValue",
             Value = JsonDocument.Parse("10"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "TotalQuantity",
             Value = JsonDocument.Parse("1"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "NumberOfDateForUsingVoucher",
             Value = JsonDocument.Parse("15"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "MinOrderValue",
             Value = JsonDocument.Parse("15"),
             IsActive = true
         },
         new()
         {
-            EntityType = ConfigType.Vouvher,
+            EntityType = ConfigType.Voucher,
             FieldName = "Commission",
             Value = JsonDocument.Parse("1"),
             IsActive = true
@@ -3910,6 +3910,15 @@ public static class InitialSeeding
                 context.NotificationContents.Add(notificationContent);
             }
         }
+        // Seed Reports and ReportAttachments
+        //foreach (var report in Reports)
+        //{
+        //    if (!context.Reports.Any(r => r.Id == report.Id))
+        //    {
+        //        if (context.Orders.Any(o => o.Id == report.OrderId))
+        //        {
+        //            continue;
+        //        }
         
         foreach (var category in Categories)
         {
