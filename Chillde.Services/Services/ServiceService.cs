@@ -1005,7 +1005,7 @@ namespace Chillde.Services.Services
                         Code = StatusCodes.Status422UnprocessableEntity,
                         Message = $"Number of packages cannot exceed {maximumPackage}."
                     };
-                }
+
                 //var fieldsToTranslate = new Dictionary<string, string>
                 //{
                 //    { "Name", packageAddModel.Name },
@@ -1694,10 +1694,10 @@ namespace Chillde.Services.Services
                         Message = "Get services based on user activity log successfully",
                         Data = paginatedResult
                     };
-            }, cacheDuration);
+                }, cacheDuration);
 
-            return responseModel;
-        }
+                return responseModel;
+            }
             else if (serviceFilterModel.IsEvent)
             {
                 var eventDetails = _openAiService.GetEvent(sourceLanguageCode);
@@ -1811,10 +1811,10 @@ namespace Chillde.Services.Services
                             Services = paginatedResult
                         }
                     };
-            }, cacheDuration);
+                }, cacheDuration);
 
-            return responseModel;
-        }
+                return responseModel;
+            }
             else
             {
                 var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
@@ -1945,9 +1945,9 @@ namespace Chillde.Services.Services
                         Message = "Get all services successfully",
                         Data = paginatedResult
                     };
-            });
-            return responseModel;
-        }
+                });
+                return responseModel;
+            }
         }
 
         private async Task<List<ServiceModel>> GetServiceListAsync(Expression<Func<Service, bool>> filter)
