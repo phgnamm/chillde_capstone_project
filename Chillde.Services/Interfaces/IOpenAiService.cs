@@ -1,4 +1,5 @@
-﻿using Chillde.Services.Models.ResponseModels;
+﻿using Chillde.Repositories.Models.ServiceModels;
+using Chillde.Services.Models.ResponseModels;
 
 
 namespace Chillde.Services.Interfaces
@@ -10,5 +11,9 @@ namespace Chillde.Services.Interfaces
         Task<ResponseModel> GetStructuredDataAsync(List<string> attributes);
         //Task<ResponseModel> GetEventAsync(string sourceLanguage, string targerLanguage);
         ResponseModel GetEvent(string sourceLanguageCode);
+        Task<List<ServiceModel>> RerankTopServicesWithGPTAsync(
+            string eventDescription,
+            List<ServiceModel> candidates,
+            int topN = 10);
     }
 }

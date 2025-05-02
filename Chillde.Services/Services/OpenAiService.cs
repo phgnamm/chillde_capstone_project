@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.SignalR.Protocol;
 using Newtonsoft.Json;
 using System.Globalization;
 using Chillde.Repositories.Models.UserActivityLogModels;
+using Chillde.Repositories.Models.ServiceModels;
+using OpenAI.GPT3.Managers;
 
 namespace Chillde.Services.Services
 {
@@ -155,7 +157,9 @@ namespace Chillde.Services.Services
                 eventDate = DateTime.ParseExact(e.Date!, "dd-MM", CultureInfo.InvariantCulture);
                 eventDate = new DateTime(currentDate.Year, eventDate.Month, eventDate.Day);
             }
-            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate, KeywordsVi = e.KeywordsVi, KeywordsEn = e.KeywordsEn };
+            var keywordsVi = e.KeywordsVi != null ? string.Join(", ", e.KeywordsVi) : string.Empty;
+            var keywordsEn = e.KeywordsEn != null ? string.Join(", ", e.KeywordsEn) : string.Empty;
+            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate, KeywordsVi = keywordsVi, KeywordsEn = keywordsEn };
         })
         .OrderBy(e => e.Date)
         .ToList();
@@ -169,7 +173,10 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = new { pastRecentEvent.EventVi, pastRecentEvent.EventEn, Date = pastRecentEvent.Date.ToString("yyyy-MM-dd"), KeywordsVi = pastRecentEvent.KeywordsVi, KeywordsEn = pastRecentEvent.KeywordsEn }
+                    Data = new { pastRecentEvent.EventVi, pastRecentEvent.EventEn, Date = pastRecentEvent.Date.ToString("yyyy-MM-dd"),
+                        KeywordsVi = pastRecentEvent.KeywordsVi,
+                        KeywordsEn = pastRecentEvent.KeywordsEn
+                    }
                 };
             }
             if (nearestEvent != null && (nearestEvent.Date - currentDate).TotalDays <= maxDaysThreshold)
@@ -178,7 +185,10 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = new { nearestEvent.EventVi, nearestEvent.EventEn, Date = nearestEvent.Date.ToString("yyyy-MM-dd"), KeywordsVi = nearestEvent.KeywordsVi, KeywordsEn = nearestEvent.KeywordsEn }
+                    Data = new { nearestEvent.EventVi, nearestEvent.EventEn, Date = nearestEvent.Date.ToString("yyyy-MM-dd"),
+                        KeywordsVi = nearestEvent.KeywordsVi,
+                        KeywordsEn = nearestEvent.KeywordsEn
+                    }
                 };
             }
             return new ResponseModel
@@ -188,6 +198,80 @@ namespace Chillde.Services.Services
                 Data = null
             };
         }
+        public async Task<List<ServiceModel>> RerankTopServicesWithGPTAsync(
+            string eventDescription,
+            List<ServiceModel> candidates,
+            int topN = 10)
+        {
+            var promptBuilder = new StringBuilder();
+            promptBuilder.AppendLine($"Sự kiện: {eventDescription}\n");
+            promptBuilder.AppendLine("Dưới đây là danh sách dịch vụ:");
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                var service = candidates[i];
+                promptBuilder.AppendLine($"{i + 1}. Tên: {service.Name}");
+                promptBuilder.AppendLine($"   Mô tả: {service.Description}");
+            }
+
+            promptBuilder.AppendLine($"\nHãy chọn ra {topN} dịch vụ mà bạn cho rằng nó phù hợp và có thể dùng cho sự kiện đó, có thể không hoàn toàn phù hợp nhưng về ngữ cảnh và tác dụng vẫn có thể liên quan.");
+            promptBuilder.AppendLine("Chỉ trả về danh sách số thứ tự (ví dụ: 3, 5, 1, ...).");
+
+            var requestBody = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+            new { role = "system", content = "Bạn là một chuyên gia tư vấn dịch vụ cho sự kiện." },
+            new { role = "user", content = promptBuilder.ToString() }
+        },
+                temperature = 0.2
+            };
+
+            var apiKey = _configuration["OpenAI:ApiKey"];
+            if (string.IsNullOrEmpty(apiKey))
+                throw new Exception("API key is missing.");
+
+            using var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+            var response = await httpClient.PostAsJsonAsync("https://api.openai.com/v1/chat/completions", requestBody);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var completionResult = JsonConvert.DeserializeObject<dynamic>(responseContent);
+            var content = completionResult?.choices[0]?.message?.content?.ToString();
+
+            if (string.IsNullOrEmpty(content))
+            {
+                throw new Exception("No valid response from OpenAI API.");
+            }
+
+            var indexes = new List<int>();
+
+            foreach (var s in content.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (int.TryParse(s.Trim(), out int index) && index > 0)
+                {
+                    index = index - 1;
+                    if (index >= 0 && index < candidates.Count)
+                    {
+                        indexes.Add(index);
+                    }
+                }
+            }
+
+            var selectedServices = new List<ServiceModel>();
+            foreach (var index in indexes.Take(topN))
+            {
+                selectedServices.Add(candidates[index]);
+            }
+
+            return selectedServices;
+        }
+
+
+
 
         public async Task<float[]> GetEmbeddingAsync(List<string> texts)
         {

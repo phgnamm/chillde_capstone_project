@@ -78,7 +78,7 @@ namespace Chillde.Services.Services
             IServiceAttachmentService serviceAttachmentService,
             ITranslationService translationService,
             IRedisHelper redisHelper,
-            IBadWordFilterService badWordFilterService, ISystemConfigService systemConfigService, 
+            IBadWordFilterService badWordFilterService, ISystemConfigService systemConfigService,
             INotificationService notificationService)
         {
             _client = client;
@@ -520,7 +520,14 @@ namespace Chillde.Services.Services
                         Data = serviceModel
                     };
                 }
-            
+
+                //{
+                //    return new ResponseModel
+                //    {
+                //        Code = StatusCodes.Status400BadRequest,
+                //        Message = "Service attachments are required."
+                //    };
+                //}
                 return new ResponseModel
                 {
                     Code = StatusCodes.Status201Created,
@@ -992,14 +999,39 @@ namespace Chillde.Services.Services
                 var numberOfExistedPackage = _unitOfWork.PackageRepository.GetAllPackageFromService(serviceId).Result.Count();
                 var maximumPackage = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageOfOneService).Result;
                 if (numberOfExistedPackage >= int.Parse(maximumPackage!))
-                {
+
                     return new ResponseModel
                     {
                         Code = StatusCodes.Status422UnprocessableEntity,
                         Message = $"Number of packages cannot exceed {maximumPackage}."
                     };
                 }
-              
+                //var fieldsToTranslate = new Dictionary<string, string>
+                //{
+                //    { "Name", packageAddModel.Name },
+                //    { "Description", packageAddModel.Description }
+                //};
+                //var translationResponse = await _translationService.TranslateMultipleFieldsAsync(fieldsToTranslate, sourceLanguageCode, targetLanguageCode);
+                ////if (translationResponse.Code != StatusCodes.Status200OK)
+                ////{
+                ////    throw new Exception("Failed to translate fields.");
+                ////}
+                //string translatedName = translationResponse.TranslatedFields["Name"];
+                //string translatedDescription = translationResponse.TranslatedFields["Description"];
+
+                //var package = new Package
+                //{
+                //    //Name = sourceLanguageCode == "en" ? packageAddModel.Name : translatedName,
+                //    //Description = sourceLanguageCode == "en" ? packageAddModel.Description : translatedName,
+                //    Name = packageAddModel.Name,
+                //    Description = packageAddModel.Description,
+                //    Price = packageAddModel.Price,
+                //    ServiceId = serviceId,
+                //    DeliveryTime = packageAddModel.DeliveryTime,
+                //    SketchRevision = packageAddModel.SketchRevision,
+                //    ResponseTime = packageAddModel.ResponseTime
+                //};
+
                 var package = _mapper.Map<Package>(packageAddModel);
                 package.ServiceId = serviceId;
                 await _unitOfWork.PackageRepository.AddAsync(package);
@@ -1509,41 +1541,41 @@ namespace Chillde.Services.Services
                 pageSize: serviceFilterModel.PageSize
             );
 
-                var serviceModels = services.Data.Select(_ => new ServiceModel
-                {
-                    Id = _.Id,
-                    Name = _.Name!,
-                    Description = _.Description ?? "",
-                    FeedbackCount = _.FeedbackCount,
-                    Rate = _.Rate,
-                    MinWeight = _.MinWeight,
-                    MaxWeight = _.MaxWeight,
-                    Status = _.Status,
-                    CategoryId = _.CategoryId,
-                    CategorySlug = _.Category?.Slug,
-                    PackageCount = _.Packages.Count,
-                    ServiceAttachments = _.ServiceAttachments.ToList(),
-                    Artisan = _.CreatedBy == null ? null : new AccountLiteModel
+                    var serviceModels = services.Data.Select(_ => new ServiceModel
                     {
-                        FirstName = _.CreatedBy.FirstName ?? "Unknown",
-                        LastName = _.CreatedBy.LastName ?? "Unknown",
-                        Username = _.CreatedBy.Username ?? "Unknown",
-                        Email = _.CreatedBy.Email ?? "Unknown",
-                        Image = _.CreatedBy.Image ?? "Unknown"
-                    }
-                }).ToList();
+                        Id = _.Id,
+                        Name = _.Name!,
+                        Description = _.Description ?? "",
+                        FeedbackCount = _.FeedbackCount,
+                        Rate = _.Rate,
+                        MinWeight = _.MinWeight,
+                        MaxWeight = _.MaxWeight,
+                        Status = _.Status,
+                        CategoryId = _.CategoryId,
+                        CategorySlug = _.Category?.Slug,
+                        PackageCount = _.Packages.Count,
+                        ServiceAttachments = _.ServiceAttachments.ToList(),
+                        Artisan = _.CreatedBy == null ? null : new AccountLiteModel
+                        {
+                            FirstName = _.CreatedBy.FirstName ?? "Unknown",
+                            LastName = _.CreatedBy.LastName ?? "Unknown",
+                            Username = _.CreatedBy.Username ?? "Unknown",
+                            Email = _.CreatedBy.Email ?? "Unknown",
+                            Image = _.CreatedBy.Image ?? "Unknown"
+                        }
+                    }).ToList();
 
-                var result = new Pagination<ServiceModel>(
-                    serviceModels,
-                    serviceFilterModel.PageIndex,
-                    serviceFilterModel.PageSize,
-                    serviceModels.Count
-                );
-                return new ResponseModel
-                {
-                    Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
-                    Data = result
-                };
+                    var result = new Pagination<ServiceModel>(
+                        serviceModels,
+                        serviceFilterModel.PageIndex,
+                        serviceFilterModel.PageSize,
+                        serviceModels.Count
+                    );
+                    return new ResponseModel
+                    {
+                        Message = serviceModels.Any() ? "Get all services successfully" : "No services found",
+                        Data = result
+                    };
                 });
             }
             catch (Exception ex)
@@ -1685,7 +1717,7 @@ namespace Chillde.Services.Services
                 var eventDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                 var eventVi = eventDict["EventVi"];
                 var eventEn = eventDict["EventEn"];
-                var eventKeywords = eventDict["EventKeywords"].Split(",").ToList();
+                var eventKeywords = eventDict["KeywordsVi"].Split(",").ToList();
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventVi });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromDays(1);
@@ -1700,38 +1732,52 @@ namespace Chillde.Services.Services
 
                     var threshold = 0.8;
                     var results = services.Data
-                        .Where(s => CosineSimilarity(eventEmbedding, s.EmbeddingVector) >= threshold &&
-                         eventKeywords.Any(k =>
-        (!string.IsNullOrEmpty(s.Description) && s.Description.ToLower().Contains(k.ToLower())) ||
-        (!string.IsNullOrEmpty(s.Name) && s.Name.ToLower().Contains(k.ToLower()))
-    ))
-                        .Select(s => new ServiceModel
+                        .Select(s =>
                         {
-                            Id = s.Id,
-                            Name = s.Name!,
-                            Description = s.Description!,
-                            Similarity = CosineSimilarity(eventEmbedding, s.EmbeddingVector),
-                            ServiceAttachments = s.ServiceAttachments.ToList(),
-                            Rate = s.Rate,
-                            FeedbackCount = s.FeedbackCount,
-                            CategoryId = s.CategoryId,
-                            CategorySlug = s.Category.Slug,
-                            PackageCount = s.Packages.Count(),
-                            Price = s.Packages.Any() ? s.Packages.Min(p => p.Price) : 0,
-                            MaxPrice = s.Packages.Any() ? s.Packages.Max(p => p.Price) : 0,
-                            Status = s.Status,
-                            Artisan = new AccountLiteModel()
-                            {
-                                FirstName = s.CreatedBy.FirstName,
-                                LastName = s.CreatedBy.LastName,
-                                Username = s.CreatedBy.Username,
-                                Email = s.CreatedBy.Email,
-                                Image = s.CreatedBy.Image
-                            }
+                            double similarity = CosineSimilarity(eventEmbedding, s.EmbeddingVector);
+                            bool keywordMatched = eventKeywords.Any(k =>
+                                (!string.IsNullOrEmpty(s.Description) && s.Description.ToLower().Contains(k.ToLower())) ||
+                                (!string.IsNullOrEmpty(s.Name) && s.Name.ToLower().Contains(k.ToLower()))
+                            );
+                            double finalScore = similarity + (keywordMatched ? 0.1 : 0);
+
+                            return new { Service = s, Score = finalScore, Similarity = similarity };
                         })
+                        .Where(x => x.Similarity >= threshold)
+                        .OrderByDescending(x => x.Score)
+                       .Select(x => new ServiceModel
+                       {
+                           Id = x.Service.Id,
+                           Name = x.Service.Name!,
+                           Description = x.Service.Description!,
+                           Similarity = x.Similarity,
+                           ServiceAttachments = x.Service.ServiceAttachments.ToList(),
+                           Rate = x.Service.Rate,
+                           FeedbackCount = x.Service.FeedbackCount,
+                           CategoryId = x.Service.CategoryId,
+                           CategorySlug = x.Service.Category.Slug,
+                           PackageCount = x.Service.Packages.Count(),
+                           Price = x.Service.Packages.Any() ? x.Service.Packages.Min(p => p.Price) : 0,
+                           MaxPrice = x.Service.Packages.Any() ? x.Service.Packages.Max(p => p.Price) : 0,
+                           Status = x.Service.Status,
+                           Artisan = new AccountLiteModel()
+                           {
+                               FirstName = x.Service.CreatedBy.FirstName,
+                               LastName = x.Service.CreatedBy.LastName,
+                               Username = x.Service.CreatedBy.Username,
+                               Email = x.Service.CreatedBy.Email,
+                               Image = x.Service.CreatedBy.Image
+                           }
+                       })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
-                    var pagedServices = results
+                    List<ServiceModel> rerankedResults = results;
+                    rerankedResults = await _openAiService.RerankTopServicesWithGPTAsync(
+                        eventDescription: eventVi,
+                        candidates: results.Take(30).ToList(),
+                        topN: 10
+                    );
+                    var pagedServices = rerankedResults
                          .Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
                          .Take(serviceFilterModel.PageSize)
                          .ToList();
@@ -1788,11 +1834,11 @@ namespace Chillde.Services.Services
                             (!serviceFilterModel.CategoryId.HasValue || s.CategoryId == serviceFilterModel.CategoryId) &&
                             //(!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
                             (!serviceFilterModel.MinPrice.HasValue || s.Packages.Min(p => p.Price) >= serviceFilterModel.MinPrice) &&
-                            (!serviceFilterModel.IsDeleted.HasValue || s.IsDeleted == serviceFilterModel.IsDeleted) &&                        
+                            (!serviceFilterModel.IsDeleted.HasValue || s.IsDeleted == serviceFilterModel.IsDeleted) &&
                             (string.IsNullOrEmpty(serviceFilterModel.Search) || (
                                 s.Name.Contains(serviceFilterModel.Search) ||
                                 s.Description.Contains(serviceFilterModel.Search)
-                               
+
                             )) &&
                             (!serviceFilterModel.MaxPrice.HasValue || s.Packages.Min(p => p.Price) <= serviceFilterModel.MaxPrice) &&
                             (!serviceFilterModel.MinRate.HasValue || s.Rate >= serviceFilterModel.MinRate) &&
@@ -2119,7 +2165,7 @@ namespace Chillde.Services.Services
                 //await _unitOfWork.PackageRepository.AddRangeAsync(packageEntities);
 
                 var packages = new List<Package>();
-                foreach(var package in serviceAddModel.PackageAddAllModels)
+                foreach (var package in serviceAddModel.PackageAddAllModels)
                 {
                     packages.Add(new Package
                     {
@@ -2200,7 +2246,7 @@ namespace Chillde.Services.Services
                             FeatureId = (Guid)packageFeature.FeatureId
                         });
                     }
-                    
+
                 }
                 await _unitOfWork.PackageFeatureRepository.AddRangeAsync(packageFeatures);
 

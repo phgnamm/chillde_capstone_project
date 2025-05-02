@@ -482,7 +482,8 @@ namespace Chillde.Services.Services
             {
                 if (commissionValue > 0)
                 {
-                    var adjustedCommission = (commissionValue - (commsionVoucherValue ?? 0)) / 100;
+                    decimal? finalCommission = ((commsionVoucherValue ?? 0) * commissionValue) / 100;
+                    var adjustedCommission = (commissionValue - (finalCommission ?? 0m)) / 100;
                     return totalOrder * adjustedCommission;
                 }
 
