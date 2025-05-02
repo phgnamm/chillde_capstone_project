@@ -30,7 +30,7 @@ namespace Chillde.Services.Services
             _scopeFactory = scopeFactory;
             _logger = logger;
             _logQueue = new ConcurrentQueue<UserActivityLogAddModel>();
-            _timer = new PeriodicTimer(TimeSpan.FromSeconds(300));
+            _timer = new PeriodicTimer(TimeSpan.FromSeconds(60));
 
             var factory = new ConnectionFactory()
             {

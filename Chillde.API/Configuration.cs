@@ -148,6 +148,25 @@ public static class Configuration
                     .AllowCredentials();
             });
         });
+        //var clientUrls = configuration["URL:Client"]
+        //    ?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        //    .ToArray();
+
+        //if (clientUrls == null || !clientUrls.Any())
+        //{
+        //    throw new ArgumentException("Client URLs cannot be null or empty");
+        //}
+
+        //services.AddCors(options =>
+        //{
+        //    options.AddPolicy("cors", policy =>
+        //    {
+        //        policy.WithOrigins(clientUrls)
+        //              .AllowAnyHeader()
+        //              .AllowAnyMethod()
+        //              .AllowCredentials();
+        //    });
+        //});
 
         //    var clientUrls = configuration["URL:Client"]
         //?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)

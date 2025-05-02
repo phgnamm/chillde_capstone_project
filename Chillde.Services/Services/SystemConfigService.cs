@@ -88,14 +88,14 @@ namespace Chillde.Services.Services
 
                 if ((model.EffectiveFrom == null && config.IsActive == true) || (model.EffectiveFrom > DateOnly.FromDateTime(DateTime.Now) && config.IsActive == false))
                 {
-                    config.Value = JsonSerializer.SerializeToDocument(model.Value);
+                    config.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
                     _unitOfWork.SystemConfigRepository.Update(config);
                 }
                 else
                 {
                     var newConfig = config;
                     newConfig.Id = Guid.NewGuid();
-                    newConfig.Value = JsonSerializer.SerializeToDocument(model.Value);
+                    newConfig.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
                     newConfig.EffectiveFrom = model.EffectiveFrom;
                     newConfig.IsActive = false;
                     await _unitOfWork.SystemConfigRepository.AddAsync(newConfig);
