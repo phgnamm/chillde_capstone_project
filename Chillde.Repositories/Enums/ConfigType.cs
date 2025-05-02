@@ -15,6 +15,6 @@
         Reputation,
         Commission,
         Service,
-        Vouvher
+        Voucher
     }
 }
