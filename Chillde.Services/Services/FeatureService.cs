@@ -69,7 +69,7 @@ namespace Chillde.Services.Services
 
                 var numberOfExistedPackageFeature = _unitOfWork.PackageFeatureRepository.CountAvailablePackageFeaturesByPackage(package.Id);
                 var maximumPackageFeature = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MaximumPackageFeatureOfOnePackage).Result;
-                if (numberOfExistedPackageFeature > int.Parse(maximumPackageFeature!))
+                if (numberOfExistedPackageFeature >= int.Parse(maximumPackageFeature!))
                 {
                     return new ResponseModel
                     {
