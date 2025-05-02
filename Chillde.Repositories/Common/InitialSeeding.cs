@@ -3910,6 +3910,15 @@ public static class InitialSeeding
                 context.NotificationContents.Add(notificationContent);
             }
         }
+        // Seed Reports and ReportAttachments
+        //foreach (var report in Reports)
+        //{
+        //    if (!context.Reports.Any(r => r.Id == report.Id))
+        //    {
+        //        if (context.Orders.Any(o => o.Id == report.OrderId))
+        //        {
+        //            continue;
+        //        }
         
         foreach (var category in Categories)
         {
