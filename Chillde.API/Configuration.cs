@@ -140,39 +140,44 @@ public static class Configuration
             .AddDataAnnotationsLocalization();
 
         // CORS
-        //var clientUrl = configuration["URL:Client"];
-        //ArgumentException.ThrowIfNullOrWhiteSpace(clientUrl);
-        //services.AddCors(options =>
-        //{
-        //    options.AddPolicy("cors",
-        //        corsPolicyBuilder =>
-        //        {
-        //            corsPolicyBuilder
-        //                .WithOrigins(clientUrl)
-        //                .AllowAnyHeader()
-        //                .AllowAnyMethod()
-        //                .AllowCredentials();
-        //        });
-        //});
-        var clientUrls = configuration["URL:Client"]
-            ?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .ToArray();
+        var clientUrl = configuration["URL:Client"];
+        var adminUrl = configuration["URL:Admin"];
 
-        if (clientUrls == null || !clientUrls.Any())
-        {
-            throw new ArgumentException("Client URLs cannot be null or empty");
-        }
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientUrl);
+        ArgumentException.ThrowIfNullOrWhiteSpace(adminUrl);
+
+        var allowedOrigins = new[] { clientUrl, adminUrl };
 
         services.AddCors(options =>
         {
-            options.AddPolicy("cors", policy =>
+            options.AddPolicy("cors", corsPolicyBuilder =>
             {
-                policy.WithOrigins(clientUrls)
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials();
+                corsPolicyBuilder
+                    .WithOrigins(allowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
             });
         });
+        //var clientUrls = configuration["URL:Client"]
+        //    ?.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        //    .ToArray();
+
+        //if (clientUrls == null || !clientUrls.Any())
+        //{
+        //    throw new ArgumentException("Client URLs cannot be null or empty");
+        //}
+
+        //services.AddCors(options =>
+        //{
+        //    options.AddPolicy("cors", policy =>
+        //    {
+        //        policy.WithOrigins(clientUrls)
+        //              .AllowAnyHeader()
+        //              .AllowAnyMethod()
+        //              .AllowCredentials();
+        //    });
+        //});
 
         // GHNClient 
         services.AddHttpClient("GhnClient", client =>
