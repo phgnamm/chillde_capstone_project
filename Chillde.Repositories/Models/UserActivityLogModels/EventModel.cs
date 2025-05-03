@@ -14,6 +14,7 @@ namespace Chillde.Repositories.Models.UserActivityLogModels
         public bool IsLunar { get; set; }
         public List<string> KeywordsVi { get; set; }
         public List<string> KeywordsEn { get; set; }
+        public string? Detail { get; set; }
 
     }
 }
