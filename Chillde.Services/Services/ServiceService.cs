@@ -1751,8 +1751,8 @@ namespace Chillde.Services.Services
                 var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetail });
                 var cacheKey = "suggested_event_services";
                 var cacheDuration = TimeSpan.FromMinutes(30);
-                //var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
-                //{
+                var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
+                {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: _ => _.IsDeleted == false,
                         include: _ => _.Include(_ => _.Packages).Include(_ => _.ServiceAttachments).Include(_ => _.CreatedBy).Include(_ => _.Category),
@@ -1841,9 +1841,9 @@ namespace Chillde.Services.Services
                             Services = paginatedResult
                         }
                     };
-                //}, cacheDuration);
+                }, cacheDuration);
 
-                //return responseModel;
+                return responseModel;
             }
             else
             {
