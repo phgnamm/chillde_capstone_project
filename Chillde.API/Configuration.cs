@@ -101,6 +101,27 @@ public static class Configuration
             settings.ApiKey = configuration["OpenAI:ApiKey"]!;
         });
 
+        services.AddSingleton<IConnection>(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var factory = new ConnectionFactory
+            {
+                HostName = config["RabbitMQ:HostName"],
+                UserName = config["RabbitMQ:UserName"],
+                Password = config["RabbitMQ:Password"],
+                VirtualHost = config["RabbitMQ:VirtualHost"],
+                Port = 5671,
+                Ssl = new SslOption
+                {
+                    Enabled = true,
+                    ServerName = config["RabbitMQ:HostName"]
+                }
+            };
+
+            return factory.CreateConnection();
+        });
+
+
         //WorkerService
         services.AddHostedService<WorkerService>();
 
@@ -375,8 +396,8 @@ public static class Configuration
         //OpenAiService
         services.AddScoped<IOpenAiService, OpenAiService>();
 
-        ////RabbitMQ
-        //services.AddSingleton<IRabbitMQService, RabbitMQService>();
+        //RabbitMQ
+        services.AddSingleton<IRabbitMQService, RabbitMQService>();
 
         //UserActivityLog
         services.AddScoped<IUserActivityLogRepository, UserActivityLogRepository>();
