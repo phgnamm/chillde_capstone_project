@@ -1746,10 +1746,11 @@ namespace Chillde.Services.Services
                 var eventDict = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                 var eventVi = eventDict["EventVi"];
                 var eventEn = eventDict["EventEn"];
+                var eventDetail = eventDict["Detail"];
                 var eventKeywords = eventDict["KeywordsVi"].Split(",").ToList();
-                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventVi });
+                var eventEmbedding = await _openAiService.GetEmbeddingAsync(new List<string> { eventDetail });
                 var cacheKey = "suggested_event_services";
-                var cacheDuration = TimeSpan.FromDays(1);
+                var cacheDuration = TimeSpan.FromMinutes(30);
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
@@ -1759,7 +1760,7 @@ namespace Chillde.Services.Services
                         pageSize: 10000
                      );
 
-                    var threshold = 0.8;
+                    var threshold = 0.5;
                     var results = services.Data
                         .Select(s =>
                         {
@@ -1800,13 +1801,13 @@ namespace Chillde.Services.Services
                        })
                         .OrderByDescending(s => s.Similarity)
                         .ToList();
-                    List<ServiceModel> rerankedResults = results;
-                    rerankedResults = await _openAiService.RerankTopServicesWithGPTAsync(
-                        eventDescription: eventVi,
-                        candidates: results.Take(30).ToList(),
-                        topN: 10
-                    );
-                    var pagedServices = rerankedResults
+                    //List<ServiceModel> rerankedResults = results;
+                    //rerankedResults = await _openAiService.RerankTopServicesWithGPTAsync(
+                    //    eventDescription: eventVi,
+                    //    candidates: results.Take(30).ToList(),
+                    //    topN: 10
+                    //);
+                    var pagedServices = results
                          .Skip((serviceFilterModel.PageIndex - 1) * serviceFilterModel.PageSize)
                          .Take(serviceFilterModel.PageSize)
                          .ToList();
@@ -1977,6 +1978,25 @@ namespace Chillde.Services.Services
                 });
                 return responseModel;
             }
+        }
+        public async Task RegenerateAllServiceEmbeddingsAsync()
+        {
+            var services = await _unitOfWork.ServiceRepository.GetAllAsync(
+                filter: s => !s.IsDeleted,
+                include: s => s.Include(s => s.Category)
+            );
+
+            foreach (var service in services.Data)
+            {
+                var categoryText = service.Category?.Name ?? "";
+
+                var embedding = await _openAiService.GetEmbeddingAsync(new List<string> { service.Description, service.Name, categoryText });
+
+                service.EmbeddingVector = embedding;
+                _unitOfWork.ServiceRepository.Update(service);
+            }
+
+            await _unitOfWork.SaveChangeAsync();
         }
 
         private async Task<List<ServiceModel>> GetServiceListAsync(Expression<Func<Service, bool>> filter)

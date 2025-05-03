@@ -31,7 +31,7 @@ namespace Chillde.Services.Services
         public ResponseModel GetEvent(string sourLanguageCode)
         {
             var currentDate = DateTime.Now;
-            int gracePeriodDays = 3;
+            int gracePeriodDays = 2;
             int maxDaysThreshold = 45;
             var eventList = new List<EventModel>
 {
@@ -39,104 +39,171 @@ namespace Chillde.Services.Services
     {
         NameVi = "Tết Dương lịch", NameEn = "New Year's Day", Date = "01-01", IsLunar = false,
         KeywordsVi = new List<string> { "Tết", "Năm mới", "Ngày lễ", "Chúc mừng", "Gia đình", "Du lịch", "Tiệc tùng", "Mừng năm mới", "Chúc phúc", "Lịch nghỉ" },
-        KeywordsEn = new List<string> { "New Year", "Celebration", "Holiday", "Family", "Travel", "Party", "Greetings", "Festivity", "New Year's Eve", "Festive season" }
+        KeywordsEn = new List<string> { "New Year", "Celebration", "Holiday", "Family", "Travel", "Party", "Greetings", "Festivity", "New Year's Eve", "Festive season" },
+        Detail = "Tết Dương lịch là dịp lễ đầu năm diễn ra vào ngày 1/1. Đây là thời điểm người dân tìm kiếm các sản phẩm thủ công trang trí nhà cửa như đèn lồng handmade, thiệp chúc mừng năm mới tự làm, và các vật phẩm may mắn. Nhiều người cũng quan tâm đến các workshop làm đồ trang trí tết, túi may mắn thủ công, và các bộ quà tặng handmade ý nghĩa cho người thân."
     },
     new EventModel
     {
         NameVi = "Ngày Thầy thuốc Việt Nam", NameEn = "Vietnamese Doctors' Day", Date = "27-02", IsLunar = false,
         KeywordsVi = new List<string> { "Thầy thuốc", "Y tế", "Bác sĩ", "Chăm sóc sức khỏe", "Y học", "Tôn vinh", "Người thầy thuốc", "Ngày truyền thống", "Cảm ơn", "Chăm sóc" },
-        KeywordsEn = new List<string> { "Doctors", "Healthcare", "Medical profession", "Doctors' Day", "Vietnamese doctors", "Medicine", "Appreciation", "Honoring", "Health", "Gratitude" }
+        KeywordsEn = new List<string> { "Doctors", "Healthcare", "Medical profession", "Doctors' Day", "Vietnamese doctors", "Medicine", "Appreciation", "Honoring", "Health", "Gratitude" },
+        Detail = "Ngày Thầy thuốc Việt Nam (27/2) là dịp để bày tỏ lòng biết ơn đối với các bác sĩ và nhân viên y tế. Các sản phẩm thủ công như thiệp cảm ơn handmade, hoa giấy trang trí, hộp quà tự làm được nhiều người tìm kiếm. Các workshop làm quà tặng đặc biệt cho ngành y như túi dụng cụ y tế thủ công, sổ tay bọc vải, hoặc các móc khóa handmade cũng nhận được nhiều sự quan tâm"
     },
     new EventModel
     {
         NameVi = "Ngày Quốc tế Phụ nữ", NameEn = "International Women's Day", Date = "08-03", IsLunar = false,
         KeywordsVi = new List<string> { "Phụ nữ", "Quyền phụ nữ", "Bình đẳng giới", "Tôn vinh", "Ngày lễ", "Chúc mừng", "Tự do", "Độc lập", "Người phụ nữ", "Vượt qua" },
-        KeywordsEn = new List<string> { "Women", "Gender equality", "Women's rights", "Celebration", "Empowerment", "Equality", "Feminism", "Strength", "Respect", "Inspiration" }
+        KeywordsEn = new List<string> { "Women", "Gender equality", "Women's rights", "Celebration", "Empowerment", "Equality", "Feminism", "Strength", "Respect", "Inspiration" },
+        Detail = "Ngày Quốc tế Phụ nữ (8/3) là dịp để tôn vinh phụ nữ mọi lứa tuổi. Các sản phẩm thủ công như hoa vải, trang sức handmade, túi xách thêu tay, thiệp 3D và các bộ quà tặng DIY được ưa chuộng. Nhiều người tìm kiếm các workshop làm quà handmade, dịch vụ đóng gói quà tặng sáng tạo, hoặc các bộ kit tự làm quà tặng tại nhà để thể hiện tình cảm một cách độc đáo."
     },
     new EventModel
     {
         NameVi = "Ngày Quốc tế Hạnh phúc", NameEn = "International Day of Happiness", Date = "20-03", IsLunar = false,
         KeywordsVi = new List<string> { "Hạnh phúc", "Niềm vui", "Cuộc sống", "Ngày lễ", "Chia sẻ", "Cộng đồng", "Tinh thần", "Phúc lợi", "Lạc quan", "Tươi cười" },
-        KeywordsEn = new List<string> { "Happiness", "Joy", "Well-being", "Celebration", "Optimism", "Life", "Community", "Smile", "Mental health", "Positivity" }
+        KeywordsEn = new List<string> { "Happiness", "Joy", "Well-being", "Celebration", "Optimism", "Life", "Community", "Smile", "Mental health", "Positivity" },
+        Detail = "Ngày Quốc tế Hạnh phúc (20/3) là dịp để mọi người chia sẻ niềm vui và hạnh phúc. Các sản phẩm thủ công mang thông điệp tích cực như sổ ghi chép biết ơn handmade, hộp kỷ niệm DIY, đồ trang trí nhà cửa mang chủ đề hạnh phúc rất được ưa chuộng. Các workshop làm đồ handmade theo nhóm để tăng kết nối cộng đồng cũng thu hút nhiều người tham gia."
     },
     new EventModel
     {
         NameVi = "Giỗ Tổ Hùng Vương", NameEn = "Hung Kings' Commemoration Day", Date = "10-03", IsLunar = true,
         KeywordsVi = new List<string> { "Hùng Vương", "Giỗ tổ", "Lịch sử", "Dân tộc", "Truyền thống", "Tôn vinh", "Giới thiệu văn hóa", "Phong tục", "Lễ hội", "Tổ tiên" },
-        KeywordsEn = new List<string> { "Hung Kings", "Commemoration", "Tradition", "History", "Culture", "National identity", "Ancestor worship", "Festival", "Heritage", "Ceremony" }
+        KeywordsEn = new List<string> { "Hung Kings", "Commemoration", "Tradition", "History", "Culture", "National identity", "Ancestor worship", "Festival", "Heritage", "Ceremony" },
+        Detail = "Giỗ Tổ Hùng Vương (10/3 âm lịch) là dịp để tưởng nhớ tổ tiên và giáo dục truyền thống. Các sản phẩm thủ công truyền thống như nón lá trang trí, đồ thủ công mỹ nghệ từ tre trúc, tranh dân gian được nhiều người tìm kiếm. Các workshop làm bánh truyền thống, đồ trang trí lễ hội thủ công, và các vật phẩm cúng giỗ handmade cũng nhận được nhiều sự quan tâm."
     },
     new EventModel
     {
         NameVi = "Ngày Giải phóng miền Nam", NameEn = "Reunification Day", Date = "30-04", IsLunar = false,
         KeywordsVi = new List<string> { "Giải phóng", "Miền Nam", "Ngày chiến thắng", "Tự do", "Hòa bình", "Lịch sử", "Dân tộc", "Chung tay", "Ngày lễ", "Tinh thần đoàn kết" },
-        KeywordsEn = new List<string> { "Reunification", "Victory", "Freedom", "Independence", "History", "South Vietnam", "Peace", "Unity", "National Day", "Celebration" }
+        KeywordsEn = new List<string> { "Reunification", "Victory", "Freedom", "Independence", "History", "South Vietnam", "Peace", "Unity", "National Day", "Celebration" },
+        Detail = "Ngày Giải phóng miền Nam (30/4) là dịp kỷ niệm quan trọng về lịch sử đất nước. Các sản phẩm thủ công như cờ Tổ quốc handmade, tranh vẽ chủ đề lịch sử, và các vật phẩm kỷ niệm được tìm kiếm nhiều. Các workshop làm đồ lưu niệm chủ đề đoàn kết dân tộc, album ảnh lịch sử handmade, và các vật phẩm trang trí ngày lễ thu hút nhiều người tham gia."
     },
     new EventModel
     {
         NameVi = "Ngày Quốc tế Lao động", NameEn = "International Workers' Day", Date = "01-05", IsLunar = false,
         KeywordsVi = new List<string> { "Lao động", "Công nhân", "Ngày lễ", "Tôn vinh", "Công bằng", "Công lý", "Quyền lợi", "Chia sẻ", "Xã hội", "Nỗ lực" },
-        KeywordsEn = new List<string> { "Labor", "Workers", "International Day", "Social justice", "Rights", "Fairness", "Dignity", "Celebration", "Workforce", "Unity" }
+        KeywordsEn = new List<string> { "Labor", "Workers", "International Day", "Social justice", "Rights", "Fairness", "Dignity", "Celebration", "Workforce", "Unity" },
+        Detail = "Ngày Quốc tế Lao động (1/5) là dịp để tôn vinh người lao động các ngành nghề. Các sản phẩm thủ công như vật dụng trang trí văn phòng handmade, quà tặng đồng nghiệp tự làm, và các vật phẩm trang trí cho không gian làm việc được tìm kiếm nhiều. Các workshop làm đồ thủ công giúp giảm stress công việc cũng nhận được sự quan tâm."
     },
     new EventModel
     {
         NameVi = "Ngày Quốc tế Thiếu nhi", NameEn = "International Children's Day", Date = "01-06", IsLunar = false,
         KeywordsVi = new List<string> { "Trẻ em", "Ngày Quốc tế", "Tổ chức", "Phúc lợi trẻ em", "Bảo vệ trẻ em", "Niềm vui", "Học tập", "Chơi đùa", "Chăm sóc", "Tương lai" },
-        KeywordsEn = new List<string> { "Children", "International Day", "Rights of children", "Protection", "Joy", "Education", "Future", "Care", "Play", "Family" }
+        KeywordsEn = new List<string> { "Children", "International Day", "Rights of children", "Protection", "Joy", "Education", "Future", "Care", "Play", "Family" },
+        Detail = "Ngày Quốc tế Thiếu nhi (1/6) là dịp để tổ chức các hoạt động vui chơi cho trẻ em. Các sản phẩm thủ công như đồ chơi handmade, búp bê vải, thiệp pop-up, và bộ kit DIY cho trẻ em được tìm kiếm nhiều. Các workshop làm đồ chơi sáng tạo, workshop vẽ và tô màu, cũng như các hoạt động thủ công gia đình thu hút nhiều gia đình tham gia."
     },
     new EventModel
     {
         NameVi = "Ngày Quốc tế Người cao tuổi", NameEn = "International Day of Older Persons", Date = "01-10", IsLunar = false,
         KeywordsVi = new List<string> { "Người cao tuổi", "Tôn vinh", "Lão hóa", "Chăm sóc", "Phúc lợi", "Lão khoa", "Gia đình", "Tương lai", "Ngày lễ", "Sức khỏe" },
-        KeywordsEn = new List<string> { "Older persons", "Elderly", "Celebration", "Aging", "Care", "Respect", "Family", "Social welfare", "Health", "Dignity" }
+        KeywordsEn = new List<string> { "Older persons", "Elderly", "Celebration", "Aging", "Care", "Respect", "Family", "Social welfare", "Health", "Dignity" },
+        Detail = "Ngày Quốc tế Người cao tuổi (1/10) là dịp để tôn vinh các bậc cao niên. Các sản phẩm thủ công như album ảnh handmade, thiệp chúc sức khỏe, quà tặng thân thiện với người cao tuổi như gối thêu, túi đựng thuốc thủ công được tìm kiếm nhiều. Các workshop làm đồ thủ công phù hợp với người cao tuổi như đan len, thêu thùa cũng nhận được sự quan tâm."
     },
     new EventModel
     {
         NameVi = "Ngày Giải phóng Thủ đô", NameEn = "Hanoi Liberation Day", Date = "10-10", IsLunar = false,
         KeywordsVi = new List<string> { "Giải phóng", "Thủ đô", "Hà Nội", "Lịch sử", "Ngày chiến thắng", "Tự do", "Chúng ta", "Đoàn kết", "Bảo vệ", "Lịch sử dân tộc" },
-        KeywordsEn = new List<string> { "Liberation", "Hanoi", "Victory", "Freedom", "National history", "Reunification", "Victory day", "Patriotism", "Independence", "Unity" }
+        KeywordsEn = new List<string> { "Liberation", "Hanoi", "Victory", "Freedom", "National history", "Reunification", "Victory day", "Patriotism", "Independence", "Unity" },
+        Detail = "Ngày Giải phóng Thủ đô (10/10) là dịp kỷ niệm lịch sử quan trọng của Hà Nội. Các sản phẩm thủ công mang đặc trưng Hà Nội như tranh làng nghề, đồ lưu niệm handmade về 36 phố phường, và các vật phẩm kỷ niệm được tìm kiếm nhiều. Các workshop làm đồ thủ công truyền thống Hà Nội và tour trải nghiệm các làng nghề thu hút nhiều người tham gia."
     },
     new EventModel
     {
         NameVi = "Halloween", NameEn = "Halloween", Date = "31-10", IsLunar = false,
         KeywordsVi = new List<string> { "Halloween", "Ma quái", "Trang trí", "Lễ hội", "Hóa trang", "Sợ hãi", "Trick or treat", "Lễ hội Mỹ", "Chơi đùa", "Đêm hội" },
-        KeywordsEn = new List<string> { "Halloween", "Spooky", "Costumes", "Trick or treat", "Decoration", "Festival", "Frightening", "Scary", "Night", "Celebration" }
+        KeywordsEn = new List<string> { "Halloween", "Spooky", "Costumes", "Trick or treat", "Decoration", "Festival", "Frightening", "Scary", "Night", "Celebration" },
+        Detail = "Halloween (31/10) là dịp lễ hội mang phong cách phương Tây. Các sản phẩm thủ công như mặt nạ handmade, đồ trang trí bí ngô, trang phục hóa trang DIY, và các vật phẩm trang trí nhà cửa theo chủ đề ma quái được tìm kiếm nhiều. Các workshop làm đồ handmade cho Halloween, trang trí bí ngô, và làm kẹo thủ công thu hút nhiều người tham gia."
     },
     new EventModel
     {
         NameVi = "Ngày Nhà giáo Việt Nam", NameEn = "Vietnamese Teachers' Day", Date = "20-11", IsLunar = false,
         KeywordsVi = new List<string> { "Nhà giáo", "Giáo viên", "Tôn vinh", "Ngày lễ", "Cảm ơn", "Truyền cảm hứng", "Học sinh", "Phát triển", "Giáo dục", "Kỷ niệm" },
-        KeywordsEn = new List<string> { "Teachers", "Education", "Teaching", "Appreciation", "Honor", "Inspiration", "Gratitude", "Students", "Learning", "Celebration" }
+        KeywordsEn = new List<string> { "Teachers", "Education", "Teaching", "Appreciation", "Honor", "Inspiration", "Gratitude", "Students", "Learning", "Celebration" },
+         Detail = "Ngày Nhà giáo Việt Nam (20/11) là dịp để tôn vinh các thầy cô giáo. Các sản phẩm thủ công như thiệp cảm ơn handmade, hoa giấy, quà tặng DIY dành cho giáo viên như bút được trang trí thủ công, sổ tay bọc vải, và các vật phẩm trang trí bàn học được tìm kiếm nhiều. Các workshop làm quà tặng thầy cô cũng thu hút nhiều học sinh tham gia."
     },
     new EventModel
     {
         NameVi = "Ngày Quốc tế Nam giới", NameEn = "International Men's Day", Date = "19-11", IsLunar = false,
         KeywordsVi = new List<string> { "Nam giới", "Tôn vinh", "Ngày lễ", "Công bằng", "Giới tính", "Bình đẳng", "Sức khỏe", "Gia đình", "Hạnh phúc", "Phát triển" },
-        KeywordsEn = new List<string> { "Men", "Gender equality", "Men's Day", "Celebration", "Health", "Family", "Well-being", "Social justice", "Community", "Respect" }
+        KeywordsEn = new List<string> { "Men", "Gender equality", "Men's Day", "Celebration", "Health", "Family", "Well-being", "Social justice", "Community", "Respect" },
+        Detail = "Ngày Quốc tế Nam giới (19/11) là dịp để tôn vinh phái mạnh. Các sản phẩm thủ công như ví da handmade, móc khóa khắc tên, hộp đựng đồng hồ tự làm, và các vật dụng cá nhân được tìm kiếm nhiều. Các workshop làm đồ da, làm đồ gỗ DIY, và các hoạt động thủ công theo sở thích nam giới cũng nhận được sự quan tâm."
     },
     new EventModel
     {
         NameVi = "Ngày Quân đội Nhân dân Việt Nam", NameEn = "Vietnam People's Army Day", Date = "22-12", IsLunar = false,
         KeywordsVi = new List<string> { "Quân đội", "Nhân dân", "Ngày lễ", "Tôn vinh", "Anh hùng", "Bảo vệ tổ quốc", "Tinh thần", "Dân tộc", "Quân nhân", "Chiến tranh" },
-        KeywordsEn = new List<string> { "Army", "People's Army", "Vietnam", "Soldiers", "Commemoration", "Victory", "Nation", "Defense", "Heroes", "Military" }
+        KeywordsEn = new List<string> { "Army", "People's Army", "Vietnam", "Soldiers", "Commemoration", "Victory", "Nation", "Defense", "Heroes", "Military" },
+        Detail = "Ngày Quân đội Nhân dân Việt Nam (22/12) là dịp để tôn vinh các chiến sĩ. Các sản phẩm thủ công như thiệp cảm ơn handmade, album ảnh DIY, vật phẩm kỷ niệm mang chủ đề quân đội, và các món quà tặng thủ công được tìm kiếm nhiều. Các workshop làm đồ handmade mang tính kỷ niệm và các hoạt động trang trí đặc biệt thu hút nhiều người tham gia."
     },
     new EventModel
     {
         NameVi = "Ngày Giáng sinh (Noel)", NameEn = "Christmas Eve", Date = "24-12", IsLunar = false,
         KeywordsVi = new List<string> { "Giáng sinh", "Noel", "Lễ hội", "Tôn vinh", "Tình yêu", "Gia đình", "Mừng Chúa Giáng sinh", "Món quà", "Lễ hội mùa đông", "Tổ chức" },
-        KeywordsEn = new List<string> { "Christmas", "Eve", "Holiday", "Celebration", "Family", "Love", "Gifts", "Religion", "Winter festival", "Togetherness" }
+        KeywordsEn = new List<string> { "Christmas", "Eve", "Holiday", "Celebration", "Family", "Love", "Gifts", "Religion", "Winter festival", "Togetherness" },
+         Detail = "Giáng sinh (24/12) là dịp lễ hội lớn với nhiều hoạt động trang trí và tặng quà. Các sản phẩm thủ công như cây thông Noel mini handmade, vòng nguyệt quế, thiệp Giáng sinh 3D, đồ trang trí nhà cửa, tất Noel, và các bộ quà tặng DIY được tìm kiếm nhiều. Các workshop làm đồ trang trí Giáng sinh, làm bánh cookies, và đóng gói quà tặng sáng tạo thu hút nhiều gia đình tham gia."
     },
     new EventModel
     {
         NameVi = "Tết Nguyên Đán", NameEn = "Lunar New Year", Date = "01-01", IsLunar = true,
         KeywordsVi = new List<string> { "Tết", "Lịch Nguyên Đán", "Tết cổ truyền", "Mừng năm mới", "Lễ hội", "Gia đình", "Tặng quà", "Chúc mừng", "Tượng trưng", "Phong tục" },
-        KeywordsEn = new List<string> { "Lunar New Year", "Tet", "Traditional", "Festivity", "New Year", "Celebration", "Family", "Culture", "Tradition", "Gifts" }
+        KeywordsEn = new List<string> { "Lunar New Year", "Tet", "Traditional", "Festivity", "New Year", "Celebration", "Family", "Culture", "Tradition", "Gifts" },
+        Detail = "Tết Nguyên Đán (mùng 1 tháng 1 âm lịch) là lễ hội truyền thống lớn nhất trong năm. Các sản phẩm thủ công như tranh Tết, đèn lồng handmade, thiệp chúc Tết, đồ trang trí nhà cửa thủ công, bao lì xì handmade, và các vật phẩm may mắn được tìm kiếm nhiều. Các workshop làm bánh chưng, trang trí nhà cửa đón Tết, và làm đồ handmade mang ý nghĩa năm mới thu hút nhiều gia đình tham gia."
     },
     new EventModel
     {
         NameVi = "Lễ Vu Lan", NameEn = "Vu Lan Festival", Date = "15-07", IsLunar = true,
         KeywordsVi = new List<string> { "Vu Lan", "Báo hiếu", "Tôn vinh", "Lễ hội", "Cúng tổ tiên", "Phúc đức", "Tình mẫu tử", "Hiếu hạnh", "Cộng đồng", "Tâm linh" },
-        KeywordsEn = new List<string> { "Vu Lan", "Ancestral worship", "Filial piety", "Mother's love", "Festival", "Respect", "Tradition", "Honor", "Spiritual", "Cultural celebration" }
-    }
+        KeywordsEn = new List<string> { "Vu Lan", "Ancestral worship", "Filial piety", "Mother's love", "Festival", "Respect", "Tradition", "Honor", "Spiritual", "Cultural celebration" },
+        Detail = "Lễ Vu Lan (15/7 âm lịch) là dịp để tôn vinh công ơn cha mẹ. Các sản phẩm thủ công như hoa hồng vải, thiệp tri ân handmade, quà tặng DIY dành cho cha mẹ, và các vật phẩm cúng lễ thủ công được tìm kiếm nhiều. Các workshop làm đồ handmade mang ý nghĩa báo hiếu và các hoạt động thủ công gia đình thu hút nhiều người tham gia."
+    },
+    new EventModel
+    {
+        NameVi = "Ngày Lễ Tình nhân",
+        NameEn = "Valentine's Day",
+        Date = "14-02",
+        IsLunar = false,
+        KeywordsVi = new List<string> { "Tình yêu", "Lễ tình nhân", "Quà tặng", "Hẹn hò", "Chúc mừng", "Đôi lứa", "Lãng mạn", "Cảm ơn", "Chia sẻ", "Tình cảm" },
+        KeywordsEn = new List<string> { "Love", "Valentine", "Gifts", "Couple", "Romance", "Affection", "Celebration", "Sharing", "Sweetheart" },
+        Detail = "Ngày Valentine (14/2) là dịp để thể hiện tình yêu. Các sản phẩm thủ công như hoa giấy handmade, thiệp tình yêu pop-up, album ảnh DIY, hộp quà trái tim, và các món quà thủ công cá nhân hóa được tìm kiếm nhiều. Các workshop làm quà tặng đôi, làm socola handmade, và trang trí quà tặng sáng tạo thu hút nhiều cặp đôi tham gia."
+    },
+    new EventModel
+{
+    NameVi = "Ngày Quốc Khánh",
+    NameEn = "Independence Day",
+    Date = "02-09",
+    IsLunar = false,
+    KeywordsVi = new List<string> { "Độc lập", "Lịch sử", "Tự do", "Chủ quyền", "Tổ quốc", "Hòa bình", "Tự hào", "Cảm ơn", "Tưởng niệm", "Lễ hội","Quôc Khánh" },
+    KeywordsEn = new List<string> { "Independence", "Freedom", "National Day", "Sovereignty", "Patriotism", "Country", "Pride", "Celebration" },
+    Detail = "Ngày Quốc Khánh (2/9) là dịp để kỷ niệm ngày độc lập của đất nước. Các sản phẩm thủ công như cờ Tổ quốc handmade, tranh dân gian, vật phẩm kỷ niệm mang chủ đề dân tộc, và các món đồ trang trí được tìm kiếm nhiều. Các workshop làm đồ handmade mang tính truyền thống, các hoạt động thủ công gia đình, và các buổi trưng bày sản phẩm làng nghề thu hút nhiều người tham gia."
+},
+    new EventModel
+{
+    NameVi = "Ngày Thế giới Môi trường",
+    NameEn = "World Environment Day",
+    Date = "05-06",
+    IsLunar = false,
+    KeywordsVi = new List<string> { "Môi trường", "Bảo vệ thiên nhiên", "Bảo tồn", "Năng lượng xanh", "Chống ô nhiễm", "Khí hậu", "Sự sống", "Đa dạng sinh học", "Hành động" },
+    KeywordsEn = new List<string> { "Environment", "Nature", "Conservation", "Green energy", "Pollution", "Climate", "Biodiversity", "Action", "Protection" },
+    Detail = "Ngày Thế giới Môi trường (5/6) là dịp để nâng cao nhận thức về bảo vệ môi trường. Các sản phẩm thủ công từ vật liệu tái chế như túi vải, đồ trang trí từ chai nhựa, sản phẩm zero-waste handmade được tìm kiếm nhiều. Các workshop làm đồ handmade thân thiện với môi trường, tận dụng vật liệu tái chế, và các hoạt động trồng cây thu hút nhiều người tham gia."
+},
+    new EventModel
+{
+    NameVi = "Ngày Thương binh Liệt sĩ",
+    NameEn = "War Invalids and Martyrs Day",
+    Date = "27-07",
+    IsLunar = false,
+    KeywordsVi = new List<string> { "Thương binh", "Liệt sĩ", "Cảm ơn", "Kỷ niệm", "Hy sinh", "Hòa bình", "Tưởng niệm" },
+    KeywordsEn = new List<string> { "Invalids", "Martyrs", "Gratitude", "Remembrance", "Sacrifice", "Peace", "Commemoration" },
+    Detail = "Ngày Thương binh Liệt sĩ (27/7) là dịp để tôn vinh sự hy sinh của các anh hùng. Các sản phẩm thủ công như thiệp tri ân handmade, vòng hoa giấy, album ảnh kỷ niệm DIY, và các vật phẩm trang trí được tìm kiếm nhiều. Các workshop làm đồ handmade mang tính kỷ niệm và các hoạt động sáng tạo tập thể mang ý nghĩa tri ân thu hút nhiều người tham gia."
+},
+    new EventModel
+{
+    NameVi = "Ngày Lễ hội Trung thu",
+    NameEn = "Mid-Autumn Festival",
+    Date = "15-08",
+    IsLunar = true,
+    KeywordsVi = new List<string> { "Trung thu", "Lễ hội", "Tết Trung thu", "Đêm trăng", "Mâm cỗ", "Lồng đèn", "Tết thiếu nhi", "Gia đình" },
+    KeywordsEn = new List<string> { "Mid-Autumn", "Festival", "Moon cake", "Lanterns", "Children", "Family", "Harvest" },
+    Detail = "Lễ hội Trung thu (15/8 âm lịch) là dịp vui chơi đặc biệt cho trẻ em. Các sản phẩm thủ công như lồng đèn handmade, đèn ông sao DIY, mặt nạ giấy, đồ chơi truyền thống, và các vật phẩm trang trí được tìm kiếm nhiều. Các workshop làm bánh trung thu, làm lồng đèn, và các hoạt động thủ công gia đình thu hút nhiều gia đình tham gia."
+},
 };
 
             var upcomingEvents = eventList
@@ -159,7 +226,7 @@ namespace Chillde.Services.Services
             }
             var keywordsVi = e.KeywordsVi != null ? string.Join(", ", e.KeywordsVi) : string.Empty;
             var keywordsEn = e.KeywordsEn != null ? string.Join(", ", e.KeywordsEn) : string.Empty;
-            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate, KeywordsVi = keywordsVi, KeywordsEn = keywordsEn };
+            return new { EventVi = e.NameVi, EventEn = e.NameEn, Date = eventDate, KeywordsVi = keywordsVi, KeywordsEn = keywordsEn, Detail = e.Detail };
         })
         .OrderBy(e => e.Date)
         .ToList();
@@ -173,9 +240,14 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = new { pastRecentEvent.EventVi, pastRecentEvent.EventEn, Date = pastRecentEvent.Date.ToString("yyyy-MM-dd"),
+                    Data = new
+                    {
+                        pastRecentEvent.EventVi,
+                        pastRecentEvent.EventEn,
+                        Date = pastRecentEvent.Date.ToString("yyyy-MM-dd"),
                         KeywordsVi = pastRecentEvent.KeywordsVi,
-                        KeywordsEn = pastRecentEvent.KeywordsEn
+                        KeywordsEn = pastRecentEvent.KeywordsEn,
+                        Detail = pastRecentEvent.Detail,
                     }
                 };
             }
@@ -185,9 +257,14 @@ namespace Chillde.Services.Services
                 {
                     Code = StatusCodes.Status200OK,
                     Message = sourLanguageCode == "vi" ? "Lấy sự kiện thành công" : "Get Event Successfully",
-                    Data = new { nearestEvent.EventVi, nearestEvent.EventEn, Date = nearestEvent.Date.ToString("yyyy-MM-dd"),
+                    Data = new
+                    {
+                        nearestEvent.EventVi,
+                        nearestEvent.EventEn,
+                        Date = nearestEvent.Date.ToString("yyyy-MM-dd"),
                         KeywordsVi = nearestEvent.KeywordsVi,
-                        KeywordsEn = nearestEvent.KeywordsEn
+                        KeywordsEn = nearestEvent.KeywordsEn,
+                        Detail = nearestEvent.Detail,
                     }
                 };
             }
@@ -289,7 +366,7 @@ namespace Chillde.Services.Services
 
             var requestBody = new
             {
-                model = "text-embedding-ada-002",
+                model = "text-embedding-3-small",
                 input = texts
             };
 

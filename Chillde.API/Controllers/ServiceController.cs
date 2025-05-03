@@ -404,5 +404,28 @@ namespace Chillde.API.Controllers
                 });
             }
         }
+        //[Authorize]
+        [HttpPut("regenerate-embeddings")]
+        public async Task<IActionResult> RegenerateAllEmbeddings()
+        {
+            try
+            {
+                await _serviceService.RegenerateAllServiceEmbeddingsAsync();
+                return Ok(new ResponseModel
+                {
+                    Code = StatusCodes.Status200OK,
+                    Message = "Embeddings regenerated successfully."
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Code = StatusCodes.Status500InternalServerError,
+                    Message = ex.Message
+                });
+            }
+        }
+
     }
 }
