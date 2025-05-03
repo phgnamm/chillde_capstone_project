@@ -1636,7 +1636,7 @@ namespace Chillde.Services.Services
                         pageSize: 10000
                      );
 
-                    var threshold = 0.5;
+                    var threshold = 0.4;
                     var results = services.Data
                         .Where(s => CosineSimilarity(averageEmbedding, s.EmbeddingVector) >= threshold)
                         .Select(s => new ServiceModel
