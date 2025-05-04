@@ -229,13 +229,6 @@ public static class InitialSeeding
             Value = JsonDocument.Parse("15"),
             IsActive = true
         },
-        new()
-        {
-            EntityType = ConfigType.Voucher,
-            FieldName = "Commission",
-            Value = JsonDocument.Parse("1"),
-            IsActive = true
-        },
     };
 
     private static readonly List<NotificationContent> NotificationContents = new()
