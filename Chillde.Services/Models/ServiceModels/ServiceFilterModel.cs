@@ -22,6 +22,6 @@ namespace Chillde.Services.Models.ServiceModels
         public double? MaxRate { get; set; }
         public int? MinDate { get; set; }
         public int? MaxDate { get; set; }
-        public ServiceStatus Status { get; set; } = ServiceStatus.Active;
+        public ServiceStatus? Status { get; set; }
     }
 }
