@@ -1634,6 +1634,7 @@ public class AccountService : IAccountService
     public async Task<ResponseDashboardModel<ArtisanDashboardModel>> GetArtisanDashboard(DashboardFilterModel dashboardFilterModel)
     {
         var currentUserId = _claimService.GetCurrentUserId!.Value;
+        var account = await _unitOfWork.AccountRepository.GetAsync(currentUserId, include: a => a.Include(a => a.Wallet));
         // Create a date range for the specified month and year
         var startDate = DateTime.SpecifyKind(new DateTime(dashboardFilterModel.Year, dashboardFilterModel.Month, 1), DateTimeKind.Utc);
         var endDate = DateTime.SpecifyKind(startDate.AddMonths(1).AddDays(-1), DateTimeKind.Utc);
@@ -1669,13 +1670,13 @@ public class AccountService : IAccountService
 
         decimal totalRevenue = (decimal)await _unitOfWork.Context.Transaction
             .Where(x => !x.IsDeleted && x.Type == TransactionType.TransferIn && x.Status == TransactionStatus.Completed && x.CreationDate >= startDate &&
-                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId)
+                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId && x.WalletId == account!.WalletId)
             .SumAsync(x => x.Amount);
 
         // Get the sum of transactions for each day within the specified month and year
         var earningsGroupedByDate = await _unitOfWork.Context.Transaction
             .Where(x => !x.IsDeleted && x.Type == TransactionType.TransferIn && x.Status == TransactionStatus.Completed && x.CreationDate >= startDate &&
-                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId)
+                        x.CreationDate <= endDate && x.Order.Package.CreatedById == currentUserId && x.WalletId == account!.WalletId)
            .GroupBy(x => x.CreationDate.ToUniversalTime().Date)
             .Select(g => new
             {
