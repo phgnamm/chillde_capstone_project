@@ -2446,7 +2446,7 @@ namespace Chillde.Services.Services
                             DeliveryTime = order.Package.DeliveryTime,
                             SketchRevision = order.Package.SketchRevision,
                             ResponseTime = order.Package.ResponseTime != null
-                                ? TimeSpan.FromHours(order.Package.ResponseTime)
+                                ? TimeSpan.FromMinutes(order.Package.ResponseTime)
                                 : TimeSpan.Zero,
                             MaxQuantity = order.Package.MaxQuantity,
                             Price = order.Package.Price ?? 0,
