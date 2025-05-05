@@ -29,9 +29,16 @@ public static class InitialSeeding
     {
         new()
         {
-            EntityType = ConfigType.Security, 
+            EntityType = ConfigType.Security,
             FieldName = "AccessTokenValidityInMinutes",
             Value = JsonDocument.Parse("5"),
+            IsActive = true
+        },
+         new()
+        {
+            EntityType = ConfigType.Reputation,
+            FieldName = "MinusReputationForArtisanWhenLateDelivery",
+            Value = JsonDocument.Parse("15"),
             IsActive = true
         },
         new()

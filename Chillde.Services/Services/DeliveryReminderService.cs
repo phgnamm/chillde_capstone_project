@@ -13,6 +13,9 @@ using Chillde.Repositories.Enums;
 using Chillde.Repositories;
 using Chillde.Repositories.Interfaces;
 using Chillde.Services.Helpers;
+using Chillde.Repositories.Common;
+using Chillde.Services.Models.ResponseModels;
+using Microsoft.AspNetCore.Http;
 
 public class DeliveryReminderService : BackgroundService
 {
@@ -290,7 +293,9 @@ public class DeliveryReminderService : BackgroundService
             };
 
             customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
-            artisanAccount.TotalReputation = Math.Max(artisanAccount.TotalReputation - 15, 0);
+            var minusReputation = unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.MinusReputationForArtisanWhenLateDelivery).Result;
+            artisanAccount.TotalReputation = Math.Max(artisanAccount.TotalReputation - int.Parse(minusReputation!), 0);
+
             var reputationLog = new ReputationLog
             {
                 PointChange = -(int)15,
