@@ -18,8 +18,8 @@ namespace Chillde.Services.Models.VoucherModels
         [Required(ErrorMessage = "Discount value is required.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Discount value must be greater than 0.")]
         public decimal DiscountValue { get; set; }
-        public decimal? MinOrderValue { get; set; } 
-        public decimal? MaxDiscountValue { get; set; } 
+        public decimal? MinOrderValue { get; set; }
+        public decimal? MaxDiscountValue { get; set; } = null;
         public int? TotalQuantity { get; set; } 
         [DataType(DataType.DateTime, ErrorMessage = "Invalid startTime format.")]
         public required DateTime StartTime { get; set; }

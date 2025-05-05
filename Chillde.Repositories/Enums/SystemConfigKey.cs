@@ -64,6 +64,7 @@ namespace Chillde.Repositories.Enums
         MaxCustomerOrdersPerMonth,
         ReputationIncreaseOnSuccess,
         MinReputationToAvoidBan,
-        
+        // trừ điểm uy tín của nghệ nhân khi không đăng delivery đúng hạn
+        MinusReputationForArtisanWhenLateDelivery
     }
 }

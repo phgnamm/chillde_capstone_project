@@ -29,9 +29,16 @@ public static class InitialSeeding
     {
         new()
         {
-            EntityType = ConfigType.Security, 
+            EntityType = ConfigType.Security,
             FieldName = "AccessTokenValidityInMinutes",
             Value = JsonDocument.Parse("5"),
+            IsActive = true
+        },
+         new()
+        {
+            EntityType = ConfigType.Reputation,
+            FieldName = "MinusReputationForArtisanWhenLateDelivery",
+            Value = JsonDocument.Parse("15"),
             IsActive = true
         },
         new()
@@ -229,13 +236,13 @@ public static class InitialSeeding
             Value = JsonDocument.Parse("15"),
             IsActive = true
         },
-        new()
-        {
-            EntityType = ConfigType.Voucher,
-            FieldName = "Commission",
-            Value = JsonDocument.Parse("1"),
-            IsActive = true
-        },
+        //new()
+        //{
+        //    EntityType = ConfigType.Voucher,
+        //    FieldName = "Commission",
+        //    Value = JsonDocument.Parse("1"),
+        //    IsActive = true
+        //},
     };
 
     private static readonly List<NotificationContent> NotificationContents = new()

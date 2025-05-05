@@ -58,8 +58,8 @@ namespace Chillde.Services.Services
                         var responseDeadline = lastSketchTracking.CreationDate.AddSeconds(order.Package.ResponseTime * 60);
                         var totalResponseSeconds = order.Package.ResponseTime * 60; 
                         TimeZoneInfo timeZoneInfo = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                            ? TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time") // Windows
-                            : TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");     // Linux
+                            ? TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time") 
+                            : TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");     
                         DateTime localResponseDeadline = TimeZoneInfo.ConvertTimeFromUtc(responseDeadline, timeZoneInfo);
                         var reminder50Time = lastSketchTracking.CreationDate.AddSeconds(totalResponseSeconds * 0.5);
                         var reminder80Time = lastSketchTracking.CreationDate.AddSeconds(totalResponseSeconds * 0.8);

@@ -49,7 +49,7 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.MaxCustomerOrdersPerMonth, "MaxCustomerOrdersPerMonth" }, // Giới hạn đơn hàng khách hàng trong tháng
             { SystemConfigKey.ReputationIncreaseOnSuccess, "ReputationIncreaseOnSuccess" }, // Điểm cộng khi đơn thành công
             { SystemConfigKey.MinReputationToAvoidBan, "MinReputationToAvoidBan" }, // Điểm tối thiểu để tránh bị ban
-
+            { SystemConfigKey.MinusReputationForArtisanWhenLateDelivery, "MinusReputationForArtisanWhenLateDelivery" }
             //Vouvher
             //{ SystemConfigKey.NumberOfMonthForMinOrders, "NumberOfMonthForMinOrders" },
             //{ SystemConfigKey.MinReputationOfArtisan, "MinReputationOfArtisan" },
