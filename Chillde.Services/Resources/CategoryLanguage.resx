@@ -123,6 +123,9 @@
   <data name="Anklets" xml:space="preserve">
     <value>Anklets</value>
   </data>
+  <data name="Architectural Drawings" xml:space="preserve">
+    <value>Architectural Drawings</value>
+  </data>
   <data name="Arm Bands" xml:space="preserve">
     <value>Arm Bands</value>
   </data>
@@ -143,6 +146,12 @@
   </data>
   <data name="Baby Accessories" xml:space="preserve">
     <value>Baby Accessories</value>
+  </data>
+  <data name="Baby Boys' Clothing" xml:space="preserve">
+    <value>Baby Boys' Clothing</value>
+  </data>
+  <data name="Baby Carriers &amp; Wraps" xml:space="preserve">
+    <value>Baby Carriers &amp; Wraps</value>
   </data>
   <data name="Backpacks" xml:space="preserve">
     <value>Backpacks</value>
@@ -183,14 +192,32 @@
   <data name="Bib Necklaces" xml:space="preserve">
     <value>Bib Necklaces</value>
   </data>
+  <data name="Bindis" xml:space="preserve">
+    <value>Bindis</value>
+  </data>
+  <data name="Black &amp; White" xml:space="preserve">
+    <value>Black &amp; White</value>
+  </data>
   <data name="Blank Books" xml:space="preserve">
     <value>Blank Books</value>
+  </data>
+  <data name="Blazers" xml:space="preserve">
+    <value>Blazers</value>
+  </data>
+  <data name="Bloomers" xml:space="preserve">
+    <value>Bloomers</value>
+  </data>
+  <data name="Bloomers, Diaper Covers &amp; Underwear" xml:space="preserve">
+    <value>Bloomers, Diaper Covers &amp; Underwear</value>
   </data>
   <data name="Board Games" xml:space="preserve">
     <value>Board Games</value>
   </data>
   <data name="Body Jewelry" xml:space="preserve">
     <value>Body Jewelry</value>
+  </data>
+  <data name="Bodysuits" xml:space="preserve">
+    <value>Bodysuits</value>
   </data>
   <data name="Book" xml:space="preserve">
     <value>Book</value>
@@ -246,6 +273,9 @@
   <data name="Candle Making" xml:space="preserve">
     <value>Candle Making</value>
   </data>
+  <data name="Capes" xml:space="preserve">
+    <value>Capes</value>
+  </data>
   <data name="Car Parts &amp; Accessories" xml:space="preserve">
     <value>Car Parts &amp; Accessories</value>
   </data>
@@ -257,6 +287,9 @@
   </data>
   <data name="Chandelier Earrings" xml:space="preserve">
     <value>Chandelier Earrings</value>
+  </data>
+  <data name="Charcoal" xml:space="preserve">
+    <value>Charcoal</value>
   </data>
   <data name="Charm Bracelets" xml:space="preserve">
     <value>Charm Bracelets</value>
@@ -276,6 +309,9 @@
   <data name="Children's Photo Props" xml:space="preserve">
     <value>Children's Photo Props</value>
   </data>
+  <data name="Cigarette Cases" xml:space="preserve">
+    <value>Cigarette Cases</value>
+  </data>
   <data name="Clip-On Earrings" xml:space="preserve">
     <value>Clip-On Earrings</value>
   </data>
@@ -285,17 +321,29 @@
   <data name="Clothing &amp; Shoe Clips" xml:space="preserve">
     <value>Clothing &amp; Shoe Clips</value>
   </data>
+  <data name="Clothing Sets" xml:space="preserve">
+    <value>Clothing Sets</value>
+  </data>
   <data name="Cluster Earrings" xml:space="preserve">
     <value>Cluster Earrings</value>
   </data>
   <data name="Clutches &amp; Evening Bags" xml:space="preserve">
     <value>Clutches &amp; Evening Bags</value>
   </data>
+  <data name="Coins &amp; Money" xml:space="preserve">
+    <value>Coins &amp; Money</value>
+  </data>
   <data name="Collectibles" xml:space="preserve">
     <value>Collectibles</value>
   </data>
+  <data name="Color" xml:space="preserve">
+    <value>Color</value>
+  </data>
   <data name="Coloring Books" xml:space="preserve">
     <value>Coloring Books</value>
+  </data>
+  <data name="Combination" xml:space="preserve">
+    <value>Combination</value>
   </data>
   <data name="Comics &amp; Graphic Novels" xml:space="preserve">
     <value>Comics &amp; Graphic Novels</value>
@@ -309,11 +357,23 @@
   <data name="Costume Accessories" xml:space="preserve">
     <value>Costume Accessories</value>
   </data>
+  <data name="Costume Ears" xml:space="preserve">
+    <value>Costume Ears</value>
+  </data>
   <data name="Costume Goggles" xml:space="preserve">
     <value>Costume Goggles</value>
   </data>
+  <data name="Costume Tails" xml:space="preserve">
+    <value>Costume Tails</value>
+  </data>
+  <data name="Costume Tails &amp; Ears" xml:space="preserve">
+    <value>Costume Tails &amp; Ears</value>
+  </data>
   <data name="Costume Weapons" xml:space="preserve">
     <value>Costume Weapons</value>
+  </data>
+  <data name="Costumes" xml:space="preserve">
+    <value>Costumes</value>
   </data>
   <data name="Craft Supplies &amp; Tools" xml:space="preserve">
     <value>Craft Supplies &amp; Tools</value>
@@ -323,6 +383,9 @@
   </data>
   <data name="Cuff Bracelets" xml:space="preserve">
     <value>Cuff Bracelets</value>
+  </data>
+  <data name="Diaper Covers" xml:space="preserve">
+    <value>Diaper Covers</value>
   </data>
   <data name="Dolls &amp; Miniatures" xml:space="preserve">
     <value>Dolls &amp; Miniatures</value>
@@ -347,6 +410,9 @@
   </data>
   <data name="Essential Oils" xml:space="preserve">
     <value>Essential Oils</value>
+  </data>
+  <data name="Evening &amp; Formal Gloves" xml:space="preserve">
+    <value>Evening &amp; Formal Gloves</value>
   </data>
   <data name="Facial Hair" xml:space="preserve">
     <value>Facial Hair</value>
@@ -393,6 +459,9 @@
   <data name="Gardening &amp; Work Gloves" xml:space="preserve">
     <value>Gardening &amp; Work Gloves</value>
   </data>
+  <data name="Gardening Gloves" xml:space="preserve">
+    <value>Gardening Gloves</value>
+  </data>
   <data name="Gender-Neutral Adult Clothing" xml:space="preserve">
     <value>Gender-Neutral Adult Clothing</value>
   </data>
@@ -423,6 +492,9 @@
   <data name="Hand Chain" xml:space="preserve">
     <value>Hand Chain</value>
   </data>
+  <data name="Hand Chains" xml:space="preserve">
+    <value>Hand Chains</value>
+  </data>
   <data name="Handbags" xml:space="preserve">
     <value>Handbags</value>
   </data>
@@ -447,6 +519,12 @@
   <data name="Home Improvement" xml:space="preserve">
     <value>Home Improvement</value>
   </data>
+  <data name="Hoodies" xml:space="preserve">
+    <value>Hoodies</value>
+  </data>
+  <data name="Hoodies &amp; Sweatshirts" xml:space="preserve">
+    <value>Hoodies &amp; Sweatshirts</value>
+  </data>
   <data name="Hunting &amp; Archery" xml:space="preserve">
     <value>Hunting &amp; Archery</value>
   </data>
@@ -456,11 +534,20 @@
   <data name="Instrument Straps" xml:space="preserve">
     <value>Instrument Straps</value>
   </data>
+  <data name="Jackets &amp; Coats" xml:space="preserve">
+    <value>Jackets &amp; Coats</value>
+  </data>
+  <data name="Jeans" xml:space="preserve">
+    <value>Jeans</value>
+  </data>
   <data name="Jewelry" xml:space="preserve">
     <value>Jewelry</value>
   </data>
   <data name="Jewelry &amp; Beauty" xml:space="preserve">
     <value>Jewelry &amp; Beauty</value>
+  </data>
+  <data name="Jewelry Making &amp; Beading" xml:space="preserve">
+    <value>Jewelry Making &amp; Beading</value>
   </data>
   <data name="Jewelry Making and Beading" xml:space="preserve">
     <value>Jewelry Making and Beading</value>
@@ -492,6 +579,12 @@
   <data name="Leatherworking" xml:space="preserve">
     <value>Leatherworking</value>
   </data>
+  <data name="Leg Warmers" xml:space="preserve">
+    <value>Leg Warmers</value>
+  </data>
+  <data name="Leggings" xml:space="preserve">
+    <value>Leggings</value>
+  </data>
   <data name="Lighting" xml:space="preserve">
     <value>Lighting</value>
   </data>
@@ -507,6 +600,9 @@
   <data name="Makeup &amp; Face Painting" xml:space="preserve">
     <value>Makeup &amp; Face Painting</value>
   </data>
+  <data name="Masks" xml:space="preserve">
+    <value>Masks</value>
+  </data>
   <data name="Masks &amp; Prosthetics" xml:space="preserve">
     <value>Masks &amp; Prosthetics</value>
   </data>
@@ -519,6 +615,9 @@
   <data name="Miniature Toys" xml:space="preserve">
     <value>Miniature Toys</value>
   </data>
+  <data name="Mittens" xml:space="preserve">
+    <value>Mittens</value>
+  </data>
   <data name="Mittens &amp; Muffs" xml:space="preserve">
     <value>Mittens &amp; Muffs</value>
   </data>
@@ -530,6 +629,9 @@
   </data>
   <data name="Movie" xml:space="preserve">
     <value>Movie</value>
+  </data>
+  <data name="Muffs" xml:space="preserve">
+    <value>Muffs</value>
   </data>
   <data name="Multi-Stone Rings" xml:space="preserve">
     <value>Multi-Stone Rings</value>
@@ -552,14 +654,23 @@
   <data name="Nipple Jewelr" xml:space="preserve">
     <value>Nipple Jewelr</value>
   </data>
+  <data name="Nipple Jewelry" xml:space="preserve">
+    <value>Nipple Jewelry</value>
+  </data>
   <data name="Nose Rings &amp; Studs" xml:space="preserve">
     <value>Nose Rings &amp; Studs</value>
   </data>
   <data name="Outdoor &amp; Gardening" xml:space="preserve">
     <value>Outdoor &amp; Gardening</value>
   </data>
+  <data name="Overalls &amp; Coveralls" xml:space="preserve">
+    <value>Overalls &amp; Coveralls</value>
+  </data>
   <data name="Painting" xml:space="preserve">
     <value>Painting</value>
+  </data>
+  <data name="Pants" xml:space="preserve">
+    <value>Pants</value>
   </data>
   <data name="Paper" xml:space="preserve">
     <value>Paper</value>
@@ -654,6 +765,9 @@
   <data name="Prints" xml:space="preserve">
     <value>Prints</value>
   </data>
+  <data name="Prosthetics" xml:space="preserve">
+    <value>Prosthetics</value>
+  </data>
   <data name="Purse Straps" xml:space="preserve">
     <value>Purse Straps</value>
   </data>
@@ -708,6 +822,12 @@
   <data name="Soap Making &amp; Bath" xml:space="preserve">
     <value>Soap Making &amp; Bath</value>
   </data>
+  <data name="Socks" xml:space="preserve">
+    <value>Socks</value>
+  </data>
+  <data name="Socks &amp; Leg Warmers" xml:space="preserve">
+    <value>Socks &amp; Leg Warmers</value>
+  </data>
   <data name="Solitaire Rings" xml:space="preserve">
     <value>Solitaire Rings</value>
   </data>
@@ -732,11 +852,20 @@
   <data name="Stuffed Animals &amp; Plush" xml:space="preserve">
     <value>Stuffed Animals &amp; Plush</value>
   </data>
+  <data name="Stuffed Animals &amp; Plushies" xml:space="preserve">
+    <value>Stuffed Animals &amp; Plushies</value>
+  </data>
   <data name="Sunglasses &amp; Eyewear" xml:space="preserve">
     <value>Sunglasses &amp; Eyewear</value>
   </data>
+  <data name="Suspenders" xml:space="preserve">
+    <value>Suspenders</value>
+  </data>
   <data name="Sweater Clips" xml:space="preserve">
     <value>Sweater Clips</value>
+  </data>
+  <data name="Sweatshirts" xml:space="preserve">
+    <value>Sweatshirts</value>
   </data>
   <data name="Top Handle Bags" xml:space="preserve">
     <value>Top Handle Bags</value>
@@ -746,6 +875,12 @@
   </data>
   <data name="Toys" xml:space="preserve">
     <value>Toys</value>
+  </data>
+  <data name="Toys &amp; Games" xml:space="preserve">
+    <value>Toys &amp; Games</value>
+  </data>
+  <data name="Underwear" xml:space="preserve">
+    <value>Underwear</value>
   </data>
   <data name="Video &amp; Audio Games" xml:space="preserve">
     <value>Video &amp; Audio Games</value>
@@ -815,5 +950,8 @@
   </data>
   <data name="Woodworking &amp; Carpentry" xml:space="preserve">
     <value>Woodworking &amp; Carpentry</value>
+  </data>
+  <data name="Work Gloves" xml:space="preserve">
+    <value>Work Gloves</value>
   </data>
 </root>
