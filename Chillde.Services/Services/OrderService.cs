@@ -1235,6 +1235,7 @@ namespace Chillde.Services.Services
                     OrderStage = order.Stage,
                     Status = order.Status,
                     CreatedById = order.CreatedById,
+                    CreationDate = order.CreationDate,
                     Artisan = order.Package.ServiceId.HasValue && order.Package.Service?.CreatedBy != null
                         ? new AccountLiteModel
                         {
