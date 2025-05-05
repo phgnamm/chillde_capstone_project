@@ -61,7 +61,8 @@ namespace Chillde.Repositories.Common
             { SystemConfigKey.MinReputationForVouchers, "Uy tín tối thiểu để nhận voucher" },
             { SystemConfigKey.MaxCustomerOrdersPerMonth, "Giới hạn đơn hàng khách hàng/tháng" },
             { SystemConfigKey.ReputationIncreaseOnSuccess, "Điểm cộng khi hoàn thành đơn thành công" },
-            { SystemConfigKey.MinReputationToAvoidBan, "Điểm uy tín tối thiểu tránh bị khóa tài khoản" }
+            { SystemConfigKey.MinReputationToAvoidBan, "Điểm uy tín tối thiểu tránh bị khóa tài khoản" },
+            { SystemConfigKey.MinusReputationForArtisanWhenLateDelivery, "Điểm uy tín bị trừ khi nghệ nhân không đăng sản phẩm đúng hạn" }
         };
 
     }
