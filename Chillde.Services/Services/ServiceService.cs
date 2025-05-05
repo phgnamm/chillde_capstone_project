@@ -38,6 +38,8 @@ using OpenAI.GPT3.ObjectModels.ResponseModels;
 using StackExchange.Redis;
 using CloudinaryDotNet;
 using System.Diagnostics.Tracing;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Chillde.Services.Models.CategoryModels;
 
 namespace Chillde.Services.Services
 {
@@ -1848,7 +1850,14 @@ namespace Chillde.Services.Services
             else
             {
                 var cacheKey = $"services_{CacheTools.GenerateCacheKey(serviceFilterModel)}";
-
+                List<Guid> categoryIds = new();
+                if (serviceFilterModel.CategoryId.HasValue)
+                {
+                    var allChildCategories = await GetAllChildCategoriesWithParentAsync(serviceFilterModel.CategoryId.Value);
+                    categoryIds = allChildCategories.Select(c => c.Id).ToList();
+                }
+                var services = await _unitOfWork.ServiceRepository
+                    .GetAllAsync(s => categoryIds.Contains(s.CategoryId));
                 var responseModel = await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     Guid? filterId = null;
@@ -1858,10 +1867,10 @@ namespace Chillde.Services.Services
                     }
                     var services = await _unitOfWork.ServiceRepository.GetAllAsync(
                         filter: s =>
-                            s.IsDeleted == false && (serviceFilterModel.Status == s.Status) &&
+                            s.IsDeleted == false && (!serviceFilterModel.Status.HasValue ||serviceFilterModel.Status == s.Status) &&
                             (string.IsNullOrEmpty(serviceFilterModel.IdOrUserName) || (filterId.HasValue && s.CreatedById == filterId.Value)
                             || s.CreatedBy.Username.Contains(serviceFilterModel.IdOrUserName)) &&
-                            (!serviceFilterModel.CategoryId.HasValue || s.CategoryId == serviceFilterModel.CategoryId) &&
+                            (!serviceFilterModel.CategoryId.HasValue || categoryIds.Contains(s.CategoryId)) &&
                             //(!serviceFilterModel.ItemId.HasValue || s.Category.Id == serviceFilterModel.ItemId) &&
                             (!serviceFilterModel.MinPrice.HasValue || s.Packages.Min(p => p.Price) >= serviceFilterModel.MinPrice) &&
                             (!serviceFilterModel.IsDeleted.HasValue || s.IsDeleted == serviceFilterModel.IsDeleted) &&
@@ -1979,6 +1988,39 @@ namespace Chillde.Services.Services
                 return responseModel;
             }
         }
+
+        public async Task<List<Category>> GetAllChildCategoriesWithParentAsync(Guid parentId)
+        {
+            var pagedResult = await _unitOfWork.CategoryRepository.GetAllAsync();
+            var allCategories = pagedResult.Data;
+            var parent = allCategories.FirstOrDefault(c => c.Id == parentId);
+            var result = new List<Category>();
+            if (parent != null)
+            {
+                result.Add(parent);
+                result.AddRange(GetChildCategoriesRecursive(allCategories.ToList(), parentId));
+            }
+
+            return result;
+        }
+
+        private List<Category> GetChildCategoriesRecursive(List<Category> allCategories, Guid parentId)
+        {
+            var result = new List<Category>();
+
+            var directChildren = allCategories
+                .Where(c => c.ParentId == parentId)
+                .ToList();
+
+            foreach (var child in directChildren)
+            {
+                result.Add(child);
+                result.AddRange(GetChildCategoriesRecursive(allCategories, child.Id));
+            }
+
+            return result;
+        }
+
         public async Task RegenerateAllServiceEmbeddingsAsync()
         {
             var services = await _unitOfWork.ServiceRepository.GetAllAsync(

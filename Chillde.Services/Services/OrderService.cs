@@ -1235,6 +1235,7 @@ namespace Chillde.Services.Services
                     OrderStage = order.Stage,
                     Status = order.Status,
                     CreatedById = order.CreatedById,
+                    CreationDate = order.CreationDate,
                     Artisan = order.Package.ServiceId.HasValue && order.Package.Service?.CreatedBy != null
                         ? new AccountLiteModel
                         {
@@ -2035,32 +2036,32 @@ namespace Chillde.Services.Services
 
             if (title == "sketch")
             {
-                subject = $"📢 New Sketch Uploaded for Order #{orderCode}";
+                subject = $"📢 Phác thảo mới cho đơn hàng #{orderCode}";
                 body = $@"
-                         <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
-                         <p>Good news! A new sketch has been uploaded by the artisan for your order <strong>#{orderCode}</strong>.</p>
-                         <p><strong>Action Required:</strong></p>
-                         <ul>
-                             <li>Review the sketch.</li>
-                             <li>Approve it or request revisions.</li>
-                             <li>Ensure timely responses to avoid delays.</li>
-                         </ul>
-                         <p>Best regards,</p>
-                         <p><strong>From Chillde</strong></p>";
+            <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+            <p>Thợ thủ công đã tải lên một bản phác thảo mới cho đơn hàng <strong>#{orderCode}</strong> của bạn.</p>
+            <p><strong>Hành động cần thiết:</strong></p>
+            <ul>
+                <li>Xem bản phác thảo vừa được cập nhật.</li>
+                <li>Phê duyệt hoặc yêu cầu chỉnh sửa nếu cần.</li>
+                <li>Phản hồi kịp thời để tránh chậm trễ đơn hàng.</li>
+            </ul>
+            <p>Trân trọng,</p>
+            <p><strong>Đội ngũ Chillde</strong></p>";
             }
             else if (title == "delivery")
             {
-                subject = $"📦 Your Order #{orderCode} Has Been Delivered!";
+                subject = $"📦 Đơn hàng #{orderCode} của bạn đã được giao!";
                 body = $@"
-                          <p>Dear {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
-                          <p>Exciting update! Your artisan has completed and delivered the final product for order <strong>#{orderCode}</strong>.</p>
-                          <p><strong>Next Steps:</strong></p>
-                          <ul>
-                              <li>Review your delivered product.</li>
-                              <li>Confirm delivery or request adjustments before the artist must close the order and send it for shipping.</li>
-                          </ul>
-                          <p>Thank you for choosing us!</p>
-                          <p><strong>From Chillde</strong></p>";
+            <p>Xin chào {order.CreatedBy.FirstName + " " + order.CreatedBy.LastName},</p>
+            <p>Chúng tôi xin thông báo rằng sản phẩm cuối cùng trong đơn hàng <strong>#{orderCode}</strong> của bạn đã được thợ thủ công hoàn thành và giao lên hệ thống.</p>
+            <p><strong>Bạn nên:</strong></p>
+            <ul>
+                <li>Xem lại sản phẩm đã giao.</li>
+                <li>Xác nhận hoặc yêu cầu điều chỉnh trước khi đơn hàng được đóng và chuyển sang giai đoạn vận chuyển.</li>
+            </ul>
+            <p>Cảm ơn bạn đã tin tưởng và lựa chọn dịch vụ của chúng tôi!</p>
+            <p><strong>Đội ngũ Chillde</strong></p>";
             }
             else
             {
@@ -2069,6 +2070,7 @@ namespace Chillde.Services.Services
 
             await _iIEmailHelper.SendEmailAsync(email, subject, body, true);
         }
+
         public async Task<ResponseModel> AddDelivery(Guid orderId, OrderTrackingAddModel orderTrackingAddModel)
         {
             try
