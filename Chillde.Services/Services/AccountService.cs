@@ -1797,11 +1797,11 @@ public class AccountService : IAccountService
 
         var currentRevenue = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate.Month == now.Month && o.CreationDate.Year == now.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
-            .SumAsync(o => o.TotalPrice) ?? 0;
+            .SumAsync(o => o.TotalPrice - o.ShippingPrice) ?? 0;
 
         var lastMonthRevenue = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate.Month == lastMonth.Month && o.CreationDate.Year == lastMonth.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
-            .SumAsync(o => o.TotalPrice) ?? 0;
+            .SumAsync(o => o.TotalPrice - o.ShippingPrice) ?? 0;
 
         var customerCount = await _unitOfWork.Context.Accounts.Include(u => u.AccountRoles)
         .ThenInclude(ar => ar.Role).CountAsync(u => u.AccountRoles.Any(r => r.Role.Name.Equals(Role.Customer.ToString())));
@@ -1918,7 +1918,7 @@ public class AccountService : IAccountService
                     Details = new UserDetail
                     {
                         Artisan = artisanCount,
-                        Customer = customerCount
+                        Customer = customerCount    
                     }
 
                 },

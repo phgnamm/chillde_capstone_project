@@ -219,9 +219,9 @@ public class DeliveryReminderService : BackgroundService
             $@"
         <p>Chào bạn {EscapeHtml(order.CreatedBy.FirstName)} {EscapeHtml(order.CreatedBy.LastName)},</p>
         <p>Rất tiếc, chúng tôi thông báo rằng thời gian gửi hình ảnh sản phẩm cho đơn hàng #{order.Code} đã hết hạn và đơn hàng của bạn đã bị hủy.</p>
-        <p>Đơn hàng lẽ ra phải có hình ảnh sản phẩm được nộp trước <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong>, nhưng chúng tôi chưa nhận được bản thảo. Vì vậy, đơn hàng đã bị hủy và chúng tôi sẽ hoàn tiền đầy đủ cho bạn.</p>
+        <p>Đơn hàng lẽ ra phải có hình ảnh sản phẩm được nộp trước <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong>, nhưng chúng tôi chưa nhận được bản xem trước sản phẩm. Vì vậy, đơn hàng đã bị hủy và chúng tôi sẽ hoàn tiền đầy đủ cho bạn.</p>
         <p>**Hoàn tiền**: Số tiền bạn đã thanh toán cho đơn hàng sẽ được hoàn lại đầy đủ vào tài khoản của bạn trong thời gian sớm nhất.</p>
-        <p>**Điểm uy tín nghệ nhân**: Do không tuân thủ thời gian nộp bản thảo, điểm uy tín của nghệ nhân đã bị trừ 15 điểm trong hệ thống.</p>
+        <p>**Điểm uy tín nghệ nhân**: Do không tuân thủ thời gian nộp bản xem trước sản phẩm, điểm uy tín của nghệ nhân đã bị trừ 15 điểm trong hệ thống.</p>
         <p>Chúng tôi hiểu rằng có thể xảy ra một số vấn đề ngoài ý muốn và rất mong bạn thông cảm.</p>
         <p>Nếu bạn muốn tiếp tục với đơn hàng mới, xin vui lòng liên hệ với chúng tôi.</p>
         <p>Trân trọng,</p>
@@ -239,7 +239,7 @@ public class DeliveryReminderService : BackgroundService
             $@"
         <p>Chào bạn {EscapeHtml(order.Package.Service.CreatedBy.FirstName)} {EscapeHtml(order.Package.Service.CreatedBy.LastName)},</p>
         <p>Rất tiếc, chúng tôi thông báo rằng do nghệ nhân đã không gửi hình ảnh sản phẩm lên đúng hạn của đơn hàng #{order.Code} và đơn hàng của bạn đã bị hủy.</p>
-        <p>Đơn hàng lẽ ra phải có hình ảnh sản phẩm được nộp trước <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong>, nhưng chúng tôi chưa nhận được bản thảo. Vì vậy, đơn hàng đã bị hủy và chúng tôi sẽ hoàn tiền đầy đủ cho bạn.</p>
+        <p>Đơn hàng lẽ ra phải có hình ảnh sản phẩm được nộp trước <strong>{deadline.ToString("dd MMMM yyyy HH:mm")}</strong>, nhưng chúng tôi chưa nhận được bản xem trước sản phẩm. Vì vậy, đơn hàng đã bị hủy và chúng tôi sẽ hoàn tiền đầy đủ cho bạn.</p>
         <p>**Hoàn tiền**: Số tiền bạn đã thanh toán cho đơn hàng sẽ được hoàn lại đầy đủ vào tài khoản của bạn trong thời gian sớm nhất.</p>
         <p>**Điểm uy tín nghệ nhân**: Do không tuân thủ thời gian nộp bản thảo, điểm uy tín của nghệ nhân đã bị trừ trong hệ thống.</p>
         <p>Chúng tôi hiểu rằng có thể xảy ra một số vấn đề ngoài ý muốn và rất mong bạn thông cảm.</p>
