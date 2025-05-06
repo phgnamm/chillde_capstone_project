@@ -1364,7 +1364,7 @@ namespace Chillde.Services.Services
 
             var serviceIds = fuzzySearchResponse.Documents.Select(doc => doc.Id).ToList();
 
-            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments).Include(_ => _.Packages));
 
             var serviceModels = dbServices.Data.Select(dbService =>
             {
@@ -1380,6 +1380,8 @@ namespace Chillde.Services.Services
                     MinWeight = dbService.MinWeight,
                     MaxWeight = dbService.MaxWeight,
                     ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Price = dbService.Packages.Min(_ => _.Price),
+                    MaxPrice = dbService.Packages.Max(_ => _.MaxQuantity),
                     Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
                     {
                         FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
@@ -1412,7 +1414,7 @@ namespace Chillde.Services.Services
 
             var serviceIds = exactMatchResponse.Documents.Select(doc => doc.Id).ToList();
 
-            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments).Include(_ => _.Packages));
 
             var serviceModels = dbServices.Data.Select(dbService =>
             {
@@ -1428,6 +1430,8 @@ namespace Chillde.Services.Services
                     MinWeight = dbService.MinWeight,
                     MaxWeight = dbService.MaxWeight,
                     ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Price = dbService.Packages.Min(_ => _.Price),
+                    MaxPrice = dbService.Packages.Max(_ => _.MaxQuantity),
                     Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
                     {
                         FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
@@ -1494,7 +1498,7 @@ namespace Chillde.Services.Services
             }
             var serviceIds = embeddingSearchResponse.Documents.Select(doc => doc.Id).ToList();
 
-            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments));
+            var dbServices = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => serviceIds.Contains(_.Id), include: _ => _.Include(_ => _.CreatedBy).Include(_ => _.ServiceAttachments) .Include(_ => _.Packages));
 
             var serviceModels = dbServices.Data.Select(dbService =>
             {
@@ -1510,6 +1514,8 @@ namespace Chillde.Services.Services
                     MinWeight = dbService.MinWeight,
                     MaxWeight = dbService.MaxWeight,
                     ServiceAttachments = dbService.ServiceAttachments?.ToList(),
+                    Price = dbService.Packages.Min(_ => _.Price),
+                    MaxPrice = dbService.Packages.Max(_ => _.MaxQuantity),
                     Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
                     {
                         FirstName = dbService.CreatedBy.FirstName ?? "Unknown",

@@ -64,16 +64,30 @@ namespace Chillde.Services.Services
                         Message = "StartTime must be less than to ExpiredTime."
                     };
                 }
+                if (voucherAddModel.MaxDiscountValue.HasValue && voucherAddModel.MaxDiscountValue < 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status400BadRequest,
+                        Message = "MaxDiscountValue must be greater than or equal to 0."
+                    };
+                }
 
+                decimal? maxDiscountValue = voucherAddModel.MaxDiscountValue;
+
+                if (maxDiscountValue == 0)
+                {
+                    maxDiscountValue = null; 
+                }
                 var newVoucher = new Voucher
                 {
-                    ReceiverId = voucherAddModel.ReceiverId,
+                    ReceiverId = voucherAddModel.ReceiverId ?? null,
                     Code = GenerateCodeHelper.GenerateVoucherCode(),
                     MinOrderRequired = voucherAddModel.MinOrderRequired ?? 0,
                     MinReputation = voucherAddModel.MinReputation ?? 0,
                     DiscountValue = voucherAddModel.DiscountValue,
                     MinOrderValue = voucherAddModel.MinOrderValue ?? 0,
-                    MaxDiscountValue = voucherAddModel.MaxDiscountValue ?? null,
+                    MaxDiscountValue = maxDiscountValue,
                     TotalQuantity = voucherAddModel.TotalQuantity ?? 0,
                     RemainingQuantity = voucherAddModel.TotalQuantity ?? 0,
                     StartTime = voucherAddModel.StartTime,
@@ -81,6 +95,7 @@ namespace Chillde.Services.Services
                     CreatedById = currentUserId.Value,
                     VoucherType = voucherAddModel.VoucherType,
                 };
+           
                 if(voucherAddModel.ReceiverId != null)
                 {
                     newVoucher.VoucherType = VoucherType.AdminToArtist;
@@ -124,7 +139,7 @@ namespace Chillde.Services.Services
                 };
             }
             existingVoucher.VoucherStatus = Repositories.Enums.VoucherStatus.Expired;
-            _unitOfWork.VoucherRepository.SoftRemove(existingVoucher);
+            _unitOfWork.VoucherRepository.Update(existingVoucher);
             await _unitOfWork.SaveChangeAsync();
 
             return new ResponseModel { Message = "Voucher has been stopped successfully." };
@@ -173,7 +188,7 @@ namespace Chillde.Services.Services
                     };
                 }
             }
-
+         
             if (hasUsed.Data.Any())
             {
                 existingVoucher.VoucherStatus = Repositories.Enums.VoucherStatus.Expired;
@@ -181,7 +196,7 @@ namespace Chillde.Services.Services
                 var newVoucher = new Voucher
                 {
                     Code = GenerateCodeHelper.GenerateVoucherCode(),
-                    ReceiverId = voucherUpdateModel.ReceiverId ??existingVoucher.ReceiverId,
+                    ReceiverId = voucherUpdateModel.ReceiverId ?? existingVoucher.ReceiverId ,
                     MinOrderRequired = voucherUpdateModel.MinOrderRequired ?? existingVoucher.MinOrderRequired,
                     MinReputation = voucherUpdateModel.MinReputation ?? existingVoucher.MinReputation,
                     DiscountValue = voucherUpdateModel.DiscountValue > 0 ? voucherUpdateModel.DiscountValue : existingVoucher.DiscountValue,
@@ -194,7 +209,10 @@ namespace Chillde.Services.Services
                     CreatedById = currentUserId.Value,
                     IsDeleted = voucherUpdateModel.IsDeleted ?? existingVoucher.IsDeleted,
                 };
-
+                if (voucherUpdateModel.ReceiverId == null)
+                {
+                    newVoucher.ReceiverId = null;
+                }
                 await _unitOfWork.VoucherRepository.AddAsync(newVoucher);
                 await _unitOfWork.SaveChangeAsync();
 
@@ -213,7 +231,10 @@ namespace Chillde.Services.Services
             existingVoucher.StartTime = voucherUpdateModel.StartTime ?? existingVoucher.StartTime;
             existingVoucher.ExpiredTime = voucherUpdateModel.ExpiredTime ?? existingVoucher.ExpiredTime;
             existingVoucher.IsDeleted = voucherUpdateModel?.IsDeleted ?? existingVoucher.IsDeleted;
-
+            if (voucherUpdateModel.ReceiverId == null)
+            {
+                existingVoucher.ReceiverId = null;
+            }
             _unitOfWork.VoucherRepository.Update(existingVoucher);
             await _unitOfWork.SaveChangeAsync();
 

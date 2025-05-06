@@ -97,6 +97,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Architectural Drawings.
+        /// </summary>
+        public static string Architectural_Drawings {
+            get {
+                return ResourceManager.GetString("Architectural Drawings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Arm Bands.
         /// </summary>
         public static string Arm_Bands {
@@ -165,6 +174,24 @@ namespace Chillde.Services.Resources {
         public static string Baby_Accessories {
             get {
                 return ResourceManager.GetString("Baby Accessories", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Baby Boys&apos; Clothing.
+        /// </summary>
+        public static string Baby_Boys__Clothing {
+            get {
+                return ResourceManager.GetString("Baby Boys\' Clothing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Baby Carriers &amp; Wraps.
+        /// </summary>
+        public static string Baby_Carriers___Wraps {
+            get {
+                return ResourceManager.GetString("Baby Carriers & Wraps", resourceCulture);
             }
         }
         
@@ -286,11 +313,56 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Bindis.
+        /// </summary>
+        public static string Bindis {
+            get {
+                return ResourceManager.GetString("Bindis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Black &amp; White.
+        /// </summary>
+        public static string Black___White {
+            get {
+                return ResourceManager.GetString("Black & White", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blank Books.
         /// </summary>
         public static string Blank_Books {
             get {
                 return ResourceManager.GetString("Blank Books", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blazers.
+        /// </summary>
+        public static string Blazers {
+            get {
+                return ResourceManager.GetString("Blazers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bloomers.
+        /// </summary>
+        public static string Bloomers {
+            get {
+                return ResourceManager.GetString("Bloomers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bloomers, Diaper Covers &amp; Underwear.
+        /// </summary>
+        public static string Bloomers__Diaper_Covers___Underwear {
+            get {
+                return ResourceManager.GetString("Bloomers, Diaper Covers & Underwear", resourceCulture);
             }
         }
         
@@ -309,6 +381,15 @@ namespace Chillde.Services.Resources {
         public static string Body_Jewelry {
             get {
                 return ResourceManager.GetString("Body Jewelry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bodysuits.
+        /// </summary>
+        public static string Bodysuits {
+            get {
+                return ResourceManager.GetString("Bodysuits", resourceCulture);
             }
         }
         
@@ -475,6 +556,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Capes.
+        /// </summary>
+        public static string Capes {
+            get {
+                return ResourceManager.GetString("Capes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Car Parts &amp; Accessories.
         /// </summary>
         public static string Car_Parts___Accessories {
@@ -507,6 +597,15 @@ namespace Chillde.Services.Resources {
         public static string Chandelier_Earrings {
             get {
                 return ResourceManager.GetString("Chandelier Earrings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Charcoal.
+        /// </summary>
+        public static string Charcoal {
+            get {
+                return ResourceManager.GetString("Charcoal", resourceCulture);
             }
         }
         
@@ -565,11 +664,11 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Choker Necklaces.
+        ///   Looks up a localized string similar to Cigarette Cases.
         /// </summary>
-        public static string Choker_Necklaces {
+        public static string Cigarette_Cases {
             get {
-                return ResourceManager.GetString("Choker Necklaces", resourceCulture);
+                return ResourceManager.GetString("Cigarette Cases", resourceCulture);
             }
         }
         
@@ -601,6 +700,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clothing Sets.
+        /// </summary>
+        public static string Clothing_Sets {
+            get {
+                return ResourceManager.GetString("Clothing Sets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cluster Earrings.
         /// </summary>
         public static string Cluster_Earrings {
@@ -619,6 +727,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Coins &amp; Money.
+        /// </summary>
+        public static string Coins___Money {
+            get {
+                return ResourceManager.GetString("Coins & Money", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Collectibles.
         /// </summary>
         public static string Collectibles {
@@ -628,11 +745,29 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Color.
+        /// </summary>
+        public static string Color {
+            get {
+                return ResourceManager.GetString("Color", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Coloring Books.
         /// </summary>
         public static string Coloring_Books {
             get {
                 return ResourceManager.GetString("Coloring Books", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Combination.
+        /// </summary>
+        public static string Combination {
+            get {
+                return ResourceManager.GetString("Combination", resourceCulture);
             }
         }
         
@@ -673,11 +808,11 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Costume Gloves.
+        ///   Looks up a localized string similar to Costume Ears.
         /// </summary>
-        public static string Costume_Gloves {
+        public static string Costume_Ears {
             get {
-                return ResourceManager.GetString("Costume Gloves", resourceCulture);
+                return ResourceManager.GetString("Costume Ears", resourceCulture);
             }
         }
         
@@ -691,11 +826,20 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Costume Hats &amp; Headpieces.
+        ///   Looks up a localized string similar to Costume Tails.
         /// </summary>
-        public static string Costume_Hats___Headpieces {
+        public static string Costume_Tails {
             get {
-                return ResourceManager.GetString("Costume Hats & Headpieces", resourceCulture);
+                return ResourceManager.GetString("Costume Tails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Costume Tails &amp; Ears.
+        /// </summary>
+        public static string Costume_Tails___Ears {
+            get {
+                return ResourceManager.GetString("Costume Tails & Ears", resourceCulture);
             }
         }
         
@@ -705,6 +849,15 @@ namespace Chillde.Services.Resources {
         public static string Costume_Weapons {
             get {
                 return ResourceManager.GetString("Costume Weapons", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Costumes.
+        /// </summary>
+        public static string Costumes {
+            get {
+                return ResourceManager.GetString("Costumes", resourceCulture);
             }
         }
         
@@ -763,20 +916,11 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Dioramas.
+        ///   Looks up a localized string similar to Diaper Covers.
         /// </summary>
-        public static string Dioramas {
+        public static string Diaper_Covers {
             get {
-                return ResourceManager.GetString("Dioramas", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Dollhouses.
-        /// </summary>
-        public static string Dollhouses {
-            get {
-                return ResourceManager.GetString("Dollhouses", resourceCulture);
+                return ResourceManager.GetString("Diaper Covers", resourceCulture);
             }
         }
         
@@ -849,6 +993,15 @@ namespace Chillde.Services.Resources {
         public static string Essential_Oils {
             get {
                 return ResourceManager.GetString("Essential Oils", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Evening &amp; Formal Gloves.
+        /// </summary>
+        public static string Evening___Formal_Gloves {
+            get {
+                return ResourceManager.GetString("Evening & Formal Gloves", resourceCulture);
             }
         }
         
@@ -988,6 +1141,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Gardening Gloves.
+        /// </summary>
+        public static string Gardening_Gloves {
+            get {
+                return ResourceManager.GetString("Gardening Gloves", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Gender-Neutral Adult Clothing.
         /// </summary>
         public static string Gender_Neutral_Adult_Clothing {
@@ -1087,6 +1249,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hand Chains.
+        /// </summary>
+        public static string Hand_Chains {
+            get {
+                return ResourceManager.GetString("Hand Chains", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Handbags.
         /// </summary>
         public static string Handbags {
@@ -1159,6 +1330,24 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hoodies.
+        /// </summary>
+        public static string Hoodies {
+            get {
+                return ResourceManager.GetString("Hoodies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hoodies &amp; Sweatshirts.
+        /// </summary>
+        public static string Hoodies___Sweatshirts {
+            get {
+                return ResourceManager.GetString("Hoodies & Sweatshirts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hunting &amp; Archery.
         /// </summary>
         public static string Hunting___Archery {
@@ -1186,6 +1375,24 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Jackets &amp; Coats.
+        /// </summary>
+        public static string Jackets___Coats {
+            get {
+                return ResourceManager.GetString("Jackets & Coats", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Jeans.
+        /// </summary>
+        public static string Jeans {
+            get {
+                return ResourceManager.GetString("Jeans", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Jewelry.
         /// </summary>
         public static string Jewelry {
@@ -1200,6 +1407,15 @@ namespace Chillde.Services.Resources {
         public static string Jewelry___Beauty {
             get {
                 return ResourceManager.GetString("Jewelry & Beauty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Jewelry Making &amp; Beading.
+        /// </summary>
+        public static string Jewelry_Making___Beading {
+            get {
+                return ResourceManager.GetString("Jewelry Making & Beading", resourceCulture);
             }
         }
         
@@ -1294,6 +1510,24 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Leg Warmers.
+        /// </summary>
+        public static string Leg_Warmers {
+            get {
+                return ResourceManager.GetString("Leg Warmers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Leggings.
+        /// </summary>
+        public static string Leggings {
+            get {
+                return ResourceManager.GetString("Leggings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lighting.
         /// </summary>
         public static string Lighting {
@@ -1339,6 +1573,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Masks.
+        /// </summary>
+        public static string Masks {
+            get {
+                return ResourceManager.GetString("Masks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Masks &amp; Prosthetics.
         /// </summary>
         public static string Masks___Prosthetics {
@@ -1375,6 +1618,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Mittens.
+        /// </summary>
+        public static string Mittens {
+            get {
+                return ResourceManager.GetString("Mittens", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Mittens &amp; Muffs.
         /// </summary>
         public static string Mittens___Muffs {
@@ -1407,6 +1659,15 @@ namespace Chillde.Services.Resources {
         public static string Movie {
             get {
                 return ResourceManager.GetString("Movie", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Muffs.
+        /// </summary>
+        public static string Muffs {
+            get {
+                return ResourceManager.GetString("Muffs", resourceCulture);
             }
         }
         
@@ -1474,6 +1735,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Nipple Jewelry.
+        /// </summary>
+        public static string Nipple_Jewelry {
+            get {
+                return ResourceManager.GetString("Nipple Jewelry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Nose Rings &amp; Studs.
         /// </summary>
         public static string Nose_Rings___Studs {
@@ -1492,11 +1762,29 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Overalls &amp; Coveralls.
+        /// </summary>
+        public static string Overalls___Coveralls {
+            get {
+                return ResourceManager.GetString("Overalls & Coveralls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Painting.
         /// </summary>
         public static string Painting {
             get {
                 return ResourceManager.GetString("Painting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pants.
+        /// </summary>
+        public static string Pants {
+            get {
+                return ResourceManager.GetString("Pants", resourceCulture);
             }
         }
         
@@ -1780,6 +2068,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prosthetics.
+        /// </summary>
+        public static string Prosthetics {
+            get {
+                return ResourceManager.GetString("Prosthetics", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Purse Straps.
         /// </summary>
         public static string Purse_Straps {
@@ -1942,6 +2239,24 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Socks.
+        /// </summary>
+        public static string Socks {
+            get {
+                return ResourceManager.GetString("Socks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Socks &amp; Leg Warmers.
+        /// </summary>
+        public static string Socks___Leg_Warmers {
+            get {
+                return ResourceManager.GetString("Socks & Leg Warmers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solitaire Rings.
         /// </summary>
         public static string Solitaire_Rings {
@@ -2014,6 +2329,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stuffed Animals &amp; Plushies.
+        /// </summary>
+        public static string Stuffed_Animals___Plushies {
+            get {
+                return ResourceManager.GetString("Stuffed Animals & Plushies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sunglasses &amp; Eyewear.
         /// </summary>
         public static string Sunglasses___Eyewear {
@@ -2023,11 +2347,29 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suspenders.
+        /// </summary>
+        public static string Suspenders {
+            get {
+                return ResourceManager.GetString("Suspenders", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Sweater Clips.
         /// </summary>
         public static string Sweater_Clips {
             get {
                 return ResourceManager.GetString("Sweater Clips", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sweatshirts.
+        /// </summary>
+        public static string Sweatshirts {
+            get {
+                return ResourceManager.GetString("Sweatshirts", resourceCulture);
             }
         }
         
@@ -2055,6 +2397,24 @@ namespace Chillde.Services.Resources {
         public static string Toys {
             get {
                 return ResourceManager.GetString("Toys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toys &amp; Games.
+        /// </summary>
+        public static string Toys___Games {
+            get {
+                return ResourceManager.GetString("Toys & Games", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Underwear.
+        /// </summary>
+        public static string Underwear {
+            get {
+                return ResourceManager.GetString("Underwear", resourceCulture);
             }
         }
         
@@ -2262,6 +2622,15 @@ namespace Chillde.Services.Resources {
         public static string Woodworking___Carpentry {
             get {
                 return ResourceManager.GetString("Woodworking & Carpentry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work Gloves.
+        /// </summary>
+        public static string Work_Gloves {
+            get {
+                return ResourceManager.GetString("Work Gloves", resourceCulture);
             }
         }
     }
