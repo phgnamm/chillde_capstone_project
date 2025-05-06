@@ -660,7 +660,27 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                var currentUserId = _claimService.GetCurrentUserId;
+                Guid categoryId = Guid.NewGuid();
+
+                if(serviceUpdateModel.CategoryId != null)
+                {
+                    var category = await _unitOfWork.CategoryRepository.GetAsync((Guid)serviceUpdateModel.CategoryId);
+                    if (category == null)
+                    {
+                        return new ResponseModel
+                        {
+                            Code = StatusCodes.Status404NotFound,
+                            Message = "Category not found."
+                        };
+                    }
+                    categoryId = category.Id;
+                }
+                else
+                {
+                    categoryId = service.CategoryId;
+                }
+
+                    var currentUserId = _claimService.GetCurrentUserId;
                 if (!currentUserId.HasValue)
                 {
                     return new ResponseModel
@@ -676,15 +696,16 @@ namespace Chillde.Services.Services
                 if (!anyOrderOfService.Result)
                 {
                     _mapper.Map(serviceUpdateModel, service);
+                    service.CategoryId = categoryId;
                     _unitOfWork.ServiceRepository.Update(service);
-                    serviceModel = _mapper.Map<ServiceModel>(service);
+                    serviceModel = _mapper.Map<ServiceModel>(service); 
                 }
                 else
                 {
                     _unitOfWork.ServiceRepository.SoftRemove(service);
                     Service newService = _mapper.Map<Service>(serviceUpdateModel);
                     newService.CreatedById = service.CreatedById;
-                    newService.CategoryId = service.CategoryId;
+                    newService.CategoryId = categoryId;
                     await _unitOfWork.ServiceRepository.AddAsync(newService);
 
                     var serviceAttachments = await _unitOfWork.ServiceAttachmentRepository.GetAllAsync(
