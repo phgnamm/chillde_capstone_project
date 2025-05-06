@@ -22,8 +22,8 @@ namespace Chillde.Services.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ShippingTimeoutService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(10);
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromSeconds(30);
 
         public ShippingTimeoutService(IServiceProvider serviceProvider, ILogger<ShippingTimeoutService> logger)
         {

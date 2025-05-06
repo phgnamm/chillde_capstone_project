@@ -468,38 +468,48 @@ namespace Chillde.Services.Services
 
         private string GeneratePrompt(List<string> prompt)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Dựa vào danh mục sản phẩm và mô tả, hãy phân tích thông tin được cung cấp và tạo ra một đầu ra JSON có cấu trúc, liệt kê tất cả các thuộc tính hợp lý và chi tiết nhất cho sản phẩm thủ công.");
-            sb.AppendLine($"Danh mục: {prompt[0]}");
-            sb.AppendLine($"Mô tả: {prompt[1]}");
+            var sb = new StringBuilder();
+            sb.AppendLine("Bạn sẽ đóng vai một chuyên gia về sản phẩm thủ công.");
+            sb.AppendLine("Dựa trên danh mục và mô tả sản phẩm được cung cấp, hãy phân tích và trích xuất đầy đủ các thuộc tính hợp lý nhất dưới dạng một mảng JSON có cấu trúc.");
             sb.AppendLine();
-            sb.AppendLine("Đối với mỗi thuộc tính, vui lòng cung cấp:");
-            sb.AppendLine("- tên (string): Tên thuộc tính, viết bằng ngôn ngữ đơn giản và dễ hiểu cho khách hàng.");
-            sb.AppendLine("- loại (integer), trong đó:");
-            sb.AppendLine("  - 0: Văn bản (ví dụ: mô tả sản phẩm).");
-            sb.AppendLine("  - 1: Số (ví dụ: giá, trọng lượng, kích thước).");
-            sb.AppendLine("  - 2: Lựa chọn (ví dụ: chất liệu, màu sắc, kiểu dáng, tùy chọn Có/Không).");
-            sb.AppendLine("  - 6: Hộp kiểm (Nhiều lựa chọn, ví dụ: dịp sử dụng phù hợp, tính năng bổ sung).");
-            sb.AppendLine("- tùy chọn (danh sách các chuỗi, yêu cầu cho loại 2 và 6, chứa các giá trị thông dụng hoặc liên quan).");
+            sb.AppendLine($"Danh mục sản phẩm: {prompt[0]}");
+            sb.AppendLine($"Mô tả chi tiết: {prompt[1]}");
             sb.AppendLine();
-            sb.AppendLine("Đảm bảo rằng:");
-            sb.AppendLine("- Các thuộc tính được viết bằng ngôn ngữ đơn giản, rõ ràng và dễ hiểu cho người dùng.");
-            sb.AppendLine("- Các thuộc tính chuyển đổi (ví dụ: câu hỏi Có/Không) được chuyển thành Lựa chọn với các tùy chọn: ['Có', 'Không'].");
-            sb.AppendLine("- Các thuộc tính bao gồm các đặc điểm vật lý, ngoại hình, tính năng sử dụng, khả năng tùy chỉnh, tính bền vững, đóng gói, công dụng, và các tính năng bổ sung.");
-            sb.AppendLine("- Liệt kê tất cả các thuộc tính có liên quan đến danh mục và mô tả đã cho, đảm bảo độ bao quát toàn diện và chi tiết, bao gồm cả thông tin về quy trình sản xuất, nguồn gốc, và các chứng nhận (nếu có).");
-            sb.AppendLine("- Cân nhắc các yếu tố như: độ bền, khả năng bảo trì, an toàn cho người sử dụng, và khả năng tái chế của sản phẩm.");
-            sb.AppendLine("- Loại trừ các trường sau:");
-            sb.AppendLine("  - Tên");
-            sb.AppendLine("  - Mô tả");
-            sb.AppendLine("  - Ngân sách tối thiểu");
-            sb.AppendLine("  - Ngân sách tối đa");
-            sb.AppendLine("  - Thời gian");
-            sb.AppendLine("  - Số lượng");
+            sb.AppendLine("Yêu cầu định dạng đầu ra:");
+            sb.AppendLine("- Mỗi phần tử trong mảng là một thuộc tính sản phẩm, bao gồm các trường:");
+            sb.AppendLine("  - `tên` (string): Tên thuộc tính, được viết bằng ngôn ngữ đơn giản, dễ hiểu cho khách hàng.");
+            sb.AppendLine("  - `loại` (integer): Kiểu dữ liệu của thuộc tính, với các giá trị:");
+            sb.AppendLine("      - 0: Văn bản tự do (ví dụ: mô tả chi tiết).");
+            sb.AppendLine("      - 1: Số (ví dụ: trọng lượng, kích thước, giá trị cụ thể).");
+            sb.AppendLine("      - 2: Lựa chọn (một lựa chọn duy nhất, ví dụ: chất liệu, màu sắc, kiểu dáng).");
+            sb.AppendLine("      - 6: Hộp kiểm (nhiều lựa chọn, ví dụ: tính năng, dịp sử dụng).");
+            sb.AppendLine("  - `tùy chọn` (array of strings): Danh sách các tùy chọn, bắt buộc nếu `loại` là 2 hoặc 6.");
             sb.AppendLine();
-            sb.AppendLine("Đầu ra nên là một mảng JSON có cấu trúc tốt, trong đó mỗi thuộc tính cần được mô tả chi tiết với các giá trị khả thi.");
+            sb.AppendLine("Nguyên tắc tạo thuộc tính:");
+            sb.AppendLine("- Viết rõ ràng, gần gũi, phù hợp với người dùng phổ thông.");
+            sb.AppendLine("- Ưu tiên thông tin từ mô tả, đồng thời suy luận thêm nếu cần thiết để hoàn chỉnh bộ thuộc tính.");
+            sb.AppendLine("- Các câu hỏi có/không nên được biểu diễn bằng `loại: 2` với `tùy chọn: ['Có', 'Không']`.");
+            sb.AppendLine();
+            sb.AppendLine("Phạm vi thuộc tính cần xem xét bao gồm (nhưng không giới hạn):");
+            sb.AppendLine("- Đặc điểm vật lý (kích thước, trọng lượng, màu sắc, chất liệu, hình dạng)");
+            sb.AppendLine("- Tính năng và công dụng (chức năng sử dụng, đối tượng sử dụng, dịp sử dụng)");
+            sb.AppendLine("- Khả năng cá nhân hóa (in tên, chọn màu, tùy chỉnh kích thước)");
+            sb.AppendLine("- Tính bền vững và an toàn (nguồn gốc nguyên liệu, thân thiện môi trường, an toàn khi sử dụng)");
+            sb.AppendLine("- Thông tin quy trình sản xuất (thủ công, tái chế, chứng nhận nếu có)");
+            sb.AppendLine("- Bao bì và đóng gói (có hộp quà, vật liệu tái chế, v.v.)");
+            sb.AppendLine();
+            sb.AppendLine("⚠️ Không bao gồm các thuộc tính sau:");
+            sb.AppendLine("- Tên sản phẩm");
+            sb.AppendLine("- Mô tả sản phẩm");
+            sb.AppendLine("- Ngân sách tối thiểu / tối đa");
+            sb.AppendLine("- Thời gian / deadline");
+            sb.AppendLine("- Số lượng");
+            sb.AppendLine();
+            sb.AppendLine("📤 Đầu ra yêu cầu là một mảng JSON có cấu trúc đúng, không kèm theo giải thích hoặc mô tả bên ngoài.");
 
             return sb.ToString();
         }
+
 
 
 
