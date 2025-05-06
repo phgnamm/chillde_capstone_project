@@ -22,7 +22,7 @@ namespace Chillde.Services.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ShippingTimeoutService> _logger;
         private readonly IEmailHelper _emailService;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
+        private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
         private readonly TimeSpan _timeoutPeriod = TimeSpan.FromMinutes(1);
 
         public ShippingTimeoutService(
@@ -129,6 +129,8 @@ namespace Chillde.Services.Services
                 var reminderEnd = reminderThreshold.Add(_timeoutPeriod * 0.05);
                 var timeoutThreshold = order.ModificationDate.Value.Add(_timeoutPeriod);
 
+                _logger.LogInformation($"Order {order.Code}: UTC now={now:yyyy-MM-dd HH:mm:ss}, Vietnam now={ToVietnamTime(now)}, ModificationDate={order.ModificationDate}, reminderThreshold={reminderThreshold}, reminderEnd={reminderEnd}, timeoutThreshold={timeoutThreshold}");
+
                 if (order.Stage != OrderStage.Shipping || order.Status != OrderStatus.Accepted || order.Shipments.Any())
                 {
                     errorLogs.Add($"Order {order.Code} is not in Shipping, Accepted, or has shipments.");
@@ -160,8 +162,8 @@ namespace Chillde.Services.Services
                 return;
             }
 
-            var deadline = order.ModificationDate.Value.Add(_timeoutPeriod);
-            var timeRemaining = deadline - DateTime.UtcNow;
+            var deadline = ToVietnamTime(order.ModificationDate.Value.Add(_timeoutPeriod));
+            var timeRemaining = deadline - ToVietnamTime(DateTime.UtcNow);
             var timeDisplay = FormatTimeRemaining(timeRemaining);
 
             var emailData = GenerateReminderEmail(order, deadline, timeDisplay);
@@ -279,7 +281,7 @@ namespace Chillde.Services.Services
 
         private async Task SendDeadlineMissedEmails(Order order, IEmailHelper emailService)
         {
-            var deadline = order.ModificationDate.Value.Add(_timeoutPeriod);
+            var deadline = ToVietnamTime(order.ModificationDate.Value.Add(_timeoutPeriod));
             var timeDisplay = FormatTimeRemaining(TimeSpan.Zero);
 
             var customerEmailData = GenerateDeadlineMissedEmailForCustomer(order, deadline, timeDisplay);
@@ -374,5 +376,11 @@ namespace Chillde.Services.Services
 
         private static string EscapeHtml(string input) =>
             System.Net.WebUtility.HtmlEncode(input?.Trim() ?? string.Empty);
+
+        private DateTime ToVietnamTime(DateTime utcTime)
+        {
+            var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+            return TimeZoneInfo.ConvertTimeFromUtc(utcTime, vietnamTimeZone);
+        }
     }
 }
