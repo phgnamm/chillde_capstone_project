@@ -665,6 +665,16 @@ namespace Chillde.Services.Services
                     };
                 }
 
+                var category = await _unitOfWork.CategoryRepository.GetAsync((Guid)serviceUpdateModel.CategoryId);
+                if (service == null)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status404NotFound,
+                        Message = "Category not found."
+                    };
+                }
+
                 var currentUserId = _claimService.GetCurrentUserId;
                 if (!currentUserId.HasValue)
                 {
