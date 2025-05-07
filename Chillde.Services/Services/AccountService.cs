@@ -5,7 +5,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.WebSockets;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Text.Json;
 using AutoMapper;
@@ -20,6 +22,7 @@ using Chillde.Repositories.Models.SearchModels;
 using Chillde.Repositories.Models.ShippingAddressModels;
 using Chillde.Repositories.Models.VoucherModels;
 using Chillde.Services.Common;
+using Chillde.Services.Helpers;
 using Chillde.Services.Interfaces;
 using Chillde.Services.Models.AccountModels;
 using Chillde.Services.Models.AccountModels.OAuth2;
@@ -42,6 +45,7 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Nest;
 using RabbitMQ.Client;
+using StackExchange.Redis;
 using static System.Net.Mime.MediaTypeNames;
 
 
@@ -1595,7 +1599,7 @@ public class AccountService : IAccountService
 
     public async Task<ResponseModel> ToggleAccountRoleStatus(Guid accountId, Guid accountRoleId)
     {
-        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId, a => a.Include(x => x.Account)); ;
+        var accountRole = await _unitOfWork.AccountRoleRepository.GetAsync(accountRoleId, a => a.Include(x => x.Account).ThenInclude(_ => _.Wallet).Include(x => x.Role)); ;
         if (accountRole == null || accountRole.AccountId != accountId)
         {
             return new ResponseModel
@@ -1607,11 +1611,51 @@ public class AccountService : IAccountService
 
         if (!accountRole.IsDeleted && accountRole.Status == AccountStatus.Active)
         {
+            if(accountRole.Role.Name == "Artisan")
+            {
+                var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => _.CreatedById == accountRole.AccountId);
+                foreach(var service in services.Data)
+                {
+                    service.IsDeleted = true;                  
+                    _unitOfWork.ServiceRepository.Update(service);
+                }
+                var orders = await _unitOfWork.OrderRepository.GetAllAsync(filter: _ => _.Package.CreatedById == accountRole.AccountId && (_.Status == OrderStatus.Pending || _.Status == OrderStatus.Accepted), include: _ => _.Include(_ => _.Package).ThenInclude(_ => _.Service).Include(_ => _.CreatedBy).ThenInclude(_ => _.Wallet));
+                foreach(var order in orders.Data)
+                {
+                    var customerAccount = order.CreatedBy;
+                    var transaction = new Transaction
+                    {
+                        Amount = order.TotalPrice,
+                        Type = TransactionType.TransferIn,
+                        CreatedById = accountRole.AccountId,
+                        Status = TransactionStatus.Completed,
+                        WalletId = customerAccount.Wallet.Id,
+                        Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Customer)
+                    };
+                    customerAccount.Wallet.Balance += (decimal)order.TotalPrice;
+                    order.Transactions.Add(transaction);
+                    order.Status = OrderStatus.Cancelled;
+                    order.Stage = OrderStage.Cancelled;
+                    order.SystemCancelReason = SystemCancelReason.BanArtist;
+                    _unitOfWork.OrderRepository.Update(order);
+                    _unitOfWork.AccountRepository.Update(customerAccount);
+                }
+              
+            }
             accountRole.Status = AccountStatus.Suspended;
             accountRole.IsDeleted = true;
         }
         else if (accountRole.IsDeleted && accountRole.Status == AccountStatus.Suspended)
         {
+            if (accountRole.Role.Name == "Artisan")
+            {
+                var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => _.CreatedById == accountRole.AccountId);
+                foreach (var service in services.Data)
+                {
+                    service.IsDeleted = false;
+                    _unitOfWork.ServiceRepository.Update(service);
+                }             
+            }
             accountRole.Status = AccountStatus.Active;
             accountRole.IsDeleted = false;
         }
