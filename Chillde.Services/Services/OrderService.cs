@@ -141,15 +141,12 @@ namespace Chillde.Services.Services
                 Description = TransactionInformationHelper.TransferOutInformation(newOrder.Code)
             });
             var request = await _unitOfWork.RequestRepository.GetAsync(package.Offer.RequestId.Value);
-            if (request == null)
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request not found."
-                };
+            if (request != null)
+            {
             request.Status = RequestStatus.Completed;
-            newOrder.PaymentStatus = PaymentStatus.Success;
             _unitOfWork.RequestRepository.Update(request);
+            }   
+            newOrder.PaymentStatus = PaymentStatus.Success;
             _unitOfWork.WalletRepository.Update(wallet);
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -705,12 +702,11 @@ namespace Chillde.Services.Services
                       .ThenInclude(_ => _.Request)
             );
             var request = await _unitOfWork.RequestRepository.GetAsync(order.Package.Offer.RequestId.Value);
-            if (request == null)
-                return new ResponseModel
-                {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request not found."
-                };
+            if (request != null)
+            {
+                request.Status = RequestStatus.Completed;
+                _unitOfWork.RequestRepository.Update(request);
+            }   
             if (order == null)
                 return new ResponseModel
                 {
@@ -733,7 +729,6 @@ namespace Chillde.Services.Services
                     voucherUsageLog.UsageStatus = UsageStatus.Used;
                 }
             }
-            request.Status = RequestStatus.Completed;
             order.PaymentStatus = PaymentStatus.Success;
             var wallet = order.CreatedBy.Wallet;
 
@@ -757,7 +752,7 @@ namespace Chillde.Services.Services
                 wallet.Balance = (decimal)(transferOut.Amount - order.TotalPrice);
                 _unitOfWork.WalletRepository.Update(wallet);
             }
-            _unitOfWork.RequestRepository.Update(request);
+
             _unitOfWork.WalletRepository.Update(wallet);
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
