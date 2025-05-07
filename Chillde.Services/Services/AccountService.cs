@@ -1652,7 +1652,7 @@ public class AccountService : IAccountService
                 var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => _.CreatedById == accountRole.AccountId);
                 foreach (var service in services.Data)
                 {
-                    service.IsDeleted = true;
+                    service.IsDeleted = false;
                     _unitOfWork.ServiceRepository.Update(service);
                 }             
             }
