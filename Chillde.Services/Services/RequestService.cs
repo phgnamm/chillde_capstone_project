@@ -284,13 +284,15 @@ namespace Chillde.Services.Services
                 return await _redisHelper.GetOrSetAsync(cacheKey, async () =>
                 {
                     Expression<Func<Request, bool>> filter = request =>
-                    (request.IsDeleted == filterParameter.IsDeleted) &&
-                    (!filterParameter.CategoryId.HasValue || request.CategoryId == filterParameter.CategoryId) &&
-                    (!filterParameter.MinBudget.HasValue || request.MinBudget == filterParameter.MinBudget) &&
-                    (!filterParameter.MaxBudget.HasValue || request.MaxBudget <= filterParameter.MaxBudget) &&
-                    (!filterParameter.Timeline.HasValue || request.Timeline == filterParameter.Timeline) &&
-                    (!filterParameter.Status.HasValue || request.Status == filterParameter.Status) &&
-                    (string.IsNullOrEmpty(filterParameter.Search) || request.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
+                     request.IsDeleted == filterParameter.IsDeleted &&
+                     (request.Status == RequestStatus.Pending) &&
+                     (!filterParameter.CategoryId.HasValue || request.CategoryId == filterParameter.CategoryId) &&
+                     (!filterParameter.MinBudget.HasValue || request.MinBudget == filterParameter.MinBudget) &&
+                     (!filterParameter.MaxBudget.HasValue || request.MaxBudget <= filterParameter.MaxBudget) &&
+                     (!filterParameter.Timeline.HasValue || request.Timeline == filterParameter.Timeline) &&
+                     (!filterParameter.Status.HasValue || request.Status == filterParameter.Status) &&
+                     (string.IsNullOrEmpty(filterParameter.Search) || request.Name!.ToLower().Contains(filterParameter.Search.ToLower()));
+
 
                     var culture = sourceLanguageCode.ToLower() == "vi" ? "vi-VN" : "en-US";
                     Thread.CurrentThread.CurrentCulture = new CultureInfo(culture);
@@ -316,7 +318,6 @@ namespace Chillde.Services.Services
                         pageIndex: filterParameter.PageIndex,
                         pageSize: filterParameter.PageSize
                     );
-
                     var requestIds = requestsResult.Data.Select(r => r.Id).ToList();
                     if (sourceLanguageCode.ToLower() == "en")
                     {

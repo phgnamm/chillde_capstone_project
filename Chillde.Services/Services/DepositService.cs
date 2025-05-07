@@ -33,15 +33,19 @@ namespace Chillde.Services.Services
             try
             {
                 var deposits = await _unitOfWork.DepositRepository.GetAllAsync(
-                                filter: _ => _.CreatedById == depositFilterModel.AccountId,
-                                pageIndex: depositFilterModel.PageIndex,
-                                pageSize: depositFilterModel.PageSize
+                    filter: _ => _.CreatedById == depositFilterModel.AccountId,
+                    order: _ => _.OrderByDescending(_ => _.CreationDate),
+                    pageIndex: depositFilterModel.PageIndex,
+                    pageSize: depositFilterModel.PageSize
                 );
 
                 var depositModels = _mapper.Map<List<DepositModel>>(deposits.Data);
 
-                var result = new Pagination<DepositModel>(depositModels, depositFilterModel.PageIndex,
-                  depositFilterModel.PageSize, deposits.TotalCount);
+                var result = new Pagination<DepositModel>(depositModels,
+                    depositFilterModel.PageIndex,
+                    depositFilterModel.PageSize,
+                    deposits.TotalCount
+                );
 
                 return new ResponseModel
                 {
@@ -59,6 +63,7 @@ namespace Chillde.Services.Services
                 };
             }
         }
+
 
         public async Task<ResponseModel> WithDraw(decimal amount)
         {
