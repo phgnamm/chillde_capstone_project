@@ -26,12 +26,12 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddSignalR(options => { options.MaximumReceiveMessageSize = null; });
 var elasticsearchUrl = builder.Configuration["Elasticsearch:Url"] ?? "https://0c2c20670a9e43a8939143015081cdd0.southeastasia.azure.elastic-cloud.com:443";
 var username = builder.Configuration["Elasticsearch:Username"] ?? "elastic";
-var password = builder.Configuration["Elasticsearch:Password"] ?? "bDDWiMtU9OutSJssmD2X9dtw";
+var password = builder.Configuration["Elasticsearch:Password"] ?? "pEb7hro9nXAVQsLIj4MwJxLn";
 // ?? Register `ElasticClient` in DI Container
 var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
     .BasicAuthentication(username, password) // ? Add Authentication
     .ServerCertificateValidationCallback(CertificateValidations.AllowAll) // ? Ignore SSL errors if needed
-    .DefaultIndex("test_service");
+    .DefaultIndex("test_service2");
 var client = new ElasticClient(settings);
 builder.Services.AddSingleton<IElasticClient>(client);
 

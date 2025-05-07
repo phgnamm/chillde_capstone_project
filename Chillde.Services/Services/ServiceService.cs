@@ -1402,7 +1402,7 @@ namespace Chillde.Services.Services
                     MaxWeight = dbService.MaxWeight,
                     ServiceAttachments = dbService.ServiceAttachments?.ToList(),
                     Price = dbService.Packages.Min(_ => _.Price),
-                    MaxPrice = dbService.Packages.Max(_ => _.MaxQuantity),
+                    MaxPrice = dbService.Packages.Max(_ => _.Price),
                     Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
                     {
                         FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
@@ -1452,7 +1452,7 @@ namespace Chillde.Services.Services
                     MaxWeight = dbService.MaxWeight,
                     ServiceAttachments = dbService.ServiceAttachments?.ToList(),
                     Price = dbService.Packages.Min(_ => _.Price),
-                    MaxPrice = dbService.Packages.Max(_ => _.MaxQuantity),
+                    MaxPrice = dbService.Packages.Max(_ => _.Price),
                     Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
                     {
                         FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
@@ -1536,7 +1536,7 @@ namespace Chillde.Services.Services
                     MaxWeight = dbService.MaxWeight,
                     ServiceAttachments = dbService.ServiceAttachments?.ToList(),
                     Price = dbService.Packages.Min(_ => _.Price),
-                    MaxPrice = dbService.Packages.Max(_ => _.MaxQuantity),
+                    MaxPrice = dbService.Packages.Max(_ => _.Price),
                     Artisan = dbService.CreatedBy == null ? null : new AccountLiteModel
                     {
                         FirstName = dbService.CreatedBy.FirstName ?? "Unknown",
@@ -2144,13 +2144,13 @@ namespace Chillde.Services.Services
                 {
                     SearchText = searchText,
                     CreatedById = userId,
-                    CreationDate = DateTime.Now
+                    CreationDate = DateTime.UtcNow
                 });
             }
             else
             {
                 existingSearchHistory.ModifiedById = userId;
-                existingSearchHistory.CreationDate = DateTime.Now;
+                existingSearchHistory.CreationDate = DateTime.UtcNow;
                 _unitOfWork.SearchHistoryRepository.Update(existingSearchHistory);
             }
 
