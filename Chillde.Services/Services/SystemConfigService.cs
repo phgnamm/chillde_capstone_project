@@ -86,9 +86,18 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                if ((model.EffectiveFrom == null && config.IsActive == true) || (model.EffectiveFrom > DateOnly.FromDateTime(DateTime.Now) && config.IsActive == false))
+                if (model.EffectiveFrom == null && config.IsActive == true)
                 {
                     config.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
+                    _unitOfWork.SystemConfigRepository.Update(config);
+                }
+                else if(model.EffectiveFrom > DateOnly.FromDateTime(DateTime.Now) && config.IsActive == false)
+                {
+                    config.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
+                    if(model.EffectiveFrom != null)
+                    {
+                        config.EffectiveFrom = model.EffectiveFrom;
+                    }
                     _unitOfWork.SystemConfigRepository.Update(config);
                 }
                 else
