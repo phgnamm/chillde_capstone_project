@@ -2598,13 +2598,12 @@ namespace Chillde.Services.Services
                 try
                 {
                     var wallet = artisanAccount.Wallet;
-                    wallet.Balance += (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice;
-                    _unitOfWork.WalletRepository.Update(wallet);
+                    wallet.Balance += ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m); _unitOfWork.WalletRepository.Update(wallet);
 
                     order.Transactions.Add(new Transaction
                     {
                         WalletId = wallet.Id,
-                        Amount = (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice,
+                        Amount = wallet.Balance += ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m),
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
                         CreatedById = artisanAccount.CreatedById,
@@ -2618,7 +2617,7 @@ namespace Chillde.Services.Services
 
                     if (accountRoleCustomer.TotalReputation < 100)
                     {
-                        accountRoleCustomer.TotalReputation += (float.Parse(bonusPoint));
+                        accountRoleCustomer.TotalReputation = Math.Min(accountRoleCustomer.TotalReputation + float.Parse(bonusPoint), 100);
                         _unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
 
                         var customerReputationLog = new ReputationLog
@@ -2634,8 +2633,7 @@ namespace Chillde.Services.Services
 
                     if (accountRoleArtisan.TotalReputation < 100)
                     {
-                        accountRoleArtisan.TotalReputation += (float.Parse(bonusPoint));
-                        _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
+                        accountRoleArtisan.TotalReputation = Math.Min(accountRoleArtisan.TotalReputation + float.Parse(bonusPoint), 100); _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
 
                         var artisanReputationLog = new ReputationLog
                         {
