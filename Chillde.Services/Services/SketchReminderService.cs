@@ -56,6 +56,7 @@ namespace Chillde.Services.Services
                             .FirstOrDefault();
 
                         if (lastSketchTracking == null) continue;
+                        var penaltyPercentage = unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.AutoCancelPercentagePenalty).Result;
 
                         var responseDeadline = lastSketchTracking.CreationDate.AddSeconds(order.Package.ResponseTime * 60);
                         var totalResponseSeconds = order.Package.ResponseTime * 60; 
@@ -70,33 +71,23 @@ namespace Chillde.Services.Services
                             decimal penalty = 0m;
                             order.Status = OrderStatus.Cancelled;
                             order.Stage = OrderStage.Cancelled;
-                            var autoCancelPercentagePenalty = await systemConfigurationService.Get(SystemConfigKey.AutoCancelPercentagePenalty);
+                            
+                                penalty = (decimal)(order.TotalPrice * (decimal.Parse(penaltyPercentage) / 100));
+                            
 
-                            if (autoCancelPercentagePenalty.Data is SystemConfigModel configPercentage
-                                && decimal.TryParse(configPercentage.Value?.ToString(), out decimal autoCancelPercentagePenaltyValue))
-                            {
-                                penalty = (decimal)(order.TotalPrice * (autoCancelPercentagePenaltyValue / 100));
-                            }
-
-                            var autoCancelPointPenalty = await systemConfigurationService.Get(SystemConfigKey.AutoCancelPointPenalty);
-                            decimal autoCancelPointPenaltyValue = 0m;
+                            var autoCancelPointPenalty =  unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.AutoCancelPointPenalty).Result;
                             var customer = order.CreatedBy?.AccountRoles?.FirstOrDefault(_ => _.Role.Name == Chillde.Repositories.Enums.Role.Customer.ToString());
 
-                            if (autoCancelPointPenalty.Data is SystemConfigModel configPoint
-                                && decimal.TryParse(configPoint.Value?.ToString(), out autoCancelPointPenaltyValue))
-                            {
-
-                                customer.TotalReputation -= (int)autoCancelPointPenaltyValue;
+                                customer.TotalReputation -= (float.Parse(autoCancelPointPenalty));
                                 var reputationLog = new ReputationLog
                                 {
-                                    PointChange = -(int)autoCancelPointPenaltyValue,
+                                    PointChange = -(float.Parse(autoCancelPointPenalty)),
                                     Reason = $"Không phản hồi bản thảo đúng thời gian của đơn hàng - {order.Code}",
                                     OrderId = order.Id,
                                 };
                                 customer.Reputations.Add(reputationLog);
                                 unitOfWork.AccountRoleRepository.Update(customer);
 
-                            }
 
                             var totalPriceAfterPenalty = order.TotalPrice - penalty;
                             order.CreatedBy.Wallet.Balance += (decimal)totalPriceAfterPenalty;
@@ -167,7 +158,7 @@ namespace Chillde.Services.Services
                                     <li><strong>Tổng giá trị:</strong> {order.TotalPrice} VNĐ</li>
                                     <li><strong>Hạn phản hồi:</strong> {localResponseDeadline:yyyy - MM-dd HH:mm} UTC</li>
                                 </ul>
-                                <p>Nếu bạn không phản hồi trước thời hạn, đơn hàng sẽ bị hủy tự động và có thể bị áp dụng phí phạt.</p>
+                                <p>Nếu bạn không phản hồi trước thời hạn, đơn hàng sẽ bị hủy tự động và áp dụng phí phạt {float.Parse(penaltyPercentage)}% cho đơn hàng .</p>
                                 <p>Trân trọng,</p>
                                 <p><strong>Đội ngũ Chillde</strong></p>",
                                 true
@@ -195,7 +186,7 @@ namespace Chillde.Services.Services
                                         <li><strong>Tổng giá trị:</strong> {order.TotalPrice} VNĐ</li>
                                         <li><strong>Hạn phản hồi:</strong> {localResponseDeadline:yyyy-MM-dd HH:mm}</li>
                                     </ul>
-                                    <p>Vui lòng phản hồi sớm để tránh đơn hàng bị hủy.</p>
+                                    <p>Vui lòng phản hồi sớm để tránh đơn hàng bị hủy và áp dụng phí phạt {float.Parse(penaltyPercentage)}% cho đơn hàng.</p>
                                     <p>Trân trọng,</p>
                                     <p><strong>Đội ngũ Chillde</strong></p>",
                                     true
