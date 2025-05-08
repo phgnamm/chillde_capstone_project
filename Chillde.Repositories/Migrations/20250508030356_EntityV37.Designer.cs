@@ -5,6 +5,7 @@ using System.Text.Json;
 using Chillde.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Chillde.Repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250508030356_EntityV37")]
+    partial class EntityV37
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,10 +230,10 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<float>("TotalReputation")
+                    b.Property<decimal>("TotalReputation")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("real")
-                        .HasDefaultValue(100f);
+                        .HasColumnType("numeric")
+                        .HasDefaultValue(100m);
 
                     b.HasKey("Id");
 
@@ -275,8 +278,8 @@ namespace Chillde.Repositories.Migrations
                     b.Property<int>("RoleType")
                         .HasColumnType("integer");
 
-                    b.Property<float>("Value")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Value")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -1678,8 +1681,8 @@ namespace Chillde.Repositories.Migrations
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
-                    b.Property<float>("PointChange")
-                        .HasColumnType("real");
+                    b.Property<decimal>("PointChange")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Reason")
                         .IsRequired()

@@ -13,9 +13,10 @@ namespace Chillde.Services.Models.CancellationReasonModels
         [MinLength(10, ErrorMessage = "Name at least 10 characters.")]
         public string Name { get; set; } = null!;
 
-        [Required]
-        [Range(1, int.MaxValue, ErrorMessage = "Value must be greater than 0.")]
-        public int Value { get; set; }
+        [Required(ErrorMessage = "Value is required.")]
+        [Range(typeof(float), "0.01", "79228162514264337593543950335", ErrorMessage = "Value must be greater than 0.")]
+        public float Value { get; set; }
+
 
         [Required]
         [EnumDataType(typeof(Chillde.Repositories.Enums.Role), ErrorMessage = "Invalid RoleType.")]
