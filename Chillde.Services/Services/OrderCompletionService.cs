@@ -135,7 +135,7 @@ namespace Chillde.Services.Services
                             order.Transactions.Add(new Transaction
                             {
                                 WalletId = wallet.Id,
-                                Amount = order.ArtistRevenue,
+                                Amount = order.TotalPrice,
                                 Type = TransactionType.TransferIn,
                                 Status = TransactionStatus.Completed,
                                 CreatedById = artisanAccount.CreatedById,
