@@ -181,12 +181,6 @@
   <data name="Bath Accessories" xml:space="preserve">
     <value>Phụ Kiện Phòng Tắm</value>
   </data>
-  <data name="Batik" xml:space="preserve">
-    <value>Nghệ Thuật Batik</value>
-  </data>
-  <data name="Beaded Bracelets" xml:space="preserve">
-    <value>Vòng Tay Hạt</value>
-  </data>
   <data name="Beaded Necklaces" xml:space="preserve">
     <value>Dây Chuyền Bằng Hạt</value>
   </data>
@@ -277,9 +271,6 @@
   <data name="Cage Stands" xml:space="preserve">
     <value>Giá Đỡ Lồng</value>
   </data>
-  <data name="Business Card Cases" xml:space="preserve">
-    <value>Hộp Đựng Danh Thiếp</value>
-  </data>
   <data name="Cameo Necklaces" xml:space="preserve">
     <value>Dây Chuyền Cameo</value>
   </data>
@@ -300,9 +291,6 @@
   </data>
   <data name="Card Games" xml:space="preserve">
     <value>Trò Chơi Bài</value>
-  </data>
-  <data name="Chain &amp; Link Bracelets" xml:space="preserve">
-    <value>Vòng Tay Sợi Xích và Liên Kết</value>
   </data>
   <data name="Chain Wallets" xml:space="preserve">
     <value>Ví Dây Xích</value>
@@ -520,12 +508,6 @@
   <data name="Hair Care" xml:space="preserve">
     <value>Chăm Sóc Tóc</value>
   </data>
-  <data name="Goth &amp; Horror Dolls" xml:space="preserve">
-    <value>Búp Bê Goth &amp; Kinh Dị</value>
-  </data>
-  <data name="Hair Jewelry" xml:space="preserve">
-    <value>Trang Sức Tóc</value>
-  </data>
   <data name="Halloween Candy Bags" xml:space="preserve">
     <value>Túi Kẹo Halloween</value>
   </data>
@@ -591,9 +573,6 @@
   </data>
   <data name="Jewelry Making and Beading" xml:space="preserve">
     <value>Làm Đồ Trang Sức Và Đính Hạt</value>
-  </data>
-  <data name="Jewelry Boxes" xml:space="preserve">
-    <value>Hộp Đựng Trang Sức</value>
   </data>
   <data name="Jewelry Sets" xml:space="preserve">
     <value>Bộ Trang Sức</value>
@@ -874,9 +853,6 @@
   <data name="Solitaire Rings" xml:space="preserve">
     <value>Nhẫn Đính Đá Đơn</value>
   </data>
-  <data name="Sports Gloves" xml:space="preserve">
-    <value>Găng Tay Thể Thao</value>
-  </data>
   <data name="Spa &amp; Relaxation" xml:space="preserve">
     <value>Spa &amp; Thư Giãn</value>
   </data>
@@ -885,6 +861,9 @@
   </data>
   <data name="Sports &amp; Outdoor Recreation" xml:space="preserve">
     <value>Thể Thao &amp; Giải Trí Ngoài Trời</value>
+  </data>
+  <data name="Sports Gloves" xml:space="preserve">
+    <value>Găng Tay Thể Thao</value>
   </data>
   <data name="Stackable Rings" xml:space="preserve">
     <value>Nhẫn Xếp Lớp</value>
@@ -999,5 +978,26 @@
   </data>
   <data name="Work Gloves" xml:space="preserve">
     <value>Găng Tay Làm Việc</value>
+  </data>
+  <data name="Batik" xml:space="preserve">
+    <value>Nghệ Thuật Batik</value>
+  </data>
+  <data name="Beaded Bracelets" xml:space="preserve">
+    <value>Vòng Tay Hạt</value>
+  </data>
+  <data name="Business Card Cases" xml:space="preserve">
+    <value>Hộp Đựng Danh Thiếp</value>
+  </data>
+  <data name="Chain &amp; Link Bracelets" xml:space="preserve">
+    <value>Vòng Tay Sợi Xích và Liên Kết</value>
+  </data>
+  <data name="Goth &amp; Horror Dolls" xml:space="preserve">
+    <value>Búp Bê Goth &amp; Kinh Dị</value>
+  </data>
+  <data name="Hair Jewelry" xml:space="preserve">
+    <value>Trang Sức Tóc</value>
+  </data>
+  <data name="Jewelry Boxes" xml:space="preserve">
+    <value>Hộp Đựng Trang Sức</value>
   </data>
 </root>

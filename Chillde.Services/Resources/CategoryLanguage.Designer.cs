@@ -250,6 +250,24 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Batik.
+        /// </summary>
+        public static string Batik {
+            get {
+                return ResourceManager.GetString("Batik", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Beaded Bracelets.
+        /// </summary>
+        public static string Beaded_Bracelets {
+            get {
+                return ResourceManager.GetString("Beaded Bracelets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Beaded Necklaces.
         /// </summary>
         public static string Beaded_Necklaces {
@@ -511,6 +529,15 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Business Card Cases.
+        /// </summary>
+        public static string Business_Card_Cases {
+            get {
+                return ResourceManager.GetString("Business Card Cases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cage Stands.
         /// </summary>
         public static string Cage_Stands {
@@ -579,6 +606,15 @@ namespace Chillde.Services.Resources {
         public static string Card_Games {
             get {
                 return ResourceManager.GetString("Card Games", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Chain &amp; Link Bracelets.
+        /// </summary>
+        public static string Chain___Link_Bracelets {
+            get {
+                return ResourceManager.GetString("Chain & Link Bracelets", resourceCulture);
             }
         }
         
@@ -1222,11 +1258,29 @@ namespace Chillde.Services.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Goth &amp; Horror Dolls.
+        /// </summary>
+        public static string Goth___Horror_Dolls {
+            get {
+                return ResourceManager.GetString("Goth & Horror Dolls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Hair Care.
         /// </summary>
         public static string Hair_Care {
             get {
                 return ResourceManager.GetString("Hair Care", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hair Jewelry.
+        /// </summary>
+        public static string Hair_Jewelry {
+            get {
+                return ResourceManager.GetString("Hair Jewelry", resourceCulture);
             }
         }
         
@@ -1407,6 +1461,15 @@ namespace Chillde.Services.Resources {
         public static string Jewelry___Beauty {
             get {
                 return ResourceManager.GetString("Jewelry & Beauty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Jewelry Boxes.
+        /// </summary>
+        public static string Jewelry_Boxes {
+            get {
+                return ResourceManager.GetString("Jewelry Boxes", resourceCulture);
             }
         }
         
@@ -2289,6 +2352,15 @@ namespace Chillde.Services.Resources {
         public static string Sports___Outdoor_Recreation {
             get {
                 return ResourceManager.GetString("Sports & Outdoor Recreation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sports Gloves.
+        /// </summary>
+        public static string Sports_Gloves {
+            get {
+                return ResourceManager.GetString("Sports Gloves", resourceCulture);
             }
         }
         

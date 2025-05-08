@@ -978,4 +978,25 @@
   <data name="Work Gloves" xml:space="preserve">
     <value>Work Gloves</value>
   </data>
+  <data name="Batik" xml:space="preserve">
+    <value>Batik</value>
+  </data>
+  <data name="Beaded Bracelets" xml:space="preserve">
+    <value>Beaded Bracelets</value>
+  </data>
+  <data name="Business Card Cases" xml:space="preserve">
+    <value>Business Card Cases</value>
+  </data>
+  <data name="Chain &amp; Link Bracelets" xml:space="preserve">
+    <value>Chain &amp; Link Bracelets</value>
+  </data>
+  <data name="Goth &amp; Horror Dolls" xml:space="preserve">
+    <value>Goth &amp; Horror Dolls</value>
+  </data>
+  <data name="Hair Jewelry" xml:space="preserve">
+    <value>Hair Jewelry</value>
+  </data>
+  <data name="Jewelry Boxes" xml:space="preserve">
+    <value>Jewelry Boxes</value>
+  </data>
 </root>
