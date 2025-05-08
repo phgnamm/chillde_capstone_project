@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace Chillde.Services.Services
 {
@@ -23,7 +24,7 @@ namespace Chillde.Services.Services
         private readonly ILogger<ShippingTimeoutService> _logger;
         private readonly IEmailHelper _emailService;
         private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromMinutes(1);
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromMinutes(20);
 
         public ShippingTimeoutService(
             IServiceProvider serviceProvider,
@@ -64,8 +65,11 @@ namespace Chillde.Services.Services
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var emailService = scope.ServiceProvider.GetRequiredService<IEmailHelper>();
 
-                var timeoutThreshold = DateTime.UtcNow.Add(-_timeoutPeriod);
-                var reminderThreshold = DateTime.UtcNow.Add(-_timeoutPeriod * 0.9);
+                var now = DateTime.UtcNow;
+                var timeoutThreshold = now.Add(-_timeoutPeriod);
+                var reminderThreshold = now.Add(-_timeoutPeriod * 0.8);
+
+                _logger.LogInformation($"Fetching orders: UTC now={now:yyyy-MM-dd HH:mm:ss}, Vietnam now={ToVietnamTime(now):dd MMMM yyyy HH:mm}, timeoutThreshold={timeoutThreshold}, reminderThreshold={reminderThreshold}");
 
                 var orders = await unitOfWork.OrderRepository.GetAllAsync(
                     filter: o => o.Stage == OrderStage.Shipping
@@ -125,11 +129,10 @@ namespace Chillde.Services.Services
                 _logger.LogInformation($"Processing order {order.Code} for shipping timeout.");
 
                 var now = DateTime.UtcNow;
-                var reminderThreshold = order.ModificationDate.Value.Add(_timeoutPeriod * 0.9);
-                var reminderEnd = reminderThreshold.Add(_timeoutPeriod * 0.05);
+                var reminderThreshold = order.ModificationDate.Value.Add(_timeoutPeriod * 0.8);
                 var timeoutThreshold = order.ModificationDate.Value.Add(_timeoutPeriod);
 
-                _logger.LogInformation($"Order {order.Code}: UTC now={now:yyyy-MM-dd HH:mm:ss}, Vietnam now={ToVietnamTime(now)}, ModificationDate={order.ModificationDate}, reminderThreshold={reminderThreshold}, reminderEnd={reminderEnd}, timeoutThreshold={timeoutThreshold}");
+                _logger.LogInformation($"Order {order.Code}: UTC now={now:yyyy-MM-dd HH:mm:ss}, Vietnam now={ToVietnamTime(now)}, ModificationDate={order.ModificationDate}, reminderThreshold={reminderThreshold}, timeoutThreshold={timeoutThreshold}");
 
                 if (order.Stage != OrderStage.Shipping || order.Status != OrderStatus.Accepted || order.Shipments.Any())
                 {
@@ -138,7 +141,7 @@ namespace Chillde.Services.Services
                     return;
                 }
 
-                if (now >= reminderThreshold && now < reminderEnd)
+                if (now >= reminderThreshold && now < reminderThreshold.Add(TimeSpan.FromSeconds(10)))
                 {
                     await SendReminderEmail(order, unitOfWork, emailService);
                 }
@@ -218,11 +221,11 @@ namespace Chillde.Services.Services
                     return;
                 }
 
-                await unitOfWork.BeginTransactionAsync();
+                 await unitOfWork.BeginTransactionAsync();
                 try
                 {
                     order.Status = OrderStatus.Cancelled;
-                    order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
+                    order.SystemCancelReason = SystemCancelReason.NotCreateShippingInTime;
                     order.ModificationDate = DateTime.UtcNow;
                     unitOfWork.OrderRepository.Update(order);
 
@@ -273,7 +276,7 @@ namespace Chillde.Services.Services
 
             if (!isValid)
             {
-                _logger.LogWarning($"Invalid order properties for {order.Code}");
+                _logger.LogWarning($"Invalid order properties for {order.Code}: Package={order.Package != null}, Service={order.Package?.Service != null}, ArtisanEmail={order.Package?.Service?.CreatedBy?.Email}, CustomerEmail={order.CreatedBy?.Email}");
             }
 
             return isValid;
@@ -306,13 +309,14 @@ namespace Chillde.Services.Services
             DateTime deadline,
             string timeDisplay)
         {
+            var vietnameseDate = FormatVietnameseDate(deadline);
             return (
                 $"Nhắc nhở: Còn {timeDisplay} để tạo vận đơn cho đơn #{order.Code}",
                 $@"
         <p>Chào bạn {EscapeHtml(order.Package.Service.CreatedBy.FirstName)} {EscapeHtml(order.Package.Service.CreatedBy.LastName)},</p>
-        <p><strong>Còn {timeDisplay} nữa</strong> để bạn tạo vận đơn cho đơn hàng #{order.Code}.</p>
-        <p>Vui lòng tạo vận đơn trước <strong>{deadline:dd MMMM yyyy HH:mm}</strong> để đảm bảo đơn hàng được xử lý kịp thời.</p>
-        <p>Nếu bạn đã tạo vận đơn, hãy bỏ qua email này. Nếu chưa, xin vui lòng thực hiện càng sớm càng tốt.</p>
+        <p><strong>Còn {timeDisplay}</strong> để bạn tạo vận đơn cho đơn hàng #{order.Code}.</p>
+        <p>Vui lòng tạo vận đơn trước <strong>{vietnameseDate}</strong> để đảm bảo đơn hàng được xử lý kịp thời.</p>
+        <p>Nếu bạn đã tạo vận đơn, hãy bỏ qua email này. Nếu chưa, xin vui lòng thực hiện ngay.</p>
         <p>Cảm ơn bạn đã hợp tác!</p>
         <p>Trân trọng,</p>
         <p>Đội ngũ Chillde</p>"
@@ -324,13 +328,14 @@ namespace Chillde.Services.Services
             DateTime deadline,
             string timeDisplay)
         {
+            var vietnameseDate = FormatVietnameseDate(deadline);
             return (
                 $"⚠️ Đơn #{order.Code} đã bị hủy do không tạo vận đơn",
                 $@"
         <p>Chào bạn {EscapeHtml(order.CreatedBy.FirstName)} {EscapeHtml(order.CreatedBy.LastName)},</p>
-        <p>Rất tiếc, chúng tôi thông báo rằng đơn hàng #{order.Code} đã bị hủy do nghệ nhân không tạo vận đơn trước thời hạn <strong>{deadline:dd MMMM yyyy HH:mm}</strong>.</p>
+        <p>Chúng tôi rất tiếc phải thông báo rằng đơn hàng #{order.Code} đã bị hủy vì nghệ nhân không tạo vận đơn trước thời hạn <strong>{vietnameseDate}</strong>.</p>
         <p><strong>Hoàn tiền</strong>: Số tiền bạn đã thanh toán ({order.TotalPrice:C}) sẽ được hoàn lại đầy đủ vào tài khoản của bạn trong thời gian sớm nhất.</p>
-        <p>Chúng tôi rất tiếc về sự bất tiện này và mong bạn thông cảm. Nếu bạn muốn đặt lại đơn hàng, vui lòng liên hệ với chúng tôi.</p>
+        <p>Chúng tôi xin lỗi vì sự bất tiện này và mong bạn thông cảm. Nếu bạn muốn đặt lại đơn hàng, vui lòng liên hệ với chúng tôi.</p>
         <p>Trân trọng,</p>
         <p>Đội ngũ Chillde</p>"
             );
@@ -341,11 +346,12 @@ namespace Chillde.Services.Services
             DateTime deadline,
             string timeDisplay)
         {
+            var vietnameseDate = FormatVietnameseDate(deadline);
             return (
                 $"⚠️ Đơn #{order.Code} đã bị hủy do không tạo vận đơn",
                 $@"
         <p>Chào bạn {EscapeHtml(order.Package.Service.CreatedBy.FirstName)} {EscapeHtml(order.Package.Service.CreatedBy.LastName)},</p>
-        <p>Rất tiếc, chúng tôi thông báo rằng đơn hàng #{order.Code} đã bị hủy do bạn không tạo vận đơn trước thời hạn <strong>{deadline:dd MMMM yyyy HH:mm}</strong>.</p>
+        <p>Chúng tôi rất tiếc phải thông báo rằng đơn hàng #{order.Code} đã bị hủy vì bạn không tạo vận đơn trước thời hạn <strong>{vietnameseDate}</strong>.</p>
         <p>Để tránh tình trạng này trong tương lai, vui lòng đảm bảo tạo vận đơn đúng hạn cho các đơn hàng ở trạng thái Shipping.</p>
         <p>Nếu bạn có thắc mắc hoặc cần hỗ trợ, vui lòng liên hệ với chúng tôi.</p>
         <p>Trân trọng,</p>
@@ -381,6 +387,12 @@ namespace Chillde.Services.Services
         {
             var vietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
             return TimeZoneInfo.ConvertTimeFromUtc(utcTime, vietnamTimeZone);
+        }
+
+        private string FormatVietnameseDate(DateTime date)
+        {
+            var monthNames = new[] { "", "Tháng Một", "Tháng Hai", "Tháng Ba", "Tháng Tư", "Tháng Năm", "Tháng Sáu", "Tháng Bảy", "Tháng Tám", "Tháng Chín", "Tháng Mười", "Tháng Mười Một", "Tháng Mười Hai" };
+            return $"{date:dd} {monthNames[date.Month]} {date:yyyy} {date:HH:mm}";
         }
     }
 }

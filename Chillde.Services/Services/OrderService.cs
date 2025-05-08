@@ -2598,32 +2598,32 @@ namespace Chillde.Services.Services
                 try
                 {
                     var wallet = artisanAccount.Wallet;
-                    wallet.Balance += (decimal)order.ArtistRevenue;
+                    wallet.Balance += (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice;
                     _unitOfWork.WalletRepository.Update(wallet);
 
                     order.Transactions.Add(new Transaction
                     {
                         WalletId = wallet.Id,
-                        Amount = order.ArtistRevenue,
+                        Amount = (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice,
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
                         CreatedById = artisanAccount.CreatedById,
                         Description = TransactionInformationHelper.TransferInInformation(order.Code, Repositories.Enums.Role.Artisan)
 
                     });
-
+                    var bonusPoint = _unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.ReputationIncreaseOnSuccess).Result;
                     order.Stage = OrderStage.Completed;
                     order.Status = OrderStatus.Completed;
                     _unitOfWork.OrderRepository.Update(order);
 
                     if (accountRoleCustomer.TotalReputation < 100)
                     {
-                        accountRoleCustomer.TotalReputation += 5;
+                        accountRoleCustomer.TotalReputation += (float.Parse(bonusPoint));
                         _unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
 
                         var customerReputationLog = new ReputationLog
                         {
-                            PointChange = +5,
+                            PointChange = +(float.Parse(bonusPoint)),
                             Reason = $"Đã hoàn thành đơn hàng {order.Code} với tư cách là khách hàng",
                             OrderId = orderId,
                             AccountRoleId = accountRoleCustomer.Id,
@@ -2634,12 +2634,12 @@ namespace Chillde.Services.Services
 
                     if (accountRoleArtisan.TotalReputation < 100)
                     {
-                        accountRoleArtisan.TotalReputation += 5;
+                        accountRoleArtisan.TotalReputation += (float.Parse(bonusPoint));
                         _unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
 
                         var artisanReputationLog = new ReputationLog
                         {
-                            PointChange = +5,
+                            PointChange = +(float.Parse(bonusPoint)),
                             Reason = $"Đã hoàn thành đơn hàng {order.Code} với tư cách là nghệ nhân",
                             OrderId = orderId,
                             AccountRoleId = accountRoleArtisan.Id,
