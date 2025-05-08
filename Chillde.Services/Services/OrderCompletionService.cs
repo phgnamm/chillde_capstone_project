@@ -19,8 +19,8 @@ namespace Chillde.Services.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<OrderCompletionService> _logger;
-        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(60); 
-        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24); 
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(60);
+        private readonly TimeSpan _timeoutPeriod = TimeSpan.FromHours(24);
 
         public OrderCompletionService(IServiceProvider serviceProvider, ILogger<OrderCompletionService> logger)
         {
@@ -130,7 +130,7 @@ namespace Chillde.Services.Services
                         {
                             var bonusPoint = unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.ReputationIncreaseOnSuccess).Result;
                             var wallet = artisanAccount.Wallet;
-                            wallet.Balance += (decimal)order.ArtistRevenue +(decimal)order.ShippingPrice ;
+                            wallet.Balance += (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice;
                             unitOfWork.WalletRepository.Update(wallet);
 
                             order.Transactions.Add(new Transaction
@@ -141,7 +141,6 @@ namespace Chillde.Services.Services
                                 Status = TransactionStatus.Completed,
                                 CreatedById = artisanAccount.CreatedById,
                                 Description = TransactionInformationHelper.TransferInInformation(order.Code, Chillde.Repositories.Enums.Role.Artisan)
-
                             });
 
                             order.Stage = OrderStage.Completed;
@@ -151,7 +150,7 @@ namespace Chillde.Services.Services
 
                             if (accountRoleCustomer.TotalReputation < 100)
                             {
-                                accountRoleCustomer.TotalReputation += (float.Parse(bonusPoint));
+                                accountRoleCustomer.TotalReputation = Math.Min(accountRoleCustomer.TotalReputation + float.Parse(bonusPoint), 100);
                                 unitOfWork.AccountRoleRepository.Update(accountRoleCustomer);
 
                                 var customerReputationLog = new ReputationLog
@@ -163,12 +162,12 @@ namespace Chillde.Services.Services
                                     CreatedById = customerAccount.Id
                                 };
                                 await unitOfWork.ReputationLogRepository.AddAsync(customerReputationLog);
-                                _logger.LogInformation($"Added 1 reputation point to customer {customerAccount.Id} for order {order.Id}.");
+                                _logger.LogInformation($"Added {float.Parse(bonusPoint)} reputation point to customer {customerAccount.Id} for order {order.Id}.");
                             }
 
                             if (accountRoleArtisan.TotalReputation < 100)
                             {
-                                accountRoleArtisan.TotalReputation += (float.Parse(bonusPoint));
+                                accountRoleArtisan.TotalReputation = Math.Min(accountRoleArtisan.TotalReputation + float.Parse(bonusPoint), 100);
                                 unitOfWork.AccountRoleRepository.Update(accountRoleArtisan);
 
                                 var artisanReputationLog = new ReputationLog
@@ -180,7 +179,7 @@ namespace Chillde.Services.Services
                                     CreatedById = artisanAccount.Id
                                 };
                                 await unitOfWork.ReputationLogRepository.AddAsync(artisanReputationLog);
-                                _logger.LogInformation($"Added 1 reputation point to artisan {artisanAccount.Id} for order {order.Id}.");
+                                _logger.LogInformation($"Added {float.Parse(bonusPoint)} reputation point to artisan {artisanAccount.Id} for order {order.Id}.");
                             }
 
                             var saveResult = await unitOfWork.SaveChangeAsync();
@@ -210,5 +209,4 @@ namespace Chillde.Services.Services
             }
         }
     }
-
 }
