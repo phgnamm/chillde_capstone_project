@@ -10,6 +10,7 @@ namespace Chillde.Repositories.Enums
     {
         NotReponseDeadlineInTime,
         NotPostDeliveryInTime,
-        BanArtist
+        BanArtist,
+        NotCreateShippingInTime,
     }
 }
