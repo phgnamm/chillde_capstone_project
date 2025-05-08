@@ -222,7 +222,7 @@ namespace Chillde.Services.Services
                 try
                 {
                     order.Status = OrderStatus.Cancelled;
-                    order.SystemCancelReason = SystemCancelReason.NotReponseDeadlineInTime;
+                    order.SystemCancelReason = SystemCancelReason.NotCreateShippingInTime;
                     order.ModificationDate = DateTime.UtcNow;
                     unitOfWork.OrderRepository.Update(order);
 
