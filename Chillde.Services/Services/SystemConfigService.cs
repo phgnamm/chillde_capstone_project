@@ -91,7 +91,7 @@ namespace Chillde.Services.Services
                     config.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
                     _unitOfWork.SystemConfigRepository.Update(config);
                 }
-                else if(model.EffectiveFrom > DateOnly.FromDateTime(DateTime.Now) && config.IsActive == false)
+                else if(config.EffectiveFrom > DateOnly.FromDateTime(DateTime.Now) && config.IsActive == false)
                 {
                     config.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
                     if(model.EffectiveFrom != null)
