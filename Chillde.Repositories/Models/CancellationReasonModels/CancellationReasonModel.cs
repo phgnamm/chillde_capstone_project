@@ -13,7 +13,7 @@ namespace Chillde.Repositories.Models.CancellationReasonModels
        
         public string Name { get; set; } = null!;
 
-        public int Value { get; set; }
+        public float Value { get; set; }
 
         public Chillde.Repositories.Enums.Role RoleType { get; set; }
     }
