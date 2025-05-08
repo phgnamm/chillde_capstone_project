@@ -9,7 +9,7 @@ namespace Chillde.Repositories.Entities
 {
     public class ReputationLog : BaseEntity
     {
-        public int PointChange { get; set; }
+        public float PointChange { get; set; }
         public string Reason { get; set; } = null!;
 
         // Foreign keys

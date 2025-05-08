@@ -140,16 +140,16 @@ namespace Chillde.Services.Services
                 CreatedById = currentUserId.Value,
                 Description = TransactionInformationHelper.TransferOutInformation(newOrder.Code)
             });
-            var request = await _unitOfWork.RequestRepository.GetAsync(package.Offer.RequestId.Value);
-            if (request == null)
-                return new ResponseModel
+            if (package.Offer?.RequestId != null)
+            {
+                var request = await _unitOfWork.RequestRepository.GetAsync(package.Offer.RequestId.Value);
+                if (request != null)
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request not found."
-                };
-            request.Status = RequestStatus.Completed;
+                    request.Status = RequestStatus.Completed;
+                    _unitOfWork.RequestRepository.Update(request);
+                }
+            }
             newOrder.PaymentStatus = PaymentStatus.Success;
-            _unitOfWork.RequestRepository.Update(request);
             _unitOfWork.WalletRepository.Update(wallet);
             await _unitOfWork.OrderRepository.AddAsync(newOrder);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -299,7 +299,7 @@ namespace Chillde.Services.Services
                 totalOrder = (decimal)(package.Price * package.Offer.Request.Quantity);
                 adminCommission = await AdminCommission(totalOrder, 0);
 
-                return await CreateOrderAsync(orderAddModel, package, userId, totalOrder, adminCommission, 0 ,(int)(package.Offer?.Request?.Quantity ?? 1), null, null);
+                return await CreateOrderAsync(orderAddModel, package, userId, totalOrder, adminCommission, 0, (int)(package.Offer?.Request?.Quantity ?? 1), null, null);
 
             }
 
@@ -454,7 +454,7 @@ namespace Chillde.Services.Services
                         PackageFeatureId = info.PackageFeatureId,
                         OrderInformationAttachments = new List<OrderInformationAttachment>()
                     };
-                    
+
                     if (info.OrderInformationAttachmentAddModels != null)
                     {
                         foreach (var attachment in info.OrderInformationAttachmentAddModels)
@@ -569,7 +569,7 @@ namespace Chillde.Services.Services
                 if (hasUsed)
                 {
                     throw new Exception($"The order has used this voucher.");
-                     
+
                 }
                 if (voucher.MinOrderValue.HasValue && remainingOrderPrice < voucher.MinOrderValue.Value)
                 {
@@ -704,13 +704,15 @@ namespace Chillde.Services.Services
                       .Include(_ => _.Package).ThenInclude(_ => _.Offer)
                       .ThenInclude(_ => _.Request)
             );
-            var request = await _unitOfWork.RequestRepository.GetAsync(order.Package.Offer.RequestId.Value);
-            if (request == null)
-                return new ResponseModel
+            if (order?.Package.Offer?.RequestId != null)
+            {
+                var request = await _unitOfWork.RequestRepository.GetAsync(order.Package.Offer.RequestId.Value);
+                if (request != null)
                 {
-                    Code = StatusCodes.Status404NotFound,
-                    Message = "Request not found."
-                };
+                    request.Status = RequestStatus.Completed;
+                    _unitOfWork.RequestRepository.Update(request);
+                }
+            }
             if (order == null)
                 return new ResponseModel
                 {
@@ -733,7 +735,6 @@ namespace Chillde.Services.Services
                     voucherUsageLog.UsageStatus = UsageStatus.Used;
                 }
             }
-            request.Status = RequestStatus.Completed;
             order.PaymentStatus = PaymentStatus.Success;
             var wallet = order.CreatedBy.Wallet;
 
@@ -757,7 +758,7 @@ namespace Chillde.Services.Services
                 wallet.Balance = (decimal)(transferOut.Amount - order.TotalPrice);
                 _unitOfWork.WalletRepository.Update(wallet);
             }
-            _unitOfWork.RequestRepository.Update(request);
+
             _unitOfWork.WalletRepository.Update(wallet);
             _unitOfWork.OrderRepository.Update(order);
             var result = await _unitOfWork.SaveChangeAsync();
@@ -774,7 +775,7 @@ namespace Chillde.Services.Services
         }
         public async Task<ResponseModel> CreateShipmentAsync(ShipmentCreateModel shipmentCreateModel, Guid orderId)
         {
-            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include: 
+            var order = await _unitOfWork.OrderRepository.GetAsync(orderId, include:
                 order => order.Include(_ => _.Package).ThenInclude(_ => _.Service)
                               .Include(_ => _.Package).ThenInclude(_ => _.Offer));
             if (order == null)
@@ -905,7 +906,7 @@ namespace Chillde.Services.Services
                             Name = product.Name ?? string.Empty,
                             Weight = product.Weight,
                             Quantity = product.Quantity ?? 0,
-                            ProductCode = string.Empty 
+                            ProductCode = string.Empty
                         });
                     }
                 }
@@ -918,7 +919,7 @@ namespace Chillde.Services.Services
 
                 await _unitOfWork.ShipmentRepository.AddAsync(shipment);
                 int result = await _unitOfWork.SaveChangeAsync();
-                if(result > 0)
+                if (result > 0)
                 {
                     var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_InDelivery).Result;
                     if (notificationContent != null)
@@ -1138,19 +1139,19 @@ namespace Chillde.Services.Services
 
             Expression<Func<Chillde.Repositories.Entities.Order, bool>> filter = orderFilterModel.Role switch
             {
-               Chillde.Repositories.Enums.Role.Customer => o =>
-                    o.CreatedById == orderFilterModel.AccountId &&
-                    (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
-                    (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
-                    (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
-                    (string.IsNullOrEmpty(orderFilterModel.Search) || (
-                        o.Code.Contains(orderFilterModel.Search) ||
-                        o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
-                        o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
-                        o.Address.Contains(orderFilterModel.Search) ||
-                        o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
-                        o.CreatedBy.LastName.Contains(orderFilterModel.Search)
-                    )),
+                Chillde.Repositories.Enums.Role.Customer => o =>
+                     o.CreatedById == orderFilterModel.AccountId &&
+                     (!orderFilterModel.Status.HasValue || o.Status == orderFilterModel.Status) &&
+                     (!orderFilterModel.MinPrice.HasValue || o.TotalPrice >= orderFilterModel.MinPrice) &&
+                     (!orderFilterModel.MaxPrice.HasValue || o.TotalPrice <= orderFilterModel.MaxPrice) &&
+                     (string.IsNullOrEmpty(orderFilterModel.Search) || (
+                         o.Code.Contains(orderFilterModel.Search) ||
+                         o.CreatedBy.Username.Contains(orderFilterModel.Search) ||
+                         o.CreatedBy.PhoneNumber.Contains(orderFilterModel.Search) ||
+                         o.Address.Contains(orderFilterModel.Search) ||
+                         o.CreatedBy.FirstName.Contains(orderFilterModel.Search) ||
+                         o.CreatedBy.LastName.Contains(orderFilterModel.Search)
+                     )),
 
                 Chillde.Repositories.Enums.Role.Artisan => o =>
                     (
@@ -1509,7 +1510,7 @@ namespace Chillde.Services.Services
 
                 if (result > 0)
                 {
-                    if(orderStatus == OrderStatus.Rejected)
+                    if (orderStatus == OrderStatus.Rejected)
                     {
                         var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_RejectOrder).Result;
                         if (notificationContent != null)
@@ -1524,7 +1525,7 @@ namespace Chillde.Services.Services
                             await _notificationService.PushNotification(notificationAddModel);
                         }
                     }
-                    if (orderStatus == OrderStatus.Accepted) 
+                    if (orderStatus == OrderStatus.Accepted)
                     {
                         var notificationContent = _unitOfWork.NotificationContentRepository.GetByKeyAsync(NotificationCode.Customer_AcceptOrder).Result;
                         if (notificationContent != null)
@@ -2534,7 +2535,8 @@ namespace Chillde.Services.Services
                     {
                         Code = StatusCodes.Status400BadRequest,
                         Message = $"Order is not in AwaitingClosure stage. Current stage: {order.Stage}."
-                    };                }
+                    };
+                }
                 if (order.Status != OrderStatus.Accepted)
                 {
                     return new ResponseModel
@@ -2592,7 +2594,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                 await _unitOfWork.BeginTransactionAsync();
+                await _unitOfWork.BeginTransactionAsync();
                 try
                 {
                     var wallet = artisanAccount.Wallet;
@@ -2674,7 +2676,7 @@ namespace Chillde.Services.Services
                     Code = StatusCodes.Status500InternalServerError,
                     Message = $"Error updating order: {ex.Message}"
                 };
-            }        
+            }
             return new ResponseModel
             {
                 Code = StatusCodes.Status200OK,
@@ -2685,7 +2687,7 @@ namespace Chillde.Services.Services
         {
             try
             {
-                var order = await _unitOfWork.OrderRepository.GetAsync(orderId, 
+                var order = await _unitOfWork.OrderRepository.GetAsync(orderId,
                     include: order => order.Include(_ => _.Package).ThenInclude(_ => _.Offer)
                                            .Include(_ => _.Package).ThenInclude(_ => _.Service)
                     );
@@ -2708,7 +2710,7 @@ namespace Chillde.Services.Services
                 }
 
                 var existingReport = await _unitOfWork.ReportRepository.GetByOrder(orderId);
-                if(existingReport != null)
+                if (existingReport != null)
                 {
                     return new ResponseModel
                     {
@@ -2733,7 +2735,7 @@ namespace Chillde.Services.Services
                         var attachmentUrl = attachmentModel[i].AttachmentUrl;
 
                         // string? path = null;
-                        
+
                         // TODO: Fix attachment path
                         // if (attachmentUrl != null)
                         // {
