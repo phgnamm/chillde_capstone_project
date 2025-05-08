@@ -86,7 +86,7 @@ namespace Chillde.Services.Services
                     };
                 }
 
-                if (model.EffectiveFrom == null && config.IsActive == true)
+                if ((model.EffectiveFrom == null || model.EffectiveFrom == DateOnly.FromDateTime(DateTime.Now)) && config.IsActive == true)
                 {
                     config.Value = JsonSerializer.SerializeToDocument(int.Parse(model.Value.ToString()));
                     _unitOfWork.SystemConfigRepository.Update(config);
@@ -110,12 +110,22 @@ namespace Chillde.Services.Services
                     await _unitOfWork.SystemConfigRepository.AddAsync(newConfig);
                 }
 
-                await _unitOfWork.SaveChangeAsync();
+                int result = await _unitOfWork.SaveChangeAsync();
+
+                if (result > 0)
+                {
+                    return new ResponseModel
+                    {
+                        Code = StatusCodes.Status200OK,
+                        Message = "Configuration updated successfully",
+                        Data = true
+                    };
+                }
 
                 return new ResponseModel
                 {
-                    Code = StatusCodes.Status200OK,
-                    Message = "Configuration updated successfully",
+                    Code = StatusCodes.Status422UnprocessableEntity,
+                    Message = "Nothing change",
                     Data = true
                 };
             }
