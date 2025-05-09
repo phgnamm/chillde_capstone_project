@@ -1989,6 +1989,7 @@ public class AccountService : IAccountService
                 {
                     Total = currentRevenue,
                     TotalMoneyOfPlatForm = totalMoneyOfOrder ?? 0,
+                    TotalPlatformRevenue = totalMoneyOfPlatform ?? 0,
                     ChangePercentage = CalculateRevenueChange(currentRevenue, lastMonthRevenue),
                 },
                 Users = new UserStat
