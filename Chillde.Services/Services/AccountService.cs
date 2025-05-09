@@ -1844,14 +1844,14 @@ public class AccountService : IAccountService
             .SumAsync(o => o.TotalPrice - o.ShippingPrice) ?? 0;
 
         var totalMoneyOfOrder = await _unitOfWork.Context.Orders
-            .Where(o => o.CreationDate.Year == now.Year && !o.IsDeleted)
+            .Where(o =>!o.IsDeleted)
             .SumAsync(o =>
                 (o.Status == OrderStatus.Pending || o.Status == OrderStatus.Accepted)
                 ? o.TotalPrice
                 : 0
             );
         var totalMoneyOfPlatform = await _unitOfWork.Context.Orders
-      .Where(o => o.CreationDate.Date == today && o.CreationDate.Year == now.Year && !o.IsDeleted)
+      .Where(o => !o.IsDeleted)
       .SumAsync(o =>
           (o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed)
           ? (o.AdminCommUsedVch ?? o.AdminCommDefault)
