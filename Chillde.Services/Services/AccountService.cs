@@ -1611,16 +1611,16 @@ public class AccountService : IAccountService
 
         if (!accountRole.IsDeleted && accountRole.Status == AccountStatus.Active)
         {
-            if(accountRole.Role.Name == "Artisan")
+            if (accountRole.Role.Name == "Artisan")
             {
                 var services = await _unitOfWork.ServiceRepository.GetAllAsync(filter: _ => _.CreatedById == accountRole.AccountId);
-                foreach(var service in services.Data)
+                foreach (var service in services.Data)
                 {
-                    service.IsDeleted = true;                  
+                    service.IsDeleted = true;
                     _unitOfWork.ServiceRepository.Update(service);
                 }
                 var orders = await _unitOfWork.OrderRepository.GetAllAsync(filter: _ => _.Package.CreatedById == accountRole.AccountId && (_.Status == OrderStatus.Pending || _.Status == OrderStatus.Accepted), include: _ => _.Include(_ => _.Package).ThenInclude(_ => _.Service).Include(_ => _.CreatedBy).ThenInclude(_ => _.Wallet));
-                foreach(var order in orders.Data)
+                foreach (var order in orders.Data)
                 {
                     var customerAccount = order.CreatedBy;
                     var transaction = new Transaction
@@ -1640,7 +1640,7 @@ public class AccountService : IAccountService
                     _unitOfWork.OrderRepository.Update(order);
                     _unitOfWork.AccountRepository.Update(customerAccount);
                 }
-              
+
             }
             accountRole.Status = AccountStatus.Suspended;
             accountRole.IsDeleted = true;
@@ -1654,7 +1654,7 @@ public class AccountService : IAccountService
                 {
                     service.IsDeleted = false;
                     _unitOfWork.ServiceRepository.Update(service);
-                }             
+                }
             }
             accountRole.Status = AccountStatus.Active;
             accountRole.IsDeleted = false;
@@ -1843,6 +1843,22 @@ public class AccountService : IAccountService
             .Where(o => o.CreationDate.Month == now.Month && o.CreationDate.Year == now.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
             .SumAsync(o => o.TotalPrice - o.ShippingPrice) ?? 0;
 
+        var totalMoneyOfOrder = await _unitOfWork.Context.Orders
+            .Where(o => o.CreationDate.Year == now.Year && !o.IsDeleted)
+            .SumAsync(o =>
+                (o.Status == OrderStatus.Pending || o.Status == OrderStatus.Accepted)
+                ? o.TotalPrice
+                : 0
+            );
+        var totalMoneyOfPlatform = await _unitOfWork.Context.Orders
+      .Where(o => o.CreationDate.Date == today && o.CreationDate.Year == now.Year && !o.IsDeleted)
+      .SumAsync(o =>
+          (o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed)
+          ? (o.AdminCommUsedVch ?? o.AdminCommDefault)
+          : 0
+      );
+
+
         var lastMonthRevenue = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate.Month == lastMonth.Month && o.CreationDate.Year == lastMonth.Year && o.Stage == OrderStage.Completed && o.Status == OrderStatus.Completed && o.IsDeleted == false)
             .SumAsync(o => o.TotalPrice - o.ShippingPrice) ?? 0;
@@ -1879,21 +1895,40 @@ public class AccountService : IAccountService
         var startOfYear = new DateTime(dashboardFilterModel.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         var endOfYear = startOfYear.AddYears(1);
-
-        var ordersInYear = await _unitOfWork.Context.Orders
+        var completedOrders = await _unitOfWork.Context.Orders
             .Where(o => o.CreationDate >= startOfYear && o.CreationDate < endOfYear
                         && !o.IsDeleted && o.Status == OrderStatus.Completed && o.Stage == OrderStage.Completed)
             .ToListAsync();
 
-        var revenueByMonth = ordersInYear
+        var canceledOrders = await _unitOfWork.Context.Orders
+            .Where(o => o.CreationDate >= startOfYear && o.CreationDate < endOfYear
+                        && !o.IsDeleted && o.Status == OrderStatus.Cancelled && o.Stage == OrderStage.Cancelled && o.ArtistRevenueAfterCancel > 0)
+            .ToListAsync();
+
+        var canceledRevenueByMonth = canceledOrders
             .GroupBy(o => new { o.CreationDate.Year, o.CreationDate.Month })
-            .Select(g => new
+            .ToDictionary(
+                g => new DateOnly(g.Key.Year, g.Key.Month, 1),
+                g => g.Sum(x => x.ArtistRevenueAfterCancel ?? 0)
+            );
+
+        var revenueByMonth = completedOrders
+            .GroupBy(o => new { o.CreationDate.Year, o.CreationDate.Month })
+            .Select(g =>
             {
-                Month = new DateOnly(g.Key.Year, g.Key.Month, 1),
-                TotalPriceWithoutShipFee = g.Sum(x => x.TotalPrice - x.ShippingPrice),
-                TotalPlatformFee = g.Sum(x => x.AdminCommUsedVch ?? x.AdminCommDefault)
+                var monthKey = new DateOnly(g.Key.Year, g.Key.Month, 1);
+                var revenueAfterCancel = canceledRevenueByMonth.TryGetValue(monthKey, out var val) ? val : 0;
+
+                return new
+                {
+                    Month = monthKey,
+                    TotalPriceWithoutShipFee = g.Sum(x => x.TotalPrice - x.ShippingPrice),
+                    TotalPlatformFee = g.Sum(x => x.AdminCommUsedVch ?? x.AdminCommDefault),
+                    TotalArtisanRevenue = g.Sum(x => x.ArtistRevenue ?? 0) + revenueAfterCancel
+                };
             })
             .ToList();
+
 
         var artisanWithHighestRevenues = _unitOfWork.Context.Orders
     .Where(o => o.Status == OrderStatus.Completed
@@ -1928,7 +1963,7 @@ public class AccountService : IAccountService
                 Month = $"Tháng {month.Month}",
                 TotalPriceWithoutShipFee = data?.TotalPriceWithoutShipFee ?? 0,
                 TotalPlatformFee = data?.TotalPlatformFee ?? 0,
-                TotalArtisanRevenue = (data?.TotalPriceWithoutShipFee ?? 0) - (data?.TotalPlatformFee ?? 0)
+                TotalArtisanRevenue = data?.TotalArtisanRevenue ?? 0
             };
         }).ToList();
 
@@ -1953,6 +1988,7 @@ public class AccountService : IAccountService
                 Revenue = new RevenueStat
                 {
                     Total = currentRevenue,
+                    TotalMoneyOfPlatForm = (totalMoneyOfPlatform + totalMoneyOfOrder) ?? 0,
                     ChangePercentage = CalculateRevenueChange(currentRevenue, lastMonthRevenue),
                 },
                 Users = new UserStat
@@ -1962,7 +1998,7 @@ public class AccountService : IAccountService
                     Details = new UserDetail
                     {
                         Artisan = artisanCount,
-                        Customer = customerCount    
+                        Customer = customerCount
                     }
 
                 },
