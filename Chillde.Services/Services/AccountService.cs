@@ -1988,7 +1988,7 @@ public class AccountService : IAccountService
                 Revenue = new RevenueStat
                 {
                     Total = currentRevenue,
-                    TotalMoneyOfPlatForm = (totalMoneyOfPlatform + totalMoneyOfOrder) ?? 0,
+                    TotalMoneyOfPlatForm = totalMoneyOfOrder ?? 0,
                     ChangePercentage = CalculateRevenueChange(currentRevenue, lastMonthRevenue),
                 },
                 Users = new UserStat
