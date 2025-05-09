@@ -2598,12 +2598,13 @@ namespace Chillde.Services.Services
                 try
                 {
                     var wallet = artisanAccount.Wallet;
-                    wallet.Balance += ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m); _unitOfWork.WalletRepository.Update(wallet);
+                    wallet.Balance += ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m); 
+                    _unitOfWork.WalletRepository.Update(wallet);
 
                     order.Transactions.Add(new Transaction
                     {
                         WalletId = wallet.Id,
-                        Amount = wallet.Balance += ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m),
+                        Amount = ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m),
                         Type = TransactionType.TransferIn,
                         Status = TransactionStatus.Completed,
                         CreatedById = artisanAccount.CreatedById,
