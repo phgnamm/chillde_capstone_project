@@ -130,13 +130,13 @@ namespace Chillde.Services.Services
                         {
                             var bonusPoint = unitOfWork.SystemConfigRepository.GetValueByKeyAsync(SystemConfigKey.ReputationIncreaseOnSuccess).Result;
                             var wallet = artisanAccount.Wallet;
-                            wallet.Balance += (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice;
+                            wallet.Balance += ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m);
                             unitOfWork.WalletRepository.Update(wallet);
 
                             order.Transactions.Add(new Transaction
                             {
                                 WalletId = wallet.Id,
-                                Amount = (decimal)order.ArtistRevenue + (decimal)order.ShippingPrice,
+                                Amount = ((decimal?)(order.ArtistRevenue ?? 0) ?? 0m) + ((decimal?)(order.ShippingPrice ?? 0) ?? 0m),
                                 Type = TransactionType.TransferIn,
                                 Status = TransactionStatus.Completed,
                                 CreatedById = artisanAccount.CreatedById,
