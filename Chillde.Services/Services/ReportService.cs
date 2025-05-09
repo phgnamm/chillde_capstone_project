@@ -110,6 +110,7 @@ namespace Chillde.Services.Services
                     ReportCode = _.Code,
                     CustomerImage = _.Order.CreatedBy.Image,
                     CreationOrderDate = _.Order.CreationDate,
+                    CreationDate = _.CreationDate,
                     Response = _.Response,
                     Status = _.Status,
                     OrderId = _.OrderId,
