@@ -1686,11 +1686,11 @@ public class AccountService : IAccountService
 
 
         int totalOrder = await _unitOfWork.Context.Orders
-            .Where(x => x.Package.CreatedById == currentUserId && !x.IsDeleted)
+            .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate  && x.Package.CreatedById == currentUserId && !x.IsDeleted)
             .CountAsync();
 
         int totalPendingOrder = await _unitOfWork.Context.Orders
-            .Where(x => x.Package.CreatedById == currentUserId && !x.IsDeleted)
+            .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Pending && !x.IsDeleted)
             .CountAsync();
 
         int totalOrderPerDay = await _unitOfWork.Context.Orders
@@ -1701,15 +1701,15 @@ public class AccountService : IAccountService
             .CountAsync();
 
         int totalActiveOrder = await _unitOfWork.Context.Orders
-            .Where(x => x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Pending && !x.IsDeleted)
+            .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && x.Package.CreatedById == currentUserId && (x.Status == OrderStatus.Pending || x.Status == OrderStatus.Accepted) && !x.IsDeleted)
             .CountAsync();
 
         int totalCancelOrder = await _unitOfWork.Context.Orders
-          .Where(x => x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Cancelled && !x.IsDeleted)
+          .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Cancelled && !x.IsDeleted)
           .CountAsync();
 
         int totalDeliveredOrder = await _unitOfWork.Context.Orders
-            .Where(x => !x.IsDeleted && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Completed)
+            .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && !x.IsDeleted && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Completed)
             .CountAsync();
 
         decimal totalRevenue = (decimal)await _unitOfWork.Context.Transaction
