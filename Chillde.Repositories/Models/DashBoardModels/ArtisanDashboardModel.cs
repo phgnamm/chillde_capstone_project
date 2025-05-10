@@ -8,6 +8,7 @@
         public int TotalPendingOrder { get; set; }
         public int TotalDeliveredOrder { get; set; }
         public int TotalCancelOrder { get; set; }
+        public int TotalRefundedOrder { get; set; }
         public int TotalActiveOrder { get; set; }
         public List<Earning> Earnings { get; set; }
 

@@ -1708,8 +1708,11 @@ public class AccountService : IAccountService
           .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Cancelled && !x.IsDeleted)
           .CountAsync();
 
+        int totalRefundedOrder = await _unitOfWork.Context.Orders
+         .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Refunded && !x.IsDeleted)
+         .CountAsync();
         int totalDeliveredOrder = await _unitOfWork.Context.Orders
-            .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && !x.IsDeleted && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Completed)
+            .Where(x => x.CreationDate >= startDate && x.CreationDate <= endDate && !x.IsDeleted && x.Package.CreatedById == currentUserId && x.Status == OrderStatus.Completed && !x.IsDeleted)
             .CountAsync();
 
         decimal totalRevenue = (decimal)await _unitOfWork.Context.Transaction
@@ -1757,6 +1760,7 @@ public class AccountService : IAccountService
                 TotalPendingOrder = totalPendingOrder,
                 TotalActiveOrder = totalActiveOrder,
                 TotalCancelOrder = totalCancelOrder,
+                TotalRefundedOrder = totalRefundedOrder,
                 TotalDeliveredOrder = totalDeliveredOrder,
                 Earnings = earnings
             }
