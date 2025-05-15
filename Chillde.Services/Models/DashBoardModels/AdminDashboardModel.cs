@@ -19,6 +19,7 @@ namespace Chillde.Services.Models.DashBoardModels
     {
         public decimal Total { get; set; }
         public decimal TotalMoneyOfPlatForm { get; set; }
+        public decimal TotalPlatformRevenue { get; set; }
         public double ChangePercentage { get; set; }
         public string ComparedTo { get; set; } = "lastMonth";
     }
